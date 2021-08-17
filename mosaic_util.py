@@ -10,13 +10,15 @@ def get_root_list(dir):
     for dirpath, dirnames, filenames in os.walk(dir):
         for filename in filenames:
             if filename.endswith('-METADATA.dat'):
-                root_list.append(filename.replace('-METADATA.dat', ''))
+                root_list.append(os.path.join(
+                                        dir,
+                                        filename.replace('-METADATA.dat', '')))
     root_list.sort()
     return root_list
 
 # Given a root filename, read and return the mosaic data file.
-def read_mosaic(dir, root):
-    return np.load(os.path.join(dir, root+'-MOSAIC.npy'))
+def read_mosaic(root):
+    return np.load(root+'-MOSAIC.npy')
 
 # Given a root filename, read and return the metadata. The returned metadata
 # is a dictionary with the following keys:
@@ -59,8 +61,8 @@ def read_mosaic(dir, root):
 #                           radial resolutions for the radial positions in the
 #                           source image for each co-rotating longitude.
 #
-#   longitudes              The inertial longitude (in radians) in the source
-#                           image for each co-rotating longitude.
+#   longitudes              The co-rotating longitude for each longitude
+#                           position. <0 means invalid data.
 #
 #   image_numbers           Integers indicating which source image this
 #                           longitude's data came from. These integers are
@@ -73,14 +75,14 @@ def read_mosaic(dir, root):
 #                           to create the moasic.
 #     repro_path_list       The full path of the reprojected image file on the
 #                           computer used to create the mosaic.
-def read_metadata(dir, root):
-    with open(os.path.join(dir, root+'-METADATA.dat'), 'rb') as fp:
+def read_metadata(root):
+    with open(root+'-METADATA.dat', 'rb') as fp:
         metadata = pickle.load(fp, encoding='latin1')
     return metadata
 
 # Return the valid portion of a mosaic.
 def valid_mosaic_subset(mosaic, meadata):
-    valid_longitudes = get_valid_longitudes(mosaic, metadata):
+    valid_longitudes = get_valid_longitudes(mosaic, metadata)
     lower_limit = metadata['ring_lower_limit']
     upper_limit = metadata['ring_upper_limit']
     return mosaic[lower_limit:upper_limit+1, valid_longitudes]
