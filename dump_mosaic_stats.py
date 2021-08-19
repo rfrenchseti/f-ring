@@ -1,3 +1,7 @@
+# python dump_mosaic_stats.py 0 data_files/good_qual_full.csv
+# python dump_mosaic_stats.py 1 data_files/good_qual_1deg.csv
+# python dump_mosaic_stats.py 10 data_files/good_qual_10deg.csv
+
 import csv
 import julian
 import matplotlib.pyplot as plt
@@ -39,8 +43,7 @@ writer.writerow(['Observation', 'Slice#', 'Date',
 
 for root in root_list:
     if ('166RI' in root or
-        '237RI' in root or
-        '241RI' in root):
+        '237RI' in root):
         continue
     mosaic = read_mosaic(root)
     metadata = read_metadata(root)
@@ -108,6 +111,9 @@ for root in root_list:
         ew_mean_mu = np.mean(slice_ew_profile_mu)
         ew_std_mu = np.std(slice_ew_profile_mu)
 
+        if ew_mean <= 0:
+            print(root, slice_num, 'EW Mean < 0')
+            continue
         writer.writerow([obsid, slice_num, et_date,
                          np.round(min_res, 3),
                          np.round(max_res, 3),
