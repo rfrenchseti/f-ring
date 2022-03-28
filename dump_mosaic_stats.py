@@ -2,6 +2,13 @@
 # python dump_mosaic_stats.py 1 data_files/good_qual_1deg.csv
 # python dump_mosaic_stats.py 10 data_files/good_qual_10deg.csv
 
+# Read in all background-subtracted mosaics, collect statistics, and dump them into
+# a CSV file.
+# - We only pay attention to radial slices that have NO bad pixels
+# - The EW profile is split into "slices" of size slice_size
+# - Each slice gets its own statistics
+#   - The percent longtiude coverage is the same for all slices of a given mosaic
+
 import csv
 import julian
 import matplotlib.pyplot as plt
@@ -19,10 +26,7 @@ output_csv_filename = sys.argv[2]
 
 assert slice_size == 0 or (360 % slice_size) == 0
 
-MOVIE_TYPE_LIST = ['FMOVIE',
-                   'FMOVIE_NEW',
-                   'FMOVIE_NEW2',
-                   'FMOVIE_NEW3']
+MOVIE_TYPE_LIST = ['FMOVIE']
 
 BKGND_SUB_DIR_ROOT = '/cdaps-results/fring/ring_mosaic/bkgnd_sub_mosaic_'
 
@@ -42,9 +46,9 @@ writer.writerow(['Observation', 'Slice#', 'Date',
                  'EW', 'EW Std', 'Normal EW', 'Normal EW Std'])
 
 for root in root_list:
-    if ('166RI' in root or
-        '237RI' in root):
+    if root in ('166RI', '237RI'):
         continue
+    print(root)
     mosaic = read_mosaic(root)
     metadata = read_metadata(root)
     longitudes = metadata['longitudes']
