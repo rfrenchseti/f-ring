@@ -6,13 +6,12 @@ import pickle
 # that end with "-METADATA.dat", but with that suffix stripped. We call that
 # stripped filename a "root" filename.
 def get_root_list(dir):
+    print(dir)
     root_list = []
     for dirpath, dirnames, filenames in os.walk(dir):
         for filename in filenames:
-            if filename.endswith('-METADATA.dat'):
-                root_list.append(os.path.join(
-                                        dir,
-                                        filename.replace('-METADATA.dat', '')))
+            if filename.endswith('.npy'):
+                root_list.append(os.path.join(dir, filename.replace('.npy', '')))
     root_list.sort()
     return root_list
 
@@ -75,7 +74,7 @@ def read_mosaic(root):
 #                           to create the moasic.
 #     repro_path_list       The full path of the reprojected image file on the
 #                           computer used to create the mosaic.
-def read_metadata(root):
+def read_mosaic_metadata(root):
     with open(root+'-METADATA.dat', 'rb') as fp:
         metadata = pickle.load(fp, encoding='latin1')
     return metadata
@@ -91,7 +90,18 @@ def valid_mosaic_subset(mosaic, meadata):
 # locations that are outside of the radii used to compute the background
 # gradient. This returns a 1-D boolean array of longitudes where True means
 # that longitude has valid data.
-def get_valid_longitudes(mosaic, metadata):
+def get_mosaic_valid_longitudes(mosaic, metadata):
     lower_limit = metadata['ring_lower_limit']
     upper_limit = metadata['ring_upper_limit']
     return np.all(mosaic[lower_limit:upper_limit+1, :], axis=0)
+
+def read_ew(root):
+    return np.load(root+'.npy')
+
+def read_ew_metadata(root):
+    with open(root+'-METADATA.dat', 'rb') as fp:
+        metadata = pickle.load(fp, encoding='latin1')
+    return metadata
+
+def get_ew_valid_longitudes(ew, ew_metadata):
+    return (ew != 0) & (ew_metadata['longitudes'] >= 0)

@@ -1,16 +1,13 @@
-- Add to CSV file
-  - Mean equivalent width and its stddev
-  - Mean normal equivalent width and its stddev
 - For all observations that are common between 2012 paper and current mosaics
-  - Compare published EW/STD with newly computed EW/STD
+  - Compare published EW+/-STD with newly computed EW+/-STD
     - Plot old and new EW with errors bars on a graph
     - Compare ratios of old and new EW - are they the same for all observations?
-- Compare the EW for the _1 and _2 versions
+- Compare the the _1 and _2 versions
   - Find the overlapping co-rotating longitudes and restrict both mosaics to
     that subset
-  - Recompute the EW/STD for each
-  - Compare
-- Derive the phase curve for all observations using the methodology in the 2012
+  - Recompute the EW+/-STD for each and compare
+  - Visually compare the two versions and categorize differences
+  - Derive the phase curve for all observations using the methodology in the 2012
   paper (log-cubic)  [Fig. 7]
   - Figure out how to handle the big bright event
     - Start by just removing those observations entirely
@@ -43,3 +40,6 @@
   values of the EW profile, as per the 2014 paper Section 2.3
   - Is there a difference in the phase curve, or its behavior over time,
     between the calm parts of the ring and the clumpy parts of the ring?
+- Use restricted radial ranges to deal with encroaching background bad pixels on all
+  of the above.
+- Clumps!

@@ -28,12 +28,12 @@ assert slice_size == 0 or (360 % slice_size) == 0
 
 MOVIE_TYPE_LIST = ['FMOVIE']
 
-BKGND_SUB_DIR_ROOT = '/cdaps-results/fring/ring_mosaic/bkgnd_sub_mosaic_'
+EW_DIR_ROOT = '/cdaps-results/fring/ring_mosaic/ew_'
 
 root_list = []
 
 for movie_type in MOVIE_TYPE_LIST:
-    root_list += get_root_list(BKGND_SUB_DIR_ROOT+movie_type)
+    root_list += get_root_list(EW_DIR_ROOT+movie_type)
 
 csv_fp = open(output_csv_filename, 'w')
 writer = csv.writer(csv_fp)
@@ -46,35 +46,35 @@ writer.writerow(['Observation', 'Slice#', 'Date',
                  'EW', 'EW Std', 'Normal EW', 'Normal EW Std'])
 
 for root in root_list:
-    if root in ('166RI', '237RI'):
+    if '166RI' in root or '237RI' in root:
+        print('Skipping', root)
         continue
     print(root)
-    mosaic = read_mosaic(root)
-    metadata = read_metadata(root)
-    longitudes = metadata['longitudes']
-    valid_longitudes = get_valid_longitudes(mosaic, metadata)
 
-    longitude_resolution = np.degrees(metadata['longitude_resolution'])
-    radius_resolution = metadata['radius_resolution']
+    ew_profile = read_ew(root)
+    ew_metadata = read_ew_metadata(root)
+    longitudes = ew_metadata['longitudes']
+    valid_longitudes = get_ew_valid_longitudes(ew_profile, ew_metadata)
+
+    longitude_resolution = np.degrees(ew_metadata['longitude_resolution'])
+    radius_resolution = ew_metadata['radius_resolution']
 
     num_valid_longitudes = np.sum(valid_longitudes)
     percent_coverage = int(num_valid_longitudes * 100 / len(longitudes))
 
+    print(num_valid_longitudes, percent_coverage)
+
     # Just assume all the images are part of the same obsid
-    obsid = metadata['obsid_list'][0]
+    obsid = ew_metadata['obsid_list'][0]
 
-    incidence_angle = metadata['incidence_angle']
+    incidence_angle = ew_metadata['incidence_angle']
 
-    ETs = metadata['ETs'][valid_longitudes]
-    emission_angles = metadata['emission_angles'][valid_longitudes]
-    phase_angles = metadata['phase_angles'][valid_longitudes]
-    resolutions = metadata['resolutions'][valid_longitudes]
+    ETs = ew_metadata['ETs'][valid_longitudes]
+    emission_angles = ew_metadata['emission_angles'][valid_longitudes]
+    phase_angles = ew_metadata['phase_angles'][valid_longitudes]
+    resolutions = ew_metadata['resolutions'][valid_longitudes]
 
-    lower_limit = metadata['ring_lower_limit']
-    upper_limit = metadata['ring_upper_limit']
-    ew_profile = (np.sum(mosaic[lower_limit:upper_limit+1, valid_longitudes],
-                         axis=0) *
-                  radius_resolution)
+    ew_profile = ew_profile[valid_longitudes]
 
     slice_size_in_longitudes = int(slice_size / longitude_resolution)
     if slice_size == 0:
@@ -102,11 +102,11 @@ for root in root_list:
 
         min_ph = np.min(slice_phase_angles)
         max_ph = np.max(slice_phase_angles)
-        mean_ph = (min_ph+max_ph)/2
+        mean_ph = (min_ph+max_ph) / 2
 
         min_res = np.min(slice_resolutions)
         max_res = np.max(slice_resolutions)
-        mean_res = (min_res+max_res)/2
+        mean_res = (min_res+max_res) / 2
 
         ew_mean = np.mean(slice_ew_profile)
         ew_std = np.std(slice_ew_profile)
