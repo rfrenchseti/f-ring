@@ -26,14 +26,9 @@ output_csv_filename = sys.argv[2]
 
 assert slice_size == 0 or (360 % slice_size) == 0
 
-MOVIE_TYPE_LIST = ['FMOVIE']
+EW_DIR_ROOT = os.environ['EW_DIR']
 
-EW_DIR_ROOT = '/cdaps-results/fring/ring_mosaic/ew_'
-
-root_list = []
-
-for movie_type in MOVIE_TYPE_LIST:
-    root_list += get_root_list(EW_DIR_ROOT+movie_type)
+root_list = get_root_list(EW_DIR_ROOT)
 
 csv_fp = open(output_csv_filename, 'w')
 writer = csv.writer(csv_fp)

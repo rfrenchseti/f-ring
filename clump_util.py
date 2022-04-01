@@ -13,8 +13,7 @@ Author: Shannon Hicks and Rob French
 import numpy as np
 import clump_util
 import matplotlib.pyplot as plt
-import cwt
-import ringutil
+import clump_cwt
 import pickle
 import os
 
@@ -307,20 +306,24 @@ def track_clumps(clump_db, max_movement, longitude_tolerance, max_time, scale_to
 def plot_single_clump(ax, ew_data, clump, long_min, long_max, label=False, color='red'):
     long_res = 360. / len(ew_data)
     longitudes = np.arange(len(ew_data)*3) * long_res - 360.
-    mother_wavelet = cwt.SDG(len_signal=len(ew_data)*3, scales=np.array([int(clump.scale_idx/2)]))
+    mother_wavelet = clump_cwt.SDG(len_signal=ew_data.size*3,
+                                   scales=np.array([int(clump.scale_idx/2)]))
     mexhat = mother_wavelet.coefs[0].real # Get the master wavelet shape
-    mh_start_idx = round(len(mexhat)/2.-clump.scale_idx/2.)
-    mh_end_idx = round(len(mexhat)/2.+clump.scale_idx/2.)
+    mh_start_idx = int(round(len(mexhat)/2.-clump.scale_idx/2.))
+    mh_end_idx =   int(round(len(mexhat)/2.+clump.scale_idx/2.))
     mexhat = mexhat[mh_start_idx:mh_end_idx+1] # Extract just the positive part
     mexhat = mexhat*clump.mexhat_height+clump.mexhat_base
     longitude_idx = clump.longitude_idx
-    if longitude_idx+clump.scale_idx/2 >= len(ew_data): # Runs off right side - make it run off left side instead
+    if longitude_idx+clump.scale_idx/2 >= len(ew_data):
+        # Runs off right side - make it run off left side instead
         longitude_idx -= len(ew_data)
-    idx_range = longitudes[longitude_idx-clump.scale_idx/2+len(ew_data):
-                           longitude_idx-clump.scale_idx/2+len(mexhat)+len(ew_data)] # Longitude range in data
+    # Longitude range in data
+    idx_range = longitudes[longitude_idx-int(clump.scale_idx/2)+len(ew_data):
+                           longitude_idx-int(clump.scale_idx/2)+len(mexhat)+len(ew_data)]
     legend = None
     if label:
-        legend = 'L=%7.2f W=%7.2f H=%6.3f' % (clump.longitude, clump.scale, clump.mexhat_height)
+        legend = (f'L={clump.longitude:7.2f} W={clump.scale:7.2f} '+
+                  f'H={clump.mexhat_height:6.3f}')
     ax.plot(idx_range, mexhat, '-', color= color, lw=2, alpha=0.8, label=legend)
     if longitude_idx-clump.scale_idx/2 < 0: # Runs off left side - plot it twice
         ax.plot(idx_range+360, mexhat, '-', color=color, lw=2, alpha=0.8)
