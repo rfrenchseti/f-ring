@@ -6,6 +6,7 @@ import julian
 
 BKGND_SUB_MOSAIC_DIR = os.environ['BKGND_SUB_MOSAIC_DIR']
 EW_DIR = os.environ['EW_DIR']
+POLAR_PNG_DIR = os.environ['POLAR_PNG_DIR']
 
 TWOPI = np.pi*2
 
@@ -196,6 +197,31 @@ def bkgnd_sub_mosaic_paths(arguments, obsid, make_dirs=False):
                                        arguments.longitude_zoom_amount,
                                        obsid, arguments.ring_type,
                                        make_dirs=make_dirs)
+
+def polar_png_path_spec(ring_radius, radius_inner, radius_outer,
+                        radius_resolution, longitude_resolution,
+                        radial_zoom_amount, longitude_zoom_amount,
+                        obsid, ring_type, make_dirs=False):
+    png_res_data = ('_%06d_%06d_%06d_%06.3f_%05.3f_%d_%d_1' % (
+                      ring_radius, radius_inner, radius_outer,
+                      radius_resolution, longitude_resolution,
+                      radial_zoom_amount, longitude_zoom_amount))
+    if make_dirs and not os.path.exists(POLAR_PNG_DIR):
+        os.mkdir(POLAR_PNG_DIR)
+    data_path = file_clean_join(POLAR_PNG_DIR,
+                                obsid+png_res_data+'-POLAR.png')
+    return data_path
+
+def polar_png_path(arguments, obsid, make_dirs=False):
+    return polar_png_path_spec(arguments.ring_radius,
+                               arguments.radius_inner_delta,
+                               arguments.radius_outer_delta,
+                               arguments.radius_resolution,
+                               arguments.longitude_resolution,
+                               arguments.radial_zoom_amount,
+                               arguments.longitude_zoom_amount,
+                               obsid, arguments.ring_type,
+                               make_dirs=make_dirs)
 
 def read_ew(root):
     return np.load(root+'.npy')

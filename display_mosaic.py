@@ -351,7 +351,9 @@ def display_mosaic(mosaicdata, mosaicdispdata):
 def callback_move_mosaic(x, y, mosaicdata):
     x = int(x)
     if x < 0: return
-    if mosaicdata.longitudes[x] < 0:  # Invalid longitude
+    ew = np.sum(mosaicdata.img[:, x]) * mosaicdata.radius_resolution
+    ewmu = ew*np.abs(np.cos(mosaicdata.emission_angles[x]))
+    if ew is ma.masked:  # Invalid longitude
         mosaicdispdata.label_inertial_longitude.config(text='')
         mosaicdispdata.label_longitude.config(text='')
         mosaicdispdata.label_phase.config(text='')
@@ -386,8 +388,6 @@ def callback_move_mosaic(x, y, mosaicdata):
         mosaicdispdata.label_date.config(text=
             julian.ymdhms_format_from_tai(julian.tai_from_tdb(
                 float(mosaicdata.ETs[x])), sep=' '))
-        ew = np.sum(mosaicdata.img[:, x]) * mosaicdata.radius_resolution
-        ewmu = ew*np.abs(np.cos(mosaicdata.emission_angles[x]))
         mosaicdispdata.label_ew.config(text=('%.5f'%ew))
         mosaicdispdata.label_ewmu.config(text=('%.5f'%ewmu))
 
