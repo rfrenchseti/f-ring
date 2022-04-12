@@ -128,19 +128,21 @@ else:
 
         with open(bkgnd_sub_mosaic_metadata_filename, 'rb') as bkgnd_metadata_fp:
             metadata = pickle.load(bkgnd_metadata_fp, encoding='latin1')
+        with np.load(bkgnd_sub_mosaic_filename) as npz:
+            bkgnd_sub_mosaic_img = ma.MaskedArray(**npz)
 
         if arguments.ew_inner_radius is not None:
             ring_lower_limit = int((arguments.ew_inner_radius -
                                     arguments.radius_inner_delta -
                                     arguments.ring_radius) / arguments.radius_resolution)
         else:
-            ring_lower_limit = metadata['ring_lower_limit']
+            ring_lower_limit = 0
         if arguments.ew_outer_radius is not None:
             ring_upper_limit = int((arguments.ew_outer_radius -
                                     arguments.radius_inner_delta -
                                     arguments.ring_radius) / arguments.radius_resolution)
         else:
-            ring_upper_limit = metadata['ring_upper_limit']
+            ring_upper_limit = bkgnd_sub_mosaic_img.shape[0]-1
         longitudes = metadata['longitudes']
         resolutions = metadata['resolutions']
         image_numbers = metadata['image_numbers']
@@ -149,22 +151,16 @@ else:
         incidence_angle = metadata['incidence_angle']
         phase_angles = metadata['phase_angles']
 
-        with np.load(bkgnd_sub_mosaic_filename) as npz:
-            bkgnd_sub_mosaic_img = ma.MaskedArray(**npz)
-            bkgnd_sub_mosaic_img = ma.filled(bkgnd_sub_mosaic_img, 0)
-
         percentage_ok = float(len(np.where(longitudes >= 0)[0])) / len(longitudes) * 100
 
         ew_data = (np.sum(bkgnd_sub_mosaic_img[ring_lower_limit:ring_upper_limit+1],
                           axis=0) * arguments.radius_resolution)
 
-        # valid_longitudes = np.all(
-        #     bkgnd_sub_mosaic_img[ring_lower_limit:ring_upper_limit+1, :], axis=0)
-        # valid_longitudes = valid_longitudes & (longitudes >= 0)
         valid_longitudes = longitudes >= 0
-        ew_data[~valid_longitudes] = 0
+        ew_data[~valid_longitudes] = ma.masked
 
-        f_ring_util.write_ew(ew_data_filename, ew_data, ew_metadata_filename, metadata)
+        f_ring_util.write_ew(ew_data_filename, ma.filled(ew_data, 0).data,
+                             ew_metadata_filename, metadata)
 
         print('%-30s %3d%% EW %8.5f +/- %8.5f' % (
               obs_id, percentage_ok, ma.mean(ew_data), np.std(ew_data)))

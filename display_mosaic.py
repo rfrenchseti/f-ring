@@ -121,9 +121,9 @@ def setup_mosaic_window(mosaicdata, mosaicdispdata):
 
     mosaicdispdata.imdisp = ImageDisp([mosaicdata.img.data],
                                       overlay_list=[mask_overlay],
-                                      canvas_size=(1500,402),
+                                      canvas_size=(1500,401),
                                       parent=frame_toplevel, flip_y=True,
-                                      one_zoom=False)
+                                      one_zoom=False, enlarge_limit=(0,2))
 
     #############################################
     # The control/data pane of the mosaic image #
@@ -204,6 +204,40 @@ def setup_mosaic_window(mosaicdata, mosaicdispdata):
     label.grid(row=gridrow, column=gridcolumn, sticky=W)
     mosaicdispdata.label_date = Label(addon_control_frame, text='')
     mosaicdispdata.label_date.grid(row=gridrow, column=gridcolumn+1, sticky=W)
+    gridrow += 1
+
+    label = Label(addon_control_frame, text='Long EW:')
+    label.grid(row=gridrow, column=gridcolumn, sticky=W)
+    mosaicdispdata.label_ew = Label(addon_control_frame, text='')
+    mosaicdispdata.label_ew.grid(row=gridrow, column=gridcolumn+1, sticky=W)
+    gridrow += 1
+
+    label = Label(addon_control_frame, text='Long EW*mu:')
+    label.grid(row=gridrow, column=gridcolumn, sticky=W)
+    mosaicdispdata.label_ewmu = Label(addon_control_frame, text='')
+    mosaicdispdata.label_ewmu.grid(row=gridrow, column=gridcolumn+1, sticky=W)
+    gridrow += 1
+
+    ews = np.sum(mosaicdata.img, axis=0) * mosaicdata.radius_resolution
+    ewsmu = ews*np.abs(np.cos(mosaicdata.emission_angles))
+
+    ew_mean = np.mean(ews)
+    ew_std = np.std(ews)
+    ewmu_mean = np.mean(ewsmu)
+    ewmu_std = np.std(ewsmu)
+    text_ew_stats = ('%.5f +/- %.5f'%(ew_mean, ew_std))
+    text_ewmu_stats = ('%.5f +/- %.5f'%(ewmu_mean, ewmu_std))
+
+    label = Label(addon_control_frame, text='Full EW:')
+    label.grid(row=gridrow, column=gridcolumn, sticky=W)
+    mosaicdispdata.label_ew_stats = Label(addon_control_frame, text=text_ew_stats)
+    mosaicdispdata.label_ew_stats.grid(row=gridrow, column=gridcolumn+1, sticky=W)
+    gridrow += 1
+
+    label = Label(addon_control_frame, text='Full EW*mu:')
+    label.grid(row=gridrow, column=gridcolumn, sticky=W)
+    mosaicdispdata.label_ewmu_stats = Label(addon_control_frame, text=text_ewmu_stats)
+    mosaicdispdata.label_ewmu_stats.grid(row=gridrow, column=gridcolumn+1, sticky=W)
     gridrow += 1
 
     gridrow = 0
@@ -327,6 +361,8 @@ def callback_move_mosaic(x, y, mosaicdata):
         mosaicdispdata.label_image.config(text='')
         mosaicdispdata.label_obsid.config(text='')
         mosaicdispdata.label_date.config(text='')
+        mosaicdispdata.label_ew.config(text='')
+        mosaicdispdata.label_ewmu.config(text='')
     else:
         mosaicdispdata.label_inertial_longitude.config(text=
                     ('%7.3f'%(np.degrees(f_ring_util.fring_corotating_to_inertial(
@@ -350,6 +386,10 @@ def callback_move_mosaic(x, y, mosaicdata):
         mosaicdispdata.label_date.config(text=
             julian.ymdhms_format_from_tai(julian.tai_from_tdb(
                 float(mosaicdata.ETs[x])), sep=' '))
+        ew = np.sum(mosaicdata.img[:, x]) * mosaicdata.radius_resolution
+        ewmu = ew*np.abs(np.cos(mosaicdata.emission_angles[x]))
+        mosaicdispdata.label_ew.config(text=('%.5f'%ew))
+        mosaicdispdata.label_ewmu.config(text=('%.5f'%ewmu))
 
     y = int(y)
     if y < 0:
