@@ -96,7 +96,7 @@ python_filename = sys.argv[0]
 python_dir = os.path.split(sys.argv[0])[0]
 # python_radial_reproject_program = os.path.join(python_dir, clump_util.PYTHON_RING_RADIAL_REPROJECT)
 # Compute longitude step of EW data
-long_res = arguments.longitude_resolution * arguments.mosaic_reduction_factor
+long_res = arguments.longitude_resolution
 
 class MsgDialog(tkinter.simpledialog.Dialog):
     def body(self, master):

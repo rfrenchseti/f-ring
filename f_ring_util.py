@@ -2,7 +2,15 @@ import numpy as np
 import os
 import pickle
 
+import julian
+
+BKGND_SUB_MOSAIC_DIR = os.environ['BKGND_SUB_MOSAIC_DIR']
 EW_DIR = os.environ['EW_DIR']
+
+TWOPI = np.pi*2
+
+def utc2et(s):
+    return julian.tdb_from_tai(julian.tai_from_iso(s))
 
 def file_clean_join(*args):
     ret = os.path.join(*args)
@@ -48,9 +56,6 @@ def add_parser_arguments(parser):
     parser.add_argument(
         '--longitude-zoom-amount', type=int, default=1,
         help='The amount of longitude zoom for reprojection')
-    parser.add_argument(
-        '--mosaic-reduction-factor', type=int, default=1,
-        help='The factor by which to reduce the mosaic for bkgnd computation')
     parser.add_argument('--verbose', action='store_true', default=False)
 
 # Given a directory, this returns a list of all the filenames in that directory
@@ -153,7 +158,44 @@ def enumerate_obsids(arguments):
                 ind = filename.find(bp)
                 if ind < 0:
                     continue
-                yield filename[:ind]
+                obs_id = filename[:ind]
+                if (len(arguments.obsid) > 0 and len(arguments.obsid[0]) > 0 and
+                    obs_id not in arguments.obsid[0]):
+                    continue
+                if arguments.start_obsid and arguments.start_obsid > obs_id:
+                    continue
+                if arguments.end_obsid and arguments.end_obsid < obs_id:
+                    continue
+                yield obs_id
+
+def bkgnd_sub_mosaic_paths_spec(ring_radius, radius_inner, radius_outer,
+                                radius_resolution, longitude_resolution,
+                                radial_zoom_amount, longitude_zoom_amount,
+                                obsid, ring_type, make_dirs=False):
+    bkgnd_res_data = ('_%06d_%06d_%06d_%06.3f_%05.3f_%d_%d_1' % (
+                      ring_radius, radius_inner, radius_outer,
+                      radius_resolution, longitude_resolution,
+                      radial_zoom_amount, longitude_zoom_amount))
+    if make_dirs and not os.path.exists(BKGND_SUB_MOSAIC_DIR):
+        os.mkdir(bkgnd_dir)
+    data_path = file_clean_join(BKGND_SUB_MOSAIC_DIR,
+                                obsid+bkgnd_res_data+'-BKGND-SUB-MOSAIC.npz')
+    metadata_path = file_clean_join(
+                     BKGND_SUB_MOSAIC_DIR,
+                     obsid+bkgnd_res_data+'-BKGND-SUB-METADATA.dat')
+
+    return (data_path, metadata_path)
+
+def bkgnd_sub_mosaic_paths(arguments, obsid, make_dirs=False):
+    return bkgnd_sub_mosaic_paths_spec(arguments.ring_radius,
+                                       arguments.radius_inner_delta,
+                                       arguments.radius_outer_delta,
+                                       arguments.radius_resolution,
+                                       arguments.longitude_resolution,
+                                       arguments.radial_zoom_amount,
+                                       arguments.longitude_zoom_amount,
+                                       obsid, arguments.ring_type,
+                                       make_dirs=make_dirs)
 
 def read_ew(root):
     return np.load(root+'.npy')
@@ -169,13 +211,11 @@ def get_ew_valid_longitudes(ew, ew_metadata):
 def ew_paths_spec(ring_radius, radius_inner, radius_outer,
                   radius_resolution, longitude_resolution,
                   radial_zoom_amount, longitude_zoom_amount,
-                  mosaic_reduction_factor,
                   obsid, ring_type, make_dirs=False):
-    ew_res_data = ('_%06d_%06d_%06d_%06.3f_%05.3f_%d_%d_%d' % (
+    ew_res_data = ('_%06d_%06d_%06d_%06.3f_%05.3f_%d_%d_1' % (
                    ring_radius, radius_inner, radius_outer,
                    radius_resolution, longitude_resolution,
-                   radial_zoom_amount, longitude_zoom_amount,
-                   mosaic_reduction_factor))
+                   radial_zoom_amount, longitude_zoom_amount))
     if make_dirs and not os.path.exists(EW_DIR):
         os.mkdir(EW_DIR)
     data_path = file_clean_join(EW_DIR, obsid+ew_res_data)
@@ -191,9 +231,13 @@ def ew_paths(arguments, obsid, make_dirs=False):
                          arguments.longitude_resolution,
                          arguments.radial_zoom_amount,
                          arguments.longitude_zoom_amount,
-                         arguments.mosaic_reduction_factor,
                          obsid, arguments.ring_type,
                          make_dirs=make_dirs)
+
+def write_ew(ew_filename, ew, ew_metadata_filename, ew_metadata):
+    np.save(ew_filename, ew)
+    with open(ew_metadata_filename, 'wb') as ew_metadata_fp:
+        pickle.dump(ew_metadata, ew_metadata_fp)
 
 def clumpdb_paths(options):
     cl_res_data = ('_%06d_%06d_%06.3f_%05.3f_%02d_%02d_%06d_%06d' %
@@ -201,7 +245,6 @@ def clumpdb_paths(options):
                     options.radius_resolution,
                     options.longitude_resolution,
                     options.reproject_zoom_factor,
-                    options.mosaic_reduction_factor,
                     options.core_radius_start,
                     options.core_radius_end))
     cl_data_filename = os.path.join(ROOT, 'clump-data',
@@ -219,3 +262,69 @@ def clumpdb_paths(options):
         cc_data_filename = os.path.join(ROOT, 'clump-data',
                                         'downsampled_clumpchains'+cl_res_data+'.pickle')
     return cl_data_filename, cc_data_filename
+
+FRING_ROTATING_ET = None
+FRING_MEAN_MOTION = np.radians(581.964)
+FRING_A = 140221.3
+FRING_E = 0.00235
+FRING_W0 = np.radians(24.2)
+FRING_DW = np.radians(2.70025)
+
+def _compute_fring_longitude_shift(et):
+    global FRING_ROTATING_ET
+    if FRING_ROTATING_ET is None:
+        FRING_ROTATING_ET = utc2et("2007-01-01")
+
+    return - (FRING_MEAN_MOTION *
+              ((et - FRING_ROTATING_ET) / 86400.)) % TWOPI
+
+def fring_inertial_to_corotating(longitude, et):
+    """Convert inertial longitude to corotating."""
+    return (longitude + _compute_fring_longitude_shift(et)) % TWOPI
+
+def fring_corotating_to_inertial(co_long, et):
+    """Convert corotating longitude (deg) to inertial."""
+    return (co_long - _compute_fring_longitude_shift(et)) % TWOPI
+
+def fring_radius_at_longitude(obs, longitude):
+    """Return the radius (km) of the F ring core at a given inertial longitude
+    (deg)."""
+    curly_w = FRING_W0 + FRING_DW*obs.midtime/86400.
+
+    radius = (FRING_A * (1-FRING_E**2) /
+              (1 + FRING_E * np.cos(longitude-curly_w)))
+
+    return radius
+
+
+
+        # # If we need to, reduce the mosaic and save the new version
+        # # for future use
+        # if arguments.mosaic_reduction_factor != 1 and create_reduced:
+        #     bkgnddata.mosaic_img = image_unzoom(bkgnddata.mosaic_img,
+        #                                 (1, arguments.mosaic_reduction_factor))
+        #     # Don't need mean on longitudes - longitude # is always
+        #     # left side of bin
+        #     bkgnddata.longitudes = bkgnddata.longitudes[
+        #                 ::arguments.mosaic_reduction_factor]
+        #     bkgnddata.resolutions = image_unzoom(bkgnddata.resolutions,
+        #                                      arguments.mosaic_reduction_factor)
+        #     # It doesn't make any sense to average image numbers or time
+        #     bkgnddata.image_numbers = bkgnddata.image_numbers[
+        #                 ::arguments.mosaic_reduction_factor]
+        #     bkgnddata.ETs = bkgnddata.ETs[
+        #                 ::arguments.mosaic_reduction_factor]
+        #     bkgnddata.emission_angles = image_unzoom(bkgnddata.emission_angles,
+        #                                      arguments.mosaic_reduction_factor)
+        #     bkgnddata.incidence_angle = bkgnddata.incidence_angle
+        #     bkgnddata.phase_angles = image_unzoom(bkgnddata.phase_angles,
+        #                                      arguments.mosaic_reduction_factor)
+        #     bkgnddata.longitude_resolution *= arguments.mosaic_reduction_factor
+        #     reduced_metadata = {}
+        #     _update_metadata(bkgnddata, reduced_metadata)
+        #     if create_reduced:
+        #         ring_util.write_mosaic(bkgnddata.reduced_mosaic_data_filename,
+        #                                bkgnddata.mosaic_img,
+        #                                bkgnddata.reduced_mosaic_metadata_filename,
+        #                                reduced_metadata)
+        #

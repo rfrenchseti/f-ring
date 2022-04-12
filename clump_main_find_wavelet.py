@@ -9,7 +9,6 @@
 # Creates Clump Database
 #
 # NOTES:
-# Remember to use a mosaic reduction factor of 1 when Downsampling!
 # Update-Clump-Database does not work with Voyager data.
 
 import os
@@ -51,11 +50,11 @@ if len(cmd_line) == 0:
 #                '--voyager',
 
 # Cassini normal
-#                '--ignore-voyager', '--mosaic-reduction-factor', '2',
+#                '--ignore-voyager'
 
 # Cassini downsampled
                 '--ignore-voyager',
-                #'--downsample', '--mosaic-reduction-factor', '1',
+                #'--downsample'
 
                 # '--replace-clump-database',
 
@@ -77,7 +76,6 @@ if len(cmd_line) == 0:
 
 parser = argparse.ArgumentParser()
 
-parser.add_argument('args', nargs='*')
 parser.add_argument('--voyager', dest='voyager', action='store_true', default=False)
 parser.add_argument('--ignore-voyager', dest='ignore_voyager', action='store_true', default=False)
 parser.add_argument('--downsample', dest='downsample', action='store_true', default=False)
@@ -118,11 +116,10 @@ arguments = parser.parse_args(cmd_line)
 # Helper functions
 #
 #===============================================================================
-clump_database = {}
 
 def smooth_ew(ew_data, long_res_deg, smooth_deg):
     """Perform a moving average taking masked entries into account."""
-    smooth_pix = smooth_deg // long_res_deg // 2
+    smooth_pix = int(smooth_deg // long_res_deg // 2)
     smoothed_ew = ma.zeros(ew_data.shape[0])
 
     if not ma.any(ew_data.mask):
@@ -131,7 +128,7 @@ def smooth_ew(ew_data, long_res_deg, smooth_deg):
                                              min(n+smooth_pix+1, ew_data.shape[0])])
     else:
         for n in range(ew_data.shape[0]):
-            if ew_data.mask[n]:
+            if ew_data[n] is ma.masked:
                 smoothed_ew[n] = ma.masked
             else:
                 smoothed_ew[n] = ma.mean(ew_data[max(n-smooth_pix, 0):
@@ -140,6 +137,7 @@ def smooth_ew(ew_data, long_res_deg, smooth_deg):
     return smoothed_ew
 
 def downsample_ew(ew_data, mosaic_data):
+    assert False  # Not currently used
     src_mask = ma.getmaskarray(ew_data)
     (longitudes, resolutions, mosaic_image_numbers,
      ETs, emission_angles, mosaic_incidence_angles,
@@ -181,37 +179,6 @@ def downsample_ew(ew_data, mosaic_data):
      phase_angles)
     return new_arr, mosaic_data
 
-def interpolate(arr):
-    x = np.arange(0, len(arr))
-    step = (len(arr)-1)/18000.
-    x_int = np.arange(0, len(arr)-1., step)
-    if len(x_int) > 18000.:
-        x_int = x_int[0:18000]
-    f_int = interp.interp1d(x, arr)
-
-    return f_int(x_int)         # ew_data with 1000 points
-
-#def divide_ews_by_baseline(ew_data):
-#    ew_act_data = []
-#    for i in range(len(ew_data)):
-#        if ma.any(ew_data.mask) == False:
-#            ew_act_data.append(ew_data[i])
-#        else:
-#            if ew_data.mask[i]:
-#                continue
-#            else:
-#                ew_act_data.append(ew_data[i])
-#
-#    sorted_ew_data = ma.sort(ew_act_data)
-#    percent_cutoff = 0.3
-#    cutoff_index = percent_cutoff*len(ew_act_data)
-#
-#    lower_ew_data = sorted_ew_data[0:cutoff_index +1]
-#    median_baseline = ma.median(lower_ew_data)
-#    new_ew_data = ew_data/median_baseline
-#
-#    return(new_ew_data)
-
 def adjust_ew_for_zero_phase(ew_data, phase_angles, emission_angles, incidence_angles):
     return ew_data # XXX
     new_ew_data = f_ring_util.compute_corrected_ew(
@@ -232,7 +199,7 @@ def adjust_ew_for_zero_phase(ew_data, phase_angles, emission_angles, incidence_a
 
 
 def detect_local_maxima(arr):
-    """Takes an array and detects the peaks using the local minimum filter."""
+    """Takes an array and detects the peaks using the local maximum filter."""
     # http://stackoverflow.com/questions/3684484/peak-detection-in-a-2d-array/3689710#3689710
     # Modified to detect maxima instead of minima
     # Define a connected neighborhood
@@ -242,7 +209,7 @@ def detect_local_maxima(arr):
     # neighborhood are set to 1
     # http://www.scipy.org/doc/api_docs/SciPy.ndimage.filters.html#minimum_filter
     local_max = ndimage.maximum_filter(arr, footprint=neighborhood) == arr
-    # local_min is a mask that contains the peaks we are looking for, but also
+    # local_max is a mask that contains the peaks we are looking for, but also
     # the background. In order to isolate the peaks we must remove the background
     # from the mask.
     #
@@ -261,11 +228,6 @@ def detect_local_maxima(arr):
     return np.where(detected_maxima)
 
 def find_clumps_internal(ew_data, longitudes, obs_id, metadata, wavelet_type='SDG'):
-    ew_mask = ma.getmaskarray(ew_data)
-#     (longitudes, resolutions, mosaic_image_numbers,
-#          ETs, emission_angles, mosaic_incidence_angles,
-#          phase_angles) = metadata
-#
 #     if arguments.downsample:
 # #        ew_data = downsample_ew(ew_data)
 #         long_res_deg = 360./len(ew_data)
@@ -274,9 +236,9 @@ def find_clumps_internal(ew_data, longitudes, obs_id, metadata, wavelet_type='SD
 #         tripled_ew_mask = ma.getmaskarray(tripled_ew_data)
 #         tripled_ew_data.mask = tripled_ew_mask
 #     else:
-    tripled_ew_data = np.tile(ew_data, 3)
 
     # We have to triple the data or else the edges get screwed up
+    tripled_ew_data = np.tile(ew_data, 3)
 
     orig_ew_start_idx = ew_data.size
     orig_ew_end_idx = ew_data.size*2
@@ -285,7 +247,6 @@ def find_clumps_internal(ew_data, longitudes, obs_id, metadata, wavelet_type='SD
 
     clump_db_entry = clump_util.ClumpDBEntry()
     clump_db_entry.obsid = obs_id
-
     clump_db_entry.ew_data = ew_data # Smoothed and normalized
 
     if arguments.voyager:
@@ -301,6 +262,7 @@ def find_clumps_internal(ew_data, longitudes, obs_id, metadata, wavelet_type='SD
         clump_db_entry.et_max_longitude = longitudes[-1]
         clump_db_entry.smoothed_ew = None
     else:
+        ew_mask = ma.getmaskarray(ew_data)
         clump_db_entry.et = np.mean(ETs[~ew_mask])
         clump_db_entry.resolution_min = np.min(resolutions[~ew_mask])
         clump_db_entry.resolution_max = np.max(resolutions[~ew_mask])
@@ -353,6 +315,7 @@ def find_clumps_internal(ew_data, longitudes, obs_id, metadata, wavelet_type='SD
         wavelet = clump_cwt.cwt(tripled_ew_data, mother_wavelet)
 
     # Find the clumps
+
     # First find the local maxima
     tripled_xform = wavelet.coefs.real
     xform_maxima_scale_idx, xform_maxima_long_idx = detect_local_maxima(tripled_xform)
@@ -378,34 +341,34 @@ def find_clumps_internal(ew_data, longitudes, obs_id, metadata, wavelet_type='SD
                 # we don't care about it because it will be picked up on the other side
                 continue
             if not arguments.voyager:
-                if tripled_ew_data.mask[maximum_long_idx]:
+                if tripled_ew_data[maximum_long_idx] is ma.masked:
                     # The clump is centered on masked data - don't trust it
                     continue
             long_start_idx = int(round(long_start_deg / long_res_deg))
             long_end_idx = int(round(long_end_deg / long_res_deg))
-            if (tripled_ew_data.mask[
-                    long_start_idx - int(wavelet_scales[maximum_scale_idx]/8)] or
-                tripled_ew_data.mask[
-                    long_end_idx + int(wavelet_scales[maximum_scale_idx]/8)]):
+            if (tripled_ew_data[
+                    long_start_idx -
+                    int(wavelet_scales[maximum_scale_idx]/8)] is ma.masked or
+                tripled_ew_data[
+                    long_end_idx +
+                    int(wavelet_scales[maximum_scale_idx]/8)] is ma.masked):
                 # We don't want clumps on the edges of the masked area
                 continue
             # Get the master wavelet shape
             mexhat = mother_wavelet.coefs[maximum_scale_idx].real
             mh_start_idx = int(mexhat.size/2 - wavelet_scales[maximum_scale_idx])
-            mh_end_idx =   int(mexhat.size/2 + wavelet_scales[maximum_scale_idx])
+            mh_end_idx   = int(mexhat.size/2 + wavelet_scales[maximum_scale_idx])
             # Extract just the positive part
             restr_mexhat = mexhat[mh_start_idx:mh_end_idx+1]
             extracted_data = tripled_ew_data[long_start_idx:
-                                             long_start_idx+len(restr_mexhat)]
+                                             long_start_idx+restr_mexhat.size]
             mexhat_data, residual, array, *_ = sciopt.fmin_powell(
-                fit_wavelet_func,(1., 1.), args=(restr_mexhat, extracted_data),
+                fit_wavelet_func, (1., 1.), args=(restr_mexhat, extracted_data),
                 disp=False, full_output=True)
             mexhat_base, mexhat_height = mexhat_data
             if mexhat_height < 0:
                 continue
             longitude -= orig_ew_start_long
-            print('CLUMP LONG %6.2f WIDTH %5.2f BASE %7.4f HEIGHT %7.4f' % (longitude, scale,
-                                                                          mexhat_base, residual))
             clump = clump_util.ClumpData()
             clump.clump_db_entry = clump_db_entry
             clump.longitude = longitude
@@ -427,18 +390,24 @@ def find_clumps_internal(ew_data, longitudes, obs_id, metadata, wavelet_type='SD
              clump.g_base, clump.g_height) = clump_gaussian_fit.refine_fit(
                 clump, ew_data, arguments.voyager, arguments.downsample)
 
+            print(f'Clump Long {longitude:6.2f} Width {scale:5.2f} '
+                  f'Base {mexhat_base:7.4f} Height {residual:8.4f}   '
+                  f'Clump Left {clump.fit_left_deg:6.2f} Right {clump.fit_right_deg:6.2f}'
+                  f' Center {clump.g_center:6.2f} Sigma {clump.g_sigma:6.2f}')
+
             fit_width = (clump.fit_right_deg - clump.fit_left_deg) % 360
             if fit_width < arguments.clump_size_min or fit_width > arguments.clump_size_max:
-                print('WIDTH OUT OF RANGE - IGNORING', fit_width)
+                print(f'WIDTH ({fit_width:7.4f}) OUT OF RANGE - IGNORING')
                 continue
 
-            print('CLUMP LEFT', clump.fit_left_deg, 'RIGHT', clump.fit_right_deg, 'CENTER', clump.g_center, end=' ')
-            print('SIGMA', clump.g_sigma)
-            if abs(clump.fit_left_deg-clump.g_center) <= .5 or abs(clump.fit_right_deg-clump.g_center) <= 0.5:
+            if (abs(clump.fit_left_deg-clump.g_center) <= .5 or
+                abs(clump.fit_right_deg-clump.g_center) <= 0.5):
                 ratio = 100
             else:
-                ratio = ((clump.fit_right_deg-clump.g_center)%360) / ((clump.g_center-clump.fit_left_deg)%360)
-            if ratio < 1: ratio = 1/ratio
+                ratio = (((clump.fit_right_deg-clump.g_center)%360) /
+                         ((clump.g_center-clump.fit_left_deg)%360))
+            if ratio < 1:
+                ratio = 1/ratio
             if ratio > 4:
                 print('EXCESSIVE ASYMMETRY - IGNORING')
                 continue
@@ -453,53 +422,44 @@ def find_clumps_internal(ew_data, longitudes, obs_id, metadata, wavelet_type='SD
                 print('DUPLICATE - IGNORING')
                 continue
 
-            #calculate clump sigma height
+            # Calculate clump sigma height
             profile_sigma = ma.std(ew_data)
-#            height = clump.mexhat_height*mexhat[len(mexhat)//2]
-            clump.clump_sigma = clump.abs_height/profile_sigma
-            clump.fit_sigma = clump.fit_height/profile_sigma
-
-#            clump.print_all()
-
-#            print vars(clump)
+            clump.clump_sigma = clump.abs_height / profile_sigma
+            clump.fit_sigma = clump.fit_height / profile_sigma
             clump_list.append(clump)
 
     clump_db_entry.clump_list = clump_list
 
     wavelet_data = (wavelet, mother_wavelet, wavelet_scales)
-    print('FINISHED SAVING DATA')
+    print('Clump finding complete')
     return (clump_db_entry, wavelet_data)
 
-def select_clumps(arguments, ew_data, longitudes, obs_id, metadata):
-    print('STARTING SDG')
-    sdg_clump_db_entry, sdg_wavelet_data = find_clumps_internal(ew_data, longitudes, obs_id, metadata, wavelet_type = 'SDG')
-    print('STARTING FDG')
-    fdg_clump_db_entry, fdg_wavelet_data = find_clumps_internal(ew_data, longitudes, obs_id, metadata, wavelet_type = 'FDG')
+def select_clumps(arguments, ew_data, longitudes, obs_id, metadata, clump_database):
+    print('Starting SDG')
+    sdg_clump_db_entry, sdg_wavelet_data = find_clumps_internal(
+        ew_data, longitudes, obs_id, metadata, wavelet_type='SDG')
+    print('Starting FDG')
+    fdg_clump_db_entry, fdg_wavelet_data = find_clumps_internal(
+        ew_data, longitudes, obs_id, metadata, wavelet_type='FDG')
 
     sdg_list = sdg_clump_db_entry.clump_list
     fdg_list = fdg_clump_db_entry.clump_list
 
-    print('CHOOSE THE BEST WAVELETS')
+    print('Choosing the best wavelets')
     new_clump_list = []
     longitude_list = []
     for n, clump_s in enumerate(sdg_list):
         f_match_list = []
         s_match_list = [clump_s]
-#        print 'new clump_s', clump_s.longitude, clump_s.scale
         for clump_f in fdg_list:
-#            print 'new_clump_f', clump_f.longitude, clump_f.scale
-            if (clump_s.longitude - 2.0 <= clump_f.longitude <= clump_s.longitude + 2.0) and (0.5*clump_s.scale <= clump_f.scale <= 2.5*clump_s.scale):
-                #there is a match!
+            if ((clump_s.longitude - 2.0 <= clump_f.longitude <=
+                 clump_s.longitude + 2.0) and
+                (0.5*clump_s.scale <= clump_f.scale <=
+                 2.5*clump_s.scale)):
                 f_match_list.append(clump_f)
                 clump_f.matched = True
                 clump_s.matched = True
-#                print 'match'
-
-#        for clump_s2 in sdg_list[n+1::]:
-#            if (clump_s.longitude - 2.0 <= clump_s2.longitude <= clump_s.longitude + 2.0) and (0.5*clump_s.scale <= clump_s2.scale <= 2.0*clump_s.scale):
-#                clump_s2.matched = True
-#                s_match_list.append(clump_s2)
-        if clump_s.matched == False:
+        if not clump_s.matched:
             continue
         f_res = 999999.
         s_res = 999999.
@@ -520,91 +480,74 @@ def select_clumps(arguments, ew_data, longitudes, obs_id, metadata):
             longitude_list.append(best_s.longitude)
 
 
-
-    #check for any left-over fdg clumps that weren't matched.
-    #need to make sure they're not at the same longitudes as clumps that were already matched.
-    #this causes double chains to be made - making for a difficult time in the gui selection process
+    # Check for any left-over clumps that weren't matched.
+    # Need to make sure they're not at the same longitudes as clumps that
+    # were already matched. This causes double chains to be made -
+    # making for a difficult time in the GUI selection process
     if arguments.voyager or arguments.downsample:
         range = 0.5
     else:
         range = 0.04
 
     for clump_f in fdg_list:
-        if clump_f.matched == False:
+        if not clump_f.matched:
             for longitude in longitude_list:
                 if longitude - range <= clump_f.longitude <= longitude + range:
                     clump_f.matched = True
                     break
             if clump_f.matched:
-                continue        #already matched, go to the next f clump
-#            if clump_f.residual >= 1.0:
-#            print 'F RESIDUAL TOO BIG', clump_f.longitude, clump_f.scale, clump_f.residual
-#                continue
+                continue  # Already matched, go to the next f clump
             new_clump_list.append(clump_f)
 
     for clump_s in sdg_list:
-        if clump_s.matched == False:
+        if not clump_s.matched:
             for longitude in longitude_list:
                 if longitude - range <= clump_s.longitude <= longitude + range:
                     clump_s.matched = True
-                    break                   #label it as already matched, go to the next s clump
+                    break  # Already matched, go to the next s clump
             if clump_s.matched:
                 break
             else:
                 new_clump_list.append(clump_s)
 
-    new_clump_list.sort(key=lambda x:x.g_center)
+    new_clump_list.sort(key=lambda x: x.g_center)
 
     for clump in new_clump_list:
-        print('FINAL CLUMP GS %6.2f FLD %6.2f FRD %6.2f' % (clump.g_center, clump.fit_left_deg, clump.fit_right_deg))
+        print(f'Final clump GS {clump.g_center:6.2f} FLD {clump.fit_left_deg:6.2f} '
+              f'FRD {clump.fit_right_deg:6.2f}')
 
-    #it doesn't matter which clump_db_entry we choose since the metadata is the same for both. The only differences are the clumps.
+    # It doesn't matter which clump_db_entry we choose since the metadata is the same
+    # for both. The only differences are the clumps.
     fdg_clump_db_entry.clump_list = new_clump_list
     for clump in new_clump_list:
         clump.clump_db_entry = fdg_clump_db_entry
     clump_database[obs_id] = fdg_clump_db_entry
 
-#    print fdg_clump_db_entry.et                                      # The mean ephemeris time (ET) (sec)
-#    print fdg_clump_db_entry.et_min                                  # The minimum ET in the mosaic (sec)
-#    print fdg_clump_db_entry.et_max                                  # The maximum ET in the mosaic (sec)
-#    print fdg_clump_db_entry.et_min_longitude                        # The longitude where the minimum ET occurs
-#    print fdg_clump_db_entry.et_max_longitude                        # The longitude where the maximum ET occurs
-#    print fdg_clump_db_entry.resolution_min                          # The minimum radial resolution in the mosaic (km/pix)
-#    print fdg_clump_db_entry.resolution_max                          # The maximum radial resolution in the mosaic (km/pix)
-#    print fdg_clump_db_entry.emission_angle                          # The mean emission angle in the mosaic (deg)
-#    print fdg_clump_db_entry.incidence_angle                         # The mean incidence angle in the mosaic (deg)
-#    print fdg_clump_db_entry.phase_angle                             # The mean phase angle in the mosaic (deg)
-#    print fdg_clump_db_entry.ew_data.mask                                 # Masked array of EWs normalized and possibly filtered
-#    print fdg_clump_db_entry.smoothed_ew # The list of clumps in this OBSID
-
     return (sdg_wavelet_data, fdg_wavelet_data)
 
-#    print vars(clump_db_entry)
 def plot_scalogram(sdg_wavelet_data, fdg_wavelet_data, clump_db_entry):
-
+    """Plot the scalogram for one clump."""
     ew_data = clump_db_entry.ew_data
     clump_list = clump_db_entry.clump_list
     obs_id = clump_db_entry.obsid
 
-    orig_ew_start_idx = len(ew_data)
-    orig_ew_end_idx = len(ew_data)*2
+    orig_ew_start_idx = ew_data.size
+    orig_ew_end_idx = ew_data.size*2
     orig_ew_start_long = 360.
     orig_ew_end_long = 720.
 
-    long_res_deg = 360./len(ew_data)
-    longitudes = np.arange(len(ew_data))*long_res_deg
+    longitudes = np.arange(ew_data.size)*long_res_deg
 
-    wavelet_forms = ['SDG', 'FDG']
-    for wavelet_form in wavelet_forms:
+    for wavelet_form in ('SDG', 'FDG'):
         if wavelet_form == 'SDG':
             wavelet, mother_wavelet, wavelet_scales = sdg_wavelet_data
-        if wavelet_form == 'FDG':
+        else:
             wavelet, mother_wavelet, wavelet_scales = fdg_wavelet_data
 
-        xform = wavelet.coefs[:,orig_ew_start_idx:orig_ew_end_idx].real # .real would need to be changed if we use a complex wavelet
+        # .real would need to be changed if we use a complex wavelet
+        xform = wavelet.coefs[:,orig_ew_start_idx:orig_ew_end_idx].real
 
-#        print orig_ew_start_idx, orig_ew_end_idx
-        scales_axis = wavelet_scales * long_res_deg * 2 # Full-width degrees for plotting
+        scales_axis = wavelet_scales * long_res_deg * 2  # Full-width degrees for plotting
 
         fig = plt.figure()
 
@@ -613,7 +556,6 @@ def plot_scalogram(sdg_wavelet_data, fdg_wavelet_data, clump_db_entry):
         if arguments.color_contours:
             ax1.contourf(longitudes, scales_axis, xform, 256)
         else:
-#            print len(longitudes), len(scales_axis), xform
             ct = ax1.contour(longitudes, scales_axis, xform, 32)
             ax1.clabel(ct, inline=1, fontsize=8)
         ax1.set_ylim((scales_axis[0], scales_axis[-1]))
@@ -625,35 +567,16 @@ def plot_scalogram(sdg_wavelet_data, fdg_wavelet_data, clump_db_entry):
         ax2 = fig.add_subplot(212, sharex=ax1)
         ax2.plot(longitudes, ew_data)
 
-        tripled_longitudes = np.append(longitudes-360., np.append(longitudes, longitudes+360.))
+        tripled_longitudes = np.append(longitudes-360.,
+                                       np.append(longitudes, longitudes+360.))
 
         for clump_data in clump_list:
-#            print clump_data.wave_type, clump_data.longitude
             if clump_data.wave_type == 'SDG':
                 wavelet_color = 'red'
             if clump_data.wave_type == 'FDG':
-#                print 'plotting'
                 wavelet_color = 'green'
             clump_util.plot_single_clump(ax2, ew_data, clump_data, 0., 360.,
                                          color=wavelet_color)
-#            plot_scale_idx = clump_data.scale_idx*5
-#            maximum_scale_idx = np.where(wavelet_scales*2. == clump_data.scale_idx)[0][0]
-#            mexhat = mother_wavelet.coefs[maximum_scale_idx].real # Get the master wavelet shape
-#            mh_start_idx = round(len(mexhat)/2.-plot_scale_idx/2.)
-#            mh_end_idx = round(len(mexhat)/2.+plot_scale_idx/2.)
-#            mexhat = mexhat[mh_start_idx:mh_end_idx+1] # Extract just the positive part
-#            longitude_idx = clump_data.longitude_idx
-#            if longitude_idx+plot_scale_idx/2 >= len(longitudes): # Runs off right side - make it run off left side instead
-#                longitude_idx -= len(longitudes)
-#            idx_range = tripled_longitudes[longitude_idx-plot_scale_idx/2+len(longitudes):
-#                                           longitude_idx-plot_scale_idx/2+len(longitudes)+len(mexhat)] # Longitude range in data
-#            if len(idx_range) != len(mexhat*clump_data.mexhat_height+clump_data.mexhat_base):
-#                    idx_range = idx_range[:-1]
-#            ax2.plot(idx_range, mexhat*clump_data.mexhat_height+clump_data.mexhat_base, '-',
-#                     color='red', lw=3, alpha=0.8)
-#            if longitude_idx-plot_scale_idx/2 < 0: # Runs off left side - plot it twice
-#                ax2.plot(idx_range+360, mexhat*clump_data.mexhat_height+clump_data.mexhat_base, '-',
-#                         color='red', lw=3, alpha=0.8)
 
         ax2.set_xlim((longitudes[0], longitudes[-1]))
         ax2.set_ylim(ma.min(ew_data), ma.max(ew_data))
@@ -666,7 +589,8 @@ def plot_scalogram(sdg_wavelet_data, fdg_wavelet_data, clump_db_entry):
         ax2.set_position(t)
         ax2.set_xlabel('Longitude (deg)')
 
-    plt.show()          #show both at once
+    plt.show()
+
 
 #===============================================================================
 #
@@ -676,7 +600,7 @@ def plot_scalogram(sdg_wavelet_data, fdg_wavelet_data, clump_db_entry):
 
 # f_ring_util.ring_init(arguments)
 
-# Compute longitude step of EW data
+clump_database = {}
 
 if arguments.voyager:
 
@@ -693,11 +617,11 @@ if arguments.voyager:
                 metadata_fp = open(metadata_path, 'rb')
                 metadata = pickle.load(metadata_fp)
                 metadata_fp.close()
-#
+
                 (longitudes, resolutions, image_numbers,
                  ETs, emission_angles, incidence_angles,
                  phase_angles) = metadata
-#
+
                 print('VOYAGER FILE', filename, '#LONG', len(longitudes))
 
                 if arguments.prefilter:
@@ -722,13 +646,16 @@ if arguments.voyager:
 
                 ew_data = ew_data.view(ma.MaskedArray)
                 ew_data.mask = False
-                (sdg_wavelet, fdg_wavelet) = select_clumps(arguments, ew_data, longitudes, filename, metadata)
+                (sdg_wavelet, fdg_wavelet) = select_clumps(arguments, ew_data,
+                                                           longitudes, filename,
+                                                           metadata, clump_database)
 
                 if arguments.plot_scalogram:
                     plot_scalogram(sdg_wavelet, fdg_wavelet, clump_database[filename] )
 
 else:
     if arguments.update_clump_database:
+        # Read the old database first so we can update it
         clump_database_path, clump_chains_path = f_ring_util.clumpdb_paths(arguments)
         with open(clump_database_path, 'rb') as clump_database_fp:
             clump_database = pickle.load(clump_database_fp)
@@ -744,7 +671,7 @@ else:
             continue
 
         with open(ew_metadata_filename, 'rb') as ew_metadata_fp:
-            ew_metadata = pickle.load(ew_metadata_fp)
+            ew_metadata = pickle.load(ew_metadata_fp, encoding='latin1')
         orig_ew_data = np.load(ew_data_filename+'.npy')
         # Find the mask for valid EW entries. Any place where EW == 0 is bad data.
         ew_mask = (orig_ew_data == 0)
@@ -772,10 +699,11 @@ else:
         ew_data = ew_data.view(ma.MaskedArray)
         ew_data.mask = ew_mask
 
-        # If we didn't do the FFT, we can do a normal smoothing process instead
-        if not arguments.prefilter:
-            # We want to ignore any features < 3 degrees
-            ew_data = smooth_ew(ew_data, long_res_deg, 3.0)
+        # If we didn't do the FFT, we can do a normal smoothing process instead.
+        # This works on masked data.
+        # if not arguments.prefilter:
+        #     # We want to ignore any features < 3 degrees
+        #     ew_data = smooth_ew(ew_data, long_res_deg, 3.0)
 
         mean_emission = np.mean(emission_angles[~ew_mask])
         mean_phase = np.mean(phase_angles[~ew_mask])
@@ -795,19 +723,20 @@ else:
             e_max = np.max(emission_angles[~ew_mask])
             p_min = np.min(phase_angles[~ew_mask])
             p_max = np.max(phase_angles[~ew_mask])
-            print(f'Res {r_min:.02f}-{r_max:.02f}  Emis {e_min:.02f}-{e_max:.02f}  '
-                  f'Phase {p_min:.02f}-{p_max:.02f}  Inc {incidence_angle:.02f}')
+            print(f'R {r_min:.02f}-{r_max:.02f}  E {e_min:.02f}-{e_max:.02f}  '
+                  f'P {p_min:.02f}-{p_max:.02f}  I {incidence_angle:.02f}')
 
         sdg_wavelet, fdg_wavelet = select_clumps(arguments, ew_data,
-                                                 longitudes, obs_id, ew_metadata)
+                                                 longitudes, obs_id,
+                                                 ew_metadata, clump_database)
 
         if arguments.plot_scalogram:
             plot_scalogram(sdg_wavelet, fdg_wavelet, clump_database[obs_id])
 
 if arguments.update_clump_database or arguments.replace_clump_database:
-    if  arguments.voyager:
-        print('save to voyager clump database')
-        clump_arguments = clump_util.ClumpFindarguments()
+    if arguments.voyager:
+        print('Saving to Voyager clump database')
+        clump_arguments = clump_util.ClumpFindOptions()
         clump_arguments.type = 'wavelet mexhat'
         clump_arguments.scale_min = arguments.scale_min
         clump_arguments.scale_max = arguments.scale_max
@@ -823,12 +752,10 @@ if arguments.update_clump_database or arguments.replace_clump_database:
         clump_database_fp.close()
 
     elif arguments.downsample:
-        downsampled_clump_database_fp = os.path.join(f_ring_util.VOYAGER_PATH, 'downsampled_clump_database.pickle')
-        print('saving to downsampled_clump_database')
-#        for obsid in sorted(clump_database):
-#            clump_database[obsid].print_all()
-#            print '-'*80
-        clump_arguments = clump_util.ClumpFindarguments()
+        downsampled_clump_database_fp = os.path.join(
+            f_ring_util.VOYAGER_PATH, 'downsampled_clump_database.pickle')
+        print('Saving to downsampled_clump_database')
+        clump_arguments = clump_util.ClumpFindOptions()
         clump_arguments.type = 'wavelet mexhat'
         clump_arguments.scale_min = arguments.scale_min
         clump_arguments.scale_max = arguments.scale_max
@@ -849,8 +776,8 @@ if arguments.update_clump_database or arguments.replace_clump_database:
         pickle.dump(clump_database, downsampled_clump_database_fp)
         downsampled_clump_database_fp.close()
     else:
-        print('saving to regular clump database')
-        clump_arguments = clump_util.ClumpFindarguments()
+        print('Saving to regular clump database')
+        clump_arguments = clump_util.ClumpFindOptions()
         clump_arguments.type = 'wavelet mexhat'
         clump_arguments.scale_min = arguments.scale_min
         clump_arguments.scale_max = arguments.scale_max
@@ -862,7 +789,5 @@ if arguments.update_clump_database or arguments.replace_clump_database:
         clump_database_fp = open(clump_database_path, 'wb')
 
         pickle.dump(clump_arguments, clump_database_fp)
-#        print vars(clump_database['ISS_041RF_FMOVIE001_VIMS'])
-        print(clump_database_fp)
         pickle.dump(clump_database, clump_database_fp)
         clump_database_fp.close()

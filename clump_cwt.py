@@ -6,19 +6,16 @@ __all__ = ['cwt', 'ccwt', 'icwt', 'SDG', 'Morlet']
 class MotherWavelet(object):
     """Class for MotherWavelets.
 
-    Contains methods related to mother wavelets.  Also used to ensure that new
+    Contains methods related to mother wavelets  Also used to ensure that new
     mother wavelet objects contain the minimum requirements to be used in the
-    cwt related functions.
-
+    cwt-related functions.
     """
-
     @staticmethod
     def get_coefs(self):
         """Raise error if method for calculating mother wavelet coefficients is
         missing!
 
         """
-
         raise NotImplementedError('get_coefs needs to be implemented for the mother wavelet')
 
     @staticmethod
@@ -27,9 +24,7 @@ class MotherWavelet(object):
         subclass wavelet. To follow the convention in the literature, please define your
         COI coef as a function of period, not scale - this will ensure
         compatibility with the scalogram method.
-
         """
-
         raise NotImplementedError('coi_coef needs to be implemented in subclass wavelet')
 
     #add methods for computing cone of influence and mask
@@ -46,9 +41,7 @@ class MotherWavelet(object):
         """Get mask for cone of influence.
 
         Sets self.mask as an array of bools for use in np.ma.array('', mask=mask)
-
         """
-
         mask = np.ones(self.coefs.shape)
         masks = self.coi_coef * self.scales
         for s in range(0, len(self.scales)):
@@ -60,8 +53,8 @@ class MotherWavelet(object):
 class SDG(MotherWavelet):
     """Class for the SDG MotherWavelet (a subclass of MotherWavelet).
 
-    SDG(self, len_signal = None, pad_to = None, scales = None, sampf = 1,
-        normalize = True, fc = 'bandpass')
+    SDG(self, len_signal=None, pad_to=None, scales=None, sampf=1,
+        normalize=True, fc='bandpass')
 
     Parameters
     ----------
@@ -88,7 +81,7 @@ class SDG(MotherWavelet):
     fc : string
         Characteristic frequency - use the 'bandpass' or 'center' frequency of
         the Fourier spectrum of the mother wavelet to relate scale to period
-        (default is 'bandpass').
+        (default == 'bandpass').
 
     Returns
     -------
@@ -115,7 +108,7 @@ class SDG(MotherWavelet):
 
     References
     ----------
-    Addison, P. S., 2002: The Illustrated Wavelet Transform Handbook.  Taylor
+    Addison, P. S., 2002: The Illustrated Wavelet Transform Handbook. Taylor
       and Francis Group, New York/London. 353 pp.
 
     """
@@ -129,25 +122,25 @@ class SDG(MotherWavelet):
         self.len_signal = len_signal
         self.normalize = normalize
 
-        #set total length of wavelet to account for zero padding
+        # Set total length of wavelet to account for zero padding
         if pad_to is None:
             self.len_wavelet = len_signal
         else:
             self.len_wavelet = pad_to
 
-        #set admissibility constant
+        # Set admissibility constant
         if normalize:
             self.cg = 4 * np.sqrt(np.pi) / 3.
         else:
             self.cg = np.pi
 
-        #define characteristic frequency
-        if fc is 'bandpass':
-            self.fc = np.sqrt(5./2.) * self.sampf/(2 * np.pi)
-        elif fc is 'center':
+        # Define characteristic frequency
+        if fc == 'bandpass':
+            self.fc = np.sqrt(5./2.) * self.sampf / (2 * np.pi)
+        elif fc == 'center':
             self.fc = np.sqrt(2.) * self.sampf / (2 * np.pi)
         else:
-            raise CharacteristicFrequencyError("fc = %s not defined"%(fc,))
+            raise CharacteristicFrequencyError(f'fc "{fc}" not defined')
 
         # coi_coef defined under the assumption that period is used, not scale
         self.coi_coef = 2 * np.pi * np.sqrt(2. / 5.) * self.fc # Torrence and
@@ -209,7 +202,7 @@ class FDG(MotherWavelet):
     fc : string
         Characteristic frequency - use the 'bandpass' or 'center' frequency of
         the Fourier spectrum of the mother wavelet to relate scale to period
-        (default is 'bandpass').
+        (default == 'bandpass').
 
     Returns
     -------
@@ -263,9 +256,9 @@ class FDG(MotherWavelet):
             self.cg = np.pi
 
         #define characteristic frequency
-        if fc is 'bandpass':
+        if fc == 'bandpass':
             self.fc = np.sqrt(5./2.) * self.sampf/(2 * np.pi)
-        elif fc is 'center':
+        elif fc == 'center':
             self.fc = np.sqrt(2.) * self.sampf / (2 * np.pi)
         else:
             raise CharacteristicFrequencyError("fc = %s not defined"%(fc,))
@@ -668,9 +661,9 @@ class Wavelet(object):
         if ylog_base is not None:
             ax1.axes.set_yscale('log', basey=ylog_base)
 
-        if origin is 'top':
+        if origin == 'top':
             ax1.set_ylim((y[-1], y[0]))
-        elif origin is 'bottom':
+        elif origin == 'bottom':
             ax1.set_ylim((y[0], y[-1]))
         else:
             raise OriginError('`origin` must be set to "top" or "bottom"')
@@ -699,7 +692,7 @@ class Wavelet(object):
                 ax2.axes.set_yscale('log', basey=ylog_base)
             if xlog_base is not None:
                 ax2.axes.set_xscale('log', basey=xlog_base)
-            if origin is 'top':
+            if origin == 'top':
                 ax2.set_ylim((y[-1], y[0]))
             else:
                 ax2.set_ylim((y[0], y[-1]))
