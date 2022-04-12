@@ -19,6 +19,10 @@ parser = argparse.ArgumentParser()
 
 parser.add_argument('--voyager', action='store_true', default=False,
                     help='Process Voyager profiles instead of Cassini')
+parser.add_argument('--ew-inner-radius', type=int, default=None,
+                    help="""The inner radius of the range""")
+parser.add_argument('--ew-outer-radius', type=int, default=None,
+                    help="""The outer radius of the range""")
 
 f_ring_util.add_parser_arguments(parser)
 
@@ -125,8 +129,18 @@ else:
         with open(bkgnd_sub_mosaic_metadata_filename, 'rb') as bkgnd_metadata_fp:
             metadata = pickle.load(bkgnd_metadata_fp, encoding='latin1')
 
-        ring_lower_limit = metadata['ring_lower_limit']
-        ring_upper_limit = metadata['ring_upper_limit']
+        if arguments.ew_inner_radius is not None:
+            ring_lower_limit = int((arguments.ew_inner_radius -
+                                    arguments.radius_inner_delta -
+                                    arguments.ring_radius) / arguments.radius_resolution)
+        else:
+            ring_lower_limit = metadata['ring_lower_limit']
+        if arguments.ew_outer_radius is not None:
+            ring_upper_limit = int((arguments.ew_outer_radius -
+                                    arguments.radius_inner_delta -
+                                    arguments.ring_radius) / arguments.radius_resolution)
+        else:
+            ring_upper_limit = metadata['ring_upper_limit']
         longitudes = metadata['longitudes']
         resolutions = metadata['resolutions']
         image_numbers = metadata['image_numbers']

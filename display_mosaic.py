@@ -7,6 +7,7 @@ import pickle
 import subprocess
 import sys
 
+import matplotlib.pyplot as plt
 from tkinter import *
 from PIL import Image
 from imgdisp import ImageDisp
@@ -120,7 +121,7 @@ def setup_mosaic_window(mosaicdata, mosaicdispdata):
 
     mosaicdispdata.imdisp = ImageDisp([mosaicdata.img.data],
                                       overlay_list=[mask_overlay],
-                                      canvas_size=(1024,512),
+                                      canvas_size=(1500,402),
                                       parent=frame_toplevel, flip_y=True,
                                       one_zoom=False)
 
@@ -266,13 +267,47 @@ def setup_mosaic_window(mosaicdata, mosaicdispdata):
     mosaicdispdata.imdisp.bind_mousemove(0, callback_mosaic_move_command)
 
     callback_mosaic_b1press_command = (lambda x, y, mosaicdata=mosaicdata:
-                                    callback_b1press_mosaic(x, y, mosaicdata))
+                                           callback_b1press_mosaic(x, y, mosaicdata))
     mosaicdispdata.imdisp.bind_b1press(0, callback_mosaic_b1press_command)
 
     mosaicdispdata.imdisp.pack(side=LEFT)
 
     frame_toplevel.pack()
 
+
+ew_limit_phase = 0
+ew_range_lower = 0
+ew_range_upper = 0
+
+def callback_b1press_mosaic(x, y, mosaicdata):
+    global ew_limit_phase, ew_range_lower, ew_range_upper
+    if x < 0:
+        return
+    if ew_limit_phase == 0:
+        ew_limit_phase = 1
+        ew_range_lower = int(y)
+        return
+    ew_limit_phase = 0
+    ew_range_upper = int(y)
+    ew_range_lower, ew_range_upper = (min(ew_range_lower, ew_range_upper),
+                                      max(ew_range_lower, ew_range_upper))
+    ew_data = (np.sum(mosaicdata.img[ew_range_lower:ew_range_upper+1], axis=0) *
+               arguments.radius_resolution)
+    radius_lower = int(ew_range_lower*arguments.radius_resolution+
+                       arguments.ring_radius+arguments.radius_inner_delta)
+    radius_upper = int(ew_range_upper*arguments.radius_resolution+
+                       arguments.ring_radius+arguments.radius_inner_delta)
+    ew_mean = np.mean(ew_data)
+    ew_std = np.std(ew_data)
+    plt.plot(np.degrees(mosaicdata.longitudes), ew_data,
+             label=f'{radius_lower:d}-{radius_upper:d}={ew_mean:.2f}\u00b1{ew_std:.2f}')
+    plt.xlabel('Longitude (degrees)')
+    plt.ylabel('I/F')
+    plt.xlim(0, 360)
+    plt.title('Limited range I/F')
+    plt.legend()
+    plt.tight_layout()
+    plt.show()
 
 def display_mosaic(mosaicdata, mosaicdispdata):
     setup_mosaic_window(mosaicdata, mosaicdispdata)
@@ -295,8 +330,8 @@ def callback_move_mosaic(x, y, mosaicdata):
     else:
         mosaicdispdata.label_inertial_longitude.config(text=
                     ('%7.3f'%(np.degrees(f_ring_util.fring_corotating_to_inertial(
-                                    mosaicdata.longitudes[x],
-                                    mosaicdata.ETs[x])))))
+                                            mosaicdata.longitudes[x],
+                                            mosaicdata.ETs[x])))))
         mosaicdispdata.label_longitude.config(text=
                     ('%7.3f'%(np.degrees(mosaicdata.longitudes[x]))))
         mosaicdispdata.label_phase.config(text=
