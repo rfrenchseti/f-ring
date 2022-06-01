@@ -41,7 +41,7 @@ if arguments.voyager:
     voyager_data_dict['V2I'] = ( 10.5,  79.0,  82.1, -4.7*86400, '1981-08-26T03:24:57')
     voyager_data_dict['V2O'] = ( 98.0, 109.71, 82.1,  4.5*86400, '1981-08-26T03:24:57')
 
-    for root, dirs, files in os.walk(ring_util.VOYAGER_PATH):
+    for root, dirs, files in os.walk(f_ring_util.VOYAGER_PATH):
         for file in files:
             if '.STACK' in file:
                 filepath = os.path.join(root, file)
@@ -71,7 +71,7 @@ if arguments.voyager:
                 incidence_angles = np.zeros(len(EWs)) + voyager_data_dict[filename][2]
 
                 #make metadata for voyager
-                data_path, metadata_path, large_png_path, small_png_path = ring_util.mosaic_paths(arguments, filename)
+                data_path, metadata_path, large_png_path, small_png_path = f_ring_util.mosaic_paths(arguments, filename)
                 metadata = (longitudes, resolutions, image_numbers,
                             ETs, emission_angles, incidence_angles,
                             phase_angles)
@@ -82,7 +82,7 @@ if arguments.voyager:
                 #fake bkgnd data for voyager
                 (reduced_mosaic_data_filename, bkgnd_sub_mosaic_filename,
                      bkgnd_mask_filename, bkgnd_model_filename,
-                     bkgnd_sub_mosaic_metadata_filename) = ring_util.bkgnd_paths(arguments, filename)
+                     bkgnd_sub_mosaic_metadata_filename) = f_ring_util.bkgnd_paths(arguments, filename)
 
                 np.save(bkgnd_model_filename, [])     #just need the blank files
                 np.save(bkgnd_mask_filename, [])
@@ -108,7 +108,7 @@ if arguments.voyager:
                 EWs.mask = False
                 EWs[np.where(EWs == 0.)] = ma.masked
 
-                (ew_data_filename, ew_mask_filename) = ring_util.ew_paths(arguments, filename)
+                (ew_data_filename, ew_mask_filename) = f_ring_util.ew_paths(arguments, filename)
 
                 np.save(ew_data_filename, EWs.data)
                 np.save(ew_mask_filename, ma.getmask(EWs))

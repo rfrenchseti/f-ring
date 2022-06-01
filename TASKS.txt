@@ -1,37 +1,32 @@
-- For all observations that are common between 2012 paper and current mosaics
-  - Compare published EW+/-STD with newly computed EW+/-STD
-    - Plot old and new EW with errors bars on a graph
-    - Compare ratios of old and new EW - are they the same for all observations?
+- Check our reprojection code
+  - Look for sensitivity to zoom size
+  - Compare to EW when not reprojecting at all
+- Check Cassini calibration
+  - For all observations that are common between 2012 paper and current mosaics
+  - Pick additional 3.6/4.0 CALIB files to compare and try to figure out why the
+    calibrations are different and if there's any pattern.
+  - Look for other reasons the EWs may be different
+- Check Voyager calibration
+  - Last time we used the A ring - do it again more carefully?
 - Compare the the _1 and _2 versions
   - Find the overlapping co-rotating longitudes and restrict both mosaics to
     that subset
   - Recompute the EW+/-STD for each and compare
   - Visually compare the two versions and categorize differences
-  - Derive the phase curve for all observations using the methodology in the 2012
-  paper (log-cubic)  [Fig. 7]
-  - Figure out how to handle the big bright event
-    - Start by just removing those observations entirely
-    - Perhaps look at restricting which longitudes are used in those
-      observations
-  - Plot the resulting phase curves for the various options
-- Look for scatter around the phase curve
-  - Are the readings consistent with phase or is there scatter?
-  - If you look at the mosaics can you figure out why there is scatter?
-    - In other words, if a result looks too bright for its phase, can you
-      identify a dynamic reason in the mosaic why this is reasonable, like
-      a big clump?
-  - If you identify points (e.g. color code) with emission angle or incidence
-    angle is there a pattern to the scatter?
-  - Do we need to use the formalism from Appendix A to get good results?
-- If we need to use Appendix A, then implement Appendix A
-  - Is the tau_equiv similar to what was found in the paper?
+  - Look for clumps that cross the core and correlate with large clumps or dust jets
+- Look for shadows around the equinox that indicate tall clumps or differences in
+  inclination
+  - Correlate with large clumps or dust jets
+- Look at phase curves using restricted radial ranges
+  - Core only
+  - Skirt only
+  - Dust only
+- Once we understand phase curves, do we need to use the formalism from Appendix A to
+  get good results?
+  - If we need to use Appendix A, then implement Appendix A
+    - Is the tau_equiv similar to what was found in the paper?
 - How do these results compare against Voyager 1 and 2?
-- Lock in the shape of the phase curve and fit it to subsets of the data, such
-  as by year or multiple years or other relevant grouping, to see if there is
-  any change over time  [Fig. 8]
-  - Plot the overlapping phase curves
-  - Compute the ratio between the phase curves
-- Instead of plotting a phase curve, plot the ring brightness over time
+- Plot the ring brightness over time
   - To compute the brightness, divide each data point by the mean phase curve
     to get the divergence from the mean phase curve
   - Is there a pattern? Does the pattern correlate with Prometheus distance?
@@ -40,6 +35,5 @@
   values of the EW profile, as per the 2014 paper Section 2.3
   - Is there a difference in the phase curve, or its behavior over time,
     between the calm parts of the ring and the clumpy parts of the ring?
-- Use restricted radial ranges to deal with encroaching background bad pixels on all
-  of the above.
 - Clumps!
+- Color slope using reprojection

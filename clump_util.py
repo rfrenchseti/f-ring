@@ -11,13 +11,16 @@ Author: Shannon Hicks and Rob French
 '''
 
 import numpy as np
-import clump_util
-import matplotlib.pyplot as plt
-import clump_cwt
 import pickle
 import os
 
+import matplotlib.pyplot as plt
+
 import julian
+
+import clump_util
+import wavelet_util
+
 
 
 #===============================================================================
@@ -306,9 +309,9 @@ def track_clumps(clump_db, max_movement, longitude_tolerance, max_time, scale_to
 def plot_single_clump(ax, ew_data, clump, long_min, long_max, label=False, color='red'):
     long_res = 360. / len(ew_data)
     longitudes = np.arange(len(ew_data)*3) * long_res - 360.
-    mother_wavelet = clump_cwt.SDG(len_signal=ew_data.size*3,
-                                   scales=np.array([int(clump.scale_idx/2)]))
-    mexhat = mother_wavelet.coefs[0].real # Get the master wavelet shape
+    mother_wavelet = wavelet_util.SDGWavelet(ew_data.size*3,
+                                             [int(clump.scale_idx/2)])
+    mexhat = mother_wavelet._wavelet_vals[0].real # Get the master wavelet shape
     mh_start_idx = int(round(len(mexhat)/2.-clump.scale_idx/2.))
     mh_end_idx =   int(round(len(mexhat)/2.+clump.scale_idx/2.))
     mexhat = mexhat[mh_start_idx:mh_end_idx+1] # Extract just the positive part

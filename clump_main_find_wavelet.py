@@ -28,8 +28,8 @@ import julian
 import clump_bandpass_filter
 import clump_gaussian_fit
 import clump_util
-import clump_cwt
 import f_ring_util
+import wavelet_util
 
 #===============================================================================
 #
@@ -301,23 +301,23 @@ def find_clumps_internal(ew_data, longitudes, obs_id, metadata, wavelet_type='SD
     # Initialize the mother wavelet
     print(f'Starting CWT process: {wavelet_type}')
     if wavelet_type == 'SDG':
-        mother_wavelet = clump_cwt.SDG(len_signal=tripled_ew_data.size,
-                                       scales=wavelet_scales)
+        mother_wavelet = wavelet_util.SDGWavelet(tripled_ew_data.size, wavelet_scales,
+                                                 sampf=long_res_deg)
     if wavelet_type == 'FDG':
-        mother_wavelet = clump_cwt.FDG(len_signal=tripled_ew_data.size,
-                                       scales=wavelet_scales)
+        mother_wavelet = wavelet_util.FDGWavelet(tripled_ew_data.size, wavelet_scales,
+                                                 sampf=long_res_deg)
     # Perform the continuous wavelet transform
     if arguments.dont_use_fft:
-        wavelet = clump_cwt.cwt_nonfft(tripled_ew_data, mother_wavelet,
+        wavelet = mother_wavelet.cwt_nonfft(tripled_ew_data,
                                        startx=ew_data.size+205/long_res_deg, # XXX Huh?
                                        endx=ew_data.size+215/long_res_deg)
     else:
-        wavelet = clump_cwt.cwt(tripled_ew_data, mother_wavelet)
+        wavelet = mother_wavelet.cwt(tripled_ew_data)
 
     # Find the clumps
 
     # First find the local maxima
-    tripled_xform = wavelet.coefs.real
+    tripled_xform = wavelet.wt.real
     xform_maxima_scale_idx, xform_maxima_long_idx = detect_local_maxima(tripled_xform)
 
     def fit_wavelet_func(params, wavelet, data):
@@ -355,7 +355,7 @@ def find_clumps_internal(ew_data, longitudes, obs_id, metadata, wavelet_type='SD
                 # We don't want clumps on the edges of the masked area
                 continue
             # Get the master wavelet shape
-            mexhat = mother_wavelet.coefs[maximum_scale_idx].real
+            mexhat = mother_wavelet._wavelet_vals[maximum_scale_idx].real
             mh_start_idx = int(mexhat.size/2 - wavelet_scales[maximum_scale_idx])
             mh_end_idx   = int(mexhat.size/2 + wavelet_scales[maximum_scale_idx])
             # Extract just the positive part
@@ -440,7 +440,7 @@ def select_clumps(arguments, ew_data, longitudes, obs_id, metadata, clump_databa
         ew_data, longitudes, obs_id, metadata, wavelet_type='SDG')
     print('Starting FDG')
     fdg_clump_db_entry, fdg_wavelet_data = find_clumps_internal(
-        ew_data, longitudes, obs_id, metadata, wavelet_type='FDG')
+        ew_data, longitudes, obs_id, metadata, wavelet_type='SDG') # XXX
 
     sdg_list = sdg_clump_db_entry.clump_list
     fdg_list = fdg_clump_db_entry.clump_list
@@ -545,14 +545,14 @@ def plot_scalogram(sdg_wavelet_data, fdg_wavelet_data, clump_db_entry):
             wavelet, mother_wavelet, wavelet_scales = fdg_wavelet_data
 
         # .real would need to be changed if we use a complex wavelet
-        xform = wavelet.coefs[:,orig_ew_start_idx:orig_ew_end_idx].real
+        xform = wavelet.wt[:,orig_ew_start_idx:orig_ew_end_idx].real
 
         scales_axis = wavelet_scales * long_res_deg * 2  # Full-width degrees for plotting
 
         fig = plt.figure()
 
         # Make the contour plot of the wavelet transform
-        ax1 = fig.add_subplot(211)
+        ax1 = fig.add_subplot(311)
         if arguments.color_contours:
             ax1.contourf(longitudes, scales_axis, xform, 256)
         else:
@@ -564,7 +564,7 @@ def plot_scalogram(sdg_wavelet_data, fdg_wavelet_data, clump_db_entry):
         ax1.set_ylabel('Full width scale (deg)')
 
         # Make the data plot with overlaid detected clumps
-        ax2 = fig.add_subplot(212, sharex=ax1)
+        ax2 = fig.add_subplot(312, sharex=ax1)
         ax2.plot(longitudes, ew_data)
 
         tripled_longitudes = np.append(longitudes-360.,
@@ -588,6 +588,16 @@ def plot_scalogram(sdg_wavelet_data, fdg_wavelet_data, clump_db_entry):
         t.set_points(ax2pos)
         ax2.set_position(t)
         ax2.set_xlabel('Longitude (deg)')
+
+        # Make the wavelet spectrogram
+        spectrum = wavelet.get_wps()
+        ax3 = fig.add_subplot(313)
+        ax3.plot(scales_axis, spectrum)
+
+        ax3.set_xlim((scales_axis[0], scales_axis[-1]))
+        # ax2.set_ylim(ma.min(ew_data), ma.max(ew_data))
+        ax3.set_xlabel('Full width scale (deg)')
+        ax3.set_ylabel('Spectral Intensity')
 
     plt.show()
 
@@ -683,6 +693,13 @@ else:
         incidence_angle = ew_metadata['incidence_angle']
         longitudes = ew_metadata['longitudes']
         resolutions = ew_metadata['resolutions']
+
+        long_deg = np.arange(orig_ew_data.size)*long_res_deg
+        orig_ew_data = (np.sin(np.radians(long_deg*360/30)) +   # Period = 30 degrees
+                        # np.sin(np.radians(long_deg*360/10)) +   # Period = 10 degrees
+                        # np.sin(np.radians(long_deg*360/3.2)) +  # Period = 3.2 degrees
+                        # np.sin(np.radians(long_deg*360/0.7)) +  # Period = 0.7 degrees
+                       0)
 
         ew_data = adjust_ew_for_zero_phase(orig_ew_data, phase_angles,
                                            emission_angles, incidence_angle)

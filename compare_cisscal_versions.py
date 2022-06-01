@@ -1,5 +1,9 @@
-import numpy as np
 import os
+
+import matplotlib.pyplot as plt
+import numpy as np
+import numpy.ma as ma
+
 import vicar
 
 image_versions = (
@@ -31,9 +35,21 @@ image_versions = (
 )
 
 for img1, img2 in image_versions:
-    img1 = os.path.join('/home/rfrench/DS/f-ring', img1)
-    img2 = os.path.join('/home/rfrench/DS/f-ring', img2)
+    img1 = os.path.join('/home/rfrench/DS/f-ring/compare_cisscal_versions', img1)
+    img2 = os.path.join('/home/rfrench/DS/f-ring/compare_cisscal_versions', img2)
     v1 = vicar.VicarImage.from_file(img1)
     v2 = vicar.VicarImage.from_file(img2)
-    ratio = v2.data_2d[v2.data_2d!=0] / v1.data_2d[v1.data_2d!=0]
-    print(img1, ('%.3f' % np.min(ratio)), ('%.3f' % np.max(ratio)), ('%.3f' % np.median(ratio)), ('%.3f' % np.mean(ratio)))
+    v1d = v1.data_2d.view(ma.MaskedArray)
+    v2d = v2.data_2d.view(ma.MaskedArray)
+    v1d[v1d == 0] = ma.masked
+    v2d[v2d == 0] = ma.masked
+    ratio = v2d / v1d
+    bad_ratio = (ratio < 0.5) | (ratio > 2)
+    v1d[bad_ratio] = ma.masked
+    v2d[bad_ratio] = ma.masked
+    ratio = v1d/v2d
+    print(img1, ('%7.3f' % np.min(ratio)), ('%7.3f' % np.max(ratio)),
+          ('%7.3f' % np.median(ratio)), ('%7.3f' % np.mean(ratio)),
+          ('%7.3f' % (np.median(v2d) / np.median(v1d))))
+    plt.imshow(ratio)
+    plt.show()

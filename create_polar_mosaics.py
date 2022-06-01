@@ -18,7 +18,7 @@ import f_ring_util
 command_list = sys.argv[1:]
 
 if len(command_list) == 0:
-    command_line_str = '--display-radius-inner 140020 --display-radius-outer 140420 --radius-polar-base-factor 1.5'
+    command_line_str = '--display-radius-inner 140020 --display-radius-outer 140600 --radius-polar-base-factor 1.5'
     command_list = command_line_str.split()
 
 parser = argparse.ArgumentParser()
@@ -49,16 +49,9 @@ def polar_project_mosaic(obsid):
     data_path, metadata_path = f_ring_util.bkgnd_sub_mosaic_paths(arguments, obsid)
     with np.load(data_path) as npz:
         img = ma.MaskedArray(**npz)
+        img = ma.filled(img, 0)
     with open(metadata_path, 'rb') as metadata_fp:
         metadata = pickle.load(metadata_fp, encoding='latin1')
-
-    # (metadata,
-    #  obsid_list,
-    #  image_name_list,
-    #  image_path_list,
-    #  repro_path_list) = msgpack.unpackb(mosaic_metadata_fp.read(),
-    #                                     object_hook=msgpack_numpy.decode)
-    metadata['img'] = img
 
     image_size = arguments.image_size
     radius_polar_base_factor = arguments.radius_polar_base_factor
@@ -76,10 +69,10 @@ def polar_project_mosaic(obsid):
     if display_radius_outer == 1e38:
         display_radius_outer = radius_outer
 
-    display_radius_min = (display_radius_outer-
-                           (display_radius_outer-radius_inner)*
-                           radius_polar_base_factor)
-    display_radius_total = display_radius_outer-display_radius_min
+    display_radius_min = (display_radius_outer -
+                          (display_radius_outer-radius_inner) *
+                          radius_polar_base_factor)
+    display_radius_total = display_radius_outer - display_radius_min
 
     num_rad = img.shape[0]
     num_long = img.shape[1]
@@ -91,11 +84,9 @@ def polar_project_mosaic(obsid):
     # A grid with (rad,long) for each final image pixel
     offset_polar_pixel_x = polar_pixel_x-image_center
     offset_polar_pixel_y = polar_pixel_y-image_center
-    polar_r = np.hypot(offset_polar_pixel_x,
-                       offset_polar_pixel_y)
+    polar_r = np.hypot(offset_polar_pixel_x, offset_polar_pixel_y)
     polar_r = polar_r*display_radius_total/image_center + display_radius_min
-    polar_l = np.arctan2(offset_polar_pixel_y,
-                         offset_polar_pixel_x) % (2*np.pi)
+    polar_l = np.arctan2(offset_polar_pixel_y, offset_polar_pixel_x) % (2*np.pi)
 
     # A grid with (source rad pixel, source long pixel) for each final
     # image pixel
@@ -121,8 +112,7 @@ def polar_project_mosaic(obsid):
         whitepoint = arguments.whitepoint
     else:
         img_sorted = sorted(list(polar_img.flatten()))
-        whitepoint = img_sorted[np.clip(int(len(img_sorted)*
-                                            whitepoint_ignore_frac),
+        whitepoint = img_sorted[np.clip(int(len(img_sorted) * whitepoint_ignore_frac),
                                         0, len(img_sorted)-1)]
     if arguments.gamma != 1e38:
         gamma = arguments.gamma
@@ -131,7 +121,7 @@ def polar_project_mosaic(obsid):
 
     # The +0 forces a copy - necessary for PIL
     scaled_polar = np.cast['int8'](ImageDisp.scale_image(polar_img, blackpoint,
-                                                          whitepoint, gamma))[::-1,:]+0
+                                                         whitepoint, gamma))[::-1,:]+0
     pil_img = Image.frombuffer('L', (scaled_polar.shape[1], scaled_polar.shape[0]),
                                scaled_polar, 'raw', 'L', 0, 1)
     png_path = f_ring_util.polar_png_path(arguments, obsid, make_dirs=True)
