@@ -1,6 +1,6 @@
-# python dump_mosaic_stats.py 0 data_files/good_qual_full.csv
-# python dump_mosaic_stats.py 1 data_files/good_qual_1deg.csv
-# python dump_mosaic_stats.py 10 data_files/good_qual_10deg.csv
+# python dump_ew_stats.py 0 data_files/good_qual_full.csv
+# python dump_ew_stats.py 1 data_files/good_qual_1deg.csv
+# python dump_ew_stats.py 10 data_files/good_qual_10deg.csv
 
 # Read in all background-subtracted mosaics, collect statistics, and dump them into
 # a CSV file.
@@ -10,12 +10,17 @@
 #   - The percent longtiude coverage is the same for all slices of a given mosaic
 
 import csv
-import julian
-import matplotlib.pyplot as plt
-import numpy as np
+import os
 import sys
 
-from mosaic_util import *
+import matplotlib.pyplot as plt
+import numpy as np
+
+from f_ring_util import (get_ew_valid_longitudes,
+                         get_root_list,
+                         read_ew,
+                         read_ew_metadata)
+import julian
 
 if len(sys.argv) != 3:
     print('Usage: dump_mosaic_stats.py <slice_size> <output_csv_file>')
@@ -32,7 +37,7 @@ root_list = get_root_list(EW_DIR_ROOT)
 
 csv_fp = open(output_csv_filename, 'w')
 writer = csv.writer(csv_fp)
-writer.writerow(['Observation', 'Slice#', 'Date',
+writer.writerow(['Observation', 'Slice#', 'Date', 'Min Long', 'Max Long',
                  'Min Res', 'Max Res', 'Mean Res',
                  'Min Phase', 'Max Phase', 'Mean Phase',
                  'Min Emission', 'Max Emission', 'Mean Emission',
@@ -59,7 +64,7 @@ for root in root_list:
 
     print(num_valid_longitudes, percent_coverage)
 
-    # Just assume all the images are part of the same obsid
+    # Just assume all the images are part of the same obsid, which is usually true
     obsid = ew_metadata['obsid_list'][0]
 
     incidence_angle = ew_metadata['incidence_angle']
@@ -68,6 +73,7 @@ for root in root_list:
     emission_angles = ew_metadata['emission_angles'][valid_longitudes]
     phase_angles = ew_metadata['phase_angles'][valid_longitudes]
     resolutions = ew_metadata['resolutions'][valid_longitudes]
+    longitudes = longitudes[valid_longitudes]
 
     ew_profile = ew_profile[valid_longitudes]
 
@@ -85,6 +91,10 @@ for root in root_list:
         slice_phase_angles = phase_angles[slice_start:slice_end]
         slice_resolutions = resolutions[slice_start:slice_end]
         slice_ew_profile = ew_profile[slice_start:slice_end]
+        slice_longitudes = longitudes[slice_start:slice_end]
+
+        min_long = np.degrees(np.min(slice_longitudes))
+        max_long = np.degrees(np.max(slice_longitudes))
 
         min_et = np.min(slice_ETs)
         max_et = np.max(slice_ETs)
@@ -114,6 +124,8 @@ for root in root_list:
             print(root, slice_num, 'EW Mean < 0')
             continue
         writer.writerow([obsid, slice_num, et_date,
+                         np.round(min_long, 2),
+                         np.round(max_long, 2),
                          np.round(min_res, 3),
                          np.round(max_res, 3),
                          np.round(mean_res, 3),

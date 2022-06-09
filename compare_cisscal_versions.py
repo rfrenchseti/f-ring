@@ -4,23 +4,28 @@ import matplotlib.pyplot as plt
 import numpy as np
 import numpy.ma as ma
 
-import vicar
+import oops
+import oops.inst.cassini.iss as iss
+
+# N1466504861_1_CALIB-4.0
+# N1492052683_1.IMG
 
 image_versions = (
-    ('N1466448701_1_CALIB-3.6.IMG', 'N1466448701_1_CALIB-4.0.IMG'), # ISS_000RI_SATSRCHAP001_PRIME
-    ('N1479201492_1_CALIB-3.6.IMG', 'N1479201492_1_CALIB-4.0.IMG'), # ISS_00ARI_SPKMOVPER001_PRIME
-    ('N1492052646_1_CALIB-3.6.IMG', 'N1492052646_1_CALIB-4.0.IMG'), # ISS_006RI_LPHRLFMOV001_PRIME
-    ('N1493613276_1_CALIB-3.6.IMG', 'N1493613276_1_CALIB-4.0.IMG'), # ISS_007RI_LPHRLFMOV001_PRIME
-    ('N1538168640_1_CALIB-3.6.IMG', 'N1538168640_1_CALIB-4.0.IMG'), # ISS_029RF_FMOVIE001_VIMS
-    ('N1541012989_1_CALIB-3.6.IMG', 'N1541012989_1_CALIB-4.0.IMG'), # ISS_031RF_FMOVIE001_VIMS
-    ('N1542047155_1_CALIB-3.6.IMG', 'N1542047155_1_CALIB-4.0.IMG'), # ISS_032RF_FMOVIE001_VIMS
-    ('N1543166702_1_CALIB-3.6.IMG', 'N1543166702_1_CALIB-4.0.IMG'), # ISS_033RF_FMOVIE001_VIMS
-    ('N1545556618_1_CALIB-3.6.IMG', 'N1545556618_1_CALIB-4.0.IMG'), # ISS_036RF_FMOVIE001_VIMS
-    ('N1546748805_1_CALIB-3.6.IMG', 'N1546748805_1_CALIB-4.0.IMG'), # ISS_036RF_FMOVIE002_VIMS
-    ('N1549801218_1_CALIB-3.6.IMG', 'N1549801218_1_CALIB-4.0.IMG'), # ISS_039RF_FMOVIE002_VIMS
-    ('N1551253524_1_CALIB-3.6.IMG', 'N1551253524_1_CALIB-4.0.IMG'), # ISS_039RF_FMOVIE001_VIMS
-    ('N1552790437_1_CALIB-3.6.IMG', 'N1552790437_1_CALIB-4.0.IMG'), # ISS_041RF_FMOVIE002_VIMS
-    ('N1554026927_1_CALIB-3.6.IMG', 'N1554026927_1_CALIB-4.0.IMG'), # ISS_041RF_FMOVIE001_VIMS
+    ('N1466448701_1_CALIB-3.3.IMG', 'N1466448701_1_CALIB-4.0.IMG'), # ISS_000RI_SATSRCHAP001_PRIME
+    ('N1479201492_1_CALIB-3.3.IMG', 'N1479201492_1_CALIB-4.0.IMG'), # ISS_00ARI_SPKMOVPER001_PRIME
+    ('N1492052646_1_CALIB-3.3.IMG', 'N1492052646_1_CALIB-4.0.IMG'), # ISS_006RI_LPHRLFMOV001_PRIME
+    ('N1493613276_1_CALIB-3.3.IMG', 'N1493613276_1_CALIB-4.0.IMG'), # ISS_007RI_LPHRLFMOV001_PRIME
+    ('N1538168640_1_CALIB-3.3.IMG', 'N1538168640_1_CALIB-4.0.IMG'), # ISS_029RF_FMOVIE001_VIMS
+    ('N1541012989_1_CALIB-3.3.IMG', 'N1541012989_1_CALIB-4.0.IMG'), # ISS_031RF_FMOVIE001_VIMS
+    ('N1542047155_1_CALIB-3.3.IMG', 'N1542047155_1_CALIB-4.0.IMG'), # ISS_032RF_FMOVIE001_VIMS
+    ('N1543166702_1_CALIB-3.3.IMG', 'N1543166702_1_CALIB-4.0.IMG'), # ISS_033RF_FMOVIE001_VIMS
+    ('N1545556618_1_CALIB-3.3.IMG', 'N1545556618_1_CALIB-4.0.IMG'), # ISS_036RF_FMOVIE001_VIMS
+    ('N1546748805_1_CALIB-3.3.IMG', 'N1546748805_1_CALIB-4.0.IMG'), # ISS_036RF_FMOVIE002_VIMS
+    ('N1549801218_1_CALIB-3.3.IMG', 'N1549801218_1_CALIB-4.0.IMG'), # ISS_039RF_FMOVIE002_VIMS
+    ('N1551253524_1_CALIB-3.3.IMG', 'N1551253524_1_CALIB-4.0.IMG'), # ISS_039RF_FMOVIE001_VIMS
+    ('N1552790437_1_CALIB-3.3.IMG', 'N1552790437_1_CALIB-4.0.IMG'), # ISS_041RF_FMOVIE002_VIMS
+    ('N1554026927_1_CALIB-3.3.IMG', 'N1554026927_1_CALIB-4.0.IMG'), # ISS_041RF_FMOVIE001_VIMS
+
     ('N1557020880_1_CALIB-3.6.IMG', 'N1557020880_1_CALIB-4.0.IMG'), # ISS_044RF_FMOVIE001_VIMS
     ('N1571435192_1_CALIB-3.6.IMG', 'N1571435192_1_CALIB-4.0.IMG'), # ISS_051RI_LPMRDFMOV001_PRIME
     ('N1577809417_1_CALIB-3.6.IMG', 'N1577809417_1_CALIB-4.0.IMG'), # ISS_055RF_FMOVIE001_VIMS
@@ -37,19 +42,21 @@ image_versions = (
 for img1, img2 in image_versions:
     img1 = os.path.join('/home/rfrench/DS/f-ring/compare_cisscal_versions', img1)
     img2 = os.path.join('/home/rfrench/DS/f-ring/compare_cisscal_versions', img2)
-    v1 = vicar.VicarImage.from_file(img1)
-    v2 = vicar.VicarImage.from_file(img2)
-    v1d = v1.data_2d.view(ma.MaskedArray)
-    v2d = v2.data_2d.view(ma.MaskedArray)
-    v1d[v1d == 0] = ma.masked
-    v2d[v2d == 0] = ma.masked
+    obs1 = iss.from_file(img1, fast_distortion=True)
+    obs2 = iss.from_file(img2, fast_distortion=True)
+    bp = oops.Backplane(obs1)
+    bp_radii = bp.ring_radius('saturn:ring').mvals.filled(0)
+    good_mask = (bp_radii < 140520) & (bp_radii > 139920)
+    # plt.imshow(good_mask)
+    # plt.show()
+
+    v1d = obs1.data
+    v2d = obs2.data
+    v1d = v1d[good_mask]
+    v2d = v2d[good_mask]
     ratio = v2d / v1d
-    bad_ratio = (ratio < 0.5) | (ratio > 2)
-    v1d[bad_ratio] = ma.masked
-    v2d[bad_ratio] = ma.masked
-    ratio = v1d/v2d
     print(img1, ('%7.3f' % np.min(ratio)), ('%7.3f' % np.max(ratio)),
           ('%7.3f' % np.median(ratio)), ('%7.3f' % np.mean(ratio)),
           ('%7.3f' % (np.median(v2d) / np.median(v1d))))
-    plt.imshow(ratio)
-    plt.show()
+    # plt.imshow(ratio)
+    # plt.show()

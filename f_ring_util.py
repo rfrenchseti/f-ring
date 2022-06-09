@@ -153,9 +153,9 @@ def get_mosaic_valid_longitudes(mosaic, metadata):
 
 def enumerate_obsids(arguments):
     bp = f'_{arguments.ring_radius:06d}'
-    for dirpath, dirnames, filenames in os.walk(EW_DIR):
+    for dirpath, dirnames, filenames in os.walk(BKGND_SUB_MOSAIC_DIR):
         for filename in sorted(filenames):
-            if filename.endswith('.npy'):
+            if filename.endswith('.npz'):
                 ind = filename.find(bp)
                 if ind < 0:
                     continue
