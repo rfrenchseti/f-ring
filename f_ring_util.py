@@ -4,9 +4,9 @@ import pickle
 
 import julian
 
-BKGND_SUB_MOSAIC_DIR = os.environ['BKGND_SUB_MOSAIC_DIR']
-EW_DIR = os.environ['EW_DIR']
-POLAR_PNG_DIR = os.environ['POLAR_PNG_DIR']
+BKGND_SUB_MOSAIC_DIR = os.environ.get('BKGND_SUB_MOSAIC_DIR', None)
+EW_DIR = os.environ.get('EW_DIR', None)
+POLAR_PNG_DIR = os.environ.get('POLAR_PNG_DIR', None)
 
 TWOPI = np.pi*2
 
@@ -321,6 +321,54 @@ def fring_radius_at_longitude(obs, longitude):
               (1 + FRING_E * np.cos(longitude-curly_w)))
 
     return radius
+
+##########################################################################################
+
+def compute_mu(e):
+    if isinstance(e, (list, tuple)):
+        e = np.array(e)
+    return np.abs(np.cos(np.radians(e)))
+
+def compute_mu0(i):
+    if isinstance(i, (list, tuple)):
+        i = np.array(i)
+    return np.abs(np.cos(np.radians(i)))
+
+def compute_z(mu, mu0, tau, is_transmission):
+    transmission_list = tau*(mu-mu0)/(mu*mu0*(np.exp(-tau/mu)-np.exp(-tau/mu0)))
+    reflection_list = tau*(mu+mu0)/(mu*mu0*(1-np.exp(-tau*(1/mu+1/mu0))))
+    ret = np.where(is_transmission, transmission_list, reflection_list)
+    return ret
+
+def compute_corrected_ew(normal_ew, emission, incidence, tau=0.034):
+    if isinstance(emission, (tuple,list)):
+        emission = np.array(emission)
+    if isinstance(incidence, (tuple,list)):
+        incidence = np.array(incidence)
+    is_transmission = emission > 90.
+    mu = compute_mu(emission)
+    mu0 = compute_mu0(incidence)
+    ret = normal_ew * compute_z(mu, mu0, tau, is_transmission)
+    return ret
+
+def transmission_function(tau, emission, incidence):
+    # incidence angle is always less than 90, therefore the only case we have to worry
+    # about is when Emission Angle changes.
+    # E > 90 = Transmission, E < 90 = Reflection
+    mu0 = compute_mu0(incidence)
+    mu = compute_mu(emission)
+
+    if np.mean(emission[np.nonzero(emission)]) > 90:
+        return mu * mu0 * (np.exp(-tau/mu)-np.exp(-tau/mu0)) / (tau * (mu-mu0))
+#        print 'Reflection'
+    return mu * mu0 * (1.-np.exp(-tau*(1/mu+1/mu0))) / (tau * (mu+mu0))
+
+
+# def normalized_ew_factor(alpha, emission, incidence):
+#     tau_eq = 0.033 # French et al. 2012
+#     return (mu(emission) /
+#             transmission_function(tau_eq, emission, incidence) *
+#             normalized_phase_curve(alpha))
 
 
 
