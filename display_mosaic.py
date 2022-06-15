@@ -19,11 +19,15 @@ import f_ring_util
 command_list = sys.argv[1:]
 
 if len(command_list) == 0:
-    command_line_str = '--verbose --ring-type FMOVIE --all-obsid'
+    command_line_str = '--verbose'
 
     command_list = command_line_str.split()
 
 parser = argparse.ArgumentParser()
+
+parser.add_argument(
+    '--show-radii', default='',
+    help='Comma-separated list of radii to highlight')
 
 f_ring_util.add_parser_arguments(parser)
 
@@ -41,7 +45,7 @@ class MosaicDispData:
 
 ################################################################################
 #
-# MAKE A MOSAIC
+# UPDATE A MOSAIC
 #
 ################################################################################
 
@@ -118,6 +122,14 @@ def setup_mosaic_window(mosaicdata, mosaicdispdata):
 
     mask_overlay = np.zeros((mosaicdata.img.shape[0], mosaicdata.img.shape[1], 3))
     mask_overlay[ma.getmaskarray(mosaicdata.img), 0] = 1
+
+    if arguments.show_radii:
+        for radius_str in arguments.show_radii.split(','):
+            radius = float(radius_str)
+            radius_pix = int(((radius-arguments.ring_radius+arguments.radius_inner_delta) /
+                              arguments.radius_resolution))
+            mask_overlay[radius_pix, :, 1] = 1
+
 
     mosaicdispdata.imdisp = ImageDisp([mosaicdata.img.data],
                                       overlay_list=[mask_overlay],
@@ -350,7 +362,8 @@ def display_mosaic(mosaicdata, mosaicdispdata):
 # The callback for mouse move events on the mosaic image
 def callback_move_mosaic(x, y, mosaicdata):
     x = int(x)
-    if x < 0: return
+    if x < 0:
+        return
     ew = np.sum(mosaicdata.img[:, x]) * mosaicdata.radius_resolution
     ewmu = ew*np.abs(np.cos(mosaicdata.emission_angles[x]))
     if ew is ma.masked:  # Invalid longitude

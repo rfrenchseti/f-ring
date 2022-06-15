@@ -2,81 +2,19 @@ import numpy as np
 import os
 import pickle
 
+import scipy.optimize as sciopt
+
 import julian
 
+# These environment variables only need to be set if they are going to be used
 BKGND_SUB_MOSAIC_DIR = os.environ.get('BKGND_SUB_MOSAIC_DIR', None)
 EW_DIR = os.environ.get('EW_DIR', None)
 POLAR_PNG_DIR = os.environ.get('POLAR_PNG_DIR', None)
 
 TWOPI = np.pi*2
 
-def utc2et(s):
-    return julian.tdb_from_tai(julian.tai_from_iso(s))
 
-def file_clean_join(*args):
-    ret = os.path.join(*args)
-    return ret.replace('\\', '/')
-
-def add_parser_arguments(parser):
-    parser.add_argument(
-        'obsid', action='append', nargs='*',
-        help='Specific OBSIDs to process')
-    parser.add_argument(
-        '--ring-type', default='FMOVIE',
-        help='The type of ring mosaics; use to retrieve the file lists')
-    parser.add_argument(
-        '--corot-type', default='',
-        help='The type of co-rotation frame to use')
-    parser.add_argument(
-        '--all-obsid', action='store_true', default=False,
-        help='Process all OBSIDs of the given type')
-    parser.add_argument(
-        '--start-obsid', default='',
-        help='The first obsid to process')
-    parser.add_argument(
-        '--end-obsid', default='',
-        help='The last obsid to process')
-    parser.add_argument(
-        '--ring-radius', type=int, default=140220,
-        help='The main ring radius')
-    parser.add_argument(
-        '--radius-inner-delta', type=int, default=-1000,
-        help="""The inner delta from the main ring radius""")
-    parser.add_argument(
-        '--radius-outer-delta', type=int, default=1000,
-        help="""The outer delta from the main ring radius""")
-    parser.add_argument(
-        '--radius-resolution', type=float, default=5.,
-        help='The radial resolution for reprojection')
-    parser.add_argument(
-        '--longitude-resolution', type=float, default=0.02,
-        help='The longitudinal resolution for reprojection')
-    parser.add_argument(
-        '--radial-zoom-amount', type=int, default=10,
-        help='The amount of radial zoom for reprojection')
-    parser.add_argument(
-        '--longitude-zoom-amount', type=int, default=1,
-        help='The amount of longitude zoom for reprojection')
-    parser.add_argument('--verbose', action='store_true', default=False)
-
-# Given a directory, this returns a list of all the filenames in that directory
-# that end with ".npy", but with that suffix stripped. We call that
-# stripped filename a "root" filename.
-def get_root_list(dir):
-    root_list = []
-    for dirpath, dirnames, filenames in os.walk(dir):
-        for filename in sorted(filenames):
-            if filename.endswith('.npy'):
-                root_list.append(os.path.join(dir, filename.replace('.npy', '')))
-    root_list.sort()
-    return root_list
-
-# Given a root filename, read and return the mosaic data file.
-def read_mosaic(root):
-    return np.load(root+'-MOSAIC.npy')
-
-# Given a root filename, read and return the metadata. The returned metadata
-# is a dictionary with the following keys:
+# Mosaic metadata is a dictionary with the following keys:
 #   ring_lower_limit        An integer indicating the lowest radial index in the
 #                           mosaic that is part of the image and not the
 #                           background.
@@ -130,26 +68,78 @@ def read_mosaic(root):
 #                           to create the moasic.
 #     repro_path_list       The full path of the reprojected image file on the
 #                           computer used to create the mosaic.
-def read_mosaic_metadata(root):
-    with open(root+'-METADATA.dat', 'rb') as fp:
-        metadata = pickle.load(fp, encoding='latin1')
-    return metadata
 
-# Return the valid portion of a mosaic.
-def valid_mosaic_subset(mosaic, meadata):
-    valid_longitudes = get_valid_longitudes(mosaic, metadata)
-    lower_limit = metadata['ring_lower_limit']
-    upper_limit = metadata['ring_upper_limit']
-    return mosaic[lower_limit:upper_limit+1, valid_longitudes]
 
-# Given a mosaic, figure out which longitudes have valid data in ALL radial
-# locations that are outside of the radii used to compute the background
-# gradient. This returns a 1-D boolean array of longitudes where True means
-# that longitude has valid data.
-def get_mosaic_valid_longitudes(mosaic, metadata):
-    lower_limit = metadata['ring_lower_limit']
-    upper_limit = metadata['ring_upper_limit']
-    return np.all(mosaic[lower_limit:upper_limit+1, :], axis=0)
+################################################################################
+#
+# GENERAL UTILITIES
+#
+################################################################################
+
+def utc2et(s):
+    return julian.tdb_from_tai(julian.tai_from_iso(s))
+
+def file_clean_join(*args):
+    ret = os.path.join(*args)
+    return ret.replace('\\', '/')
+
+
+################################################################################
+#
+# PARSING ARGUMENTS AND ENUMERATING OBSIDS
+#
+################################################################################
+
+def add_parser_arguments(parser):
+    parser.add_argument(
+        'obsid', action='append', nargs='*',
+        help='Specific OBSIDs to process')
+    parser.add_argument(
+        '--ring-type', default='FMOVIE',
+        help='The type of ring mosaics; use to retrieve the file lists')
+    parser.add_argument(
+        '--corot-type', default='',
+        help='The type of co-rotation frame to use')
+    parser.add_argument(
+        '--start-obsid', default='',
+        help='The first obsid to process')
+    parser.add_argument(
+        '--end-obsid', default='',
+        help='The last obsid to process')
+    parser.add_argument(
+        '--ring-radius', type=int, default=140220,
+        help='The main ring radius')
+    parser.add_argument(
+        '--radius-inner-delta', type=int, default=-1000,
+        help="""The inner delta from the main ring radius""")
+    parser.add_argument(
+        '--radius-outer-delta', type=int, default=1000,
+        help="""The outer delta from the main ring radius""")
+    parser.add_argument(
+        '--radius-resolution', type=float, default=5.,
+        help='The radial resolution for reprojection')
+    parser.add_argument(
+        '--longitude-resolution', type=float, default=0.02,
+        help='The longitudinal resolution for reprojection')
+    parser.add_argument(
+        '--radial-zoom-amount', type=int, default=10,
+        help='The amount of radial zoom for reprojection')
+    parser.add_argument(
+        '--longitude-zoom-amount', type=int, default=1,
+        help='The amount of longitude zoom for reprojection')
+    parser.add_argument('--verbose', action='store_true', default=False)
+
+# Given a directory, this returns a list of all the filenames in that directory
+# that end with ".npy", but with that suffix stripped. We call that
+# stripped filename a "root" filename.
+def get_root_list(dir):
+    root_list = []
+    for dirpath, dirnames, filenames in os.walk(dir):
+        for filename in sorted(filenames):
+            if filename.endswith('.npy'):
+                root_list.append(os.path.join(dir, filename.replace('.npy', '')))
+    root_list.sort()
+    return root_list
 
 def enumerate_obsids(arguments):
     bp = f'_{arguments.ring_radius:06d}'
@@ -168,6 +158,13 @@ def enumerate_obsids(arguments):
                 if arguments.end_obsid and arguments.end_obsid < obs_id:
                     continue
                 yield obs_id
+
+
+################################################################################
+#
+# COMPUTING PATHS
+#
+################################################################################
 
 def bkgnd_sub_mosaic_paths_spec(ring_radius, radius_inner, radius_outer,
                                 radius_resolution, longitude_resolution,
@@ -289,6 +286,13 @@ def clumpdb_paths(options):
                                         'downsampled_clumpchains'+cl_res_data+'.pickle')
     return cl_data_filename, cc_data_filename
 
+
+################################################################################
+#
+# F-RING ORBIT FUNCTIONS
+#
+################################################################################
+
 FRING_ROTATING_ET = None
 FRING_MEAN_MOTION = np.radians(581.964)
 FRING_A = 140221.3
@@ -322,7 +326,12 @@ def fring_radius_at_longitude(obs, longitude):
 
     return radius
 
-##########################################################################################
+
+################################################################################
+#
+# SHADOWING AND OBSCURATION ADJUSTMENT
+#
+################################################################################
 
 def compute_mu(e):
     if isinstance(e, (list, tuple)):
@@ -340,7 +349,9 @@ def compute_z(mu, mu0, tau, is_transmission):
     ret = np.where(is_transmission, transmission_list, reflection_list)
     return ret
 
-def compute_corrected_ew(normal_ew, emission, incidence, tau=0.034):
+def compute_corrected_ew(normal_ew, emission, incidence, tau):
+    if tau == 0:
+        return normal_ew
     if isinstance(emission, (tuple,list)):
         emission = np.array(emission)
     if isinstance(incidence, (tuple,list)):
@@ -351,54 +362,93 @@ def compute_corrected_ew(normal_ew, emission, incidence, tau=0.034):
     ret = normal_ew * compute_z(mu, mu0, tau, is_transmission)
     return ret
 
-def transmission_function(tau, emission, incidence):
-    # incidence angle is always less than 90, therefore the only case we have to worry
-    # about is when Emission Angle changes.
-    # E > 90 = Transmission, E < 90 = Reflection
-    mu0 = compute_mu0(incidence)
-    mu = compute_mu(emission)
 
-    if np.mean(emission[np.nonzero(emission)]) > 90:
-        return mu * mu0 * (np.exp(-tau/mu)-np.exp(-tau/mu0)) / (tau * (mu-mu0))
-#        print 'Reflection'
-    return mu * mu0 * (1.-np.exp(-tau*(1/mu+1/mu0))) / (tau * (mu+mu0))
+################################################################################
+#
+# PHASE CURVE FITTING
+#
+################################################################################
+
+def hg(alpha, g):
+    # Henyey-Greenstein function
+    return (1-g**2) / (1+g**2+2*g*np.cos(alpha))**1.5 / 2
+
+def hg_func(params, xpts):
+    ypts = None
+    for i in range(len(params)//2):
+        g, scale = params[i*2:i*2+2]
+        if ypts is None:
+            ypts = scale * hg(xpts, g)
+        else:
+            ypts += scale * hg(xpts, g)
+    return ypts
+
+def hg_fit_func(params, xpts, ypts):
+    return ypts - hg_func(params, xpts)
+
+# Fit a phase curve and remove data points more than nstd sigma away
+# Use std=None to not remove outliers
+# Do the modeling on a copy of the data so we can remove outliers
+def fit_hg_phase_function(n_hg, nstd, data, tau=None, verbose=True):
+    phasedata = data.copy()
+    if tau is None:
+        normal_ew = phasedata['Normal EW']
+    else:
+        normal_ew = compute_corrected_ew(phasedata['Normal EW'],
+                                         phasedata['Mean Emission'],
+                                         phasedata['Incidence'],
+                                         tau=tau)
+    initial_guess = []
+    bounds1 = []
+    bounds2 = []
+    for i in range(n_hg):
+        initial_guess.append(-.5)
+        initial_guess.append(1.)
+        bounds1.append(-1.)
+        bounds1.append(0.)
+        bounds2.append(1.)
+        bounds2.append(1000.)
+    while True:
+        phase_radians = np.radians(phasedata['Mean Phase'])
+        params = sciopt.least_squares(hg_fit_func, initial_guess,
+                                      bounds=(bounds1, bounds2),
+                                      args=(phase_radians, normal_ew))
+        params = params['x']
+        phase_model = hg_func(params, phase_radians)
+        ratio = np.log10(normal_ew / phase_model)
+        std = np.std(ratio)
+        if verbose:
+            print('Ratio min', ratio.min(), 'Max', ratio.max(), 'Sigma', std)
+        if nstd is None:
+            break
+        oldlen = len(phasedata)
+        keep = ratio.abs() < nstd*std
+        phasedata = phasedata[keep]
+        normal_ew = normal_ew[keep]
+        if len(phasedata) == oldlen:
+            break
+    return params, phasedata, std
+
+def print_hg_params(params, indent=0):
+    total_scale = sum(params[i] for i in range(1,len(params),2))
+    res = []
+    for i in range(0,len(params)//2):
+        g, scale = params[i*2:i*2+2]
+        res.append((scale/total_scale, g))
+    res.sort(reverse=True)
+    for i in range(len(res)):
+        print((' ' * indent) +
+              ('g%d = %.3f weight%d = %.3f' % (i+1, res[i][1], i+1, res[i][0])))
 
 
-# def normalized_ew_factor(alpha, emission, incidence):
-#     tau_eq = 0.033 # French et al. 2012
-#     return (mu(emission) /
-#             transmission_function(tau_eq, emission, incidence) *
-#             normalized_phase_curve(alpha))
-
-
-
-        # # If we need to, reduce the mosaic and save the new version
-        # # for future use
-        # if arguments.mosaic_reduction_factor != 1 and create_reduced:
-        #     bkgnddata.mosaic_img = image_unzoom(bkgnddata.mosaic_img,
-        #                                 (1, arguments.mosaic_reduction_factor))
-        #     # Don't need mean on longitudes - longitude # is always
-        #     # left side of bin
-        #     bkgnddata.longitudes = bkgnddata.longitudes[
-        #                 ::arguments.mosaic_reduction_factor]
-        #     bkgnddata.resolutions = image_unzoom(bkgnddata.resolutions,
-        #                                      arguments.mosaic_reduction_factor)
-        #     # It doesn't make any sense to average image numbers or time
-        #     bkgnddata.image_numbers = bkgnddata.image_numbers[
-        #                 ::arguments.mosaic_reduction_factor]
-        #     bkgnddata.ETs = bkgnddata.ETs[
-        #                 ::arguments.mosaic_reduction_factor]
-        #     bkgnddata.emission_angles = image_unzoom(bkgnddata.emission_angles,
-        #                                      arguments.mosaic_reduction_factor)
-        #     bkgnddata.incidence_angle = bkgnddata.incidence_angle
-        #     bkgnddata.phase_angles = image_unzoom(bkgnddata.phase_angles,
-        #                                      arguments.mosaic_reduction_factor)
-        #     bkgnddata.longitude_resolution *= arguments.mosaic_reduction_factor
-        #     reduced_metadata = {}
-        #     _update_metadata(bkgnddata, reduced_metadata)
-        #     if create_reduced:
-        #         ring_util.write_mosaic(bkgnddata.reduced_mosaic_data_filename,
-        #                                bkgnddata.mosaic_img,
-        #                                bkgnddata.reduced_mosaic_metadata_filename,
-        #                                reduced_metadata)
-        #
+# def transmission_function(tau, emission, incidence):
+#     # incidence angle is always less than 90, therefore the only case we have to worry
+#     # about is when Emission Angle changes.
+#     # E > 90 = Transmission, E < 90 = Reflection
+#     mu0 = compute_mu0(incidence)
+#     mu = compute_mu(emission)
+#
+#     if np.mean(emission[np.nonzero(emission)]) > 90:
+#         return mu * mu0 * (np.exp(-tau/mu)-np.exp(-tau/mu0)) / (tau * (mu-mu0))
+#     return mu * mu0 * (1.-np.exp(-tau*(1/mu+1/mu0))) / (tau * (mu+mu0))
+#
