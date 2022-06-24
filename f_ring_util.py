@@ -136,13 +136,14 @@ def get_root_list(dir):
     root_list = []
     for dirpath, dirnames, filenames in os.walk(dir):
         for filename in sorted(filenames):
-            if filename.endswith('.npy'):
+            if filename.endswith('.npy') and filename.find('WIDTH') == -1:
                 root_list.append(os.path.join(dir, filename.replace('.npy', '')))
     root_list.sort()
     return root_list
 
 def enumerate_obsids(arguments):
-    bp = f'_{arguments.ring_radius:06d}'
+    data_path, _ = bkgnd_sub_mosaic_paths(arguments, '', make_dirs=False)
+    bp = data_path.replace(BKGND_SUB_MOSAIC_DIR+'/', '')
     for dirpath, dirnames, filenames in os.walk(BKGND_SUB_MOSAIC_DIR):
         for filename in sorted(filenames):
             if filename.endswith('.npz'):
@@ -261,6 +262,37 @@ def write_ew(ew_filename, ew, ew_metadata_filename, ew_metadata):
     np.save(ew_filename, ew)
     with open(ew_metadata_filename, 'wb') as ew_metadata_fp:
         pickle.dump(ew_metadata, ew_metadata_fp)
+
+def read_width(root):
+    return np.load(root+'-WIDTH.npy')
+
+def width_paths_spec(ring_radius, radius_inner, radius_outer,
+                     radius_resolution, longitude_resolution,
+                     radial_zoom_amount, longitude_zoom_amount,
+                     obsid, ring_type, make_dirs=False):
+    width_res_data = ('_%06d_%06d_%06d_%06.3f_%05.3f_%d_%d_1' % (
+                      ring_radius, radius_inner, radius_outer,
+                      radius_resolution, longitude_resolution,
+                      radial_zoom_amount, longitude_zoom_amount))
+    if make_dirs and not os.path.exists(EW_DIR):
+        os.mkdir(EW_DIR)
+    data_path = file_clean_join(EW_DIR, obsid+width_res_data+'-WIDTH')
+
+    return data_path
+
+def width_paths(arguments, obsid, make_dirs=False):
+    return width_paths_spec(arguments.ring_radius,
+                            arguments.radius_inner_delta,
+                            arguments.radius_outer_delta,
+                            arguments.radius_resolution,
+                            arguments.longitude_resolution,
+                            arguments.radial_zoom_amount,
+                            arguments.longitude_zoom_amount,
+                            obsid, arguments.ring_type,
+                            make_dirs=make_dirs)
+
+def write_width(width_filename, widths):
+    np.save(width_filename, widths)
 
 def clumpdb_paths(options):
     cl_res_data = ('_%06d_%06d_%06.3f_%05.3f_%02d_%02d_%06d_%06d' %

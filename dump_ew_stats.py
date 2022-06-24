@@ -19,11 +19,12 @@ import numpy as np
 from f_ring_util import (get_ew_valid_longitudes,
                          get_root_list,
                          read_ew,
-                         read_ew_metadata)
+                         read_ew_metadata,
+                         read_width)
 import julian
 
 if len(sys.argv) != 3:
-    print('Usage: dump_mosaic_stats.py <slice_size> <output_csv_file>')
+    print('Usage: dump_ew_stats.py <slice_size> <output_csv_file>')
     sys.exit(-1)
 
 slice_size = int(sys.argv[1])
@@ -43,7 +44,7 @@ writer.writerow(['Observation', 'Slice#', 'Date', 'Min Long', 'Max Long',
                  'Min Emission', 'Max Emission', 'Mean Emission',
                  'Incidence',
                  '% Coverage',
-                 'EW', 'EW Std', 'Normal EW', 'Normal EW Std'])
+                 'EW', 'EW Std', 'Normal EW', 'Normal EW Std', 'Width', 'Width Std'])
 
 for root in root_list:
     if '166RI' in root or '237RI' in root:
@@ -55,6 +56,12 @@ for root in root_list:
     ew_metadata = read_ew_metadata(root)
     longitudes = ew_metadata['longitudes']
     valid_longitudes = get_ew_valid_longitudes(ew_profile, ew_metadata)
+
+    width_edges_profile = None
+    try:
+        width_edges_profile = read_width(root)
+    except FileNotFoundError:
+        pass
 
     longitude_resolution = np.degrees(ew_metadata['longitude_resolution'])
     radius_resolution = ew_metadata['radius_resolution']
@@ -77,6 +84,13 @@ for root in root_list:
 
     ew_profile = ew_profile[valid_longitudes]
 
+    if width_edges_profile is not None:
+        width_edges_profile = width_edges_profile[valid_longitudes, :]
+        width_profile = ((width_edges_profile[:, 1]-width_edges_profile[:, 0])*
+                         radius_resolution)
+    else:
+        width_profile = None
+
     slice_size_in_longitudes = int(slice_size / longitude_resolution)
     if slice_size == 0:
         num_slices = 1
@@ -92,6 +106,8 @@ for root in root_list:
         slice_resolutions = resolutions[slice_start:slice_end]
         slice_ew_profile = ew_profile[slice_start:slice_end]
         slice_longitudes = longitudes[slice_start:slice_end]
+        if width_profile is not None:
+            slice_width = width_profile[slice_start:slice_end]
 
         min_long = np.degrees(np.min(slice_longitudes))
         max_long = np.degrees(np.max(slice_longitudes))
@@ -120,6 +136,12 @@ for root in root_list:
         ew_mean_mu = np.mean(slice_ew_profile_mu)
         ew_std_mu = np.std(slice_ew_profile_mu)
 
+        if width_profile is not None:
+            width_mean = np.mean(slice_width)
+            width_std = np.std(slice_width)
+        else:
+            width_mean, width_std = 0, 0
+
         if ew_mean <= 0:
             print(root, slice_num, 'EW Mean < 0')
             continue
@@ -140,6 +162,8 @@ for root in root_list:
                          np.round(ew_mean, 5),
                          np.round(ew_std, 5),
                          np.round(ew_mean_mu, 5),
-                         np.round(ew_std_mu, 5)])
+                         np.round(ew_std_mu, 5),
+                         np.round(width_mean, 3),
+                         np.round(width_std, 3)])
 
 csv_fp.close()
