@@ -11,6 +11,13 @@ BKGND_SUB_MOSAIC_DIR = os.environ.get('BKGND_SUB_MOSAIC_DIR', None)
 EW_DIR = os.environ.get('EW_DIR', None)
 POLAR_PNG_DIR = os.environ.get('POLAR_PNG_DIR', None)
 
+if BKGND_SUB_MOSAIC_DIR is not None:
+    BKGND_SUB_MOSAIC_DIR = BKGND_SUB_MOSAIC_DIR.rstrip('/')
+if EW_DIR is not None:
+    EW_DIR = EW_DIR.rstrip('/')
+if POLAR_PNG_DIR is not None:
+    POLAR_PNG_DIR = POLAR_PNG_DIR.rstrip('/')
+
 TWOPI = np.pi*2
 
 
@@ -394,6 +401,24 @@ def compute_corrected_ew(normal_ew, emission, incidence, tau):
     ret = normal_ew * compute_z(mu, mu0, tau, is_transmission)
     return ret
 
+def compute_corrected_ew_col(obsdata, col_tau=('Normal EW', None)):
+    total_ew = None
+    for i in range(0, len(col_tau), 2):
+        col = col_tau[i]
+        tau = col_tau[i+1]
+        if tau is None:
+            ew = obsdata[col]
+        else:
+            ew = compute_corrected_ew(obsdata[col],
+                                      obsdata['Mean Emission'],
+                                      obsdata['Incidence'],
+                                      tau=tau)
+        if total_ew is None:
+            total_ew = ew
+        else:
+            total_ew = total_ew + ew
+    return total_ew
+
 
 ################################################################################
 #
@@ -417,19 +442,15 @@ def hg_func(params, xpts):
 
 def hg_fit_func(params, xpts, ypts):
     return ypts - hg_func(params, xpts)
+    # return np.log(ypts) - np.log(hg_func(params, xpts))
 
 # Fit a phase curve and remove data points more than nstd sigma away
 # Use std=None to not remove outliers
 # Do the modeling on a copy of the data so we can remove outliers
-def fit_hg_phase_function(n_hg, nstd, data, tau=None, verbose=True):
+def fit_hg_phase_function(n_hg, nstd, data, col_tau=('Normal EW', None), verbose=True):
     phasedata = data.copy()
-    if tau is None:
-        normal_ew = phasedata['Normal EW']
-    else:
-        normal_ew = compute_corrected_ew(phasedata['Normal EW'],
-                                         phasedata['Mean Emission'],
-                                         phasedata['Incidence'],
-                                         tau=tau)
+    normal_ew = compute_corrected_ew_col(phasedata, col_tau=col_tau)
+
     initial_guess = []
     bounds1 = []
     bounds2 = []
@@ -466,11 +487,12 @@ def print_hg_params(params, indent=0):
     res = []
     for i in range(0,len(params)//2):
         g, scale = params[i*2:i*2+2]
-        res.append((scale/total_scale, g))
+        res.append((scale/total_scale, g, scale))
     res.sort(reverse=True)
     for i in range(len(res)):
         print((' ' * indent) +
-              ('g%d = %.3f weight%d = %.3f' % (i+1, res[i][1], i+1, res[i][0])))
+              ('g%d = %6.3f / scale%d = %6.3f / weight%d = %5.3f' %
+               (i+1, res[i][1], i+1, res[i][2], i+1, res[i][0])))
 
 
 # def transmission_function(tau, emission, incidence):
