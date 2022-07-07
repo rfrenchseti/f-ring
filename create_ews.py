@@ -29,6 +29,11 @@ parser.add_argument('--ew-core-outer-radius', type=int, default=None,
                     help='The outer radius of the core, if applicable')
 parser.add_argument('--compute-widths', action='store_true', default=False,
                     help='Compute the widths for each slice')
+parser.add_argument('--phase-curve-params', type=str,
+                    default='0.635,1.919,-0.007,1.000',
+                    help='The parameters for the phase curve for width computation')
+parser.add_argument('--width-thresholds', type=str,
+                    default='0.015,0.005,0.0025')
 parser.add_argument('--plot-results', action='store_true', default=False,
                     help='Plot the EW and Width results')
 parser.add_argument('--save-plots', action='store_true', default=False,
@@ -52,6 +57,9 @@ f_ring_util.add_parser_arguments(parser)
 
 arguments = parser.parse_args(cmd_line)
 
+HG_PARAMS = [float(x) for x in arguments.phase_curve_params.split(',')]
+WIDTH_THRESHOLDS = [float(x) for x in arguments.width_thresholds.split(',')]
+
 # wing1_width = int((arguments.ring_radius - arguments.core_half_width -
 #                    arguments.ew_inner_radius) /
 #                   arguments.radius_resolution)
@@ -63,6 +71,7 @@ arguments = parser.parse_args(cmd_line)
 ##########################################################################################
 
 def max_range(a, fracs, mean_brightness):
+    assert False
     ret = []
     frac_idx = 0
     if mean_brightness is None:
@@ -82,6 +91,7 @@ def max_range(a, fracs, mean_brightness):
     return None
 
 def width_from_wings(a, fracs, mean_brightness=None):
+    assert False
     # a = nd.median_filter(a, 9)
     if mean_brightness is None:
         mask = np.ones(len(a), dtype=bool)
@@ -93,6 +103,15 @@ def width_from_wings(a, fracs, mean_brightness=None):
         target = mean_brightness * frac
         wing1_pos = np.argmax(a >= target)
         wing2_pos = len(a) - np.argmax(a[::-1] >= target) - 1
+        # print(wing1_pos, a[wing1_pos], wing2_pos, a[wing2_pos])
+        ret.append((wing1_pos, wing2_pos))
+    return ret
+
+def width_from_abs(a, abs_vals):
+    ret = []
+    for abs_val in abs_vals:
+        wing1_pos = np.argmax(a >= abs_val)
+        wing2_pos = len(a) - np.argmax(a[::-1] >= abs_val) - 1
         # print(wing1_pos, a[wing1_pos], wing2_pos, a[wing2_pos])
         ret.append((wing1_pos, wing2_pos))
     return ret
@@ -191,9 +210,9 @@ if arguments.output_csv_filename:
             hdr += [f'EW{start_ew}', f'EW{start_ew} STD',
                     f'Normal EW{start_ew}', f'Normal EW{start_ew} STD']
     if arguments.compute_widths:
-        hdr += ['Width50', 'Width50 Std',
-                'Width75', 'Width75 Std',
-                'Width100', 'Width100 Std']
+        hdr += ['Width1', 'Width1 STD',
+                'Width2', 'Width2 STD',
+                'Width3', 'Width3 STD']
     writer.writerow(hdr)
 
 for obs_id in f_ring_util.enumerate_obsids(arguments):
@@ -309,12 +328,9 @@ for obs_id in f_ring_util.enumerate_obsids(arguments):
     # # print(f'Full rad {len(mask)}, Wing1 {wing1_width}, Wing2 {wing2_width}')
     # width_brightness = np.mean(restr_bsm_img[mask,:])
 
-    if arguments.compute_widths:
-        rd = arguments.ew_inner_radius - arguments.ring_radius
-        rr = arguments.radius_resolution
-
-        # filtered_restr_bsm_img = restr_bsm_img
-        filtered_restr_bsm_img = nd.uniform_filter(restr_bsm_img, (9,49), mode='wrap')
+    if False and arguments.compute_widths:
+        filtered_restr_bsm_img = restr_bsm_img
+        # filtered_restr_bsm_img = nd.uniform_filter(restr_bsm_img, (9,49), mode='wrap')
 
         widths1 = ma.zeros((len(longitudes), 2), dtype=float)
         widths1[:] = ma.masked
@@ -337,6 +353,35 @@ for obs_id in f_ring_util.enumerate_obsids(arguments):
         w1 = widths1[:,1]-widths1[:,0]
         w2 = widths2[:,1]-widths2[:,0]
         w3 = widths3[:,1]-widths3[:,0]
+
+    if arguments.compute_widths:
+        filtered_restr_bsm_img = restr_bsm_img
+        # filtered_restr_bsm_img = nd.uniform_filter(restr_bsm_img, (9,49), mode='wrap')
+        rd = arguments.ew_inner_radius - arguments.ring_radius
+        rr = arguments.radius_resolution
+
+        pn_restr_bsm_img = (filtered_restr_bsm_img * arguments.radius_resolution /
+                            f_ring_util.hg_func(HG_PARAMS, np.radians(phase_angles)))
+
+        widths1 = ma.zeros((len(longitudes), 2), dtype=float)
+        widths1[:] = ma.masked
+        widths2 = ma.zeros((len(longitudes), 2), dtype=float)
+        widths2[:] = ma.masked
+        widths3 = ma.zeros((len(longitudes), 2), dtype=float)
+        widths3[:] = ma.masked
+
+        for idx in range(len(longitudes)):
+            if bad_long[idx]:
+                continue
+            ret = width_from_abs(pn_restr_bsm_img[:,idx], WIDTH_THRESHOLDS)
+            widths1[idx] = (ret[0][0]*rr+rd, ret[0][1]*rr+rd)
+            widths2[idx] = (ret[1][0]*rr+rd, ret[1][1]*rr+rd)
+            widths3[idx] = (ret[2][0]*rr+rd, ret[2][1]*rr+rd)
+
+        w1 = widths1[:,1]-widths1[:,0]
+        w2 = widths2[:,1]-widths2[:,0]
+        w3 = widths3[:,1]-widths3[:,0]
+
         w1_mean = ma.mean(w1)
         w1_std = ma.std(w1)
         w2_mean = ma.mean(w2)
@@ -550,12 +595,12 @@ for obs_id in f_ring_util.enumerate_obsids(arguments):
             plt.ylabel('Core offset (km)')
             plt.xlabel('Longitude (degrees)')
             ax = fig.add_subplot(313)
-            plt.plot(np.degrees(longitudes), w1, color='cyan', label='50%')
-            plt.plot(np.degrees(longitudes), w2, color='orange', label='75%')
-            plt.plot(np.degrees(longitudes), w3, color='red', label='100%')
+            plt.plot(np.degrees(longitudes), w1, color='cyan', label='W1')
+            plt.plot(np.degrees(longitudes), w2, color='orange', label='W2')
+            plt.plot(np.degrees(longitudes), w3, color='red', label='W3')
             plt.legend()
             plt.xlim(0, 360)
-            plt.ylim(200, 1500)
+            plt.ylim(0, 1500)
             plt.ylabel('Ring width (km)')
             plt.xlabel('Longitude (degrees)')
 
