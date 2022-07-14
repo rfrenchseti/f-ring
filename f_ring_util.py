@@ -86,6 +86,9 @@ TWOPI = np.pi*2
 def utc2et(s):
     return julian.tdb_from_tai(julian.tai_from_iso(s))
 
+def et2utc(et):
+    return julian.iso_from_tai(julian.tai_from_tdb(et))
+
 def file_clean_join(*args):
     ret = os.path.join(*args)
     return ret.replace('\\', '/')
@@ -332,7 +335,14 @@ def clumpdb_paths(options):
 #
 ################################################################################
 
-FRING_ROTATING_ET = None
+# Old data from 2012 paper
+# bosh2002_fring_a = 140223.7
+# bosh2002_fring_e = 0.00254
+# bosh2002_fring_curly = 24.1 * np.pi/180
+# bosh2002_fring_curly_dot = 2.7001 * np.pi/180 / 86400 # rad/sec
+
+FRING_ROTATING_ET = utc2et('2007-01-01')
+FRING_ORBIT_EPOCH = utc2et('2000-01-01T12:00:00') # J2000
 FRING_MEAN_MOTION = np.radians(581.964)
 FRING_A = 140221.3
 FRING_E = 0.00235
@@ -340,10 +350,6 @@ FRING_W0 = np.radians(24.2)
 FRING_DW = np.radians(2.70025)
 
 def _compute_fring_longitude_shift(et):
-    global FRING_ROTATING_ET
-    if FRING_ROTATING_ET is None:
-        FRING_ROTATING_ET = utc2et("2007-01-01")
-
     return - (FRING_MEAN_MOTION *
               ((et - FRING_ROTATING_ET) / 86400.)) % TWOPI
 

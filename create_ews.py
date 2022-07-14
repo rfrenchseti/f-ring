@@ -425,7 +425,7 @@ for obs_id in f_ring_util.enumerate_obsids(arguments):
             slice_min_et = np.min(slice_ETs)
             slice_max_et = np.max(slice_ETs)
             slice_mean_et = np.mean(slice_ETs)
-            slice_et_date = julian.iso_from_tai(julian.tai_from_tdb(slice_min_et))
+            slice_et_date = f_ring_util.et2utc(slice_min_et)
 
             slice_min_em = np.min(slice_emission_angles)
             slice_max_em = np.max(slice_emission_angles)
