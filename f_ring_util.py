@@ -341,6 +341,7 @@ def clumpdb_paths(options):
 # bosh2002_fring_curly = 24.1 * np.pi/180
 # bosh2002_fring_curly_dot = 2.7001 * np.pi/180 / 86400 # rad/sec
 
+# F ring orbit from Albers 2012
 FRING_ROTATING_ET = utc2et('2007-01-01')
 FRING_ORBIT_EPOCH = utc2et('2000-01-01T12:00:00') # J2000
 FRING_MEAN_MOTION = np.radians(581.964)
@@ -476,7 +477,7 @@ def fit_hg_phase_function(n_hg, nstd, data, col_tau=('Normal EW', None),
                                       bounds=(bounds1, bounds2),
                                       args=(phase_degrees, normal_ew))
         params = params['x']
-        phase_model = hg_func(params, phase_radians)
+        phase_model = hg_func(params, phase_degrees)
         ratio = np.log10(normal_ew / phase_model)
         std = np.std(ratio)
         if verbose:

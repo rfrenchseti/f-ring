@@ -1,16 +1,18 @@
+##########################################################################################
+# Compare the old .IMG files (CISSCAL 3.3 or 3.6) vs the new .IMG files (CISSCAL 4.0)
+# by looking at the pixels in the general vicinity of the F ring and printing statistics
+# about them.
+##########################################################################################
+
 import os
 
 import matplotlib.pyplot as plt
 import numpy as np
-import numpy.ma as ma
 
 import oops
 import oops.inst.cassini.iss as iss
 
-# N1466504861_1_CALIB-4.0
-# N1492052683_1.IMG
-
-image_versions = (
+image_versions = ( # These are either the first or last images in the movie sequence
     ('N1466448701_1_CALIB-3.3.IMG', 'N1466448701_1_CALIB-4.0.IMG'), # ISS_000RI_SATSRCHAP001_PRIME
     ('N1479201492_1_CALIB-3.3.IMG', 'N1479201492_1_CALIB-4.0.IMG'), # ISS_00ARI_SPKMOVPER001_PRIME
     ('N1492052646_1_CALIB-3.3.IMG', 'N1492052646_1_CALIB-4.0.IMG'), # ISS_006RI_LPHRLFMOV001_PRIME
@@ -39,24 +41,26 @@ image_versions = (
     ('N1610364098_1_CALIB-3.6.IMG', 'N1610364098_1_CALIB-4.0.IMG'), # ISS_100RF_FMOVIE003_PRIME
 )
 
+print('FILENAME                              MIN         MAX   MEDIAN   MEAN   MED RATIO')
 for img1, img2 in image_versions:
-    img1 = os.path.join('/home/rfrench/DS/f-ring/compare_cisscal_versions', img1)
-    img2 = os.path.join('/home/rfrench/DS/f-ring/compare_cisscal_versions', img2)
-    obs1 = iss.from_file(img1, fast_distortion=True)
-    obs2 = iss.from_file(img2, fast_distortion=True)
+    fimg1 = os.path.join('/home/rfrench/DS/f-ring/compare_cisscal_versions', img1)
+    fimg2 = os.path.join('/home/rfrench/DS/f-ring/compare_cisscal_versions', img2)
+    obs1 = iss.from_file(fimg1, fast_distortion=True)
+    obs2 = iss.from_file(fimg2, fast_distortion=True)
     bp = oops.Backplane(obs1)
     bp_radii = bp.ring_radius('saturn:ring').mvals.filled(0)
-    good_mask = (bp_radii < 140520) & (bp_radii > 139920)
+    good_mask = (bp_radii < 140620) & (bp_radii > 139820)
     # plt.imshow(good_mask)
     # plt.show()
 
-    v1d = obs1.data
-    v2d = obs2.data
-    v1d = v1d[good_mask]
-    v2d = v2d[good_mask]
-    ratio = v2d / v1d
-    print(img1, ('%7.3f' % np.min(ratio)), ('%7.3f' % np.max(ratio)),
+    o1d = obs1.data
+    o2d = obs2.data
+    o1d = o1d[good_mask]
+    o2d = o2d[good_mask]
+    ratio = o2d / o1d
+    print(('%-30s' % img1),
+          ('%11.3f' % np.min(ratio)), ('%11.3f' % np.max(ratio)),
           ('%7.3f' % np.median(ratio)), ('%7.3f' % np.mean(ratio)),
-          ('%7.3f' % (np.median(v2d) / np.median(v1d))))
+          ('%7.3f' % (np.median(o2d) / np.median(o1d))))
     # plt.imshow(ratio)
     # plt.show()

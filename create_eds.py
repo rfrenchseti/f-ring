@@ -1,17 +1,13 @@
+##########################################################################################
+
 import argparse
 import csv
-import glob
 import os
 import sys
 
 import matplotlib.pyplot as plt
 import numpy as np
-import numpy.ma as ma
 import pandas as pd
-import scipy.ndimage as nd
-
-import f_ring_util
-import julian
 
 radial_resolution = 1
 

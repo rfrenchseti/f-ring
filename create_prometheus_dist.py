@@ -1,3 +1,12 @@
+##########################################################################################
+# Compute the distance at closest approach between Prometheus and the F ring core.
+# This can be done for a range of times or as supplemental data for observations.
+#
+# Saturn pole referenced to 2007-01-01
+# Prometheus orbit from SPICE kernel sat393.bsp
+# F ring orbit from Albers 2012
+##########################################################################################
+
 import argparse
 import csv
 import math
@@ -7,16 +16,39 @@ import sys
 
 import matplotlib.pyplot as plt
 import numpy as np
-import numpy.ma as ma
-import scipy.ndimage as nd
 
 import f_ring_util
 
 import cspyce
 import julian
-# from oops.event              import Event
-# from oops.path_.spicepath    import SpicePath
-# from oops.path_.path         import Path
+
+
+cmd_line = sys.argv[1:]
+
+if len(cmd_line) == 0:
+   cmd_line = []
+
+parser = argparse.ArgumentParser()
+
+parser.add_argument('--output-csv-filename', type=str,
+                    help='Name of output CSV file for observation-specific dates')
+parser.add_argument('--historical-csv-filename', type=str,
+                    help='Name of historical output CSV file')
+parser.add_argument('--historical-start-date', type=str, default='1978-01-01',
+                    help='Start date for historical output')
+parser.add_argument('--historical-end-date', type=str, default='2018-01-01',
+                    help='Start date for historical output')
+parser.add_argument('--historical-step', type=float, default=30*6,
+                    help='Number of days between historical outputs')
+parser.add_argument('--plot-results', action='store_true', default=False,
+                    help='Plot the distance results')
+parser.add_argument('--save-plots', action='store_true', default=False,
+                    help='Same as --plot-results but save plots to disk instead')
+
+f_ring_util.add_parser_arguments(parser)
+
+arguments = parser.parse_args(cmd_line)
+
 
 kdir = '/home/rfrench/DS/Shared/OOPS-Resources/SPICE'
 cspyce.furnsh(os.path.join(kdir, 'General/LSK/naif0012.tls'))
@@ -28,7 +60,7 @@ SATURN_ID     = cspyce.bodn2c('SATURN')
 PANDORA_ID    = cspyce.bodn2c('PANDORA')
 PROMETHEUS_ID = cspyce.bodn2c('PROMETHEUS')
 
-REFERENCE_ET = cspyce.utc2et('2007-01-01')
+REFERENCE_ET = cspyce.utc2et('2007-01-01') # For Saturn pole
 j2000_to_iau_saturn = cspyce.pxform('J2000', 'IAU_SATURN', REFERENCE_ET)
 
 saturn_z_axis_in_j2000 = cspyce.mtxv(j2000_to_iau_saturn, (0,0,1))
@@ -36,13 +68,6 @@ saturn_x_axis_in_j2000 = cspyce.ucrss((0,0,1), saturn_z_axis_in_j2000)
 
 J2000_TO_SATURN = cspyce.twovec(saturn_z_axis_in_j2000, 3,
                                 saturn_x_axis_in_j2000, 1)
-
-# def saturn_to_prometheus(et):
-#     dist = (SpicePath('PROMETHEUS').event_at_time(et).pos -
-#             SpicePath('SATURN').event_at_time(et).pos).norm()
-#     print(SpicePath('PROMETHEUS').event_at_time(et).pos -
-#             SpicePath('SATURN').event_at_time(et).pos)
-#     return dist.vals
 
 def saturn_to_prometheus(et):
     (prometheus_j2000, lt) = cspyce.spkez(PROMETHEUS_ID, et, 'J2000', 'LT+S', SATURN_ID)
@@ -77,6 +102,7 @@ def prometheus_close_approach(min_et, min_et_long):
     return min_dist, min_dist_long
 
 if False:
+    # Debugging code to plot the orbit of Prometheus
     start_et = f_ring_util.utc2et('2007-01-01')
     et_list = []
     dist_list = []
@@ -90,25 +116,6 @@ if False:
     plt.plot(et_list, long_list)
     plt.show()
 
-cmd_line = sys.argv[1:]
-
-if len(cmd_line) == 0:
-   cmd_line = []
-
-parser = argparse.ArgumentParser()
-
-parser.add_argument('--output-csv-filename', type=str,
-                    help='Name of output CSV file')
-parser.add_argument('--historical-csv-filename', type=str,
-                    help='Name of historical output CSV file')
-parser.add_argument('--plot-results', action='store_true', default=False,
-                    help='Plot the distance results')
-parser.add_argument('--save-plots', action='store_true', default=False,
-                    help='Same as --plot-results but save plots to disk instead')
-
-f_ring_util.add_parser_arguments(parser)
-
-arguments = parser.parse_args(cmd_line)
 
 if arguments.historical_csv_filename:
     csv_fp = open(arguments.historical_csv_filename, 'w')
@@ -120,17 +127,16 @@ if arguments.historical_csv_filename:
         et_list = []
         dist_list = []
 
-    et1 = f_ring_util.utc2et('1978-01-01')
-    et2 = f_ring_util.utc2et('2018-01-01')
-    for et in np.arange(et1, et2, 6*30*86400):
+    et1 = f_ring_util.utc2et(arguments.historical_start_date)
+    et2 = f_ring_util.utc2et(arguments.historical_end_date)
+    for et in np.arange(et1, et2, arguments.historical_step*86400):
         min_dist, min_long = prometheus_close_approach(et, 0)
         date = f_ring_util.et2utc(et)
         print(date)
         if arguments.plot_results:
             et_list.append(np.datetime64(date))
             dist_list.append(min_dist)
-        row = [f_ring_util.et2utc(et),
-               np.round(min_dist, 3)]
+        row = [f_ring_util.et2utc(et), np.round(min_dist, 3)]
         writer.writerow(row)
     csv_fp.close()
 
@@ -145,10 +151,6 @@ if arguments.output_csv_filename:
     writer.writerow(hdr)
 
 for obs_id in f_ring_util.enumerate_obsids(arguments):
-    if '166RI' in obs_id or '237RI' in obs_id:
-        print(f'{obs_id:30s} SKIPPING')
-        continue
-
     (bkgnd_sub_mosaic_filename,
      bkgnd_sub_mosaic_metadata_filename) = f_ring_util.bkgnd_sub_mosaic_paths(
         arguments, obs_id)
@@ -169,7 +171,7 @@ for obs_id in f_ring_util.enumerate_obsids(arguments):
 
     min_dist, min_long = prometheus_close_approach(mean_et, 0)
     date_str = f_ring_util.et2utc(min_et)
-    print(f'{obs_id}: {date_str} {min_dist:.3f}')
+    print(f'{obs_id:30s}: {date_str} {min_dist:.3f}')
 
     if arguments.output_csv_filename:
         row = [obs_id,

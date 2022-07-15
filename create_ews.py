@@ -1,3 +1,21 @@
+##########################################################################################
+# Create various types of equivalent width for the observations.
+#
+# By default we create:
+#   EW, EW Std, Normal EW, Normal EW Std
+#
+# If --ew-core-inner-radius and --ew-core-outer-radius are specified, we also create:
+#   EWI, EWC, EWO and their associated Std and Normal versions
+# If --tau and --phase-curve-params are also specified, we also create:
+#   Normal EW3Z, Normal EW3Z Std, Normal EW3ZPN, Normal EW3ZPN Std
+#
+# If --radial-step is specified, we also create:
+#   EW<radius> and their associated Std and Normal versions for each radius
+#
+# If --compute-widths is specified, we also create:
+#   Width1, Width1 Std, Width2, Width2 Std, Width3, Width3 Std
+##########################################################################################
+
 import argparse
 import csv
 import os
@@ -10,7 +28,7 @@ import numpy.ma as ma
 import scipy.ndimage as nd
 
 import f_ring_util
-import julian
+
 
 cmd_line = sys.argv[1:]
 
@@ -35,7 +53,7 @@ parser.add_argument('--phase-curve-params', type=str,
                     default='0.634,1.874,-0.026,0.876',
                     help='The parameters for the phase curve for width computation')
 parser.add_argument('--width-thresholds', type=str,
-                    default='0.02,0.01,0.005')
+                    default='0.002,0.001,0.0002')
 parser.add_argument('--plot-results', action='store_true', default=False,
                     help='Plot the EW and Width results')
 parser.add_argument('--save-plots', action='store_true', default=False,
@@ -52,8 +70,6 @@ parser.add_argument('--output-csv-filename', type=str,
                     help='Name of output CSV file')
 parser.add_argument('--radial-step', type=int, default=None,
                     help='Radial step size for multiple small radial steps')
-# parser.add_argument('--core-half-width', type=int, default=100,
-#                     help='The half-width of the core for computing ring width')
 
 f_ring_util.add_parser_arguments(parser)
 
@@ -61,13 +77,6 @@ arguments = parser.parse_args(cmd_line)
 
 HG_PARAMS = [float(x) for x in arguments.phase_curve_params.split(',')]
 WIDTH_THRESHOLDS = [float(x) for x in arguments.width_thresholds.split(',')]
-
-# wing1_width = int((arguments.ring_radius - arguments.core_half_width -
-#                    arguments.ew_inner_radius) /
-#                   arguments.radius_resolution)
-# wing2_width = int((arguments.ew_outer_radius - arguments.ring_radius -
-#                    arguments.core_half_width) /
-#                   arguments.radius_resolution)
 
 
 ##########################################################################################
@@ -125,15 +134,15 @@ assert ((arguments.ew_inner_radius is None) ==
 assert ((arguments.ew_core_inner_radius is None) ==
         (arguments.ew_core_outer_radius is None))
 
-# ew_inner_radius/ew_outer_radius of None means just use the whole width of the mosaic,
-# whatever that is
-if arguments.ew_inner_radius is not None:
+# ew_inner_radius/ew_outer_radius of None or 0 means just use the whole width
+# of the mosaic, whatever that is
+if arguments.ew_inner_radius is not None and arguments.ew_inner_radius != 0:
     ring_lower_limit = int((arguments.ew_inner_radius -
                             arguments.radius_inner_delta -
                             arguments.ring_radius) / arguments.radius_resolution)
 else:
     ring_lower_limit = 0
-if arguments.ew_outer_radius is not None:
+if arguments.ew_outer_radius is not None and arguments.ew_outer_radius != 0:
     ring_upper_limit = int((arguments.ew_outer_radius -
                             arguments.radius_inner_delta -
                             arguments.ring_radius) / arguments.radius_resolution)
@@ -143,9 +152,9 @@ else:
 print(f'EW  lower limit: {arguments.ew_inner_radius:6d} km, pix {ring_lower_limit:4d}')
 print(f'EW  upper limit: {arguments.ew_outer_radius:6d} km, pix {ring_upper_limit:4d}')
 
-# If there is no core specific, then there is just a single slice (slice1)
-# Otherwise there are three slices - inner skirt (slice1), core (slice2), outer skirt
-# (slice3)
+# If there is no core specified, then there is just a single radial region (range1)
+# Otherwise there are three ranges - inner skirt (range1), core (range2), outer skirt
+# (range3)
 three_zone = False
 if arguments.ew_core_inner_radius is None:
     ring_lower_limit1 = ring_lower_limit
@@ -207,19 +216,19 @@ if arguments.output_csv_filename:
         hdr += ['EWI', 'EWI Std', 'Normal EWI', 'Normal EWI Std']
         hdr += ['EWC', 'EWC Std', 'Normal EWC', 'Normal EWC Std']
         hdr += ['EWO', 'EWO Std', 'Normal EWO', 'Normal EWO Std']
-        if arguments.tau:
+        if arguments.tau is not None:
             hdr += ['Normal EW3Z', 'Normal EW3Z Std',
                     'Normal EW3ZPN', 'Normal EW3ZPN Std']
 
     if num_radial_steps is not None:
         for radial_step in range(num_radial_steps):
             start_ew = arguments.ew_inner_radius + radial_step * arguments.radial_step
-            hdr += [f'EW{start_ew}', f'EW{start_ew} STD',
-                    f'Normal EW{start_ew}', f'Normal EW{start_ew} STD']
+            hdr += [f'EW{start_ew}', f'EW{start_ew} Std',
+                    f'Normal EW{start_ew}', f'Normal EW{start_ew} Std']
     if arguments.compute_widths:
-        hdr += ['Width1', 'Width1 STD',
-                'Width2', 'Width2 STD',
-                'Width3', 'Width3 STD']
+        hdr += ['Width1', 'Width1 Std',
+                'Width2', 'Width2 Std',
+                'Width3', 'Width3 Std']
     writer.writerow(hdr)
 
 for obs_id in f_ring_util.enumerate_obsids(arguments):
@@ -254,51 +263,53 @@ for obs_id in f_ring_util.enumerate_obsids(arguments):
     phase_angles = metadata['phase_angles'][::ds]
     bsm_img = bsm_img[:,::ds]
 
+    # Make the submosaic for the radial range desired
     if three_zone:
         restr_bsm_img = bsm_img[ring_lower_limit1:ring_upper_limit3+1,:]
     else:
         restr_bsm_img = bsm_img[ring_lower_limit:ring_upper_limit1,:]
     bad_long = longitudes < 0
     percentage_long_ok = float(np.sum(~bad_long)) / len(longitudes) * 100
+    # Choose bad longitudes based only on the full radial range desired
     bad_long |= (np.sum(ma.getmaskarray(restr_bsm_img), axis=0) >
                  restr_bsm_img.shape[0]*arguments.maximum_bad_pixels_percentage/100)
     bad_long |= np.sum(restr_bsm_img, axis=0) == 0
     percentage_ew_ok = float(np.sum(~bad_long)) / len(longitudes) * 100
     longitudes[bad_long] = ma.masked
-
     bsm_img[:, bad_long] = ma.masked
     restr_bsm_img[:, bad_long] = ma.masked
+
+    # Make all the sub-mosaics for 3-zone use
     if three_zone:
         restr_bsm_img1 = bsm_img[ring_lower_limit1:ring_upper_limit1+1,:]
-        restr_bsm_img1[:, bad_long] = ma.masked
         restr_bsm_img2 = bsm_img[ring_lower_limit2:ring_upper_limit2+1,:]
-        restr_bsm_img2[:, bad_long] = ma.masked
         restr_bsm_img3 = bsm_img[ring_lower_limit3:ring_upper_limit3+1,:]
-        restr_bsm_img3[:, bad_long] = ma.masked
 
-        if arguments.tau:
-            # plt.imshow(bsm_img)
-            # plt.show()
+        if arguments.tau is not None:
+            # Make the whole image be Normal and then tau-augment the center
+            # region. Note ring_lower_limit<n> are based on the full mosaic size,
+            # but here we're working with the radially-restricted version.
             restr_bsm_img_tau = restr_bsm_img * np.abs(np.cos(emission_angles))
-            restr_bsm_img_tau[ring_lower_limit2:ring_upper_limit2+1, :] *= (
-                f_ring_util.compute_corrected_ew(1, np.degrees(emission_angles),
+            restr_bsm_img_tau[ring_lower_limit2-ring_lower_limit1:
+                              ring_upper_limit2-ring_lower_limit1+1, :] *= (
+                f_ring_util.compute_corrected_ew(1,
+                                                 np.degrees(emission_angles),
                                                  np.degrees(incidence_angle),
                                                  arguments.tau))
-            # plt.imshow(restr_bsm_img_tau)
-            # plt.show()
+            # Make the phase-normalized version by dividing by the phase curve at
+            # alpha and multiplying by the phase curve at 0.
             restr_bsm_img_tau_pn = (restr_bsm_img_tau /
-                          (f_ring_util.hg_func(HG_PARAMS, np.degrees(phase_angles)) /
-                           f_ring_util.hg_func(HG_PARAMS, 0)))
-            # plt.imshow(restr_bsm_img_tau_pn)
-            # plt.show()
+                          f_ring_util.hg_func(HG_PARAMS, np.degrees(phase_angles)) *
+                          f_ring_util.hg_func(HG_PARAMS, 0))
 
     print(f'{obs_id:30s} {percentage_long_ok:3.0f}% {percentage_ew_ok:3.0f}%', end='')
     if (np.sum(~bad_long)*arguments.longitude_resolution*arguments.downsample <
-        arguments.minimum_coverage):
+            arguments.minimum_coverage):
         print(' Skipped due to poor coverage')
         continue
 
-    # mean_brightness = np.mean(brightness)
+    # Make the full EW profiles here, which will later by sliced up.
+    # But print the statistics based on the whole profile.
     ew_profile = np.sum(restr_bsm_img, axis=0) * arguments.radius_resolution
     ew_profile[bad_long] = ma.masked
     ew_mean = ma.mean(ew_profile)
@@ -309,21 +320,22 @@ for obs_id in f_ring_util.enumerate_obsids(arguments):
     ew_std_n = ma.mean(ew_profile_n)
     print(f' EWN {ew_mean_n:6.3f} +/- {ew_std_n:6.3f}', end='')
 
-    if three_zone and arguments.tau:
-        ew_profile_3z = np.sum(restr_bsm_img_tau, axis=0) * arguments.radius_resolution
-        ew_profile_3z[bad_long] = ma.masked
-        ew_mean_3z = ma.mean(ew_profile_3z)
-        ew_std_3z = ma.std(ew_profile_3z)
-        print(f' EW3Z {ew_mean_3z:6.3f} +/- {ew_std_3z:6.3f}', end='')
-
-        ew_profile_3z_pn = (np.sum(restr_bsm_img_tau_pn, axis=0) *
-                            arguments.radius_resolution)
-        ew_profile_3z_pn[bad_long] = ma.masked
-        ew_mean_3z_pn = ma.mean(ew_profile_3z_pn)
-        ew_std_3z_pn = ma.std(ew_profile_3z_pn)
-        print(f' EW3ZPN {ew_mean_3z_pn:6.3f} +/- {ew_std_3z_pn:6.3f}', end='')
-
     if three_zone:
+        if arguments.tau is not None:
+            brightness_3z = np.sum(restr_bsm_img_tau, axis=0)
+            ew_profile_3z = brightness_3z * arguments.radius_resolution
+            ew_profile_3z[bad_long] = ma.masked
+            ew_mean_3z = ma.mean(ew_profile_3z)
+            ew_std_3z = ma.std(ew_profile_3z)
+            print(f' EW3Z {ew_mean_3z:6.3f} +/- {ew_std_3z:6.3f}', end='')
+
+            brightness_3zpn = np.sum(restr_bsm_img_tau_pn, axis=0)
+            ew_profile_3z_pn = brightness_3zpn * arguments.radius_resolution
+            ew_profile_3z_pn[bad_long] = ma.masked
+            ew_mean_3z_pn = ma.mean(ew_profile_3z_pn)
+            ew_std_3z_pn = ma.std(ew_profile_3z_pn)
+            print(f' EW3ZPN {ew_mean_3z_pn:6.3f} +/- {ew_std_3z_pn:6.3f}', end='')
+
         brightness1 = np.sum(restr_bsm_img1, axis=0)
         ew_profile1 = brightness1 * arguments.radius_resolution
         ew_profile1[bad_long] = ma.masked
@@ -360,43 +372,11 @@ for obs_id in f_ring_util.enumerate_obsids(arguments):
             # print(f'  EW{start_ew} {step_ew_mean:6.3f} +/- {step_ew_std:6.3f}')
             ew_profile_steps.append(step_ew_profile)
 
-    #
-    # mask = np.zeros(restr_bsm_img.shape[0], dtype=bool)
-    # # mask = np.ones(restr_bsm_img.shape[0], dtype=bool)
-    # mask[:wing1_width+1] = True
-    # mask[-wing2_width:] = True
-    # # mask[wing1_width:wing2_width+1] = True
-    # # print(f'Full rad {len(mask)}, Wing1 {wing1_width}, Wing2 {wing2_width}')
-    # width_brightness = np.mean(restr_bsm_img[mask,:])
-
-    # if False and arguments.compute_widths:
-    #     filtered_restr_bsm_img = restr_bsm_img
-    #     # filtered_restr_bsm_img = nd.uniform_filter(restr_bsm_img, (9,49), mode='wrap')
-    #
-    #     widths1 = ma.zeros((len(longitudes), 2), dtype=float)
-    #     widths1[:] = ma.masked
-    #     widths2 = ma.zeros((len(longitudes), 2), dtype=float)
-    #     widths2[:] = ma.masked
-    #     widths3 = ma.zeros((len(longitudes), 2), dtype=float)
-    #     widths3[:] = ma.masked
-    #
-    #     for idx in range(len(longitudes)):
-    #         if bad_long[idx]:
-    #             continue
-    #         # ret = max_range(restr_bsm_img[:,idx], (0.5,0.7,0.9),
-    #         #                 None)
-    #         ret = width_from_wings(filtered_restr_bsm_img[:,idx], (0.50, 0.75, 1,),
-    #                                width_brightness)
-    #         widths1[idx] = (ret[0][0]*rr+rd, ret[0][1]*rr+rd)
-    #         widths2[idx] = (ret[1][0]*rr+rd, ret[1][1]*rr+rd)
-    #         widths3[idx] = (ret[2][0]*rr+rd, ret[2][1]*rr+rd)
-    #
-    #     w1 = widths1[:,1]-widths1[:,0]
-    #     w2 = widths2[:,1]-widths2[:,0]
-    #     w3 = widths3[:,1]-widths3[:,0]
-
     if arguments.compute_widths:
-        filtered_restr_bsm_img = restr_bsm_img #restr_bsm_img_tau_pn
+        if three_zone and arguments.tau is not None:
+            filtered_restr_bsm_img = restr_bsm_img_tau_pn
+        else:
+            filtered_restr_bsm_img = restr_bsm_img #restr_bsm_img_tau_pn
         # filtered_restr_bsm_img = nd.uniform_filter(restr_bsm_img, (9,49), mode='wrap')
         rd = arguments.ew_inner_radius - arguments.ring_radius
         rr = arguments.radius_resolution
@@ -496,21 +476,21 @@ for obs_id in f_ring_util.enumerate_obsids(arguments):
             row = [obs_id, slice_num, np.sum(~slice_bad_long), slice_et_date,
                    np.round(slice_min_long, 2),
                    np.round(slice_max_long, 2),
-                   np.round(slice_min_res, 3),
-                   np.round(slice_max_res, 3),
-                   np.round(slice_mean_res, 3),
-                   np.round(np.degrees(slice_min_ph), 3),
-                   np.round(np.degrees(slice_max_ph), 3),
-                   np.round(np.degrees(slice_mean_ph), 3),
-                   np.round(np.degrees(slice_min_em), 3),
-                   np.round(np.degrees(slice_max_em), 3),
-                   np.round(np.degrees(slice_mean_em), 3),
-                   np.round(np.degrees(incidence_angle), 3),
+                   np.round(slice_min_res, 8),
+                   np.round(slice_max_res, 8),
+                   np.round(slice_mean_res, 8),
+                   np.round(np.degrees(slice_min_ph), 8),
+                   np.round(np.degrees(slice_max_ph), 8),
+                   np.round(np.degrees(slice_mean_ph), 8),
+                   np.round(np.degrees(slice_min_em), 8),
+                   np.round(np.degrees(slice_max_em), 8),
+                   np.round(np.degrees(slice_mean_em), 8),
+                   np.round(np.degrees(incidence_angle), 8),
                    percentage_ew_ok,
-                   np.round(slice_ew_mean, 5),
-                   np.round(slice_ew_std, 5),
-                   np.round(slice_ew_mean_mu, 5),
-                   np.round(slice_ew_std_mu, 5)]
+                   np.round(slice_ew_mean, 8),
+                   np.round(slice_ew_std, 8),
+                   np.round(slice_ew_mean_mu, 8),
+                   np.round(slice_ew_std_mu, 8)]
 
             if three_zone:
                 slice_ew_profile1 = ew_profile1[slice_start:slice_end][slice_good_long]
@@ -521,10 +501,10 @@ for obs_id in f_ring_util.enumerate_obsids(arguments):
                 slice_ew_mean_mu1 = np.mean(slice_ew_profile_mu1)
                 slice_ew_std_mu1 = np.std(slice_ew_profile_mu1)
 
-                row += [np.round(slice_ew_mean1, 5),
-                        np.round(slice_ew_std1, 5),
-                        np.round(slice_ew_mean_mu1, 5),
-                        np.round(slice_ew_std_mu1, 5)]
+                row += [np.round(slice_ew_mean1, 8),
+                        np.round(slice_ew_std1, 8),
+                        np.round(slice_ew_mean_mu1, 8),
+                        np.round(slice_ew_std_mu1, 8)]
 
                 slice_ew_profile2 = ew_profile2[slice_start:slice_end][slice_good_long]
                 slice_ew_mean2 = np.mean(slice_ew_profile2)
@@ -534,10 +514,10 @@ for obs_id in f_ring_util.enumerate_obsids(arguments):
                 slice_ew_mean_mu2 = np.mean(slice_ew_profile_mu2)
                 slice_ew_std_mu2 = np.std(slice_ew_profile_mu2)
 
-                row += [np.round(slice_ew_mean2, 5),
-                        np.round(slice_ew_std2, 5),
-                        np.round(slice_ew_mean_mu2, 5),
-                        np.round(slice_ew_std_mu2, 5)]
+                row += [np.round(slice_ew_mean2, 8),
+                        np.round(slice_ew_std2, 8),
+                        np.round(slice_ew_mean_mu2, 8),
+                        np.round(slice_ew_std_mu2, 8)]
 
                 slice_ew_profile3 = ew_profile3[slice_start:slice_end][slice_good_long]
                 slice_ew_mean3 = np.mean(slice_ew_profile3)
@@ -547,27 +527,27 @@ for obs_id in f_ring_util.enumerate_obsids(arguments):
                 slice_ew_mean_mu3 = np.mean(slice_ew_profile_mu3)
                 slice_ew_std_mu3 = np.std(slice_ew_profile_mu3)
 
-                row += [np.round(slice_ew_mean3, 5),
-                        np.round(slice_ew_std3, 5),
-                        np.round(slice_ew_mean_mu3, 5),
-                        np.round(slice_ew_std_mu3, 5)]
+                row += [np.round(slice_ew_mean3, 8),
+                        np.round(slice_ew_std3, 8),
+                        np.round(slice_ew_mean_mu3, 8),
+                        np.round(slice_ew_std_mu3, 8)]
 
                 # Sanity check the math
                 slice_ew_mean_threezone_total = (slice_ew_mean1 + slice_ew_mean2 +
                                                  slice_ew_mean3)
                 assert abs(slice_ew_mean_threezone_total - slice_ew_mean) < 0.00001
 
-                if arguments.tau:
+                if arguments.tau is not None:
                     slice_ew_profile_3z = ew_profile_3z[slice_start:slice_end][slice_good_long]
                     slice_ew_mean_3z = np.mean(slice_ew_profile_3z)
                     slice_ew_std_3z = np.std(slice_ew_profile_3z)
                     slice_ew_profile_3z_pn = ew_profile_3z_pn[slice_start:slice_end][slice_good_long]
                     slice_ew_mean_3z_pn = np.mean(slice_ew_profile_3z_pn)
                     slice_ew_std_3z_pn = np.std(slice_ew_profile_3z_pn)
-                    row += [np.round(slice_ew_mean_3z, 5),
-                            np.round(slice_ew_std_3z, 5),
-                            np.round(slice_ew_mean_3z_pn, 5),
-                            np.round(slice_ew_std_3z_pn, 5)]
+                    row += [np.round(slice_ew_mean_3z, 8),
+                            np.round(slice_ew_std_3z, 8),
+                            np.round(slice_ew_mean_3z_pn, 8),
+                            np.round(slice_ew_std_3z_pn, 8)]
 
             if num_radial_steps is not None:
                 total_step_ew_mean = 0
@@ -582,17 +562,16 @@ for obs_id in f_ring_util.enumerate_obsids(arguments):
                     slice_step_ew_mean_mu = np.mean(slice_step_ew_profile_mu)
                     slice_step_ew_std_mu = np.std(slice_step_ew_profile_mu)
                     total_step_ew_mean += slice_step_ew_mean
-                    row += [np.round(slice_step_ew_mean, 5),
-                            np.round(slice_step_ew_std, 5),
-                            np.round(slice_step_ew_mean_mu, 5),
-                            np.round(slice_step_ew_std_mu, 5)]
+                    row += [np.round(slice_step_ew_mean, 8),
+                            np.round(slice_step_ew_std, 8),
+                            np.round(slice_step_ew_mean_mu, 8),
+                            np.round(slice_step_ew_std_mu, 8)]
 
                 # Sanity check the math
                 assert abs(total_step_ew_mean - slice_ew_mean) < 0.00001
 
             if arguments.compute_widths:
-                row += [
-                        np.round(np.mean(slice_w1), 3),
+                row += [np.round(np.mean(slice_w1), 3),
                         np.round(np.std(slice_w1), 3),
                         np.round(np.mean(slice_w2), 3),
                         np.round(np.std(slice_w2), 3),
