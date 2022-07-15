@@ -407,7 +407,9 @@ def compute_corrected_ew(normal_ew, emission, incidence, tau):
     ret = normal_ew * compute_z(mu, mu0, tau, is_transmission)
     return ret
 
-def compute_corrected_ew_col(obsdata, col_tau=('Normal EW', None)):
+def compute_corrected_ew_col(obsdata, col_tau=('Normal EW', None),
+                             emission_col='Mean Emission',
+                             incidence_col='Incidence'):
     total_ew = None
     for i in range(0, len(col_tau), 2):
         col = col_tau[i]
@@ -416,8 +418,8 @@ def compute_corrected_ew_col(obsdata, col_tau=('Normal EW', None)):
             ew = obsdata[col]
         else:
             ew = compute_corrected_ew(obsdata[col],
-                                      obsdata['Mean Emission'],
-                                      obsdata['Incidence'],
+                                      obsdata[emission_col],
+                                      obsdata[incidence_col],
                                       tau=tau)
         if total_ew is None:
             total_ew = ew
@@ -434,7 +436,7 @@ def compute_corrected_ew_col(obsdata, col_tau=('Normal EW', None)):
 
 def hg(alpha, g):
     # Henyey-Greenstein function
-    return (1-g**2) / (1+g**2+2*g*np.cos(alpha))**1.5 / 2
+    return (1-g**2) / (1+g**2+2*g*np.cos(np.radians(alpha)))**1.5 / 2
 
 def hg_func(params, xpts):
     ypts = None
@@ -453,7 +455,8 @@ def hg_fit_func(params, xpts, ypts):
 # Fit a phase curve and remove data points more than nstd sigma away
 # Use std=None to not remove outliers
 # Do the modeling on a copy of the data so we can remove outliers
-def fit_hg_phase_function(n_hg, nstd, data, col_tau=('Normal EW', None), verbose=True):
+def fit_hg_phase_function(n_hg, nstd, data, col_tau=('Normal EW', None),
+                          phase_col='Mean Phase', verbose=True):
     phasedata = data.copy()
     normal_ew = compute_corrected_ew_col(phasedata, col_tau=col_tau)
 
@@ -468,10 +471,10 @@ def fit_hg_phase_function(n_hg, nstd, data, col_tau=('Normal EW', None), verbose
         bounds2.append(1.)
         bounds2.append(1000.)
     while True:
-        phase_radians = np.radians(phasedata['Mean Phase'])
+        phase_degrees = phasedata[phase_col]
         params = sciopt.least_squares(hg_fit_func, initial_guess,
                                       bounds=(bounds1, bounds2),
-                                      args=(phase_radians, normal_ew))
+                                      args=(phase_degrees, normal_ew))
         params = params['x']
         phase_model = hg_func(params, phase_radians)
         ratio = np.log10(normal_ew / phase_model)
