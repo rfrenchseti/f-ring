@@ -449,15 +449,17 @@ def hg_func(params, xpts):
             ypts += scale * hg(xpts, g)
     return ypts
 
-def hg_fit_func(params, xpts, ypts):
-    return ypts - hg_func(params, xpts)
+def hg_fit_func(params, xpts, ypts, ystd):
+    if ystd is None:
+        ystd = 1
+    return (ypts - hg_func(params, xpts)) / ystd
     # return np.log(ypts) - np.log(hg_func(params, xpts))
 
 # Fit a phase curve and remove data points more than nstd sigma away
 # Use std=None to not remove outliers
 # Do the modeling on a copy of the data so we can remove outliers
 def fit_hg_phase_function(n_hg, nstd, data, col_tau=('Normal EW', None),
-                          phase_col='Mean Phase', verbose=True):
+                          phase_col='Mean Phase', std_col=None, verbose=True):
     phasedata = data.copy()
     normal_ew = compute_corrected_ew_col(phasedata, col_tau=col_tau)
 
@@ -473,9 +475,12 @@ def fit_hg_phase_function(n_hg, nstd, data, col_tau=('Normal EW', None),
         bounds2.append(1000.)
     while True:
         phase_degrees = phasedata[phase_col]
+        std_data = None
+        if std_col is not None:
+            std_col = phasedata[std_col]
         params = sciopt.least_squares(hg_fit_func, initial_guess,
                                       bounds=(bounds1, bounds2),
-                                      args=(phase_degrees, normal_ew))
+                                      args=(phase_degrees, normal_ew, std_col))
         params = params['x']
         phase_model = hg_func(params, phase_degrees)
         ratio = np.log10(normal_ew / phase_model)

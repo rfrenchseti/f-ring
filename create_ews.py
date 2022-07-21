@@ -47,13 +47,19 @@ parser.add_argument('--ew-core-outer-radius', type=int, default=None,
                     help='The outer radius of the core, if applicable')
 parser.add_argument('--compute-widths', action='store_true', default=False,
                     help='Compute the widths for each slice')
+parser.add_argument('--widths-frac-mode', action='store_true', default=False,
+                    help='Compute widths in fractional mode')
 parser.add_argument('--tau', type=float, default=0.042,
                     help='Tau to use computing 3-zone EW and phase-normalization')
 parser.add_argument('--phase-curve-params', type=str,
                     default='0.634,1.874,-0.026,0.876',
                     help='The parameters for the phase curve for width computation')
-parser.add_argument('--width-thresholds', type=str,
-                    default='0.002,0.001,0.0002')
+parser.add_argument('--width-thresholds-abs', type=str,
+                    default='0.002,0.001,0.0002',
+                    help='The default width threshold values in absolute mode')
+parser.add_argument('--width-thresholds-frac', type=str,
+                    default='.75,.85,.95',
+                    help='The default width threshold values in fractional mode')
 parser.add_argument('--plot-results', action='store_true', default=False,
                     help='Plot the EW and Width results')
 parser.add_argument('--save-plots', action='store_true', default=False,
@@ -76,13 +82,15 @@ f_ring_util.add_parser_arguments(parser)
 arguments = parser.parse_args(cmd_line)
 
 HG_PARAMS = [float(x) for x in arguments.phase_curve_params.split(',')]
-WIDTH_THRESHOLDS = [float(x) for x in arguments.width_thresholds.split(',')]
+if arguments.widths_frac_mode:
+    WIDTH_THRESHOLDS = [float(x) for x in arguments.width_thresholds_frac.split(',')]
+else:
+    WIDTH_THRESHOLDS = [float(x) for x in arguments.width_thresholds_abs.split(',')]
 
 
 ##########################################################################################
 
-def max_range(a, fracs, mean_brightness):
-    assert False
+def max_range(a, fracs, mean_brightness=None):
     ret = []
     frac_idx = 0
     if mean_brightness is None:
@@ -376,13 +384,13 @@ for obs_id in f_ring_util.enumerate_obsids(arguments):
         if three_zone and arguments.tau is not None:
             filtered_restr_bsm_img = restr_bsm_img_tau_pn
         else:
-            filtered_restr_bsm_img = restr_bsm_img #restr_bsm_img_tau_pn
+            filtered_restr_bsm_img = restr_bsm_img
         # filtered_restr_bsm_img = nd.uniform_filter(restr_bsm_img, (9,49), mode='wrap')
         rd = arguments.ew_inner_radius - arguments.ring_radius
         rr = arguments.radius_resolution
 
         # We compute the width on the phase-normalized (to phase_angle=0)
-        # mosaic. We also tau-adjust the core.
+        # mosaic. We also tau-adjust the core. Unless those parameters are turned off.
         pn_restr_bsm_img = filtered_restr_bsm_img * arguments.radius_resolution
 
         widths1 = ma.zeros((len(longitudes), 2), dtype=float)
@@ -395,7 +403,10 @@ for obs_id in f_ring_util.enumerate_obsids(arguments):
         for idx in range(len(longitudes)):
             if bad_long[idx]:
                 continue
-            ret = width_from_abs(pn_restr_bsm_img[:,idx], WIDTH_THRESHOLDS)
+            if arguments.widths_frac_mode:
+                ret = max_range(pn_restr_bsm_img[:,idx], WIDTH_THRESHOLDS)
+            else:
+                ret = width_from_abs(pn_restr_bsm_img[:,idx], WIDTH_THRESHOLDS)
             widths1[idx] = (ret[0][0]*rr+rd, ret[0][1]*rr+rd)
             widths2[idx] = (ret[1][0]*rr+rd, ret[1][1]*rr+rd)
             widths3[idx] = (ret[2][0]*rr+rd, ret[2][1]*rr+rd)
