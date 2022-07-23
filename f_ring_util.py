@@ -362,10 +362,10 @@ def fring_corotating_to_inertial(co_long, et):
     """Convert corotating longitude (deg) to inertial."""
     return (co_long - _compute_fring_longitude_shift(et)) % TWOPI
 
-def fring_radius_at_longitude(obs, longitude):
+def fring_radius_at_longitude(et, longitude):
     """Return the radius (km) of the F ring core at a given inertial longitude
     (deg)."""
-    curly_w = FRING_W0 + FRING_DW*obs.midtime/86400.
+    curly_w = FRING_W0 + FRING_DW*et/86400.
 
     radius = (FRING_A * (1-FRING_E**2) /
               (1 + FRING_E * np.cos(longitude-curly_w)))

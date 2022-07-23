@@ -1,26 +1,62 @@
 ##########################################################################################
+# Create various types of equivalent depth for the occultations. Also correlate with
+# FMOVIE mosaics.
+#
+# By default we create:
+#   Occultation Name
+#   Ring Event Start Time
+#   Ring Event End Time
+#   Ring Event Mean Time
+#   RevNo
+#   Observation Name
+#   Star Name
+#   Direction
+#   Minimum Wavelength
+#   Maximum Wavelength
+#   Data Quality Score
+#   Minimum Longitude
+#   Maximum Longitude
+#   Mean Longitude
+#   Ring Elevation
+#   Lowest Detectable Opacity
+#   Highest Detectable Opacity
+#   Prometheus Distance
+#   Equivalent Tau
+#   Core30 ED
+#   Core50 ED
+#   Full ED
+#
+# If --compare-ew is specified, we also create:
+#   Before ISS ObsName
+#   Before ISS Delta
+#   After ISS ObsName
+#   After ISS Delta
+##########################################################################################
 
 import argparse
+from collections import namedtuple
 import csv
 import os
+import pickle
 import sys
 
 import matplotlib.pyplot as plt
 import numpy as np
+import numpy.ma as ma
 import pandas as pd
-
-from f_ring_util import et2utc
-import prometheus_util
 
 import pdsparser
 
-RADIAL_RESOLUTION = 1
-SLUSH = 1000
-ED_CORE_HW30 = 30  # +/-
-ED_CORE_HW50 = 50
-ED_FULL_HW = 500 # +/-
-# SKIRT1 = 700
-# SKIRT2 = 800
+import f_ring_util
+import prometheus_util
+
+
+OCC_RADIAL_RESOLUTION = 1 # Radial resolution of occultations
+OCC_SLUSH = 1000          # Range around 140220 to look for peak tau
+ED_CORE_HW30 = 30         # Half-width around core to compare to Albers 2012 core
+ED_CORE_HW50 = 50         # Half-width around core to compare to
+ED_FULL_HW = 500          # Half-width around core to compare to Albers 2012 full F ring
+
 
 cmd_line = sys.argv[1:]
 
@@ -29,10 +65,19 @@ if len(cmd_line) == 0:
 
 parser = argparse.ArgumentParser()
 
-parser.add_argument('--core-half-width', type=int, default=50,
-                    help='The half width of the core in km')
 parser.add_argument('--instrument', type=str, default='UVIS',
                     help='Limit to one instrument (UVIS or VIMS)')
+
+parser.add_argument('--occ-use-orbit', action='store_true', default=False,
+                     help='Use F ring orbit instead of peak tau for core location')
+
+parser.add_argument('--compare-ew', action='store_true', default=False,
+                     help='Compare occultations with closest mosaic')
+parser.add_argument('--ew-inner-radius', type=int, default=139470,
+                    help='The inner radius of the range')
+parser.add_argument('--ew-outer-radius', type=int, default=140965,
+                    help='The outer radius of the range')
+
 parser.add_argument('--output-csv-filename', type=str,
                     help='Name of output CSV file')
 parser.add_argument('--plot-results', action='store_true', default=False,
@@ -42,12 +87,16 @@ parser.add_argument('--plot-aggregate', action='store_true', default=False,
 parser.add_argument('--save-plots', action='store_true', default=False,
                     help='Same as --plot-results but save plots to disk instead')
 
+f_ring_util.add_parser_arguments(parser)
+
 arguments = parser.parse_args(cmd_line)
 
 
+# Where to find the calibrated occultation files
 OCC_DIR = {'UVIS': '/seti/fring_occultations_1km_uvis',
            'VIMS': '/seti/fring_occultations_1km_vims'}
 
+# Occultations that need to be ignored
 BAD_OCC = ['UVIS_HSP_2004_280_XI2CET_E', # Completely bad data
            'UVIS_HSP_2006_206_ZETOPH_E', # Completely missing data
            'UVIS_HSP_2006_252_ALPTAU_I', # Completely bad data
@@ -193,30 +242,112 @@ BAD_OCC = ['UVIS_HSP_2004_280_XI2CET_E', # Completely bad data
            ]
 
 
-def plot(title=None):
-    if arguments.plot_results or arguments.save_plots:
-        fig = plt.figure(figsize=(12, 8))
-        plt.plot(radii-max_radius, occ_data)
-        plt.xlabel('Core offset (km)')
-        plt.ylabel('Optical depth')
-        plt.xlim(-500,500)
-        plt.ylim(-0.01, 0.5)
-        if title is None:
-            plt.title(root)
-        else:
-            plt.title(f'{root} ({title})')
-        plt.tight_layout()
-        if arguments.save_plots:
-            if not os.path.exists('plots'):
-                os.mkdir('plots')
-            plt.savefig(f'plots/{root}.png')
-            fig.clear()
-            plt.close()
-            plt.cla()
-            plt.clf()
-        else:
-            plt.show()
+ew_ring_lower_limit = int((arguments.ew_inner_radius -
+                          arguments.radius_inner_delta -
+                          arguments.ring_radius) / arguments.radius_resolution)
+ew_ring_upper_limit = int((arguments.ew_outer_radius -
+                          arguments.radius_inner_delta -
+                          arguments.ring_radius) / arguments.radius_resolution)
 
+##########################################################################################
+
+def plot(title=None,
+         title_before=None, mosaic_img_before=None, ew_slice_before=None,
+         title_after=None, mosaic_img_after=None, ew_slice_after=None):
+    if not arguments.plot_results and not arguments.save_plots:
+        return
+
+    fig = plt.figure(figsize=(12, 8))
+    if mosaic_img_before is not None or mosaic_img_after is not None:
+        ax1 = fig.add_subplot(311)
+    else:
+        ax1 = fig.add_subplot(111)
+    l1, = plt.plot(radii_slush-max_radius, occ_slush, color='black', label='Occultation')
+    plt.ylabel('Optical depth')
+    plt.ylim(-0.01, 0.5)
+    ax1.tick_params(axis='y', labelcolor='black')
+
+    if ew_slice_before is not None or ew_slice_after is not None:
+        ax2 = ax1.twinx()
+        ax2.tick_params(axis='y', labelcolor='red')
+        xrange = np.arange(-ED_FULL_HW, ED_FULL_HW+1, arguments.radius_resolution)
+        if ew_slice_before is not None:
+            l2, = ax2.plot(xrange, ew_slice_before, color='orange', lw=1,
+                           label='ISS Before')
+        if ew_slice_after is not None:
+            l2, = ax2.plot(xrange, ew_slice_after, color='red', lw=1,
+                           label='ISS After')
+        plt.ylabel('Normal I/F', color='red')
+        ax2.tick_params(axis='y', labelcolor='red')
+        plt.legend()
+    plt.xlabel('Core offset (km)')
+    plt.xlim(-ED_FULL_HW, ED_FULL_HW)
+
+    if mosaic_img_before is not None:
+        ax = fig.add_subplot(312)
+        plt.imshow(mosaic_img_before[::-1, :],
+                   extent=(0, 360,
+                           arguments.ew_inner_radius - arguments.ring_radius,
+                           arguments.ew_outer_radius - arguments.ring_radius),
+                   aspect='auto',
+                   cmap='gray', vmin=0, vmax=255)
+        plt.title(title_before)
+    if mosaic_img_after is not None:
+        ax = fig.add_subplot(313)
+        plt.imshow(mosaic_img_after[::-1, :],
+                   extent=(0, 360,
+                           arguments.ew_inner_radius - arguments.ring_radius,
+                           arguments.ew_outer_radius - arguments.ring_radius),
+                   aspect='auto',
+                   cmap='gray', vmin=0, vmax=255)
+        plt.title(title_after)
+
+    if title is None:
+        plt.suptitle(root)
+    else:
+        plt.suptitle(f'{root} ({title})')
+    plt.tight_layout()
+    if arguments.save_plots:
+        if not os.path.exists('plots'):
+            os.mkdir('plots')
+        plt.savefig(f'plots/{root}.png')
+        fig.clear()
+        plt.close()
+        plt.cla()
+        plt.clf()
+    else:
+        plt.show()
+
+
+if arguments.compare_ew:
+    # When --compare-ew is specified, we read in and cache the relevant metadata
+    # for all of the mosaics
+    print('Reading mosaic metadata')
+    MosaicData = namedtuple('MosaicData', 'midtime obsid longitudes')
+    mosaic_data_list = []
+    for obs_id in f_ring_util.enumerate_obsids(arguments):
+        if '166RI' in obs_id or '237RI' in obs_id:
+            print(f'{obs_id:30s} SKIPPING')
+            continue
+
+        (bkgnd_sub_mosaic_filename,
+         bkgnd_sub_mosaic_metadata_filename) = f_ring_util.bkgnd_sub_mosaic_paths(
+            arguments, obs_id)
+
+        if (not os.path.exists(bkgnd_sub_mosaic_filename) or
+            not os.path.exists(bkgnd_sub_mosaic_metadata_filename)):
+            print('NO FILE', bkgnd_sub_mosaic_filename,
+                  'OR', bkgnd_sub_mosaic_metadata_filename)
+            continue
+
+        with open(bkgnd_sub_mosaic_metadata_filename, 'rb') as bkgnd_metadata_fp:
+            metadata = pickle.load(bkgnd_metadata_fp, encoding='latin1')
+
+        longitudes = metadata['longitudes']
+        good_long = longitudes >= 0
+        midtime = np.mean(metadata['ETs'][good_long])
+        mosaic_data_list.append(MosaicData(midtime=midtime, obsid=obs_id,
+                                           longitudes=longitudes))
 
 if arguments.output_csv_filename:
     csv_fp = open(arguments.output_csv_filename, 'w')
@@ -243,8 +374,14 @@ if arguments.output_csv_filename:
            'Core30 ED',
            'Core50 ED',
            'Full ED']
+    if arguments.compare_ew:
+        hdr += ['Before ISS ObsName',
+                'Before ISS Delta',
+                'After ISS ObsName',
+                'After ISS Delta']
     writer.writerow(hdr)
 
+# Read in the summary of occultations and extract the .TAB files for the given instrument
 data_pd = pd.read_csv(os.path.join(OCC_DIR[arguments.instrument], 'data.csv'),
                       header=0, index_col='OPUS ID')
 manifest_pd = pd.read_csv(os.path.join(OCC_DIR[arguments.instrument], 'manifest.csv'),
@@ -252,10 +389,9 @@ manifest_pd = pd.read_csv(os.path.join(OCC_DIR[arguments.instrument], 'manifest.
 manifest_pd = manifest_pd.loc[manifest_pd['File Path'].apply(lambda x: x[-4:]) == '.TAB']
 data_pd = data_pd.join(manifest_pd, how='inner')
 
-core_hw_pix = int(arguments.core_half_width / RADIAL_RESOLUTION)
-ed_core30_hw_pix = int(ED_CORE_HW30 / RADIAL_RESOLUTION)
-ed_core50_hw_pix = int(ED_CORE_HW50 / RADIAL_RESOLUTION)
-ed_full_hw_pix = int(ED_FULL_HW / RADIAL_RESOLUTION)
+ed_core30_hw_pix = int(ED_CORE_HW30 / OCC_RADIAL_RESOLUTION)
+ed_core50_hw_pix = int(ED_CORE_HW50 / OCC_RADIAL_RESOLUTION)
+ed_full_hw_pix   = int(ED_FULL_HW   / OCC_RADIAL_RESOLUTION)
 
 tau_list = []
 ed_core30_list = []
@@ -269,7 +405,8 @@ for pd_index, row in data_pd.iterrows():
     filename = row['File Path']
     dq = row['Data Quality Score']
     _, base = os.path.split(filename)
-    root = base.replace('_TAU01KM.TAB', '').replace('_TAU_01KM.TAB', '')
+    root = base.replace(f'_TAU{OCC_RADIAL_RESOLUTION:02d}KM.TAB', '')
+    root = root.replace(f'_TAU_{OCC_RADIAL_RESOLUTION:02d}KM.TAB', '')
     if root in BAD_OCC:
         continue
     # if base > 'UVIS_HSP_2008_343': # Limit to Albers 2012 data set
@@ -279,7 +416,8 @@ for pd_index, row in data_pd.iterrows():
 
     segments = base.split('_')
     inst = segments[0]
-    if arguments.instrument is not None and arguments.instrument != inst:
+    if (arguments.instrument is not None and arguments.instrument != inst and
+        arguments.instruments != 'BOTH'):
         continue
 
     label = pdsparser.PdsLabel.from_file(label_filename).as_dict()
@@ -290,65 +428,58 @@ for pd_index, row in data_pd.iterrows():
     col_num = 3 if inst == 'VIMS' else 4
     date_col_num = 9 if inst == 'VIMS' else 7
     occ_pd = pd.read_csv(full_filename, header=None)
-    occ = occ_pd[(occ_pd[0] >= 140220-SLUSH) & (occ_pd[0] <= 140220+SLUSH)]
-    radii = np.array(occ[0])
-    long_data = np.array(occ[1])
-    occ_data = np.array(occ[col_num])
-    date_data = np.array(occ[date_col_num])
-    if radii[0] != 140220-SLUSH or radii[-1] != 140220+SLUSH:
+    # Extract a large region around the nominal semimajor axis
+    occ_pd_slush = occ_pd[(occ_pd[0] >= 140220-OCC_SLUSH) & (occ_pd[0] <= 140220+OCC_SLUSH)]
+    radii_slush = np.array(occ_pd_slush[0])
+    long_slush = np.array(occ_pd_slush[1])
+    occ_slush = np.array(occ_pd_slush[col_num])
+    date_slush = np.array(occ_pd_slush[date_col_num])
+    if radii_slush[0] != 140220-OCC_SLUSH or radii_slush[-1] != 140220+OCC_SLUSH:
         print(f'{root}: Insufficient F ring data')
         continue
-    max_idx = np.argmax(occ_data)
-    max_radius = radii[max_idx]
-    # if occ_data[max_idx] < 0.02:
-    #     print(f'{root}: No peak')
-    #     continue
-    # if occ_data[max_idx] > 0.5:
-    #     print(f'{root}: Peak too high')
-    #     continue
-    if max_idx-ed_full_hw_pix < 0 or max_idx+ed_full_hw_pix+1 >= len(occ):
+    # Find the index of the highest tau or the computed F ring core
+    if arguments.occ_use_orbit:
+        # Use the nominal semimajor axis to figure out the date and longitude to
+        # use to compute the actual F ring radius
+        sma_idx = np.argmin(np.abs(radii_slush-140221))
+        et_at_core = date_slush[sma_idx]
+        long_at_core = long_slush[sma_idx]
+        print('Core long', long_at_core)
+        core_radius = f_ring_util.fring_radius_at_longitude(et_at_core,
+                                                            np.radians(long_at_core))
+        core_idx = np.argmin(np.abs(radii_slush-core_radius))
+        print(core_radius, core_idx)
+    else:
+        core_idx = np.argmax(occ_slush)
+    max_radius = radii_slush[core_idx]
+    if core_idx-ed_full_hw_pix < 0 or core_idx+ed_full_hw_pix+1 >= len(occ_slush):
         print(f'{root}: Core max too close to edge')
         plot('Bad edge')
         continue
-    # skirt1 = occ_pd[(occ_pd[0] >= 140220-SKIRT2) & (occ_pd[0] <= 140220-SKIRT1)]
-    # skirt1_radii, skirt1_data = np.array(skirt1[0]), np.array(skirt1[col_num])
-    # skirt2 = occ_pd[(occ_pd[0] >= 140220+SKIRT1) & (occ_pd[0] <= 140220+SKIRT2)]
-    # skirt2_radii, skirt2_data = np.array(skirt2[0]), np.array(skirt2[col_num])
-    # if len(skirt1) != SKIRT2-SKIRT1+1 or len(skirt2) != SKIRT2-SKIRT1+1:
-    #     print(f'{root}: Insufficient skirt')
-    #     plot('Bad skirt')
-    #     continue
-    # mean1 = np.mean(skirt1_data)
-    # std1 = np.std(skirt1_data)
-    # mean2 = np.mean(skirt2_data)
-    # std2 = np.std(skirt2_data)
-    # print(f'{root} {mean1:8.5f} {std1:.5f} {mean2:8.5f} {std2:.5f} ', end='')
-    # if mean1 < -.1 or mean2 < -.1:
-    #     print('Negative skirt')
-    #     continue
-    # if (std1 > 0.006 or std2 > 0.006):
-    #     print('Too noisy')
-    #     continue
-    core_occ = occ_data[max_idx-core_hw_pix:max_idx+core_hw_pix+1]
-    core_radii = radii[max_idx-core_hw_pix:max_idx+core_hw_pix+1    ]
-    core_occ_list.append(core_occ)
-    core_radius_list.append(core_radii-max_radius)
+
+    # Extract +/- 50 km and compute the derived tau
+    core_occ   =   occ_slush[core_idx-ed_core50_hw_pix:core_idx+ed_core50_hw_pix+1]
+    core_radii = radii_slush[core_idx-ed_core50_hw_pix:core_idx+ed_core50_hw_pix+1]
+    core_occ_list.append(core_occ)                 # For aggregate plotting
+    core_radius_list.append(core_radii-max_radius) # For aggregate plotting
     avg_tau = -np.log(np.mean(np.exp(-core_occ)))
     if avg_tau < 0:
         print(f'{root}: {dq} Avg Tau < 0')
         plot('Avg Tau < 0')
         continue
-    ed_core30_occ = occ_data[max_idx-ed_core30_hw_pix:max_idx+ed_core30_hw_pix+1]
-    ed_core30 = np.sum(ed_core30_occ) * RADIAL_RESOLUTION
-    ed_core50_occ = occ_data[max_idx-ed_core50_hw_pix:max_idx+ed_core50_hw_pix+1]
-    ed_core50 = np.sum(ed_core50_occ) * RADIAL_RESOLUTION
-    ed_full_occ = occ_data[max_idx-ed_full_hw_pix:max_idx+ed_full_hw_pix+1]
-    ed_full = np.sum(ed_full_occ) * RADIAL_RESOLUTION
+
+    # Compute equivalent depth for +/- 30 km and +/- 50 km
+    ed_core30_occ = occ_slush[core_idx-ed_core30_hw_pix:core_idx+ed_core30_hw_pix+1]
+    ed_core30 = np.sum(ed_core30_occ) * OCC_RADIAL_RESOLUTION
+    ed_core50_occ = occ_slush[core_idx-ed_core50_hw_pix:core_idx+ed_core50_hw_pix+1]
+    ed_core50 = np.sum(ed_core50_occ) * OCC_RADIAL_RESOLUTION
+    ed_full_occ = occ_slush[core_idx-ed_full_hw_pix:core_idx+ed_full_hw_pix+1]
+    ed_full = np.sum(ed_full_occ) * OCC_RADIAL_RESOLUTION
     if ed_full < ed_core30:
         print(f'{root} {dq}: Full ED {ed_full:6.3f} < Core ED {ed_core30:6.3f}')
         continue
-    full_long_data = long_data[max_idx-ed_full_hw_pix:max_idx+ed_full_hw_pix+1]
-    full_date_data = date_data[max_idx-ed_full_hw_pix:max_idx+ed_full_hw_pix+1]
+    full_long_data = long_slush[core_idx-ed_full_hw_pix:core_idx+ed_full_hw_pix+1]
+    full_date_data = date_slush[core_idx-ed_full_hw_pix:core_idx+ed_full_hw_pix+1]
     print(f'{root:22s} {dq}: Derived tau {avg_tau:6.3f} / Core30 ED {ed_core30:6.3f} / '
           f'Core50 ED {ed_core50:6.3f} / Full ED {ed_full:6.3f}')
     tau_list.append(avg_tau)
@@ -356,13 +487,89 @@ for pd_index, row in data_pd.iterrows():
     ed_core50_list.append(ed_core50)
     ed_full_list.append(ed_full)
 
+    # Compute co-rotating longitude
+    full_long_data = np.degrees(f_ring_util.fring_inertial_to_corotating(
+        np.radians(full_long_data), full_date_data))
+    min_full_long = np.min(full_long_data)
+    max_full_long = np.max(full_long_data)
+    if min_full_long < 90 and max_full_long > 270:
+        print(f'{root}: WARNING long range crosses 0')
+    ed_mid_time = np.mean(full_date_data)
+    mean_full_long = np.mean(full_long_data)
+
+    # Find the closest mosaic before and after the occultation
+    greyscale_img = {'before': None, 'after': None}
+    ew_slice = {'before': None, 'after': None}
+    if arguments.compare_ew:
+        min_full_long_int  =  int(min_full_long / arguments.longitude_resolution)
+        max_full_long_int  =  int(max_full_long / arguments.longitude_resolution)
+        mean_full_long_int = int(mean_full_long / arguments.longitude_resolution)
+        # Number of pixels on each side of core for full F ring
+        r500_pix = int(ED_FULL_HW / arguments.radius_resolution)
+        best_obsid = {'before': None, 'after': None}
+        best_midtime_diff = {'before': 1e38, 'after': 1e38}
+        for midtime, obsid, longitudes in mosaic_data_list:
+            # There has to be at least SOME valid data
+            if (longitudes[int(min_full_long_int)] >= 0 or
+                longitudes[int(max_full_long_int)] >= 0):
+                if (midtime > ed_mid_time and
+                        midtime-ed_mid_time < best_midtime_diff['after']):
+                    best_midtime_diff['after'] = midtime - ed_mid_time
+                    best_obsid['after'] = obsid
+                if (midtime < ed_mid_time and
+                        ed_mid_time-midtime < best_midtime_diff['before']):
+                    best_midtime_diff['before'] = ed_mid_time - midtime
+                    best_obsid['before'] = obsid
+        print(f'{root}: Closest '
+              f'{best_obsid["before"]} {best_midtime_diff["before"]/86400:.2f} days / '
+              f'{best_obsid["after"]} {best_midtime_diff["after"]/86400:.2f} days')
+
+        for suffix in ('before', 'after'):
+            days = best_midtime_diff[suffix] / 86400
+
+            if days > 30:
+                best_obsid[suffix] = None
+                continue
+                
+            # Read in the mosaic and metadata
+            (bkgnd_sub_mosaic_filename,
+             bkgnd_sub_mosaic_metadata_filename) = f_ring_util.bkgnd_sub_mosaic_paths(
+                arguments, best_obsid[suffix])
+            with open(bkgnd_sub_mosaic_metadata_filename, 'rb') as bkgnd_metadata_fp:
+                metadata = pickle.load(bkgnd_metadata_fp, encoding='latin1')
+
+            with np.load(bkgnd_sub_mosaic_filename) as npz:
+                bsm_img = ma.MaskedArray(**npz)
+                bsm_img = bsm_img.filled(0)
+            longitudes = metadata['longitudes']
+            good_long = longitudes >= 0
+            restr_bsm_img = bsm_img[ew_ring_lower_limit:ew_ring_upper_limit+1,:]
+            ring_midpoint = int(restr_bsm_img.shape[0]/2)
+            ew_slice[suffix] = restr_bsm_img[ring_midpoint-r500_pix:
+                                             ring_midpoint+r500_pix+1,
+                                             mean_full_long_int]
+            # Contrast-stretch the mosaic and add the lines for occultation longitude
+            gamma = 0.5
+            blackpoint = max(np.min(restr_bsm_img[:, good_long]), 0)
+            whitepoint_ignore_frac = 0.995
+            img_sorted = sorted(list(restr_bsm_img[:, good_long].flatten()))
+            whitepoint = img_sorted[np.clip(int(len(img_sorted)*
+                                                whitepoint_ignore_frac),
+                                            0, len(img_sorted)-1)]
+            grey = np.floor((np.maximum(restr_bsm_img-blackpoint, 0)/
+                             (whitepoint-blackpoint))**gamma*256)
+            grey = np.clip(grey, 0, 255)
+            # Draw thick lines for the min and max occultation longitudes
+            grey[:, min_full_long_int:min_full_long_int+8] = 255
+            grey[:, max_full_long_int:max_full_long_int+8] = 255
+            greyscale_img[suffix] = grey
+
     if arguments.output_csv_filename:
-        mid_time = np.mean(full_date_data)
         prometheus_dist = prometheus_util.prometheus_close_approach(mid_time, 0)[0]
         row = [root,
-               et2utc(np.min(full_date_data)),
-               et2utc(np.max(full_date_data)),
-               et2utc(mid_time),
+               f_ring_util.et2utc(np.min(full_date_data)),
+               f_ring_util.et2utc(np.max(full_date_data)),
+               f_ring_util.et2utc(ed_mid_time),
                int(label['ORBIT_NUMBER']),
                label.get('OBSERVATION_ID', 'N/A').strip('"\n '),
                label['STAR_NAME'],
@@ -370,9 +577,9 @@ for pd_index, row in data_pd.iterrows():
                label['MINIMUM_WAVELENGTH'],
                label['MAXIMUM_WAVELENGTH'],
                label['DATA_QUALITY_SCORE'],
-               np.round(np.min(full_long_data), 3),
-               np.round(np.max(full_long_data), 3),
-               np.round(np.mean(full_long_data), 3),
+               np.round(min_full_long, 3),
+               np.round(max_full_long, 3),
+               np.round(mean_full_long, 3),
                label['OBSERVED_RING_ELEVATION'],
                label['LOWEST_DETECTABLE_OPACITY'],
                label['HIGHEST_DETECTABLE_OPACITY'],
@@ -381,9 +588,29 @@ for pd_index, row in data_pd.iterrows():
                np.round(ed_core30, 3),
                np.round(ed_core50, 3),
                np.round(ed_full, 3)]
+        if arguments.compare_ew:
+            row += [best_obsid_before,
+                    np.round(best_midtime_diff_before/86400, 2),
+                    best_obsid_after,
+                    np.round(best_midtime_diff_after/86400, 2)]
         writer.writerow(row)
 
-    plot(f'Core30 ED {ed_core30:6.3f} / Full ED {ed_full:6.3f}')
+    before_str = None
+    if best_obsid['before'] is not None:
+        before_str = (f'{best_obsid["before"]} '
+                      f'({best_midtime_diff["before"]/86400:.2f} days)')
+    after_str = None
+    if best_obsid['after'] is not None:
+        after_str = f'{best_obsid["after"]} ({best_midtime_diff["after"]/86400:.2f} days)'
+    plot(f'Core30 ED {ed_core30:6.3f} / Full ED {ed_full:6.3f}',
+         title_before=before_str, mosaic_img_before=greyscale_img['before'],
+         ew_slice_before=ew_slice['before'],
+         title_after=after_str, mosaic_img_after=greyscale_img['after'],
+         ew_slice_after=ew_slice['after'])
+
+##########################################################################################
+
+# Print final statistics
 
 min_tau = np.min(tau_list)
 max_tau = np.max(tau_list)
@@ -420,7 +647,7 @@ if arguments.plot_aggregate or arguments.save_plots:
         plt.plot(core_radius, core_occ, alpha=0.3)
     plt.xlabel('Core offset (km)')
     plt.ylabel('Optical depth')
-    plt.xlim(-arguments.core_half_width, arguments.core_half_width)
+    plt.xlim(-ED_CORE_HW50, ED_CORE_HW50)
     plt.title(f'{arguments.instrument} - Mean tau {mean_tau:6.3f} ({num_tau} obs)')
     plt.tight_layout()
     if arguments.save_plots:
