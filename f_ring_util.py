@@ -365,12 +365,21 @@ def fring_corotating_to_inertial(co_long, et):
 def fring_radius_at_longitude(et, longitude):
     """Return the radius (km) of the F ring core at a given inertial longitude
     (deg)."""
-    curly_w = FRING_W0 + FRING_DW*et/86400.
+    true_anomaly = fring_true_anomaly(et, longitude)
 
     radius = (FRING_A * (1-FRING_E**2) /
-              (1 + FRING_E * np.cos(longitude-curly_w)))
+              (1 + FRING_E * np.cos(true_anomaly)))
 
     return radius
+
+def fring_longitude_of_pericenter(et):
+    """Return the longitude of pericenter (radians) at the given time."""
+    return (FRING_W0 + FRING_DW*et/86400.) % TWOPI
+
+def fring_true_anomaly(et, longitude):
+    """Return the true anomaly (radians) at the given time and inertial longitude."""
+    curly_w = FRING_W0 + FRING_DW*et/86400.
+    return (longitude - curly_w) % TWOPI
 
 
 ################################################################################

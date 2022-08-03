@@ -36,14 +36,16 @@ parser.add_argument('--historical-csv-filename', type=str,
                     help='Name of historical output CSV file')
 parser.add_argument('--historical-start-date', type=str, default='1978-01-01',
                     help='Start date for historical output')
-parser.add_argument('--historical-end-date', type=str, default='2018-01-01',
+parser.add_argument('--historical-end-date', type=str, default='2019-01-01',
                     help='Start date for historical output')
-parser.add_argument('--historical-step', type=float, default=30*6,
+parser.add_argument('--historical-step', type=float, default=1,
                     help='Number of days between historical outputs')
 parser.add_argument('--plot-results', action='store_true', default=False,
                     help='Plot the distance results')
 parser.add_argument('--save-plots', action='store_true', default=False,
                     help='Same as --plot-results but save plots to disk instead')
+parser.add_argument('--pandora', action='store_true', default=False,
+                    help='Do Pandora instead of Prometheus')
 
 f_ring_util.add_parser_arguments(parser)
 
@@ -57,7 +59,10 @@ if False:
     dist_list = []
     long_list = []
     for et in np.arange(start_et, start_et+15*60*60, 60):
-        dist = prometheus_util.prometheus_close_approach(et)
+        if arguments.pandora:
+            dist = prometheus_util.pandora_close_approach(et)
+        else:
+            dist = prometheus_util.prometheus_close_approach(et)
         et_list.append(et)
         dist_list.append(dist)
         long_list.append(np.degrees(long))
@@ -69,7 +74,10 @@ if False:
 if arguments.historical_csv_filename:
     csv_fp = open(arguments.historical_csv_filename, 'w')
     writer = csv.writer(csv_fp)
-    hdr = ['Date', 'Prometheus Distance']
+    if arguments.pandora:
+        hdr = ['Date', 'Pandora Distance']
+    else:
+        hdr = ['Date', 'Prometheus Distance']
     writer.writerow(hdr)
 
     if arguments.plot_results:
@@ -79,7 +87,10 @@ if arguments.historical_csv_filename:
     et1 = f_ring_util.utc2et(arguments.historical_start_date)
     et2 = f_ring_util.utc2et(arguments.historical_end_date)
     for et in np.arange(et1, et2, arguments.historical_step*86400):
-        min_dist, min_long = prometheus_util.prometheus_close_approach(et, 0)
+        if arguments.pandora:
+            min_dist, min_long = prometheus_util.pandora_close_approach(et, 0)
+        else:
+            min_dist, min_long = prometheus_util.prometheus_close_approach(et, 0)
         date = f_ring_util.et2utc(et)
         print(date)
         if arguments.plot_results:
@@ -96,7 +107,10 @@ if arguments.historical_csv_filename:
 if arguments.output_csv_filename:
     csv_fp = open(arguments.output_csv_filename, 'w')
     writer = csv.writer(csv_fp)
-    hdr = ['Observation', 'Date', 'Prometheus Min Dist', 'Prometheus Long']
+    if arguments.pandora:
+        hdr = ['Observation', 'Date', 'Pandora Min Dist', 'Pandora Long']
+    else:
+        hdr = ['Observation', 'Date', 'Prometheus Min Dist', 'Prometheus Long']
     writer.writerow(hdr)
 
 for obs_id in f_ring_util.enumerate_obsids(arguments):
@@ -118,7 +132,10 @@ for obs_id in f_ring_util.enumerate_obsids(arguments):
     mean_et = np.mean(metadata['ETs'][good_long])
     min_et = np.min(metadata['ETs'][good_long])
 
-    min_dist, min_long = prometheus_util.prometheus_close_approach(mean_et, 0)
+    if arguments.pandora:
+        min_dist, min_long = prometheus_util.pandora_close_approach(mean_et, 0)
+    else:
+        min_dist, min_long = prometheus_util.prometheus_close_approach(mean_et, 0)
     date_str = f_ring_util.et2utc(min_et)
     print(f'{obs_id:30s}: {date_str} {min_dist:.3f}')
 

@@ -209,6 +209,8 @@ BAD_OCC = ['UVIS_HSP_2004_280_XI2CET_E', # Completely bad data
            'VIMS_2013_229_WHYA_E',   # Insufficient data
            'VIMS_2013_241_BETAND_I', # Bad calibration base
            'VIMS_2013_327_L2PUP_E',  # Bad calibration base
+           'VIMS_2014_022_L2PUP_E',  # Bad calibration base
+           'VIMS_2014_022_L2PUP_I',  # Bad calibration base
            'VIMS_2014_067_ALPLYR_E', # Noisy
            'VIMS_2014_067_ALPLYR_I', # Noisy
            'VIMS_2014_067_RLYR_E',   # Bad calibration base
@@ -230,11 +232,13 @@ BAD_OCC = ['UVIS_HSP_2004_280_XI2CET_E', # Completely bad data
            'VIMS_2016_294_LAMVEL_I', # Negative skirt
            'VIMS_2016_331_ETACAR_E', # Extreme noise
            'VIMS_2016_331_ETACAR_I', # Extreme noise
+           'VIMS_2017_001_GAMCRU_I', # Bad calibration for inner skirt Full >> Core
            'VIMS_2017_007_VYCMA_E',  # Negative ED
            'VIMS_2017_007_VYCMA_I',  # Negative ED
            'VIMS_2017_050_VYCMA_E',  # Full < Core
            'VIMS_2017_050_VYCMA_I',  # Full < Core
            'VIMS_2017_073_LAMVEL_I', # Totally bad data
+           'VIMS_2017_094_LAMVEL_I', # Bad calibration for inner skirt Full >> Core
            'VIMS_2017_104_ALPORI_E', # Full < Core
            'VIMS_2017_120_ALPCMA_I', # Full < Core
            'VIMS_2017_245_GAMCRU_I', # Full < 0
@@ -264,7 +268,7 @@ def plot(title=None,
         ax1 = fig.add_subplot(111)
     l1, = plt.plot(radii_slush-max_radius, occ_slush, color='black', label='Occultation')
     plt.ylabel('Optical depth')
-    plt.ylim(-0.01, 0.5)
+    # plt.ylim(-0.01, 0.5)
     ax1.tick_params(axis='y', labelcolor='black')
 
     if ew_slice_before is not None or ew_slice_after is not None:
@@ -272,12 +276,12 @@ def plot(title=None,
         ax2.tick_params(axis='y', labelcolor='red')
         xrange = np.arange(-ED_FULL_HW, ED_FULL_HW+1, arguments.radius_resolution)
         if ew_slice_before is not None:
-            l2, = ax2.plot(xrange, ew_slice_before, color='orange', lw=1,
-                           label='ISS Before')
+            l2, = ax2.plot(xrange, ew_slice_before/np.max(ew_slice_before),
+                           color='orange', lw=1, label='ISS Before')
         if ew_slice_after is not None:
-            l2, = ax2.plot(xrange, ew_slice_after, color='red', lw=1,
-                           label='ISS After')
-        plt.ylabel('Normal I/F', color='red')
+            l2, = ax2.plot(xrange, ew_slice_after/np.max(ew_slice_after),
+                           color='red', lw=1, label='ISS After')
+        plt.ylabel('Relative I/F', color='red')
         ax2.tick_params(axis='y', labelcolor='red')
         plt.legend()
     plt.xlabel('Core offset (km)')
@@ -308,9 +312,9 @@ def plot(title=None,
         plt.suptitle(f'{root} ({title})')
     plt.tight_layout()
     if arguments.save_plots:
-        if not os.path.exists('plots'):
-            os.mkdir('plots')
-        plt.savefig(f'plots/{root}.png')
+        if not os.path.exists('plots_occs'):
+            os.mkdir('plots_occs')
+        plt.savefig(f'plots_occs/{root}.png')
         fig.clear()
         plt.close()
         plt.cla()
@@ -343,7 +347,8 @@ if arguments.compare_ew:
         with open(bkgnd_sub_mosaic_metadata_filename, 'rb') as bkgnd_metadata_fp:
             metadata = pickle.load(bkgnd_metadata_fp, encoding='latin1')
 
-        longitudes = metadata['longitudes']
+        # Co-rotating WRT F ring core
+        longitudes = np.degrees(metadata['longitudes'])
         good_long = longitudes >= 0
         midtime = np.mean(metadata['ETs'][good_long])
         mosaic_data_list.append(MosaicData(midtime=midtime, obsid=obs_id,
@@ -363,9 +368,12 @@ if arguments.output_csv_filename:
            'Minimum Wavelength',
            'Maximum Wavelength',
            'Data Quality Score',
-           'Minimum Longitude',
-           'Maximum Longitude',
-           'Mean Longitude',
+           'Minimum Inertial Longitude',
+           'Maximum Inertial Longitude',
+           'Mean Inertial Longitude',
+           'Minimum Co-Rot Longitude',
+           'Maximum Co-Rot Longitude',
+           'Mean Co-Rot Longitude',
            'Ring Elevation',
            'Lowest Detectable Opacity',
            'Highest Detectable Opacity',
@@ -431,7 +439,7 @@ for pd_index, row in data_pd.iterrows():
     # Extract a large region around the nominal semimajor axis
     occ_pd_slush = occ_pd[(occ_pd[0] >= 140220-OCC_SLUSH) & (occ_pd[0] <= 140220+OCC_SLUSH)]
     radii_slush = np.array(occ_pd_slush[0])
-    long_slush = np.array(occ_pd_slush[1])
+    long_slush = np.array(occ_pd_slush[1]) # Inertial WRT ascending node
     occ_slush = np.array(occ_pd_slush[col_num])
     date_slush = np.array(occ_pd_slush[date_col_num])
     if radii_slush[0] != 140220-OCC_SLUSH or radii_slush[-1] != 140220+OCC_SLUSH:
@@ -442,15 +450,17 @@ for pd_index, row in data_pd.iterrows():
         # Use the nominal semimajor axis to figure out the date and longitude to
         # use to compute the actual F ring radius
         sma_idx = np.argmin(np.abs(radii_slush-140221))
-        et_at_core = date_slush[sma_idx]
-        long_at_core = long_slush[sma_idx]
-        print('Core long', long_at_core)
-        core_radius = f_ring_util.fring_radius_at_longitude(et_at_core,
-                                                            np.radians(long_at_core))
+        et_at_sma = date_slush[sma_idx]
+        long_at_sma = long_slush[sma_idx]
+        core_radius = f_ring_util.fring_radius_at_longitude(et_at_sma,
+                                                            np.radians(long_at_sma))
+        # Find the radius in the data closest to the known radius of the core
         core_idx = np.argmin(np.abs(radii_slush-core_radius))
         print(core_radius, core_idx)
     else:
+        # If not using the orbit, just find the location of the highest tau
         core_idx = np.argmax(occ_slush)
+    long_at_core = long_slush[core_idx] # Inertial
     max_radius = radii_slush[core_idx]
     if core_idx-ed_full_hw_pix < 0 or core_idx+ed_full_hw_pix+1 >= len(occ_slush):
         print(f'{root}: Core max too close to edge')
@@ -487,31 +497,36 @@ for pd_index, row in data_pd.iterrows():
     ed_core50_list.append(ed_core50)
     ed_full_list.append(ed_full)
 
+    min_inertial_long = np.min(full_long_data)
+    max_inertial_long = np.max(full_long_data)
+    mean_inertial_long = np.mean(full_long_data)
+    if min_inertial_long < 90 and max_inertial_long > 270:
+        print(f'{root}: WARNING co-inertial long range crosses 0')
+
     # Compute co-rotating longitude
-    full_long_data = np.degrees(f_ring_util.fring_inertial_to_corotating(
+    full_corot_data = np.degrees(f_ring_util.fring_inertial_to_corotating(
         np.radians(full_long_data), full_date_data))
-    min_full_long = np.min(full_long_data)
-    max_full_long = np.max(full_long_data)
-    if min_full_long < 90 and max_full_long > 270:
-        print(f'{root}: WARNING long range crosses 0')
+    min_corot_long = np.min(full_corot_data)
+    max_corot_long = np.max(full_corot_data)
+    mean_corot_long = np.mean(full_corot_data)
+    if min_corot_long < 90 and max_corot_long > 270:
+        print(f'{root}: WARNING co-rot long range crosses 0')
     ed_mid_time = np.mean(full_date_data)
-    mean_full_long = np.mean(full_long_data)
 
     # Find the closest mosaic before and after the occultation
     greyscale_img = {'before': None, 'after': None}
     ew_slice = {'before': None, 'after': None}
     if arguments.compare_ew:
-        min_full_long_int  =  int(min_full_long / arguments.longitude_resolution)
-        max_full_long_int  =  int(max_full_long / arguments.longitude_resolution)
-        mean_full_long_int = int(mean_full_long / arguments.longitude_resolution)
+        min_corot_long_int  =  int(min_corot_long / arguments.longitude_resolution)
+        max_corot_long_int  =  int(max_corot_long / arguments.longitude_resolution)
+        mean_corot_long_int = int(mean_corot_long / arguments.longitude_resolution)
         # Number of pixels on each side of core for full F ring
         r500_pix = int(ED_FULL_HW / arguments.radius_resolution)
         best_obsid = {'before': None, 'after': None}
         best_midtime_diff = {'before': 1e38, 'after': 1e38}
         for midtime, obsid, longitudes in mosaic_data_list:
-            # There has to be at least SOME valid data
-            if (longitudes[int(min_full_long_int)] >= 0 or
-                longitudes[int(max_full_long_int)] >= 0):
+            if (longitudes[int(min_corot_long_int)] >= 0 and
+                longitudes[int(max_corot_long_int)] >= 0):
                 if (midtime > ed_mid_time and
                         midtime-ed_mid_time < best_midtime_diff['after']):
                     best_midtime_diff['after'] = midtime - ed_mid_time
@@ -524,30 +539,36 @@ for pd_index, row in data_pd.iterrows():
               f'{best_obsid["before"]} {best_midtime_diff["before"]/86400:.2f} days / '
               f'{best_obsid["after"]} {best_midtime_diff["after"]/86400:.2f} days')
 
+        long_diff = {'before': None, 'after': None}
         for suffix in ('before', 'after'):
             days = best_midtime_diff[suffix] / 86400
 
             if days > 30:
                 best_obsid[suffix] = None
                 continue
-                
+
             # Read in the mosaic and metadata
             (bkgnd_sub_mosaic_filename,
              bkgnd_sub_mosaic_metadata_filename) = f_ring_util.bkgnd_sub_mosaic_paths(
                 arguments, best_obsid[suffix])
             with open(bkgnd_sub_mosaic_metadata_filename, 'rb') as bkgnd_metadata_fp:
                 metadata = pickle.load(bkgnd_metadata_fp, encoding='latin1')
-
+            longitudes = metadata['longitudes']
+            mosaic_et = metadata['ETs'][min_corot_long_int]
+            print('Mosaic ET', mosaic_et)
+            print('Phase', np.degrees(metadata['phase_angles'][min_corot_long_int]))
+            mosaic_inertial_long = np.degrees(f_ring_util.fring_corotating_to_inertial(
+                longitudes[min_corot_long_int], mosaic_et))
+            long_diff[suffix] = min_corot_long - mosaic_inertial_long
             with np.load(bkgnd_sub_mosaic_filename) as npz:
                 bsm_img = ma.MaskedArray(**npz)
                 bsm_img = bsm_img.filled(0)
-            longitudes = metadata['longitudes']
             good_long = longitudes >= 0
             restr_bsm_img = bsm_img[ew_ring_lower_limit:ew_ring_upper_limit+1,:]
             ring_midpoint = int(restr_bsm_img.shape[0]/2)
             ew_slice[suffix] = restr_bsm_img[ring_midpoint-r500_pix:
                                              ring_midpoint+r500_pix+1,
-                                             mean_full_long_int]
+                                             mean_corot_long_int]
             # Contrast-stretch the mosaic and add the lines for occultation longitude
             gamma = 0.5
             blackpoint = max(np.min(restr_bsm_img[:, good_long]), 0)
@@ -560,12 +581,12 @@ for pd_index, row in data_pd.iterrows():
                              (whitepoint-blackpoint))**gamma*256)
             grey = np.clip(grey, 0, 255)
             # Draw thick lines for the min and max occultation longitudes
-            grey[:, min_full_long_int:min_full_long_int+8] = 255
-            grey[:, max_full_long_int:max_full_long_int+8] = 255
+            grey[:, min_corot_long_int:min_corot_long_int+8] = 255
+            grey[:, max_corot_long_int:max_corot_long_int+8] = 255
             greyscale_img[suffix] = grey
 
     if arguments.output_csv_filename:
-        prometheus_dist = prometheus_util.prometheus_close_approach(mid_time, 0)[0]
+        prometheus_dist = prometheus_util.prometheus_close_approach(ed_mid_time, 0)[0]
         row = [root,
                f_ring_util.et2utc(np.min(full_date_data)),
                f_ring_util.et2utc(np.max(full_date_data)),
@@ -577,9 +598,12 @@ for pd_index, row in data_pd.iterrows():
                label['MINIMUM_WAVELENGTH'],
                label['MAXIMUM_WAVELENGTH'],
                label['DATA_QUALITY_SCORE'],
-               np.round(min_full_long, 3),
-               np.round(max_full_long, 3),
-               np.round(mean_full_long, 3),
+               np.round(min_inertial_long, 3),
+               np.round(max_inertial_long, 3),
+               np.round(mean_inertial_long, 3),
+               np.round(min_corot_long, 3),
+               np.round(max_corot_long, 3),
+               np.round(mean_corot_long, 3),
                label['OBSERVED_RING_ELEVATION'],
                label['LOWEST_DETECTABLE_OPACITY'],
                label['HIGHEST_DETECTABLE_OPACITY'],
@@ -589,24 +613,31 @@ for pd_index, row in data_pd.iterrows():
                np.round(ed_core50, 3),
                np.round(ed_full, 3)]
         if arguments.compare_ew:
-            row += [best_obsid_before,
-                    np.round(best_midtime_diff_before/86400, 2),
-                    best_obsid_after,
-                    np.round(best_midtime_diff_after/86400, 2)]
+            row += [best_obsid['before'],
+                    np.round(best_midtime_diff['before']/86400, 2),
+                    best_obsid['after'],
+                    np.round(best_midtime_diff['after']/86400, 2)]
         writer.writerow(row)
 
-    before_str = None
-    if best_obsid['before'] is not None:
-        before_str = (f'{best_obsid["before"]} '
-                      f'({best_midtime_diff["before"]/86400:.2f} days)')
-    after_str = None
-    if best_obsid['after'] is not None:
-        after_str = f'{best_obsid["after"]} ({best_midtime_diff["after"]/86400:.2f} days)'
-    plot(f'Core30 ED {ed_core30:6.3f} / Full ED {ed_full:6.3f}',
-         title_before=before_str, mosaic_img_before=greyscale_img['before'],
-         ew_slice_before=ew_slice['before'],
-         title_after=after_str, mosaic_img_after=greyscale_img['after'],
-         ew_slice_after=ew_slice['after'])
+    if arguments.compare_ew:
+        before_str = None
+        if best_obsid['before'] is not None:
+            before_str = (f'{best_obsid["before"]} '
+                          f'({best_midtime_diff["before"]/86400:.2f} days before) '
+                          f'[Occ-Mosaic Long={long_diff["before"]:.2f}]')
+        after_str = None
+        if best_obsid['after'] is not None:
+            after_str = (f'{best_obsid["after"]} '
+                         f'({best_midtime_diff["after"]/86400:.2f} days after) '
+                         f'[Occ-Mosaic Long={long_diff["after"]:.2f}]')
+        plot(f'Core30 ED {ed_core30:6.3f} / Full ED {ed_full:6.3f}',
+             title_before=before_str, mosaic_img_before=greyscale_img['before'],
+             ew_slice_before=ew_slice['before'],
+             title_after=after_str, mosaic_img_after=greyscale_img['after'],
+             ew_slice_after=ew_slice['after'])
+    else:
+        plot(f'Core30 ED {ed_core30:6.3f} / Full ED {ed_full:6.3f}')
+
 
 ##########################################################################################
 
@@ -651,9 +682,9 @@ if arguments.plot_aggregate or arguments.save_plots:
     plt.title(f'{arguments.instrument} - Mean tau {mean_tau:6.3f} ({num_tau} obs)')
     plt.tight_layout()
     if arguments.save_plots:
-        if not os.path.exists('plots'):
-            os.mkdir('plots')
-        plt.savefig(f'plots/{arguments.instrument}_agg.png')
+        if not os.path.exists('plots_occs'):
+            os.mkdir('plots_occs')
+        plt.savefig(f'plots_occs/{arguments.instrument}_agg.png')
         fig.clear()
         plt.close()
         plt.cla()

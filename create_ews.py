@@ -45,6 +45,8 @@ parser.add_argument('--ew-core-inner-radius', type=int, default=None,
                     help='The inner radius of the core, if applicable')
 parser.add_argument('--ew-core-outer-radius', type=int, default=None,
                     help='The outer radius of the core, if applicable')
+parser.add_argument('--compute-core-center', action='store_true', default=False,
+                    help='Compute the core location based on the brightest pixel')
 parser.add_argument('--compute-widths', action='store_true', default=False,
                     help='Compute the widths for each slice')
 parser.add_argument('--widths-frac-mode', action='store_true', default=False,
@@ -213,7 +215,11 @@ if arguments.output_csv_filename:
             360 / arguments.slice_size == int(360 / arguments.slice_size))
     csv_fp = open(arguments.output_csv_filename, 'w')
     writer = csv.writer(csv_fp)
-    hdr = ['Observation', 'Slice#', 'Num Data', 'Date', 'Min Long', 'Max Long',
+    hdr = ['Observation', 'Slice#', 'Num Data', 'Date',
+           'Min Long', 'Max Long', 'Mean Long',
+           'Min Inertial Long', 'Max Inertial Long', 'Mean Inertial Long',
+           'Min Long of Pericenter', 'Max Long of Pericenter', 'Mean Long of Pericenter',
+           'Min True Anomaly', 'Max True Anomaly', 'Mean True Anomaly',
            'Min Res', 'Max Res', 'Mean Res',
            'Min Phase', 'Max Phase', 'Mean Phase',
            'Min Emission', 'Max Emission', 'Mean Emission',
@@ -233,10 +239,23 @@ if arguments.output_csv_filename:
             start_ew = arguments.ew_inner_radius + radial_step * arguments.radial_step
             hdr += [f'EW{start_ew}', f'EW{start_ew} Std',
                     f'Normal EW{start_ew}', f'Normal EW{start_ew} Std']
+
     if arguments.compute_widths:
         hdr += ['Width1', 'Width1 Std',
                 'Width2', 'Width2 Std',
-                'Width3', 'Width3 Std']
+                'Width3', 'Width3 Std',
+                'Width1I', 'Width1I Std',
+                'Width1O', 'Width1O Std',
+                'Width2I', 'Width2I Std',
+                'Width2O', 'Width2O Std',
+                'Width3I', 'Width3I Std',
+                'Width3O', 'Width3O Std']
+
+    if arguments.compute_core_center:
+        hdr += ['Core Offset Median',
+                'Core Offset Mean',
+                'Core Offset Std']
+
     writer.writerow(hdr)
 
 for obs_id in f_ring_util.enumerate_obsids(arguments):
@@ -269,6 +288,10 @@ for obs_id in f_ring_util.enumerate_obsids(arguments):
     emission_angles = metadata['emission_angles'][::ds]
     incidence_angle = metadata['incidence_angle']
     phase_angles = metadata['phase_angles'][::ds]
+    inertial_longitudes = f_ring_util.fring_corotating_to_inertial(
+        longitudes, ETs)
+    longitude_of_pericenters = f_ring_util.fring_longitude_of_pericenter(ETs)
+    true_anomalies = f_ring_util.fring_true_anomaly(ETs, inertial_longitudes)
     bsm_img = bsm_img[:,::ds]
 
     # Make the submosaic for the radial range desired
@@ -380,14 +403,15 @@ for obs_id in f_ring_util.enumerate_obsids(arguments):
             # print(f'  EW{start_ew} {step_ew_mean:6.3f} +/- {step_ew_std:6.3f}')
             ew_profile_steps.append(step_ew_profile)
 
+    rd = arguments.ew_inner_radius - arguments.ring_radius
+    rr = arguments.radius_resolution
+
     if arguments.compute_widths:
         if three_zone and arguments.tau is not None:
             filtered_restr_bsm_img = restr_bsm_img_tau_pn
         else:
             filtered_restr_bsm_img = restr_bsm_img
         # filtered_restr_bsm_img = nd.uniform_filter(restr_bsm_img, (9,49), mode='wrap')
-        rd = arguments.ew_inner_radius - arguments.ring_radius
-        rr = arguments.radius_resolution
 
         # We compute the width on the phase-normalized (to phase_angle=0)
         # mosaic. We also tau-adjust the core. Unless those parameters are turned off.
@@ -425,6 +449,12 @@ for obs_id in f_ring_util.enumerate_obsids(arguments):
         print(f'  w2: {w2_mean:4.0f} +/- {w2_std:3.0f}', end='')
         print(f'  w3: {w3_mean:4.0f} +/- {w3_std:3.0f}', end='')
 
+    if arguments.compute_core_center:
+        core_centers = np.argmax(restr_bsm_img, axis=0).view(ma.MaskedArray) * rr + rd
+        core_centers[bad_long] = ma.masked
+        core_median = ma.median(core_centers)
+        print(f'  Core: {core_median}', end='')
+
     print()
 
     if arguments.output_csv_filename:
@@ -447,13 +477,37 @@ for obs_id in f_ring_util.enumerate_obsids(arguments):
             slice_phase_angles = phase_angles[slice_start:slice_end][slice_good_long]
             slice_resolutions = resolutions[slice_start:slice_end][slice_good_long]
             slice_longitudes = longitudes[slice_start:slice_end][slice_good_long]
+            slice_inertial_longs = inertial_longitudes[slice_start:slice_end][slice_good_long]
+            slice_longitude_of_pericenters = longitude_of_pericenters[slice_start:slice_end][slice_good_long]
+            slice_true_anomalies = true_anomalies[slice_start:slice_end][slice_good_long]
             if arguments.compute_widths:
                 slice_w1 = w1[slice_start:slice_end][slice_good_long]
                 slice_w2 = w2[slice_start:slice_end][slice_good_long]
                 slice_w3 = w3[slice_start:slice_end][slice_good_long]
+                slice_w1i = widths1[slice_start:slice_end, 0][slice_good_long]
+                slice_w1o = widths1[slice_start:slice_end, 1][slice_good_long]
+                slice_w2i = widths2[slice_start:slice_end, 0][slice_good_long]
+                slice_w2o = widths2[slice_start:slice_end, 1][slice_good_long]
+                slice_w3i = widths3[slice_start:slice_end, 0][slice_good_long]
+                slice_w3o = widths3[slice_start:slice_end, 1][slice_good_long]
+            if arguments.compute_core_center:
+                slice_core_centers = core_centers[slice_start:slice_end][slice_good_long]
 
             slice_min_long = np.degrees(np.min(slice_longitudes))
             slice_max_long = np.degrees(np.max(slice_longitudes))
+            slice_mean_long = np.degrees(np.mean(slice_longitudes))
+
+            slice_min_inertial_long = np.degrees(np.min(slice_inertial_longs))
+            slice_max_inertial_long = np.degrees(np.max(slice_inertial_longs))
+            slice_mean_inertial_long = np.degrees(np.mean(slice_inertial_longs))
+
+            slice_min_long_of_peri = np.degrees(np.min(slice_longitude_of_pericenters))
+            slice_max_long_of_peri = np.degrees(np.max(slice_longitude_of_pericenters))
+            slice_mean_long_of_peri = np.degrees(np.mean(slice_longitude_of_pericenters))
+
+            slice_min_true_anomaly = np.degrees(np.min(slice_true_anomalies))
+            slice_max_true_anomaly = np.degrees(np.max(slice_true_anomalies))
+            slice_mean_true_anomaly = np.degrees(np.mean(slice_true_anomalies))
 
             slice_min_et = np.min(slice_ETs)
             slice_max_et = np.max(slice_ETs)
@@ -487,6 +541,16 @@ for obs_id in f_ring_util.enumerate_obsids(arguments):
             row = [obs_id, slice_num, np.sum(~slice_bad_long), slice_et_date,
                    np.round(slice_min_long, 2),
                    np.round(slice_max_long, 2),
+                   np.round(slice_mean_long, 2),
+                   np.round(slice_min_inertial_long, 3),
+                   np.round(slice_max_inertial_long, 3),
+                   np.round(slice_mean_inertial_long, 3),
+                   np.round(slice_min_long_of_peri, 3),
+                   np.round(slice_max_long_of_peri, 3),
+                   np.round(slice_mean_long_of_peri, 3),
+                   np.round(slice_min_true_anomaly, 3),
+                   np.round(slice_max_true_anomaly, 3),
+                   np.round(slice_mean_true_anomaly, 3),
                    np.round(slice_min_res, 8),
                    np.round(slice_max_res, 8),
                    np.round(slice_mean_res, 8),
@@ -497,7 +561,7 @@ for obs_id in f_ring_util.enumerate_obsids(arguments):
                    np.round(np.degrees(slice_max_em), 8),
                    np.round(np.degrees(slice_mean_em), 8),
                    np.round(np.degrees(incidence_angle), 8),
-                   percentage_ew_ok,
+                   np.round(percentage_ew_ok, 2),
                    np.round(slice_ew_mean, 8),
                    np.round(slice_ew_std, 8),
                    np.round(slice_ew_mean_mu, 8),
@@ -587,7 +651,24 @@ for obs_id in f_ring_util.enumerate_obsids(arguments):
                         np.round(np.mean(slice_w2), 3),
                         np.round(np.std(slice_w2), 3),
                         np.round(np.mean(slice_w3), 3),
-                        np.round(np.std(slice_w3), 3)]
+                        np.round(np.std(slice_w3), 3),
+                        np.round(np.mean(slice_w1i), 3),
+                        np.round(np.std(slice_w1i), 3),
+                        np.round(np.mean(slice_w1o), 3),
+                        np.round(np.std(slice_w1o), 3),
+                        np.round(np.mean(slice_w2i), 3),
+                        np.round(np.std(slice_w2i), 3),
+                        np.round(np.mean(slice_w2o), 3),
+                        np.round(np.std(slice_w2o), 3),
+                        np.round(np.mean(slice_w3i), 3),
+                        np.round(np.std(slice_w3i), 3),
+                        np.round(np.mean(slice_w3o), 3),
+                        np.round(np.std(slice_w3o), 3)]
+
+            if arguments.compute_core_center:
+                row += [np.round(np.median(slice_core_centers), 3),
+                        np.round(np.mean(slice_core_centers), 3),
+                        np.round(np.std(slice_core_centers), 3)]
 
             writer.writerow(row)
 
@@ -650,9 +731,9 @@ for obs_id in f_ring_util.enumerate_obsids(arguments):
 
         plt.tight_layout()
         if arguments.save_plots:
-            if not os.path.exists('plots'):
-                os.mkdir('plots')
-            plt.savefig('plots/'+obs_id+'.png')
+            if not os.path.exists('plots_ew'):
+                os.mkdir('plots_ew')
+            plt.savefig('plots_ew/'+obs_id+'.png')
             fig.clear()
             plt.close()
             plt.cla()

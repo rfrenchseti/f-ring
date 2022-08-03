@@ -33,7 +33,14 @@ def saturn_to_prometheus(et):
     longitude = math.atan2(prometheus_sat[1], prometheus_sat[0])
     return (dist, longitude)
 
-def prometheus_close_approach(min_et, min_et_long):
+def saturn_to_pandora(et):
+    (pandora_j2000, lt) = cspyce.spkez(PANDORA_ID, et, 'J2000', 'LT+S', SATURN_ID)
+    pandora_sat = np.dot(J2000_TO_SATURN, pandora_j2000[0:3])
+    dist = np.sqrt(pandora_sat[0]**2.+pandora_sat[1]**2.+pandora_sat[2]**2.)
+    longitude = math.atan2(pandora_sat[1], pandora_sat[0])
+    return (dist, longitude)
+
+def prometheus_close_approach(min_et, min_et_long, dist_func=saturn_to_prometheus):
     def compute_r(a, e, arg): # Takes argument of pericenter
         return a*(1-e**2.) / (1+e*np.cos(arg))
     def compute_r_fring(arg):
@@ -45,8 +52,8 @@ def prometheus_close_approach(min_et, min_et_long):
     et_max = min_et + 2*np.pi / f_ring_util.FRING_MEAN_MOTION * 86400
     # Find the longitude at the point of closest approach
     min_dist = 1e38
-    for et in np.arange(et_min, et_max, 10): # Step by minute
-        prometheus_dist, prometheus_longitude = saturn_to_prometheus(et)
+    for et in np.arange(et_min, et_max, 60): # Step by minute
+        prometheus_dist, prometheus_longitude = dist_func(et)
         long_peri_fring = ((et-f_ring_util.FRING_ORBIT_EPOCH)/86400 *
                            f_ring_util.FRING_DW +
                            f_ring_util.FRING_W0) % (np.pi*2)
@@ -57,3 +64,6 @@ def prometheus_close_approach(min_et, min_et_long):
             min_dist_et = et
     min_dist_long = f_ring_util.fring_inertial_to_corotating(min_dist_long, min_dist_et)
     return min_dist, min_dist_long
+
+def pandora_close_approach(min_et, min_et_long):
+    return prometheus_close_approach(min_et, min_et_long, saturn_to_pandora)
