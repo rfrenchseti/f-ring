@@ -80,6 +80,8 @@ parser.add_argument('--ew-outer-radius', type=int, default=140965,
 
 parser.add_argument('--output-csv-filename', type=str,
                     help='Name of output CSV file')
+parser.add_argument('--agg-csv-filename', type=str,
+                    help='Name of CSV file for aggregate data')
 parser.add_argument('--plot-results', action='store_true', default=False,
                     help='Plot the core occultation for each observation')
 parser.add_argument('--plot-aggregate', action='store_true', default=False,
@@ -255,10 +257,13 @@ ew_ring_upper_limit = int((arguments.ew_outer_radius -
 
 ##########################################################################################
 
+def moving_average(x, w):
+    return np.convolve(x, np.ones(w), 'same') / w
+
 def plot(title=None,
          title_before=None, mosaic_img_before=None, ew_slice_before=None,
          title_after=None, mosaic_img_after=None, ew_slice_after=None):
-    if not arguments.plot_results and not arguments.save_plots:
+    if not arguments.plot_results:
         return
 
     fig = plt.figure(figsize=(12, 8))
@@ -405,8 +410,8 @@ tau_list = []
 ed_core30_list = []
 ed_core50_list = []
 ed_full_list = []
-core_occ_list = []
-core_radius_list = []
+full_occ_list = []
+full_radius_list = []
 by_star_list = []
 
 for pd_index, row in data_pd.iterrows():
@@ -470,8 +475,6 @@ for pd_index, row in data_pd.iterrows():
     # Extract +/- 50 km and compute the derived tau
     core_occ   =   occ_slush[core_idx-ed_core50_hw_pix:core_idx+ed_core50_hw_pix+1]
     core_radii = radii_slush[core_idx-ed_core50_hw_pix:core_idx+ed_core50_hw_pix+1]
-    core_occ_list.append(core_occ)                 # For aggregate plotting
-    core_radius_list.append(core_radii-max_radius) # For aggregate plotting
     avg_tau = -np.log(np.mean(np.exp(-core_occ)))
     if avg_tau < 0:
         print(f'{root}: {dq} Avg Tau < 0')
@@ -483,11 +486,14 @@ for pd_index, row in data_pd.iterrows():
     ed_core30 = np.sum(ed_core30_occ) * OCC_RADIAL_RESOLUTION
     ed_core50_occ = occ_slush[core_idx-ed_core50_hw_pix:core_idx+ed_core50_hw_pix+1]
     ed_core50 = np.sum(ed_core50_occ) * OCC_RADIAL_RESOLUTION
-    ed_full_occ = occ_slush[core_idx-ed_full_hw_pix:core_idx+ed_full_hw_pix+1]
+    ed_full_occ =     occ_slush[core_idx-ed_full_hw_pix:core_idx+ed_full_hw_pix+1]
+    ed_full_radii = radii_slush[core_idx-ed_full_hw_pix:core_idx+ed_full_hw_pix+1]
     ed_full = np.sum(ed_full_occ) * OCC_RADIAL_RESOLUTION
     if ed_full < ed_core30:
         print(f'{root} {dq}: Full ED {ed_full:6.3f} < Core ED {ed_core30:6.3f}')
         continue
+    full_occ_list.append(ed_full_occ)                 # For aggregate plotting
+    full_radius_list.append(ed_full_radii-max_radius) # For aggregate plotting
     full_long_data = long_slush[core_idx-ed_full_hw_pix:core_idx+ed_full_hw_pix+1]
     full_date_data = date_slush[core_idx-ed_full_hw_pix:core_idx+ed_full_hw_pix+1]
     print(f'{root:22s} {dq}: Derived tau {avg_tau:6.3f} / Core30 ED {ed_core30:6.3f} / '
@@ -672,13 +678,47 @@ median_ed_full = np.median(ed_full_list)
 print(f'Full   ED Min {min_ed_full:6.3f} / Max {max_ed_full:6.3f} / '
       f'Mean {mean_ed_full:6.3f} +/- {std_ed_core50:6.3f} / Median {median_ed_full:6.3f}')
 
-if arguments.plot_aggregate or arguments.save_plots:
+mean_occs = moving_average(np.mean(full_occ_list, axis=0), 50)
+
+if arguments.agg_csv_filename:
+    agg_csv_fp = open(arguments.agg_csv_filename, 'w')
+    agg_writer = csv.writer(agg_csv_fp)
+    hdr = ['Radius',
+           'Mean Optical Depth']
+    agg_writer.writerow(hdr)
+    for radius, tau in zip(full_radius_list[0], mean_occs):
+        row = [np.round(radius, 3),
+               np.round(tau, 5)]
+        agg_writer.writerow(row)
+    agg_csv_fp.close()
+
+if arguments.plot_aggregate:
     fig = plt.figure(figsize=(12, 8))
-    for core_radius, core_occ in zip(core_radius_list, core_occ_list):
-        plt.plot(core_radius, core_occ, alpha=0.3)
+    for full_radius, full_occ in zip(full_radius_list, full_occ_list):
+        plt.plot(full_radius, full_occ, alpha=0.3)
+    plt.plot(full_radius, mean_occs, color='red', lw=2)
     plt.xlabel('Core offset (km)')
     plt.ylabel('Optical depth')
     plt.xlim(-ED_CORE_HW50, ED_CORE_HW50)
+    plt.title(f'{arguments.instrument} - Mean tau {mean_tau:6.3f} ({num_tau} obs)')
+    plt.tight_layout()
+    if arguments.save_plots:
+        if not os.path.exists('plots_occs'):
+            os.mkdir('plots_occs')
+        plt.savefig(f'plots_occs/{arguments.instrument}_agg_core.png')
+        fig.clear()
+        plt.close()
+        plt.cla()
+        plt.clf()
+    else:
+        plt.show()
+    fig = plt.figure(figsize=(12, 8))
+    for full_radius, full_occ in zip(full_radius_list, full_occ_list):
+        plt.plot(full_radius, full_occ, alpha=0.3)
+    plt.plot(full_radius, mean_occs, color='red', lw=2)
+    plt.xlabel('Core offset (km)')
+    plt.ylabel('Optical depth')
+    plt.xlim(-ED_FULL_HW, ED_FULL_HW)
     plt.title(f'{arguments.instrument} - Mean tau {mean_tau:6.3f} ({num_tau} obs)')
     plt.tight_layout()
     if arguments.save_plots:

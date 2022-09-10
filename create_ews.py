@@ -76,6 +76,8 @@ parser.add_argument('--slice-size', type=float, default=0,
                     help='Slice size in degrees longitude')
 parser.add_argument('--output-csv-filename', type=str,
                     help='Name of output CSV file')
+parser.add_argument('--agg-csv-filename', type=str,
+                    help='Name of aggregate (mean) output CSV file')
 parser.add_argument('--radial-step', type=int, default=None,
                     help='Radial step size for multiple small radial steps')
 
@@ -258,6 +260,10 @@ if arguments.output_csv_filename:
 
     writer.writerow(hdr)
 
+if arguments.agg_csv_filename:
+    assert three_zone
+    mean_by_radius_list = []
+
 for obs_id in f_ring_util.enumerate_obsids(arguments):
     if '166RI' in obs_id or '237RI' in obs_id:
         print(f'{obs_id:30s} SKIPPING')
@@ -332,6 +338,10 @@ for obs_id in f_ring_util.enumerate_obsids(arguments):
             restr_bsm_img_tau_pn = (restr_bsm_img_tau /
                           f_ring_util.hg_func(HG_PARAMS, np.degrees(phase_angles)) *
                           f_ring_util.hg_func(HG_PARAMS, 0))
+
+    if arguments.agg_csv_filename:
+        mean_by_radius = ma.mean(restr_bsm_img_tau_pn, axis=1)
+        mean_by_radius_list.append(mean_by_radius)
 
     print(f'{obs_id:30s} {percentage_long_ok:3.0f}% {percentage_ew_ok:3.0f}%', end='')
     if (np.sum(~bad_long)*arguments.longitude_resolution*arguments.downsample <
@@ -743,3 +753,18 @@ for obs_id in f_ring_util.enumerate_obsids(arguments):
 
 if arguments.output_csv_filename:
     csv_fp.close()
+
+if arguments.agg_csv_filename:
+    agg_csv_fp = open(arguments.agg_csv_filename, 'w')
+    agg_writer = csv.writer(agg_csv_fp)
+    hdr = ['Radius',
+           'Mean Normal EW3ZPN']
+    agg_writer.writerow(hdr)
+    mean_by_radius = ma.mean(mean_by_radius_list, axis=0)
+    for radius_num, val in enumerate(mean_by_radius):
+        radius = (arguments.ew_inner_radius + radius_num * arguments.radius_resolution -
+                  arguments.ring_radius)
+        row = [np.round(radius, 3),
+               np.round(val, 5)]
+        agg_writer.writerow(row)
+    agg_csv_fp.close()
