@@ -1,0 +1,79 @@
+RUNNING EWS:
+regions/core:
+	run_regions_create_ew.bash (has current radii being used, as well as 3 ranges used for the 3-region calculations)
+
+iterative:
+	run_iter_create_ew.bash (same as previous, but set up with the iterative radius values)
+
+	notes: since currently running 10-km wide iterative slices, set up to output into 'iter_10' directory
+
+
+
+
+
+TAU COMPUTATIONS:
+running many values + storing in a CSV text file to plot:
+	return_tau_regions.py (currently set up to store the tau values for all core widths in a csv textfile)
+	return_tau_iter.py (same script, but set up for the iterative radii)
+	
+	notes:
+	both of these currently are using the method of means to find the best-fit tau 
+	(slopes method behaved strangely on iterative runs, need to look into more)
+
+running a single value of tau + plotting on jupyter notebook:
+	analyze_tau.ipynb (original, single-region version, uses means to calculate taus)
+	analyze_tau_3_regions_fixed.ipynb (updated 3-region version, uses slopes, requires modified f_ring_util)
+	analyze_tau_skirt_only.ipynb (version that just calculates the tau based on the skirt, currently uses means)
+
+	notes: analyze_tau_3_regions_fixed.ipynb requires modified f_ring_util.py (see notes at end)
+	additionally, takes in rounded radius boundaries, but subtracts/adds 1 to avoid overlap
+	(e.g. ['139220', '140120', '140320', '141220'] produces inner, core, outer boundaries of
+	139220-140119, 140120-140319, 140320-141220)
+	(need to have files for these latter radii values to load in)
+	
+
+
+
+
+
+PLOTS (OTHER):
+	plot_tau_core.ipynb (plots the tau value vs. core width stored in core return_tau csv file)
+
+	plot_tau_iter.ipynb (plots the tau value vs. radius, using iter_10 return_tau csv file)
+
+	notes: these scripts plot the tau values calculated using the means value
+
+
+
+
+
+OTHER:
+	mosaic_stack.py (outputs png image of the cropped, median-stacked, phase-normalized mosaics)
+
+	MODIFIED f_ring_util.py (fit_hg_phase_function modified for multi-region dataframe setup)
+
+
+
+
+
+NOTES (GENERAL):
+directory setup:
+	set up directories to account for different regions/types of runs, various radii, slice value used (only 0 for now):
+	data -> dump_ew_csv -> region -> rinXXXXXX_routXXXXXX -> sliceX_ew_stats.csv
+	(region directory names = core, iter_10, etc.)
+		currently csv text files with tau values from return_tau....py also output into corresponding region directory
+	(rin, rout XXXXXX values are values of radius for that run)
+	(slice X refers to the slice value used, currently only using 0/whole-image slices)
+
+
+f_ring_util modification:
+	slightly modified fit_hg_phase_function() in f_ring_util to run analyze_tau_3_regions
+	because of way tau is applied, needed to perform tau correction *before* submitting to function
+	added parameter "multi_regions" (default False)
+	if True, then takes column 'Multi Normal EW' rather than the 'Normal EW'
+	('Multi Normal EW' is the 3-region combined + corrected values, while 'Normal EW' is the original full-image uncorrected ones for the dataframe in the 3_regions script)
+	(not a very elegant fix, but this is just how I did it for the moment) 
+
+
+
+
