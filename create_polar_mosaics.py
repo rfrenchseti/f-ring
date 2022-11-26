@@ -13,7 +13,7 @@ import matplotlib.pyplot as plt
 import msgpack
 import msgpack_numpy
 
-import f_ring_util
+import f_ring_util.f_ring as f_ring
 
 command_list = sys.argv[1:]
 
@@ -35,7 +35,7 @@ parser.add_argument('--blackpoint', type=float, default=1e38)
 parser.add_argument('--gamma', type=float, default=1e38)
 parser.add_argument('--display', action='store_true', default=False)
 
-f_ring_util.add_parser_arguments(parser)
+f_ring.add_parser_arguments(parser)
 
 arguments = parser.parse_args(command_list)
 
@@ -46,7 +46,7 @@ arguments = parser.parse_args(command_list)
 #####################################################################################
 
 def polar_project_mosaic(obsid):
-    data_path, metadata_path = f_ring_util.bkgnd_sub_mosaic_paths(arguments, obsid)
+    data_path, metadata_path = f_ring.bkgnd_sub_mosaic_paths(arguments, obsid)
     with np.load(data_path) as npz:
         img = ma.MaskedArray(**npz)
         img = ma.filled(img, 0)
@@ -124,7 +124,7 @@ def polar_project_mosaic(obsid):
                                                          whitepoint, gamma))[::-1,:]+0
     pil_img = Image.frombuffer('L', (scaled_polar.shape[1], scaled_polar.shape[0]),
                                scaled_polar, 'raw', 'L', 0, 1)
-    png_path = f_ring_util.polar_png_path(arguments, obsid, make_dirs=True)
+    png_path = f_ring.polar_png_path(arguments, obsid, make_dirs=True)
     pil_img.save(png_path, 'PNG')
 
     if arguments.display:
@@ -142,7 +142,7 @@ def polar_project_mosaic(obsid):
 
 cur_obsid = None
 
-for obsid in f_ring_util.enumerate_obsids(arguments):
+for obsid in f_ring.enumerate_obsids(arguments):
     if cur_obsid != obsid:
         cur_obsid = obsid
         print('Processing', obsid)

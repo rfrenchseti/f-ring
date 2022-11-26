@@ -9,7 +9,7 @@ import numpy as np
 import numpy.ma as ma
 import scipy.ndimage as nd
 
-import f_ring_util
+import f_ring_util.f_ring as f_ring
 import julian
 
 cmd_line = sys.argv[1:]
@@ -42,7 +42,7 @@ parser.add_argument('--output-csv-filename', type=str,
 parser.add_argument('--core-half-width', type=int, default=100,
                     help='The half-width of the core for computing ring width')
 
-f_ring_util.add_parser_arguments(parser)
+f_ring.add_parser_arguments(parser)
 
 arguments = parser.parse_args(cmd_line)
 
@@ -126,13 +126,13 @@ if arguments.output_csv_filename:
                 'Width100', 'Width100 Std']
     writer.writerow(hdr)
 
-for obs_id in f_ring_util.enumerate_obsids(arguments):
+for obs_id in f_ring.enumerate_obsids(arguments):
     if '166RI' in obs_id or '237RI' in obs_id:
         print(f'{obs_id:30s} SKIPPING')
         continue
 
     (bkgnd_sub_mosaic_filename,
-     bkgnd_sub_mosaic_metadata_filename) = f_ring_util.bkgnd_sub_mosaic_paths(
+     bkgnd_sub_mosaic_metadata_filename) = f_ring.bkgnd_sub_mosaic_paths(
         arguments, obs_id)
 
     if (not os.path.exists(bkgnd_sub_mosaic_filename) or

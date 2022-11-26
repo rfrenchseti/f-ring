@@ -14,7 +14,7 @@ from imgdisp import ImageDisp
 
 import julian
 
-import f_ring_util
+import f_ring_util.f_ring as f_ring
 
 command_list = sys.argv[1:]
 
@@ -29,7 +29,7 @@ parser.add_argument(
     '--show-radii', default='',
     help='Comma-separated list of radii to highlight')
 
-f_ring_util.add_parser_arguments(parser)
+f_ring.add_parser_arguments(parser)
 
 arguments = parser.parse_args(command_list)
 
@@ -380,7 +380,7 @@ def callback_move_mosaic(x, y, mosaicdata):
         mosaicdispdata.label_ewmu.config(text='')
     else:
         mosaicdispdata.label_inertial_longitude.config(text=
-                    ('%7.3f'%(np.degrees(f_ring_util.fring_corotating_to_inertial(
+                    ('%7.3f'%(np.degrees(f_ring.fring_corotating_to_inertial(
                                             mosaicdata.longitudes[x],
                                             mosaicdata.ETs[x])))))
         mosaicdispdata.label_longitude.config(text=
@@ -419,9 +419,9 @@ def callback_move_mosaic(x, y, mosaicdata):
 #
 ################################################################################
 
-for obs_id in f_ring_util.enumerate_obsids(arguments):
+for obs_id in f_ring.enumerate_obsids(arguments):
     mosaicdata = MosaicData()
-    data_path, metadata_path = f_ring_util.bkgnd_sub_mosaic_paths(arguments, obs_id)
+    data_path, metadata_path = f_ring.bkgnd_sub_mosaic_paths(arguments, obs_id)
     mosaicdata.obsid = obs_id
     with np.load(data_path) as npz:
         mosaicdata.img = ma.MaskedArray(**npz)

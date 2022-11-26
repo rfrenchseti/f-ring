@@ -3,7 +3,7 @@ import numpy as np
 import pandas as pd
 import sys
 if '..' not in sys.path: sys.path.append('..')
-from f_ring_util import (compute_corrected_ew,
+from f_ring_util.f_ring import (compute_corrected_ew,
                          fit_hg_phase_function,
                          hg_func,
                          print_hg_params)

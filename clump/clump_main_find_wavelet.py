@@ -28,7 +28,7 @@ import julian
 import clump_bandpass_filter
 import clump_gaussian_fit
 import clump_util
-import f_ring_util
+import f_ring_util.f_ring as f_ring
 import wavelet_util
 
 #===============================================================================
@@ -107,7 +107,7 @@ parser.add_argument('--color-contours', dest='color_contours',
                     action='store_true', default=False,
                     help='Use colored contours in scalogram')
 
-f_ring_util.add_parser_arguments(parser)
+f_ring.add_parser_arguments(parser)
 
 arguments = parser.parse_args(cmd_line)
 
@@ -181,16 +181,16 @@ def downsample_ew(ew_data, mosaic_data):
 
 def adjust_ew_for_zero_phase(ew_data, phase_angles, emission_angles, incidence_angles):
     return ew_data # XXX
-    new_ew_data = f_ring_util.compute_corrected_ew(
-                ew_data * f_ring_util.compute_mu(emission_angles),
+    new_ew_data = f_ring.compute_corrected_ew(
+                ew_data * f_ring.compute_mu(emission_angles),
                 emission_angles, np.mean(incidence_angles))
 #    fig = plt.figure()
 #    ax = fig.add_subplot(111)
 #    plt.plot(ew_data* clump_util.compute_mu(emission_angles), color='black')
 #    plt.plot(new_ew_data, color='red')
     for i in range(len(ew_data)):
-        ratio = (f_ring_util.clump_phase_curve(0) /
-                 f_ring_util.clump_phase_curve(phase_angles[i]))
+        ratio = (f_ring.clump_phase_curve(0) /
+                 f_ring.clump_phase_curve(phase_angles[i]))
 #        print phase_angles[i], ratio
         new_ew_data[i] *= ratio
 #    plt.plot(new_ew_data, color='green')
@@ -614,15 +614,15 @@ clump_database = {}
 
 if arguments.voyager:
 
-    for root, dirs, files in os.walk(f_ring_util.VOYAGER_PATH):
+    for root, dirs, files in os.walk(f_ring.VOYAGER_PATH):
 
         for file in files:
             if '.STACK' in file:
                 filename = file[:-6]
-                (ew_data_path, ew_mask_path) = f_ring_util.ew_paths(arguments, filename)
+                (ew_data_path, ew_mask_path) = f_ring.ew_paths(arguments, filename)
 
                 ew_data = np.load(ew_data_path +'.npy')
-                data_path, metadata_path, large_png_path, small_png_path = f_ring_util.mosaic_paths(arguments, filename)
+                data_path, metadata_path, large_png_path, small_png_path = f_ring.mosaic_paths(arguments, filename)
 
                 metadata_fp = open(metadata_path, 'rb')
                 metadata = pickle.load(metadata_fp)
@@ -666,14 +666,14 @@ if arguments.voyager:
 else:
     if arguments.update_clump_database:
         # Read the old database first so we can update it
-        clump_database_path, clump_chains_path = f_ring_util.clumpdb_paths(arguments)
+        clump_database_path, clump_chains_path = f_ring.clumpdb_paths(arguments)
         with open(clump_database_path, 'rb') as clump_database_fp:
             clump_database = pickle.load(clump_database_fp)
 
-    for obs_id in f_ring_util.enumerate_obsids(arguments):
+    for obs_id in f_ring.enumerate_obsids(arguments):
         print(f'Processing {obs_id}')
 
-        (ew_data_filename, ew_metadata_filename) = f_ring_util.ew_paths(arguments, obs_id)
+        (ew_data_filename, ew_metadata_filename) = f_ring.ew_paths(arguments, obs_id)
 
         if (not os.path.exists(ew_metadata_filename) or
             not os.path.exists(ew_data_filename+'.npy')):
@@ -762,7 +762,7 @@ if arguments.update_clump_database or arguments.replace_clump_database:
         clump_arguments.clump_size_max = arguments.clump_size_max
         clump_arguments.prefilter = arguments.prefilter
 
-        clump_database_path, clump_chains_path = f_ring_util.clumpdb_paths(arguments)
+        clump_database_path, clump_chains_path = f_ring.clumpdb_paths(arguments)
         clump_database_fp = open(clump_database_path, 'wb')
         pickle.dump(clump_arguments, clump_database_fp)
         pickle.dump(clump_database, clump_database_fp)
@@ -770,7 +770,7 @@ if arguments.update_clump_database or arguments.replace_clump_database:
 
     elif arguments.downsample:
         downsampled_clump_database_fp = os.path.join(
-            f_ring_util.VOYAGER_PATH, 'downsampled_clump_database.pickle')
+            f_ring.VOYAGER_PATH, 'downsampled_clump_database.pickle')
         print('Saving to downsampled_clump_database')
         clump_arguments = clump_util.ClumpFindOptions()
         clump_arguments.type = 'wavelet mexhat'
@@ -780,10 +780,10 @@ if arguments.update_clump_database or arguments.replace_clump_database:
         clump_arguments.clump_size_min = arguments.clump_size_min
         clump_arguments.clump_size_max = arguments.clump_size_max
         clump_arguments.prefilter = arguments.prefilter
-        clump_database_path, clump_chains_path = f_ring_util.clumpdb_paths(arguments)
+        clump_database_path, clump_chains_path = f_ring.clumpdb_paths(arguments)
         downsampled_clump_database_fp = open(downsampled_clump_database_fp, 'wb')
 
-        clump_database_path, clump_chains_path = f_ring_util.clumpdb_paths(arguments)
+        clump_database_path, clump_chains_path = f_ring.clumpdb_paths(arguments)
         clump_database_fp = open(clump_database_path, 'wb')
         pickle.dump(clump_arguments, clump_database_fp)
         pickle.dump(clump_database, clump_database_fp)
@@ -802,7 +802,7 @@ if arguments.update_clump_database or arguments.replace_clump_database:
         clump_arguments.clump_size_min = arguments.clump_size_min
         clump_arguments.clump_size_max = arguments.clump_size_max
         clump_arguments.prefilter = arguments.prefilter
-        clump_database_path, clump_chains_path = f_ring_util.clumpdb_paths(arguments)
+        clump_database_path, clump_chains_path = f_ring.clumpdb_paths(arguments)
         clump_database_fp = open(clump_database_path, 'wb')
 
         pickle.dump(clump_arguments, clump_database_fp)

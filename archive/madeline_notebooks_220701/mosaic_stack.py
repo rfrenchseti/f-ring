@@ -10,7 +10,7 @@ import numpy as np
 import numpy.ma as ma
 import pandas as pd
 
-import f_ring_util
+import f_ring_util.f_ring as f_ring
 
 #define cropping longitudes (deg.)
 lon1 = 155
@@ -44,7 +44,7 @@ parser.add_argument('--ew-inner-radius', type=int, default=None,
 parser.add_argument('--ew-outer-radius', type=int, default=None,
                     help="""The outer radius of the range""")
 
-f_ring_util.add_parser_arguments(parser)
+f_ring.add_parser_arguments(parser)
 
 arguments = parser.parse_args(cmd_line)
 
@@ -70,8 +70,8 @@ array_list = []
 #go through filenames ONE AT A TIME and delete/overwrite once done
 #154 total observations used
 i = 0
-for obs_id in f_ring_util.enumerate_obsids(arguments):
-    (bkgnd_sub_mosaic_filename, bkgnd_sub_mosaic_metadata_filename) = f_ring_util.bkgnd_sub_mosaic_paths(arguments, obs_id)
+for obs_id in f_ring.enumerate_obsids(arguments):
+    (bkgnd_sub_mosaic_filename, bkgnd_sub_mosaic_metadata_filename) = f_ring.bkgnd_sub_mosaic_paths(arguments, obs_id)
 
     #(don't load in EW data paths, don't need)
 
@@ -97,7 +97,7 @@ for obs_id in f_ring_util.enumerate_obsids(arguments):
     cropped_phase_angles = metadata['phase_angles'][int(lon1*50):int(lon2*50)]
     #cropped_phase_angles = np.degrees(metadata['phase_angles'][int(lon1*50):int(lon2*50)])
     #find the H-G func values at each pixel (km)
-    cropped_hg_vals = np.array([f_ring_util.hg_func(params, xpts=phase) for phase in cropped_phase_angles])
+    cropped_hg_vals = np.array([f_ring.hg_func(params, xpts=phase) for phase in cropped_phase_angles])
     #divide each column of mosaic by hg value (1/km)
     for col in range(cropped_mosaic.shape[1]):
         cropped_mosaic[:,col] = cropped_mosaic[:,col]*cropped_hg_vals[col]

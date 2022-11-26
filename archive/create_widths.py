@@ -7,7 +7,7 @@ import matplotlib.pyplot as plt
 import numpy as np
 import numpy.ma as ma
 
-import f_ring_util
+import f_ring_util.f_ring as f_ring
 
 cmd_line = sys.argv[1:]
 
@@ -24,7 +24,7 @@ parser.add_argument('--ew-inner-radius', type=int, default=None,
 parser.add_argument('--ew-outer-radius', type=int, default=None,
                     help="""The outer radius of the range""")
 
-f_ring_util.add_parser_arguments(parser)
+f_ring.add_parser_arguments(parser)
 
 arguments = parser.parse_args(cmd_line)
 
@@ -65,7 +65,7 @@ if arguments.voyager:
     voyager_data_dict['V2I'] = ( 10.5,  79.0,  82.1, -4.7*86400, '1981-08-26T03:24:57')
     voyager_data_dict['V2O'] = ( 98.0, 109.71, 82.1,  4.5*86400, '1981-08-26T03:24:57')
 
-    for root, dirs, files in os.walk(f_ring_util.VOYAGER_PATH):
+    for root, dirs, files in os.walk(f_ring.VOYAGER_PATH):
         for file in files:
             if '.STACK' in file:
                 filepath = os.path.join(root, file)
@@ -95,7 +95,7 @@ if arguments.voyager:
                 incidence_angles = np.zeros(len(EWs)) + voyager_data_dict[filename][2]
 
                 #make metadata for voyager
-                data_path, metadata_path, large_png_path, small_png_path = f_ring_util.mosaic_paths(arguments, filename)
+                data_path, metadata_path, large_png_path, small_png_path = f_ring.mosaic_paths(arguments, filename)
                 metadata = (longitudes, resolutions, image_numbers,
                             ETs, emission_angles, incidence_angles,
                             phase_angles)
@@ -106,7 +106,7 @@ if arguments.voyager:
                 #fake bkgnd data for voyager
                 (reduced_mosaic_data_filename, bkgnd_sub_mosaic_filename,
                      bkgnd_mask_filename, bkgnd_model_filename,
-                     bkgnd_sub_mosaic_metadata_filename) = f_ring_util.bkgnd_paths(arguments, filename)
+                     bkgnd_sub_mosaic_metadata_filename) = f_ring.bkgnd_paths(arguments, filename)
 
                 np.save(bkgnd_model_filename, [])     #just need the blank files
                 np.save(bkgnd_mask_filename, [])
@@ -132,16 +132,16 @@ if arguments.voyager:
                 EWs.mask = False
                 EWs[np.where(EWs == 0.)] = ma.masked
 
-                (ew_data_filename, ew_mask_filename) = f_ring_util.ew_paths(arguments, filename)
+                (ew_data_filename, ew_mask_filename) = f_ring.ew_paths(arguments, filename)
 
                 np.save(ew_data_filename, EWs.data)
                 np.save(ew_mask_filename, ma.getmask(EWs))
 else:
-    for obs_id in f_ring_util.enumerate_obsids(arguments):
+    for obs_id in f_ring.enumerate_obsids(arguments):
         (bkgnd_sub_mosaic_filename,
-         bkgnd_sub_mosaic_metadata_filename) = f_ring_util.bkgnd_sub_mosaic_paths(
+         bkgnd_sub_mosaic_metadata_filename) = f_ring.bkgnd_sub_mosaic_paths(
             arguments, obs_id)
-        (ew_data_filename, ew_metadata_filename) = f_ring_util.ew_paths(
+        (ew_data_filename, ew_metadata_filename) = f_ring.ew_paths(
             arguments, obs_id, make_dirs=True)
 
         if (not os.path.exists(bkgnd_sub_mosaic_filename) or
@@ -192,8 +192,8 @@ else:
                                                  idx])
             widths[idx] = (ret[0]+ring_lower_limit, ret[1]+ring_lower_limit)
 
-        width_data_filename = f_ring_util.width_paths(arguments, obs_id)
-        f_ring_util.write_width(width_data_filename, widths)
+        width_data_filename = f_ring.width_paths(arguments, obs_id)
+        f_ring.write_width(width_data_filename, widths)
 
         w = (widths[~bad_long,1]-widths[~bad_long,0])*arguments.radius_resolution
         print('%-30s Width %8.5f +/- %8.5f' % (

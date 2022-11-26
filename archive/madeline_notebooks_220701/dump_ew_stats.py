@@ -16,7 +16,7 @@ import sys
 import matplotlib.pyplot as plt
 import numpy as np
 
-from f_ring_util import (get_ew_valid_longitudes,
+from f_ring_util.f_ring import (get_ew_valid_longitudes,
                          get_root_list,
                          read_ew,
                          read_ew_metadata)
