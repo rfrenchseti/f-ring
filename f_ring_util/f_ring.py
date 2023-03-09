@@ -186,7 +186,7 @@ def bkgnd_sub_mosaic_paths_spec(ring_radius, radius_inner, radius_outer,
                       radius_resolution, longitude_resolution,
                       radial_zoom_amount, longitude_zoom_amount))
     if make_dirs and not os.path.exists(BKGND_SUB_MOSAIC_DIR):
-        os.mkdir(bkgnd_dir)
+        os.mkdir(BKGND_SUB_MOSAIC_DIR)
     data_path = file_clean_join(BKGND_SUB_MOSAIC_DIR,
                                 obsid+bkgnd_res_data+'-BKGND-SUB-MOSAIC.npz')
     metadata_path = file_clean_join(
@@ -312,21 +312,22 @@ def clumpdb_paths(options):
                     options.reproject_zoom_factor,
                     options.core_radius_start,
                     options.core_radius_end))
-    cl_data_filename = os.path.join(ROOT, 'clump-data',
-                                    'clumpdb'+cl_res_data+'.pickle')
-    cc_data_filename = os.path.join(ROOT, 'clump-data',
-                                     'clumpchains'+cl_res_data+'.pickle')
-    if options.voyager:
-        cl_data_filename = os.path.join(ROOT, 'clump-data',
-                                        'voyager_clumpdb'+cl_res_data+'.pickle')
-        cc_data_filename = os.path.join(ROOT, 'clump-data',
-                                        'voyager_clumpchains'+cl_res_data+'.pickle')
-    if options.downsample:
-        cl_data_filename = os.path.join(ROOT, 'clump-data',
-                                        'downsampled_clumpdb'+cl_res_data+'.pickle')
-        cc_data_filename = os.path.join(ROOT, 'clump-data',
-                                        'downsampled_clumpchains'+cl_res_data+'.pickle')
-    return cl_data_filename, cc_data_filename
+    assert False
+    # cl_data_filename = os.path.join(ROOT, 'clump-data',
+    #                                 'clumpdb'+cl_res_data+'.pickle')
+    # cc_data_filename = os.path.join(ROOT, 'clump-data',
+    #                                  'clumpchains'+cl_res_data+'.pickle')
+    # if options.voyager:
+    #     cl_data_filename = os.path.join(ROOT, 'clump-data',
+    #                                     'voyager_clumpdb'+cl_res_data+'.pickle')
+    #     cc_data_filename = os.path.join(ROOT, 'clump-data',
+    #                                     'voyager_clumpchains'+cl_res_data+'.pickle')
+    # if options.downsample:
+    #     cl_data_filename = os.path.join(ROOT, 'clump-data',
+    #                                     'downsampled_clumpdb'+cl_res_data+'.pickle')
+    #     cc_data_filename = os.path.join(ROOT, 'clump-data',
+    #                                     'downsampled_clumpchains'+cl_res_data+'.pickle')
+    # return cl_data_filename, cc_data_filename
 
 
 ################################################################################
