@@ -37,9 +37,9 @@ if len(cmd_line) == 0:
 
 parser = argparse.ArgumentParser()
 
-parser.add_argument('--ew-inner-radius', type=int, default=139470,
+parser.add_argument('--ew-inner-radius', type=int, default=140220-750,
                     help='The inner radius of the range')
-parser.add_argument('--ew-outer-radius', type=int, default=140965,
+parser.add_argument('--ew-outer-radius', type=int, default=140220+750,
                     help='The outer radius of the range')
 parser.add_argument('--ew-core-inner-radius', type=int, default=None,
                     help='The inner radius of the core, if applicable')
@@ -51,16 +51,16 @@ parser.add_argument('--compute-widths', action='store_true', default=False,
                     help='Compute the widths for each slice')
 parser.add_argument('--widths-frac-mode', action='store_true', default=False,
                     help='Compute widths in fractional mode')
-parser.add_argument('--tau', type=float, default=0.042,
+parser.add_argument('--tau', type=float, default=None, # default=0.042,
                     help='Tau to use computing 3-zone EW and phase-normalization')
-parser.add_argument('--phase-curve-params', type=str,
-                    default='0.634,1.874,-0.026,0.876',
+parser.add_argument('--phase-curve-params', type=str, default=None,
+                    # default='0.634,1.874,-0.026,0.876',
                     help='The parameters for the phase curve for width computation')
-parser.add_argument('--width-thresholds-abs', type=str,
-                    default='0.002,0.001,0.0002',
+parser.add_argument('--width-thresholds-abs', type=str, default=None,
+                    # default='0.002,0.001,0.0002',
                     help='The default width threshold values in absolute mode')
-parser.add_argument('--width-thresholds-frac', type=str,
-                    default='.75,.85,.95',
+parser.add_argument('--width-thresholds-frac', type=str, default=None,
+                    # default='.75,.85,.95',
                     help='The default width threshold values in fractional mode')
 parser.add_argument('--plot-results', action='store_true', default=False,
                     help='Plot the EW and Width results')
@@ -68,7 +68,7 @@ parser.add_argument('--save-plots', action='store_true', default=False,
                     help='Same as --plot-results but save plots to disk instead')
 parser.add_argument('--downsample', type=int, default=1,
                     help='Amount to downsample the mosaic in longitude')
-parser.add_argument('--minimum-coverage', type=float, default=60,
+parser.add_argument('--minimum-coverage', type=float, default=0, # XXX
                     help='Minimum coverage (in degrees) allowed for a good obsid')
 parser.add_argument('--maximum-bad-pixels-percentage', type=float, default=2,
                     help='Maximum percentage of bad pixels for a good radial slice')
@@ -85,11 +85,20 @@ f_ring.add_parser_arguments(parser)
 
 arguments = parser.parse_args(cmd_line)
 
-HG_PARAMS = [float(x) for x in arguments.phase_curve_params.split(',')]
-if arguments.widths_frac_mode:
-    WIDTH_THRESHOLDS = [float(x) for x in arguments.width_thresholds_frac.split(',')]
+if arguments.phase_curve_params is None:
+    HG_PARAMS = None
 else:
-    WIDTH_THRESHOLDS = [float(x) for x in arguments.width_thresholds_abs.split(',')]
+    HG_PARAMS = [float(x) for x in arguments.phase_curve_params.split(',')]
+if arguments.widths_frac_mode:
+    if arguments.width_thresholds_frac is None:
+        WIDTH_THRESHOLDS = None
+    else:
+        WIDTH_THRESHOLDS = [float(x) for x in arguments.width_thresholds_frac.split(',')]
+else:
+    if arguments.width_thresholds_abs is None:
+        WIDTH_THRESHOLDS = None
+    else:
+        WIDTH_THRESHOLDS = [float(x) for x in arguments.width_thresholds_abs.split(',')]
 
 
 ##########################################################################################
@@ -139,12 +148,22 @@ def width_from_abs(a, abs_vals):
         ret.append((wing1_pos, wing2_pos))
     return ret
 
+
+##########################################################################################
+#
+# PROCESS THE ARGUMENTS AND INITIALIZE STATE
+#
 ##########################################################################################
 
 assert ((arguments.ew_inner_radius is None) ==
-        (arguments.ew_outer_radius is None))
+        (arguments.ew_outer_radius is None)), \
+            'Both --ew-inner-radius and --ew-outer-radius must be specified'
 assert ((arguments.ew_core_inner_radius is None) ==
-        (arguments.ew_core_outer_radius is None))
+        (arguments.ew_core_outer_radius is None)), \
+            'Both --ew-core-inner-radius and --ew-core-outer-radius must be specified'
+
+
+# FIGURE OUT THE RING RADIAL LIMITS
 
 # ew_inner_radius/ew_outer_radius of None or 0 means just use the whole width
 # of the mosaic, whatever that is
@@ -155,12 +174,12 @@ if arguments.ew_inner_radius is not None and arguments.ew_inner_radius != 0:
 else:
     ring_lower_limit = 0
 if arguments.ew_outer_radius is not None and arguments.ew_outer_radius != 0:
-    ring_upper_limit = int((arguments.ew_outer_radius -
-                            arguments.radius_inner_delta -
+    ring_upper_limit = int((arguments.ew_outer_radius +
+                            arguments.radius_outer_delta -
                             arguments.ring_radius) / arguments.radius_resolution)
 else:
-    ring_upper_limit = ((arguments.radius_outer_delta - arguments.radius_inner_delta) /
-                        arguments.radius_resolution)
+    ring_upper_limit = int((arguments.radius_outer_delta - arguments.radius_inner_delta) /
+                           arguments.radius_resolution)
 print(f'EW  lower limit: {arguments.ew_inner_radius:6d} km, pix {ring_lower_limit:4d}')
 print(f'EW  upper limit: {arguments.ew_outer_radius:6d} km, pix {ring_upper_limit:4d}')
 
@@ -177,20 +196,24 @@ if arguments.ew_core_inner_radius is None:
     ring_upper_limit3 = None
 else:
     three_zone = True
+    # Zone 1: [Ring inner limit, core inner radius)
     ring_lower_limit1 = ring_lower_limit
     ring_upper_limit1 = int((arguments.ew_core_inner_radius -
                              arguments.radius_inner_delta -
                              arguments.ring_radius) / arguments.radius_resolution)-1
+    # Zone 2: [Core inner radius, core outer radius]
     ring_lower_limit2 = ring_upper_limit1 + 1
-    ring_upper_limit2 = int((arguments.ew_core_outer_radius -
-                             arguments.radius_inner_delta -
+    ring_upper_limit2 = int((arguments.ew_core_outer_radius +
+                             arguments.radius_outer_delta -
                              arguments.ring_radius) / arguments.radius_resolution)
+    # Zone 3: (Core outer radius, Ring outer limit]
     ring_lower_limit3 = ring_upper_limit2 + 1
     ring_upper_limit3 = ring_upper_limit
     ring_upper_limit1_km = (ring_upper_limit1 * arguments.radius_resolution +
                             arguments.radius_inner_delta + arguments.ring_radius)
     ring_lower_limit3_km = (ring_lower_limit3 * arguments.radius_resolution +
-                            arguments.radius_inner_delta + arguments.ring_radius)
+                            arguments.radius_inner_delta + arguments.ring_radius +
+                            arguments.radius_resolution - 1)
     print(f'EWI lower limit: {arguments.ew_inner_radius:6.0f} km, '
           f'pix {ring_lower_limit1:4d}')
     print(f'EWI upper limit: {ring_upper_limit1_km:6.0f} km, '
@@ -204,6 +227,9 @@ else:
     print(f'EWO upper limit: {arguments.ew_outer_radius:6.0f} km, '
           f'pix {ring_upper_limit3:4d}')
 
+
+# HANDLE MULTIPLE RADIAL STEPS
+
 if arguments.radial_step is not None:
     num_radial_steps = int((arguments.ew_outer_radius - arguments.ew_inner_radius) /
                            arguments.radial_step)+1
@@ -212,6 +238,10 @@ if arguments.radial_step is not None:
 else:
     num_radial_steps = None
 
+
+# INITIALIZE THE OUTPUT CSV FILE WITH HEADERS
+
+csv_fp = None
 if arguments.output_csv_filename:
     assert (arguments.slice_size == 0 or
             360 / arguments.slice_size == int(360 / arguments.slice_size))
@@ -243,9 +273,9 @@ if arguments.output_csv_filename:
                     f'Normal EW{start_ew}', f'Normal EW{start_ew} Std']
 
     if arguments.compute_widths:
-        hdr += ['Width1', 'Width1 Std',
-                'Width2', 'Width2 Std',
-                'Width3', 'Width3 Std',
+        hdr += ['Width1',  'Width1 Std',
+                'Width2',  'Width2 Std',
+                'Width3',  'Width3 Std',
                 'Width1I', 'Width1I Std',
                 'Width1O', 'Width1O Std',
                 'Width2I', 'Width2I Std',
@@ -260,23 +290,30 @@ if arguments.output_csv_filename:
 
     writer.writerow(hdr)
 
+
+# XXX
+
 if arguments.agg_csv_filename:
     assert three_zone
     mean_by_radius_list = []
 
-for obs_id in f_ring.enumerate_obsids(arguments):
-    if '166RI' in obs_id or '237RI' in obs_id:
-        print(f'{obs_id:30s} SKIPPING')
-        continue
 
+##########################################################################################
+#
+# PROCESS THE MOSAICS
+#
+##########################################################################################
+
+for obs_id in f_ring.enumerate_obsids(arguments):
     (bkgnd_sub_mosaic_filename,
      bkgnd_sub_mosaic_metadata_filename) = f_ring.bkgnd_sub_mosaic_paths(
         arguments, obs_id)
 
-    if (not os.path.exists(bkgnd_sub_mosaic_filename) or
-        not os.path.exists(bkgnd_sub_mosaic_metadata_filename)):
-        print('NO FILE', bkgnd_sub_mosaic_filename,
-              'OR', bkgnd_sub_mosaic_metadata_filename)
+    if not os.path.exists(bkgnd_sub_mosaic_filename):
+        print('NO FILE', bkgnd_sub_mosaic_filename)
+        continue
+    if not os.path.exists(bkgnd_sub_mosaic_metadata_filename):
+        print('NO FILE', bkgnd_sub_mosaic_metadata_filename)
         continue
 
     with open(bkgnd_sub_mosaic_metadata_filename, 'rb') as bkgnd_metadata_fp:
@@ -294,10 +331,10 @@ for obs_id in f_ring.enumerate_obsids(arguments):
     emission_angles = metadata['emission_angles'][::ds]
     incidence_angle = metadata['incidence_angle']
     phase_angles = metadata['phase_angles'][::ds]
-    inertial_longitudes = f_ring.fring_corotating_to_inertial(
-        longitudes, ETs)
+    inertial_longitudes = f_ring.fring_corotating_to_inertial(longitudes, ETs)
     longitude_of_pericenters = f_ring.fring_longitude_of_pericenter(ETs)
     true_anomalies = f_ring.fring_true_anomaly(ETs, inertial_longitudes)
+    # bsm = background-subtracted-mosaic
     bsm_img = bsm_img[:,::ds]
 
     # Make the submosaic for the radial range desired
@@ -323,8 +360,8 @@ for obs_id in f_ring.enumerate_obsids(arguments):
         restr_bsm_img3 = bsm_img[ring_lower_limit3:ring_upper_limit3+1,:]
 
         if arguments.tau is not None:
-            # Make the whole image be Normal and then tau-augment the center
-            # region. Note ring_lower_limit<n> are based on the full mosaic size,
+            # Make the whole image be Normal and then tau-augment the center region.
+            # Note ring_lower_limit<n> are based on the full mosaic size,
             # but here we're working with the radially-restricted version.
             restr_bsm_img_tau = restr_bsm_img * np.abs(np.cos(emission_angles))
             restr_bsm_img_tau[ring_lower_limit2-ring_lower_limit1:

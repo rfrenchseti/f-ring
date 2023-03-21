@@ -40,7 +40,7 @@ FONT_COLOR = '#ffffff'
 
 app = Dash(__name__)
 
-obsdata = pd.read_csv('../data_files/good_qual_1deg.csv', parse_dates=['Date'])
+obsdata = pd.read_csv('../data_files/ew_stats_1zone_0_1.csv', parse_dates=['Date'])
 
 print('** SUMMARY STATISTICS **')
 print('Unique observation names:', len(obsdata.groupby('Observation')))

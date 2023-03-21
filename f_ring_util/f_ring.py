@@ -469,7 +469,7 @@ def hg_fit_func(params, xpts, ypts, ystd):
 # Use std=None to not remove outliers
 # Do the modeling on a copy of the data so we can remove outliers
 def fit_hg_phase_function(n_hg, nstd, data, col_tau=('Normal EW', None),
-                          phase_col='Mean Phase', std_col=None, verbose=True):
+                          phase_col='Mean Phase', std_col=None, verbose=False):
     phasedata = data.copy()
     normal_ew = compute_corrected_ew_col(phasedata, col_tau=col_tau)
 
@@ -493,7 +493,7 @@ def fit_hg_phase_function(n_hg, nstd, data, col_tau=('Normal EW', None),
                                       args=(phase_degrees, normal_ew, std_col))
         params = params['x']
         phase_model = hg_func(params, phase_degrees)
-        ratio = np.log10(normal_ew / phase_model)
+        ratio = np.log10(normal_ew) - np.log10(phase_model)
         std = np.std(ratio)
         if verbose:
             print('Ratio min', ratio.min(), 'Max', ratio.max(), 'Sigma', std)
