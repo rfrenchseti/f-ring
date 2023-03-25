@@ -468,7 +468,7 @@ def hg_fit_func(params, xpts, ypts, ystd):
 # Fit a phase curve and remove data points more than nstd sigma away
 # Use std=None to not remove outliers
 # Do the modeling on a copy of the data so we can remove outliers
-def fit_hg_phase_function(n_hg, nstd, data, col_tau=('Normal EW', None),
+def fit_hg_phase_function(n_hg, nstd, data, col_tau=('Normal EW Mean', None),
                           phase_col='Mean Phase', std_col=None, verbose=False):
     phasedata = data.copy()
     normal_ew = compute_corrected_ew_col(phasedata, col_tau=col_tau)
@@ -499,6 +499,8 @@ def fit_hg_phase_function(n_hg, nstd, data, col_tau=('Normal EW', None),
             print('Ratio min', ratio.min(), 'Max', ratio.max(), 'Sigma', std)
         if nstd is None:
             break
+        else:
+            assert False # Think about ratio and log space XXX
         oldlen = len(phasedata)
         keep = ratio.abs() < nstd*std
         phasedata = phasedata[keep]

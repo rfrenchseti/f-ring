@@ -257,7 +257,14 @@ if arguments.output_csv_filename:
            'Min Emission', 'Max Emission', 'Mean Emission',
            'Incidence',
            '% Coverage',
-           'EW', 'EW Std', 'Normal EW', 'Normal EW Std']
+           'EW Mean', 'EW Std', 'Normal EW Mean', 'Normal EW Std',
+           'EW Median', 'Normal EW Median']
+    if arguments.slice_size == 0:
+        hdr += ['EW Mean 15', 'EW Std 15', 'Normal EW Mean 15', 'Normal EW Std 15',
+                'EW Mean 25', 'EW Std 25', 'Normal EW Mean 25', 'Normal EW Std 25',
+                'EW Mean 50', 'EW Std 50', 'Normal EW Mean 50', 'Normal EW Std 50',
+                'EW Mean 75', 'EW Std 75', 'Normal EW Mean 75', 'Normal EW Std 75',
+                'EW Mean 85', 'EW Std 85', 'Normal EW Mean 85', 'Normal EW Std 85']
     if three_zone:
         hdr += ['EWI', 'EWI Std', 'Normal EWI', 'Normal EWI Std']
         hdr += ['EWC', 'EWC Std', 'Normal EWC', 'Normal EWC Std']
@@ -576,10 +583,41 @@ for obs_id in f_ring.enumerate_obsids(arguments):
             slice_ew_profile = ew_profile[slice_start:slice_end][slice_good_long]
             slice_ew_mean = np.mean(slice_ew_profile)
             slice_ew_std = np.std(slice_ew_profile)
+            slice_ew_median = np.median(slice_ew_profile)
             slice_ew_profile_mu = (slice_ew_profile *
                                    np.abs(np.cos(slice_emission_angles)))
             slice_ew_mean_mu = np.mean(slice_ew_profile_mu)
             slice_ew_std_mu = np.std(slice_ew_profile_mu)
+            slice_ew_median_mu = np.median(slice_ew_profile_mu)
+
+            if arguments.slice_size == 0:
+                slice_ew_profile_sorted = sorted(slice_ew_profile)
+                slice_ew_profile_sorted_mu = sorted(slice_ew_profile_mu)
+                idx_15_per = int(len(slice_ew_profile) * .15)
+                idx_25_per = int(len(slice_ew_profile) * .25)
+                idx_50_per = int(len(slice_ew_profile) * .50)
+                idx_75_per = int(len(slice_ew_profile) * .75)
+                idx_85_per = int(len(slice_ew_profile) * .85)
+                slice_ew_mean_15 = np.mean(slice_ew_profile_sorted[:idx_15_per])
+                slice_ew_std_15 = np.std(slice_ew_profile_sorted[:idx_15_per])
+                slice_ew_mean_mu_15 = np.mean(slice_ew_profile_sorted_mu[:idx_15_per])
+                slice_ew_std_mu_15 = np.std(slice_ew_profile_sorted_mu[:idx_15_per])
+                slice_ew_mean_25 = np.mean(slice_ew_profile_sorted[:idx_25_per])
+                slice_ew_std_25 = np.std(slice_ew_profile_sorted[:idx_25_per])
+                slice_ew_mean_mu_25 = np.mean(slice_ew_profile_sorted_mu[:idx_25_per])
+                slice_ew_std_mu_25 = np.std(slice_ew_profile_sorted_mu[:idx_25_per])
+                slice_ew_mean_50 = np.mean(slice_ew_profile_sorted[:idx_50_per])
+                slice_ew_std_50 = np.std(slice_ew_profile_sorted[:idx_50_per])
+                slice_ew_mean_mu_50 = np.mean(slice_ew_profile_sorted_mu[:idx_50_per])
+                slice_ew_std_mu_50 = np.std(slice_ew_profile_sorted_mu[:idx_50_per])
+                slice_ew_mean_75 = np.mean(slice_ew_profile_sorted[:idx_75_per])
+                slice_ew_std_75 = np.std(slice_ew_profile_sorted[:idx_75_per])
+                slice_ew_mean_mu_75 = np.mean(slice_ew_profile_sorted_mu[:idx_75_per])
+                slice_ew_std_mu_75 = np.std(slice_ew_profile_sorted_mu[:idx_75_per])
+                slice_ew_mean_85 = np.mean(slice_ew_profile_sorted[:idx_85_per])
+                slice_ew_std_85 = np.std(slice_ew_profile_sorted[:idx_85_per])
+                slice_ew_mean_mu_85 = np.mean(slice_ew_profile_sorted_mu[:idx_85_per])
+                slice_ew_std_mu_85 = np.std(slice_ew_profile_sorted_mu[:idx_85_per])
 
             # if slice_ew_mean <= 0:
             #     print(obs_id, slice_num, 'EW Mean < 0')
@@ -612,7 +650,30 @@ for obs_id in f_ring.enumerate_obsids(arguments):
                    np.round(slice_ew_mean, 8),
                    np.round(slice_ew_std, 8),
                    np.round(slice_ew_mean_mu, 8),
-                   np.round(slice_ew_std_mu, 8)]
+                   np.round(slice_ew_std_mu, 8),
+                   np.round(slice_ew_median, 8),
+                   np.round(slice_ew_median_mu, 8)]
+            if arguments.slice_size == 0:
+                row += [np.round(slice_ew_mean_15, 8),
+                        np.round(slice_ew_std_15, 8),
+                        np.round(slice_ew_mean_mu_15, 8),
+                        np.round(slice_ew_std_mu_15, 8),
+                        np.round(slice_ew_mean_25, 8),
+                        np.round(slice_ew_std_25, 8),
+                        np.round(slice_ew_mean_mu_25, 8),
+                        np.round(slice_ew_std_mu_25, 8),
+                        np.round(slice_ew_mean_50, 8),
+                        np.round(slice_ew_std_50, 8),
+                        np.round(slice_ew_mean_mu_50, 8),
+                        np.round(slice_ew_std_mu_50, 8),
+                        np.round(slice_ew_mean_75, 8),
+                        np.round(slice_ew_std_75, 8),
+                        np.round(slice_ew_mean_mu_75, 8),
+                        np.round(slice_ew_std_mu_75, 8),
+                        np.round(slice_ew_mean_85, 8),
+                        np.round(slice_ew_std_85, 8),
+                        np.round(slice_ew_mean_mu_85, 8),
+                        np.round(slice_ew_std_mu_85, 8)]
 
             if three_zone:
                 slice_ew_profile1 = ew_profile1[slice_start:slice_end][slice_good_long]
