@@ -1,7 +1,10 @@
-import numpy as np
+import matplotlib.pyplot as plt
+import mplcursors
 import os
 import pickle
 
+import numpy as np
+import pandas as pd
 import scipy.optimize as sciopt
 
 import julian
@@ -418,7 +421,7 @@ def compute_corrected_ew(normal_ew, emission, incidence, tau):
     ret = normal_ew * compute_z(mu, mu0, tau, is_transmission)
     return ret
 
-def compute_corrected_ew_col(obsdata, col_tau=('Normal EW', None),
+def compute_corrected_ew_col(obsdata, col_tau=('Normal EW Mean', None),
                              emission_col='Mean Emission',
                              incidence_col='Incidence'):
     total_ew = None
@@ -465,6 +468,10 @@ def hg_fit_func(params, xpts, ypts, ystd):
     return (ypts - hg_func(params, xpts)) / ystd
     # return np.log(ypts) - np.log(hg_func(params, xpts))
 
+def hg_fit_func_scale(scale, params, xpts, ypts):
+    ret = ypts - hg_func(params, xpts)*scale
+    return ret
+
 # Fit a phase curve and remove data points more than nstd sigma away
 # Use std=None to not remove outliers
 # Do the modeling on a copy of the data so we can remove outliers
@@ -485,7 +492,6 @@ def fit_hg_phase_function(n_hg, nstd, data, col_tau=('Normal EW Mean', None),
         bounds2.append(1000.)
     while True:
         phase_degrees = phasedata[phase_col]
-        std_data = None
         if std_col is not None:
             std_col = phasedata[std_col]
         params = sciopt.least_squares(hg_fit_func, initial_guess,
@@ -521,6 +527,24 @@ def print_hg_params(params, indent=0):
               ('g%d = %6.3f / scale%d = %6.3f / weight%d = %5.3f' %
                (i+1, res[i][1], i+1, res[i][2], i+1, res[i][0])))
 
+# Fit a phase curve and remove data points more than nstd sigma away
+# Use std=None to not remove outliers
+# Do the modeling on a copy of the data so we can remove outliers
+def scale_hg_phase_function(params, data, col_tau=('Normal EW Mean', None),
+                            phase_col='Mean Phase'):
+    phasedata = data.copy()
+    normal_ew = compute_corrected_ew_col(phasedata, col_tau=col_tau)
+
+    initial_guess = [1.]
+    bounds1 = [0.]
+    bounds2 = [10.]
+    phase_degrees = phasedata[phase_col]
+    params = sciopt.least_squares(hg_fit_func_scale, initial_guess,
+                                  bounds=(bounds1, bounds2),
+                                  args=(params, phase_degrees, normal_ew))
+    scale = params['x'][0]
+    return scale
+
 
 # def transmission_function(tau, emission, incidence):
 #     # incidence angle is always less than 90, therefore the only case we have to worry
@@ -533,3 +557,208 @@ def print_hg_params(params, indent=0):
 #         return mu * mu0 * (np.exp(-tau/mu)-np.exp(-tau/mu0)) / (tau * (mu-mu0))
 #     return mu * mu0 * (1.-np.exp(-tau*(1/mu+1/mu0))) / (tau * (mu+mu0))
 #
+
+
+################################################################################
+#
+# JUPYTER NOTEBOOK AIDS
+#
+################################################################################
+
+### READ EW STATS AND OBS_LIST RESTRICTIONS
+
+OBS_LIST = None
+
+def read_obs_list():
+    global OBS_LIST
+    if OBS_LIST is None:
+        OBS_LIST = pd.read_csv('../obs_list.csv', parse_dates=['Date'],
+                               index_col='Observation')
+
+def read_cassini_ew_stats(filename, use_obs_list=True, verbose=True):
+    obsdata = pd.read_csv(filename, parse_dates=['Date'],
+                          index_col='Observation')
+    if use_obs_list:
+        read_obs_list()
+        obsdata = obsdata.join(OBS_LIST, rsuffix='_obslist')
+        obsdata = obsdata[obsdata['For Photometry'] == 1]
+    if verbose:
+        print(f'** SUMMARY STATISTICS - {filename} **')
+        print('Unique observation names:', len(obsdata.groupby('Observation')))
+        print('Total slices:', len(obsdata))
+        print('Starting date:', obsdata['Date'].min())
+        print('Ending date:', obsdata['Date'].max())
+        print('Time span:', obsdata['Date'].max()-obsdata['Date'].min())
+    time0 = np.datetime64('1970-01-01T00:00:00') # Epoch
+    obsdata['Date_days'] = (obsdata['Date']-time0).dt.total_seconds()/86400
+    obsdata['Mu'] = np.abs(np.cos(np.radians(obsdata['Mean Emission'])))
+    obsdata['Mu0'] = np.abs(np.cos(np.radians(obsdata['Incidence'])))
+    return obsdata
+
+### OTHER UTILITY FUNCTIONS
+
+def add_hover(obsdata, p1, obsdata2=None, p2=None):
+    """Add hover text to scatter points."""
+    cursor1 = mplcursors.cursor(p1, hover=True)
+    @cursor1.connect('add')
+    def on_add(sel):
+        row = obsdata.iloc[sel.target.index]
+        sel.annotation.set(text=f"{row.name} @ {row['Min Long']:.2f}\n"
+                                f"{str(row['Date']).split(' ')[0]} "
+                                f"a={row['Mean Phase']:.0f} e={row['Mean Emission']:.0f} "
+                                f"i={row['Incidence']:.2f}")
+        if obsdata2 is not None:
+            for s in cursor2.selections:
+                cursor2.remove_selection(s)
+    if obsdata2 is not None:
+        cursor2 = mplcursors.cursor(p2, hover=True)
+        @cursor2.connect('add')
+        def on_add(sel):
+            row = obsdata2.iloc[sel.target.index]
+            sel.annotation.set(text=f"{row.name} @ {row['Min Long']:.2f}\n"
+                                    f"{str(row['Date']).split(' ')[0]} "
+                                    f"a={row['Mean Phase']:.0f} e={row['Mean Emission']:.0f} "
+                                    f"i={row['Incidence']:.2f}")
+            for s in cursor1.selections:
+                cursor1.remove_selection(s)
+
+# These EWs are raw, not adjusted for emission angle
+DATA2012_DICT = {
+    'ISS_000RI_SATSRCHAP001_PRIME': [ 2.6, 0.8],
+    'ISS_00ARI_SPKMOVPER001_PRIME': [ 3.1, 0.6],
+    'ISS_006RI_LPHRLFMOV001_PRIME': [ 4.7, 0.9],
+    'ISS_007RI_LPHRLFMOV001_PRIME': [ 1.5, 0.3],
+    'ISS_029RF_FMOVIE001_VIMS':     [12.6, 2.7],
+    'ISS_031RF_FMOVIE001_VIMS':     [10.3, 1.4],
+    'ISS_032RF_FMOVIE001_VIMS':     [ 9.9, 1.8],
+    'ISS_033RF_FMOVIE001_VIMS':     [12.9, 1.7],
+    'ISS_036RF_FMOVIE001_VIMS':     [13.6, 5.3],
+    'ISS_036RF_FMOVIE002_VIMS':     [ 2.9, 2.2],
+    'ISS_039RF_FMOVIE002_VIMS':     [ 2.7, 1.7],
+    'ISS_039RF_FMOVIE001_VIMS':     [ 1.7, 1.0],
+    'ISS_041RF_FMOVIE002_VIMS':     [ 1.8, 1.0],
+    'ISS_041RF_FMOVIE001_VIMS':     [ 2.1, 0.9],
+    'ISS_044RF_FMOVIE001_VIMS':     [ 2.4, 0.9],
+    'ISS_051RI_LPMRDFMOV001_PRIME': [ 8.1, 1.6],
+    'ISS_055RF_FMOVIE001_VIMS':     [ 1.3, 0.3],
+    'ISS_055RI_LPMRDFMOV001_PRIME': [ 3.2, 0.5],
+    'ISS_057RF_FMOVIE001_VIMS':     [ 1.3, 0.3],
+    'ISS_068RF_FMOVIE001_VIMS':     [ 0.9, 0.1],
+    'ISS_075RF_FMOVIE002_VIMS':     [ 1.2, 0.2],
+    'ISS_083RI_FMOVIE109_VIMS':     [ 1.9, 0.6],
+    'ISS_087RF_FMOVIE003_PRIME':    [ 0.9, 0.2],
+    'ISS_089RF_FMOVIE003_PRIME':    [ 1.0, 0.2],
+    'ISS_100RF_FMOVIE003_PRIME':    [ 0.8, 0.1]
+}
+_data2012_obsname = DATA2012_DICT.keys()
+_data2012_ew = [x[0] for x in DATA2012_DICT.values()]
+_data2012_std = [x[1] for x in DATA2012_DICT.values()]
+DATA2012_DF = pd.DataFrame({'EW Mean': _data2012_ew,
+                            'EW Std':  _data2012_std},
+                            index=_data2012_obsname)
+
+def find_common_data_2012(obsdata, verbose=True):
+    commondata = obsdata.join(DATA2012_DF, on='Observation', how='inner',
+                              rsuffix='_2012')
+
+    # Compute the normal EW by adjusting by the mean emission angle in the new data
+    commondata['Normal EW Mean_2012'] = commondata['EW Mean_2012'] * np.abs(
+            np.cos(np.radians(commondata['Mean Emission'])))
+
+    # Compute the ratios between the new and old data
+    # (these should be approximately the same)
+    commondata['EW Mean Ratio'] = (commondata['EW Mean'] /
+                                   commondata['EW Mean_2012'])
+    commondata['Normal EW Mean Ratio'] = (commondata['Normal EW Mean'] /
+                                          commondata['Normal EW Mean_2012'])
+
+    if verbose:
+        print('Total number of new observation names:', len(obsdata))
+        print('Total number of observation names from 2012:', len(DATA2012_DF))
+        print('Number of observation names in common:', len(commondata))
+        print('Missing observation names:',
+              set(DATA2012_DICT.keys())-set(commondata.index))
+
+    return commondata
+
+
+# These are the images used to compare calibrations. Each is either the first or last
+# image used in the 2012 paper for each observation name.
+# image_versions = (
+#     ('N1466448701_1_CALIB-3.3.IMG', 'N1466448701_1_CALIB-4.0.IMG'), # ISS_000RI_SATSRCHAP001_PRIME
+#     ('N1479201492_1_CALIB-3.3.IMG', 'N1479201492_1_CALIB-4.0.IMG'), # ISS_00ARI_SPKMOVPER001_PRIME
+#     ('N1492052646_1_CALIB-3.3.IMG', 'N1492052646_1_CALIB-4.0.IMG'), # ISS_006RI_LPHRLFMOV001_PRIME
+#     ('N1493613276_1_CALIB-3.3.IMG', 'N1493613276_1_CALIB-4.0.IMG'), # ISS_007RI_LPHRLFMOV001_PRIME
+#     ('N1538168640_1_CALIB-3.3.IMG', 'N1538168640_1_CALIB-4.0.IMG'), # ISS_029RF_FMOVIE001_VIMS
+#     ('N1541012989_1_CALIB-3.3.IMG', 'N1541012989_1_CALIB-4.0.IMG'), # ISS_031RF_FMOVIE001_VIMS
+#     ('N1542047155_1_CALIB-3.3.IMG', 'N1542047155_1_CALIB-4.0.IMG'), # ISS_032RF_FMOVIE001_VIMS
+#     ('N1543166702_1_CALIB-3.3.IMG', 'N1543166702_1_CALIB-4.0.IMG'), # ISS_033RF_FMOVIE001_VIMS
+#     ('N1545556618_1_CALIB-3.3.IMG', 'N1545556618_1_CALIB-4.0.IMG'), # ISS_036RF_FMOVIE001_VIMS
+#     ('N1546748805_1_CALIB-3.3.IMG', 'N1546748805_1_CALIB-4.0.IMG'), # ISS_036RF_FMOVIE002_VIMS
+#     ('N1549801218_1_CALIB-3.3.IMG', 'N1549801218_1_CALIB-4.0.IMG'), # ISS_039RF_FMOVIE002_VIMS
+#     ('N1551253524_1_CALIB-3.3.IMG', 'N1551253524_1_CALIB-4.0.IMG'), # ISS_039RF_FMOVIE001_VIMS
+#     ('N1552790437_1_CALIB-3.3.IMG', 'N1552790437_1_CALIB-4.0.IMG'), # ISS_041RF_FMOVIE002_VIMS
+#     ('N1554026927_1_CALIB-3.3.IMG', 'N1554026927_1_CALIB-4.0.IMG'), # ISS_041RF_FMOVIE001_VIMS
+
+#     ('N1557020880_1_CALIB-3.6.IMG', 'N1557020880_1_CALIB-4.0.IMG'), # ISS_044RF_FMOVIE001_VIMS
+#     ('N1571435192_1_CALIB-3.6.IMG', 'N1571435192_1_CALIB-4.0.IMG'), # ISS_051RI_LPMRDFMOV001_PRIME
+#     ('N1577809417_1_CALIB-3.6.IMG', 'N1577809417_1_CALIB-4.0.IMG'), # ISS_055RF_FMOVIE001_VIMS
+#     ('N1578386361_1_CALIB-3.6.IMG', 'N1578386361_1_CALIB-4.0.IMG'), # ISS_055RI_LPMRDFMOV001_PRIME
+#     ('N1579790806_1_CALIB-3.6.IMG', 'N1579790806_1_CALIB-4.0.IMG'), # ISS_057RF_FMOVIE001_VIMS
+#     ('N1589589182_1_CALIB-3.6.IMG', 'N1589589182_1_CALIB-4.0.IMG'), # ISS_068RF_FMOVIE001_VIMS
+#     ('N1593913221_1_CALIB-3.6.IMG', 'N1593913221_1_CALIB-4.0.IMG'), # ISS_075RF_FMOVIE002_VIMS
+#     ('N1598806665_1_CALIB-3.6.IMG', 'N1598806665_1_CALIB-4.0.IMG'), # ISS_083RI_FMOVIE109_VIMS
+#     ('N1601485634_1_CALIB-3.6.IMG', 'N1601485634_1_CALIB-4.0.IMG'), # ISS_087RF_FMOVIE003_PRIME
+#     ('N1602717403_1_CALIB-3.6.IMG', 'N1602717403_1_CALIB-4.0.IMG'), # ISS_089RF_FMOVIE003_PRIME
+#     ('N1610364098_1_CALIB-3.6.IMG', 'N1610364098_1_CALIB-4.0.IMG'), # ISS_100RF_FMOVIE003_PRIME
+# )
+
+# The ratio of the medians of new / old. The medians are computed using only the pixel values with
+# ring radii 139820-140620, to cover the range of +/- 400km from the nominal core semi-major axis
+# (a*e = 329 km)
+# These are generated using the program utilities/compare_cisscal_versions.py
+CISSCAL_RATIO_DICT = { # CISSCAL 4.0 / CISSCAL 3.3-3.6 median ratio for one image
+    # New / old ratio
+    # CISSCAL 3.3
+    'ISS_000RI_SATSRCHAP001_PRIME': 0.874,
+    'ISS_00ARI_SPKMOVPER001_PRIME': 0.868,
+    'ISS_006RI_LPHRLFMOV001_PRIME': 0.870,
+    'ISS_007RI_LPHRLFMOV001_PRIME': 0.851,
+    'ISS_029RF_FMOVIE001_VIMS':     0.910,
+    'ISS_031RF_FMOVIE001_VIMS':     0.884,
+    'ISS_032RF_FMOVIE001_VIMS':     0.883,
+    'ISS_033RF_FMOVIE001_VIMS':     1.014,
+    'ISS_036RF_FMOVIE001_VIMS':     0.889,
+    'ISS_036RF_FMOVIE002_VIMS':     0.888,
+    'ISS_039RF_FMOVIE002_VIMS':     0.895,
+    'ISS_039RF_FMOVIE001_VIMS':     0.886,
+    'ISS_041RF_FMOVIE002_VIMS':     0.896,
+    'ISS_041RF_FMOVIE001_VIMS':     0.979,
+    # CISSCAL 3.6 from here on
+    'ISS_044RF_FMOVIE001_VIMS':     0.949,
+    'ISS_051RI_LPMRDFMOV001_PRIME': 1.086,
+    'ISS_055RF_FMOVIE001_VIMS':     0.979,
+    'ISS_055RI_LPMRDFMOV001_PRIME': 0.929,
+    'ISS_057RF_FMOVIE001_VIMS':     0.979,
+    'ISS_068RF_FMOVIE001_VIMS':     0.992,
+    'ISS_075RF_FMOVIE002_VIMS':     0.979,
+    'ISS_083RI_FMOVIE109_VIMS':     0.938,
+    'ISS_087RF_FMOVIE003_PRIME':    0.936,
+    'ISS_089RF_FMOVIE003_PRIME':    0.936,
+    'ISS_100RF_FMOVIE003_PRIME':    0.952
+}
+_cr_obsname = CISSCAL_RATIO_DICT.keys()
+_cr_ratio = CISSCAL_RATIO_DICT.values()
+CISSCAL_RATIO_DF = pd.DataFrame({'CISSCAL Ratio': _cr_ratio}, index=_cr_obsname)
+
+def add_cisscal_ratios(obsdata):
+    obsdata =  obsdata.join(CISSCAL_RATIO_DF, on='Observation', how='inner',
+                            rsuffix='_old')
+    obsdata['Adjusted Normal EW Mean_2012'] = (obsdata['Normal EW Mean_2012'] *
+                                               obsdata['CISSCAL Ratio'])
+
+    return obsdata
+
+
+# print('Number of old observations:', len(cr_obsname))
+# print('Number of common observations:', len(commondata))

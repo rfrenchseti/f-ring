@@ -1,0 +1,43 @@
+C3479550    Good
+C3483209    Good
+C3483213    Good
+C3485233    Good
+C3487109    Good
+C3488011    Good
+C3492938    Good
+C3493044    Good
+C3493109    Orbit is wrong
+C3493353    Good
+C3493401    Good
+C3493608    Good
+C3494004    Good
+C3494808    Good
+C3495357    Good
+C3495643    Needs to be split and navigated better
+C3496240    Too curvy
+C3496252    Too curvy
+C3497355    Too curvy
+C3499614    TBD
+C3504200    Good
+
+=================================
+
+C4379553    Good
+C4385829    Good
+C4385837    Good
+C4397805    Good
+C4398926    Good
+C4399002    Good
+C4399339    Good
+C4399342    Good
+C4400649    Good
+
+Not used
+
+C4366744    Too low res
+C4400509    Exceptionally high res - only 0.1 deg of coverage - not used
+C4409540    Too low res
+C4410636    Background too noisy - not used
+C4410733    Background too noisy - not used
+C4400508    Extremely high res
+C4400643    Nearly edge-on

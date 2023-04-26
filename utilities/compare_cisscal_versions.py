@@ -10,7 +10,7 @@ import matplotlib.pyplot as plt
 import numpy as np
 
 import oops
-import oops.inst.cassini.iss as iss
+import hosts.cassini.iss as iss
 
 image_versions = ( # These are either the first or last images in the movie sequence
     ('N1466448701_1_CALIB-3.3.IMG', 'N1466448701_1_CALIB-4.0.IMG'), # ISS_000RI_SATSRCHAP001_PRIME
@@ -47,7 +47,7 @@ for img1, img2 in image_versions:
     fimg2 = os.path.join('/home/rfrench/DS/f-ring/compare_cisscal_versions', img2)
     obs1 = iss.from_file(fimg1, fast_distortion=True)
     obs2 = iss.from_file(fimg2, fast_distortion=True)
-    bp = oops.Backplane(obs1)
+    bp = oops.Backplane.Backplane(obs1)
     bp_radii = bp.ring_radius('saturn:ring').mvals.filled(0)
     good_mask = (bp_radii < 140620) & (bp_radii > 139820)
     # plt.imshow(good_mask)

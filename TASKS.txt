@@ -1,3 +1,17 @@
+- Voyager: Correlate brightness with resolution - are low res observations bad?
+- For a limited period of time that has good longitude and phase coverage:
+  - Fit a phase curve to the parameters:
+    - HG parameters
+    - N scale factors where each scale factor covers a section of the ring's
+      longitude. For 1-degree slices there would be 360 scale factors.
+    - The scale factors are the ring's brightness profile with the phase
+      function removed.
+    - How do the scale factors depend on relative brightness of that slice?
+- Measure of "clumpiness"
+  - Self-correlation of 1-, 2-, 4-, 8- degree sections of the ring with itself
+  - Correlation of ring sections with same section at different times - over
+    what time scale does the ring change?
+
 - Check our reprojection code
   - Look for sensitivity to zoom size
   - Compare to EW when not reprojecting at all

@@ -21,13 +21,25 @@ import csv
 import os
 import pickle
 import sys
+import traceback
+import warnings
 
 import matplotlib.pyplot as plt
 import numpy as np
 import numpy.ma as ma
-import scipy.ndimage as nd
 
 import f_ring_util.f_ring as f_ring
+
+
+# Show a traceback for all warnings - makes it easier to find the source of
+# numpy warnings.
+def warn_with_traceback(message, category, filename, lineno, file=None, line=None):
+
+    log = file if hasattr(file,'write') else sys.stderr
+    traceback.print_stack(file=log)
+    log.write(warnings.formatwarning(message, category, filename, lineno, line))
+
+warnings.showwarning = warn_with_traceback
 
 
 cmd_line = sys.argv[1:]
@@ -70,10 +82,14 @@ parser.add_argument('--downsample', type=int, default=1,
                     help='Amount to downsample the mosaic in longitude')
 parser.add_argument('--minimum-coverage', type=float, default=0, # XXX
                     help='Minimum coverage (in degrees) allowed for a good obsid')
-parser.add_argument('--maximum-bad-pixels-percentage', type=float, default=2,
+parser.add_argument('--maximum-bad-pixels-percentage', type=float, default=1,
                     help='Maximum percentage of bad pixels for a good radial slice')
 parser.add_argument('--slice-size', type=float, default=0,
                     help='Slice size in degrees longitude')
+parser.add_argument('--minimum-slice-coverage', type=float, default=0,
+                    help='Minimum coverage (in degrees) allowed for a good slice')
+parser.add_argument('--maximum-slice-resolution', type=float, default=1e38,
+                    help='Maximum resolution allowed for a good slice')
 parser.add_argument('--output-csv-filename', type=str,
                     help='Name of output CSV file')
 parser.add_argument('--agg-csv-filename', type=str,
@@ -129,7 +145,7 @@ def width_from_wings(a, fracs, mean_brightness=None):
         mask = np.ones(len(a), dtype=bool)
         mask[:wing1_width+1] = True
         mask[wing2_width:] = True
-        mean_brightness = np.mean(a[mask])
+        mean_brightness = ma.mean(a[mask])
     ret = []
     for frac in fracs:
         target = mean_brightness * frac
@@ -327,7 +343,7 @@ for obs_id in f_ring.enumerate_obsids(arguments):
         metadata = pickle.load(bkgnd_metadata_fp, encoding='latin1')
     with np.load(bkgnd_sub_mosaic_filename) as npz:
         bsm_img = ma.MaskedArray(**npz)
-        bsm_img = bsm_img.filled(0)
+        bsm_img = ma.masked_equal(bsm_img, -999)
 
     ds = arguments.downsample
 
@@ -349,7 +365,7 @@ for obs_id in f_ring.enumerate_obsids(arguments):
         restr_bsm_img = bsm_img[ring_lower_limit1:ring_upper_limit3+1,:]
     else:
         restr_bsm_img = bsm_img[ring_lower_limit:ring_upper_limit1,:]
-    bad_long = longitudes < 0
+    bad_long = longitudes.data < 0
     percentage_long_ok = float(np.sum(~bad_long)) / len(longitudes) * 100
     # Choose bad longitudes based only on the full radial range desired
     bad_long |= (np.sum(ma.getmaskarray(restr_bsm_img), axis=0) >
@@ -524,8 +540,13 @@ for obs_id in f_ring.enumerate_obsids(arguments):
             slice_end = (slice_num+1) * slice_size_in_longitudes
             slice_bad_long = bad_long[slice_start:slice_end]
             if np.all(slice_bad_long):
+                # Entire slice is bad
                 continue
             slice_good_long = ~slice_bad_long
+            if (np.sum(slice_good_long) * arguments.longitude_resolution <
+                arguments.minimum_slice_coverage):
+                # Not enough data in the slice
+                continue
             slice_ETs = ETs[slice_start:slice_end][slice_good_long]
             slice_emission_angles = emission_angles[slice_start:slice_end][slice_good_long]
             slice_phase_angles = phase_angles[slice_start:slice_end][slice_good_long]
@@ -546,49 +567,51 @@ for obs_id in f_ring.enumerate_obsids(arguments):
                 slice_w3o = widths3[slice_start:slice_end, 1][slice_good_long]
             if arguments.compute_core_center:
                 slice_core_centers = core_centers[slice_start:slice_end][slice_good_long]
+            slice_min_long = np.degrees(ma.min(slice_longitudes))
+            slice_max_long = np.degrees(ma.max(slice_longitudes))
+            slice_mean_long = np.degrees(ma.mean(slice_longitudes))
 
-            slice_min_long = np.degrees(np.min(slice_longitudes))
-            slice_max_long = np.degrees(np.max(slice_longitudes))
-            slice_mean_long = np.degrees(np.mean(slice_longitudes))
+            slice_min_inertial_long = np.degrees(ma.min(slice_inertial_longs))
+            slice_max_inertial_long = np.degrees(ma.max(slice_inertial_longs))
+            slice_mean_inertial_long = np.degrees(ma.mean(slice_inertial_longs))
 
-            slice_min_inertial_long = np.degrees(np.min(slice_inertial_longs))
-            slice_max_inertial_long = np.degrees(np.max(slice_inertial_longs))
-            slice_mean_inertial_long = np.degrees(np.mean(slice_inertial_longs))
+            slice_min_long_of_peri = np.degrees(ma.min(slice_longitude_of_pericenters))
+            slice_max_long_of_peri = np.degrees(ma.max(slice_longitude_of_pericenters))
+            slice_mean_long_of_peri = np.degrees(ma.mean(slice_longitude_of_pericenters))
 
-            slice_min_long_of_peri = np.degrees(np.min(slice_longitude_of_pericenters))
-            slice_max_long_of_peri = np.degrees(np.max(slice_longitude_of_pericenters))
-            slice_mean_long_of_peri = np.degrees(np.mean(slice_longitude_of_pericenters))
+            slice_min_true_anomaly = np.degrees(ma.min(slice_true_anomalies))
+            slice_max_true_anomaly = np.degrees(ma.max(slice_true_anomalies))
+            slice_mean_true_anomaly = np.degrees(ma.mean(slice_true_anomalies))
 
-            slice_min_true_anomaly = np.degrees(np.min(slice_true_anomalies))
-            slice_max_true_anomaly = np.degrees(np.max(slice_true_anomalies))
-            slice_mean_true_anomaly = np.degrees(np.mean(slice_true_anomalies))
-
-            slice_min_et = np.min(slice_ETs)
-            slice_max_et = np.max(slice_ETs)
-            slice_mean_et = np.mean(slice_ETs)
+            slice_min_et = ma.min(slice_ETs)
+            slice_max_et = ma.max(slice_ETs)
+            slice_mean_et = ma.mean(slice_ETs)
             slice_et_date = f_ring.et2utc(slice_min_et)
 
-            slice_min_em = np.min(slice_emission_angles)
-            slice_max_em = np.max(slice_emission_angles)
-            slice_mean_em = np.mean(slice_emission_angles)
+            slice_min_em = ma.min(slice_emission_angles)
+            slice_max_em = ma.max(slice_emission_angles)
+            slice_mean_em = ma.mean(slice_emission_angles)
 
-            slice_min_ph = np.min(slice_phase_angles)
-            slice_max_ph = np.max(slice_phase_angles)
-            slice_mean_ph = np.mean(slice_phase_angles)
+            slice_min_ph = ma.min(slice_phase_angles)
+            slice_max_ph = ma.max(slice_phase_angles)
+            slice_mean_ph = ma.mean(slice_phase_angles)
 
-            slice_min_res = np.min(slice_resolutions)
-            slice_max_res = np.max(slice_resolutions)
-            slice_mean_res = np.mean(slice_resolutions)
+            slice_min_res = ma.min(slice_resolutions)
+            slice_max_res = ma.max(slice_resolutions)
+            slice_mean_res = ma.mean(slice_resolutions)
+
+            if slice_min_res > arguments.maximum_slice_resolution:
+                continue
 
             slice_ew_profile = ew_profile[slice_start:slice_end][slice_good_long]
-            slice_ew_mean = np.mean(slice_ew_profile)
-            slice_ew_std = np.std(slice_ew_profile)
-            slice_ew_median = np.median(slice_ew_profile)
+            slice_ew_mean = ma.mean(slice_ew_profile)
+            slice_ew_std = ma.std(slice_ew_profile)
+            slice_ew_median = ma.median(slice_ew_profile)
             slice_ew_profile_mu = (slice_ew_profile *
                                    np.abs(np.cos(slice_emission_angles)))
-            slice_ew_mean_mu = np.mean(slice_ew_profile_mu)
-            slice_ew_std_mu = np.std(slice_ew_profile_mu)
-            slice_ew_median_mu = np.median(slice_ew_profile_mu)
+            slice_ew_mean_mu = ma.mean(slice_ew_profile_mu)
+            slice_ew_std_mu = ma.std(slice_ew_profile_mu)
+            slice_ew_median_mu = ma.median(slice_ew_profile_mu)
 
             if arguments.slice_size == 0:
                 slice_ew_profile_sorted = sorted(slice_ew_profile)
@@ -598,26 +621,26 @@ for obs_id in f_ring.enumerate_obsids(arguments):
                 idx_50_per = int(len(slice_ew_profile) * .50)
                 idx_75_per = int(len(slice_ew_profile) * .75)
                 idx_85_per = int(len(slice_ew_profile) * .85)
-                slice_ew_mean_15 = np.mean(slice_ew_profile_sorted[:idx_15_per])
-                slice_ew_std_15 = np.std(slice_ew_profile_sorted[:idx_15_per])
-                slice_ew_mean_mu_15 = np.mean(slice_ew_profile_sorted_mu[:idx_15_per])
-                slice_ew_std_mu_15 = np.std(slice_ew_profile_sorted_mu[:idx_15_per])
-                slice_ew_mean_25 = np.mean(slice_ew_profile_sorted[:idx_25_per])
-                slice_ew_std_25 = np.std(slice_ew_profile_sorted[:idx_25_per])
-                slice_ew_mean_mu_25 = np.mean(slice_ew_profile_sorted_mu[:idx_25_per])
-                slice_ew_std_mu_25 = np.std(slice_ew_profile_sorted_mu[:idx_25_per])
-                slice_ew_mean_50 = np.mean(slice_ew_profile_sorted[:idx_50_per])
-                slice_ew_std_50 = np.std(slice_ew_profile_sorted[:idx_50_per])
-                slice_ew_mean_mu_50 = np.mean(slice_ew_profile_sorted_mu[:idx_50_per])
-                slice_ew_std_mu_50 = np.std(slice_ew_profile_sorted_mu[:idx_50_per])
-                slice_ew_mean_75 = np.mean(slice_ew_profile_sorted[:idx_75_per])
-                slice_ew_std_75 = np.std(slice_ew_profile_sorted[:idx_75_per])
-                slice_ew_mean_mu_75 = np.mean(slice_ew_profile_sorted_mu[:idx_75_per])
-                slice_ew_std_mu_75 = np.std(slice_ew_profile_sorted_mu[:idx_75_per])
-                slice_ew_mean_85 = np.mean(slice_ew_profile_sorted[:idx_85_per])
-                slice_ew_std_85 = np.std(slice_ew_profile_sorted[:idx_85_per])
-                slice_ew_mean_mu_85 = np.mean(slice_ew_profile_sorted_mu[:idx_85_per])
-                slice_ew_std_mu_85 = np.std(slice_ew_profile_sorted_mu[:idx_85_per])
+                slice_ew_mean_15 = ma.mean(slice_ew_profile_sorted[:idx_15_per])
+                slice_ew_std_15 = ma.std(slice_ew_profile_sorted[:idx_15_per])
+                slice_ew_mean_mu_15 = ma.mean(slice_ew_profile_sorted_mu[:idx_15_per])
+                slice_ew_std_mu_15 = ma.std(slice_ew_profile_sorted_mu[:idx_15_per])
+                slice_ew_mean_25 = ma.mean(slice_ew_profile_sorted[:idx_25_per])
+                slice_ew_std_25 = ma.std(slice_ew_profile_sorted[:idx_25_per])
+                slice_ew_mean_mu_25 = ma.mean(slice_ew_profile_sorted_mu[:idx_25_per])
+                slice_ew_std_mu_25 = ma.std(slice_ew_profile_sorted_mu[:idx_25_per])
+                slice_ew_mean_50 = ma.mean(slice_ew_profile_sorted[:idx_50_per])
+                slice_ew_std_50 = ma.std(slice_ew_profile_sorted[:idx_50_per])
+                slice_ew_mean_mu_50 = ma.mean(slice_ew_profile_sorted_mu[:idx_50_per])
+                slice_ew_std_mu_50 = ma.std(slice_ew_profile_sorted_mu[:idx_50_per])
+                slice_ew_mean_75 = ma.mean(slice_ew_profile_sorted[:idx_75_per])
+                slice_ew_std_75 = ma.std(slice_ew_profile_sorted[:idx_75_per])
+                slice_ew_mean_mu_75 = ma.mean(slice_ew_profile_sorted_mu[:idx_75_per])
+                slice_ew_std_mu_75 = ma.std(slice_ew_profile_sorted_mu[:idx_75_per])
+                slice_ew_mean_85 = ma.mean(slice_ew_profile_sorted[:idx_85_per])
+                slice_ew_std_85 = ma.std(slice_ew_profile_sorted[:idx_85_per])
+                slice_ew_mean_mu_85 = ma.mean(slice_ew_profile_sorted_mu[:idx_85_per])
+                slice_ew_std_mu_85 = ma.std(slice_ew_profile_sorted_mu[:idx_85_per])
 
             # if slice_ew_mean <= 0:
             #     print(obs_id, slice_num, 'EW Mean < 0')
@@ -677,12 +700,12 @@ for obs_id in f_ring.enumerate_obsids(arguments):
 
             if three_zone:
                 slice_ew_profile1 = ew_profile1[slice_start:slice_end][slice_good_long]
-                slice_ew_mean1 = np.mean(slice_ew_profile1)
-                slice_ew_std1 = np.std(slice_ew_profile1)
+                slice_ew_mean1 = ma.mean(slice_ew_profile1)
+                slice_ew_std1 = ma.std(slice_ew_profile1)
                 slice_ew_profile_mu1 = (slice_ew_profile1 *
                                         np.abs(np.cos(slice_emission_angles)))
-                slice_ew_mean_mu1 = np.mean(slice_ew_profile_mu1)
-                slice_ew_std_mu1 = np.std(slice_ew_profile_mu1)
+                slice_ew_mean_mu1 = ma.mean(slice_ew_profile_mu1)
+                slice_ew_std_mu1 = ma.std(slice_ew_profile_mu1)
 
                 row += [np.round(slice_ew_mean1, 8),
                         np.round(slice_ew_std1, 8),
@@ -690,12 +713,12 @@ for obs_id in f_ring.enumerate_obsids(arguments):
                         np.round(slice_ew_std_mu1, 8)]
 
                 slice_ew_profile2 = ew_profile2[slice_start:slice_end][slice_good_long]
-                slice_ew_mean2 = np.mean(slice_ew_profile2)
-                slice_ew_std2 = np.std(slice_ew_profile2)
+                slice_ew_mean2 = ma.mean(slice_ew_profile2)
+                slice_ew_std2 = ma.std(slice_ew_profile2)
                 slice_ew_profile_mu2 = (slice_ew_profile2 *
                                         np.abs(np.cos(slice_emission_angles)))
-                slice_ew_mean_mu2 = np.mean(slice_ew_profile_mu2)
-                slice_ew_std_mu2 = np.std(slice_ew_profile_mu2)
+                slice_ew_mean_mu2 = ma.mean(slice_ew_profile_mu2)
+                slice_ew_std_mu2 = ma.std(slice_ew_profile_mu2)
 
                 row += [np.round(slice_ew_mean2, 8),
                         np.round(slice_ew_std2, 8),
@@ -703,12 +726,12 @@ for obs_id in f_ring.enumerate_obsids(arguments):
                         np.round(slice_ew_std_mu2, 8)]
 
                 slice_ew_profile3 = ew_profile3[slice_start:slice_end][slice_good_long]
-                slice_ew_mean3 = np.mean(slice_ew_profile3)
-                slice_ew_std3 = np.std(slice_ew_profile3)
+                slice_ew_mean3 = ma.mean(slice_ew_profile3)
+                slice_ew_std3 = ma.std(slice_ew_profile3)
                 slice_ew_profile_mu3 = (slice_ew_profile3 *
                                         np.abs(np.cos(slice_emission_angles)))
-                slice_ew_mean_mu3 = np.mean(slice_ew_profile_mu3)
-                slice_ew_std_mu3 = np.std(slice_ew_profile_mu3)
+                slice_ew_mean_mu3 = ma.mean(slice_ew_profile_mu3)
+                slice_ew_std_mu3 = ma.std(slice_ew_profile_mu3)
 
                 row += [np.round(slice_ew_mean3, 8),
                         np.round(slice_ew_std3, 8),
@@ -722,11 +745,11 @@ for obs_id in f_ring.enumerate_obsids(arguments):
 
                 if arguments.tau is not None:
                     slice_ew_profile_3z = ew_profile_3z[slice_start:slice_end][slice_good_long]
-                    slice_ew_mean_3z = np.mean(slice_ew_profile_3z)
-                    slice_ew_std_3z = np.std(slice_ew_profile_3z)
+                    slice_ew_mean_3z = ma.mean(slice_ew_profile_3z)
+                    slice_ew_std_3z = ma.std(slice_ew_profile_3z)
                     slice_ew_profile_3z_pn = ew_profile_3z_pn[slice_start:slice_end][slice_good_long]
-                    slice_ew_mean_3z_pn = np.mean(slice_ew_profile_3z_pn)
-                    slice_ew_std_3z_pn = np.std(slice_ew_profile_3z_pn)
+                    slice_ew_mean_3z_pn = ma.mean(slice_ew_profile_3z_pn)
+                    slice_ew_std_3z_pn = ma.std(slice_ew_profile_3z_pn)
                     row += [np.round(slice_ew_mean_3z, 8),
                             np.round(slice_ew_std_3z, 8),
                             np.round(slice_ew_mean_3z_pn, 8),
@@ -738,12 +761,12 @@ for obs_id in f_ring.enumerate_obsids(arguments):
                     slice_step_ew_profile = (ew_profile_steps[radial_step]
                                                              [slice_start:slice_end]
                                                              [slice_good_long])
-                    slice_step_ew_mean = np.mean(slice_step_ew_profile)
-                    slice_step_ew_std = np.std(slice_step_ew_profile)
+                    slice_step_ew_mean = ma.mean(slice_step_ew_profile)
+                    slice_step_ew_std = ma.std(slice_step_ew_profile)
                     slice_step_ew_profile_mu = (slice_step_ew_profile *
                                             np.abs(np.cos(slice_emission_angles)))
-                    slice_step_ew_mean_mu = np.mean(slice_step_ew_profile_mu)
-                    slice_step_ew_std_mu = np.std(slice_step_ew_profile_mu)
+                    slice_step_ew_mean_mu = ma.mean(slice_step_ew_profile_mu)
+                    slice_step_ew_std_mu = ma.std(slice_step_ew_profile_mu)
                     total_step_ew_mean += slice_step_ew_mean
                     row += [np.round(slice_step_ew_mean, 8),
                             np.round(slice_step_ew_std, 8),
@@ -754,29 +777,29 @@ for obs_id in f_ring.enumerate_obsids(arguments):
                 assert abs(total_step_ew_mean - slice_ew_mean) < 0.00001
 
             if arguments.compute_widths:
-                row += [np.round(np.mean(slice_w1), 3),
-                        np.round(np.std(slice_w1), 3),
-                        np.round(np.mean(slice_w2), 3),
-                        np.round(np.std(slice_w2), 3),
-                        np.round(np.mean(slice_w3), 3),
-                        np.round(np.std(slice_w3), 3),
-                        np.round(np.mean(slice_w1i), 3),
-                        np.round(np.std(slice_w1i), 3),
-                        np.round(np.mean(slice_w1o), 3),
-                        np.round(np.std(slice_w1o), 3),
-                        np.round(np.mean(slice_w2i), 3),
-                        np.round(np.std(slice_w2i), 3),
-                        np.round(np.mean(slice_w2o), 3),
-                        np.round(np.std(slice_w2o), 3),
-                        np.round(np.mean(slice_w3i), 3),
-                        np.round(np.std(slice_w3i), 3),
-                        np.round(np.mean(slice_w3o), 3),
-                        np.round(np.std(slice_w3o), 3)]
+                row += [np.round(ma.mean(slice_w1), 3),
+                        np.round(ma.std(slice_w1), 3),
+                        np.round(ma.mean(slice_w2), 3),
+                        np.round(ma.std(slice_w2), 3),
+                        np.round(ma.mean(slice_w3), 3),
+                        np.round(ma.std(slice_w3), 3),
+                        np.round(ma.mean(slice_w1i), 3),
+                        np.round(ma.std(slice_w1i), 3),
+                        np.round(ma.mean(slice_w1o), 3),
+                        np.round(ma.std(slice_w1o), 3),
+                        np.round(ma.mean(slice_w2i), 3),
+                        np.round(ma.std(slice_w2i), 3),
+                        np.round(ma.mean(slice_w2o), 3),
+                        np.round(ma.std(slice_w2o), 3),
+                        np.round(ma.mean(slice_w3i), 3),
+                        np.round(ma.std(slice_w3i), 3),
+                        np.round(ma.mean(slice_w3o), 3),
+                        np.round(ma.std(slice_w3o), 3)]
 
             if arguments.compute_core_center:
-                row += [np.round(np.median(slice_core_centers), 3),
-                        np.round(np.mean(slice_core_centers), 3),
-                        np.round(np.std(slice_core_centers), 3)]
+                row += [np.round(ma.median(slice_core_centers), 3),
+                        np.round(ma.mean(slice_core_centers), 3),
+                        np.round(ma.std(slice_core_centers), 3)]
 
             writer.writerow(row)
 
@@ -799,13 +822,13 @@ for obs_id in f_ring.enumerate_obsids(arguments):
 
         if arguments.compute_widths:
             gamma = 0.5
-            blackpoint = max(np.min(restr_bsm_img[:, ~bad_long]), 0)
+            blackpoint = max(ma.min(restr_bsm_img[:, ~bad_long]), 0)
             whitepoint_ignore_frac = 0.995
             img_sorted = sorted(list(restr_bsm_img[:, ~bad_long].flatten()))
             whitepoint = img_sorted[np.clip(int(len(img_sorted)*
                                                 whitepoint_ignore_frac),
                                             0, len(img_sorted)-1)]
-            greyscale_img = np.floor((np.maximum(restr_bsm_img-blackpoint, 0)/
+            greyscale_img = np.floor((ma.maximum(restr_bsm_img-blackpoint, 0)/
                                       (whitepoint-blackpoint))**gamma*256)
             greyscale_img = np.clip(greyscale_img, 0, 255)
             ax = fig.add_subplot(312)
