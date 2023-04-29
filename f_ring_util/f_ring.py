@@ -513,6 +513,9 @@ def fit_hg_phase_function(n_hg, nstd, data, col_tau=('Normal EW Mean', None),
         normal_ew = normal_ew[keep]
         if len(phasedata) == oldlen:
             break
+    param_list = [(params[i], params[i+1]) for i in range(0, len(params), 2)]
+    param_list.sort()
+    params = [x for sublist in param_list for x in sublist]
     return params, phasedata, std
 
 def print_hg_params(params, indent=0):
@@ -523,9 +526,12 @@ def print_hg_params(params, indent=0):
         res.append((scale/total_scale, g, scale))
     res.sort(reverse=True)
     for i in range(len(res)):
+        term = ''
+        if i == len(res)-1:
+            avg = np.mean([x[2] for x in res])
+            term = f' Avg scale {avg:.3f}'
         print((' ' * indent) +
-              ('g%d = %6.3f / scale%d = %6.3f / weight%d = %5.3f' %
-               (i+1, res[i][1], i+1, res[i][2], i+1, res[i][0])))
+              (f'g{i+1} = {res[i][1]:6.3f} / scale{i+1} = {res[i][2]:6.3f} / weight{i+1} = {res[i][0]:5.3f} {term}'))
 
 # Fit a phase curve and remove data points more than nstd sigma away
 # Use std=None to not remove outliers
@@ -594,6 +600,38 @@ def read_cassini_ew_stats(filename, use_obs_list=True, verbose=True):
     obsdata['Mu'] = np.abs(np.cos(np.radians(obsdata['Mean Emission'])))
     obsdata['Mu0'] = np.abs(np.cos(np.radians(obsdata['Incidence'])))
     return obsdata
+
+def read_voyager_ew_stats(filename, verbose=True):
+    obsdata = pd.read_csv(filename, parse_dates=['Date'])
+    if verbose:
+        print(f'** SUMMARY STATISTICS - {filename} **')
+        print('Unique observation names:', len(obsdata.groupby('Observation')))
+        print('Total slices:', len(obsdata))
+        print('Starting date:', obsdata['Date'].min())
+        print('Ending date:', obsdata['Date'].max())
+        print('Time span:', obsdata['Date'].max()-obsdata['Date'].min())
+    time0 = np.datetime64('1970-01-01T00:00:00') # Epoch
+    obsdata['Date_days'] = (obsdata['Date']-time0).dt.total_seconds()/86400
+    obsdata['Mu'] = np.abs(np.cos(np.radians(obsdata['Mean Emission'])))
+    obsdata['Mu0'] = np.abs(np.cos(np.radians(obsdata['Incidence'])))
+    return obsdata
+
+def read_showalter_voyager_ew_stats(filename, verbose=True):
+    obsdata = pd.read_csv(filename, index_col='FDS', delim_whitespace=True)
+    if verbose:
+        print(f'** SUMMARY STATISTICS - {filename} **')
+        print('Unique FDS:', len(obsdata))
+    obsdata = obsdata.rename({'FDS': 'Observation',
+                              'inc': 'Incidence',
+                              'em': 'Mean Emission',
+                              'phase': 'Mean Phase',
+                              'EW': 'EW Mean'},
+                             axis='columns')
+    obsdata['Mu'] = np.abs(np.cos(np.radians(obsdata['Mean Emission'])))
+    obsdata['Mu0'] = np.abs(np.cos(np.radians(obsdata['Incidence'])))
+    obsdata['Normal EW Mean'] = obsdata['EW Mean'] * obsdata['Mu']
+    return obsdata
+
 
 ### OTHER UTILITY FUNCTIONS
 
@@ -762,3 +800,22 @@ def add_cisscal_ratios(obsdata):
 
 # print('Number of old observations:', len(cr_obsname))
 # print('Number of common observations:', len(commondata))
+
+### CALCULATE QUANTILES
+
+def limit_by_quant(obsdata, cutoff1, cutoff2, col='Normal EW Mean'):
+    def xform_func(column):
+        if quant2 is None:
+            return [(None if z > quant1[column.name] else z) for z in column]
+        return [(None if z > quant1[column.name] or
+                         z < quant2[column.name] else z) for z in column]
+    obsdata = obsdata.copy()
+    group = obsdata.groupby('Observation')
+    quant1 = group.quantile(cutoff1/100, numeric_only=True)[col]
+    quant2 = None
+    if cutoff2 is not None:
+        quant2 = group.quantile(cutoff2/100, numeric_only=True)[col]
+    xform = group[col].transform(xform_func)
+    obsdata['_control'] = xform
+    obsdata.dropna(inplace=True)
+    return obsdata
