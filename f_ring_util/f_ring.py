@@ -578,7 +578,8 @@ OBS_LIST = None
 def read_obs_list():
     global OBS_LIST
     if OBS_LIST is None:
-        OBS_LIST = pd.read_csv('../obs_list.csv', parse_dates=['Date'],
+        OBS_LIST = pd.read_csv('../CASSINI_OBSERVATION_LIST.csv',
+                               parse_dates=['Date'],
                                index_col='Observation')
 
 def read_cassini_ew_stats(filename, use_obs_list=True, verbose=True):
