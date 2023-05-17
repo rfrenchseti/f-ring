@@ -578,7 +578,7 @@ OBS_LIST = None
 def read_obs_list():
     global OBS_LIST
     if OBS_LIST is None:
-        OBS_LIST = pd.read_csv('../CASSINI_OBSERVATION_LIST.csv',
+        OBS_LIST = pd.read_csv('../observation_lists/CASSINI_OBSERVATION_LIST.csv',
                                parse_dates=['Date'],
                                index_col='Observation')
 
