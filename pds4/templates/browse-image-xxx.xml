@@ -1,0 +1,34 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<?xml-model href="https://pds.nasa.gov/pds4/pds/v1/PDS4_PDS_1J00.sch" 
+schematypens="http://purl.oclc.org/dsdl/schematron"?>
+
+<Product_Browse xmlns="http://pds.nasa.gov/pds4/pds/v1"
+    xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="
+    http://pds.nasa.gov/pds4/pds/v1 https://pds.nasa.gov/pds4/pds/v1/PDS4_PDS_1J00.xsd">
+
+    <Identification_Area>
+        <logical_identifier>urn:nasa:pds:cdap2020_hedman_saturn_dusty_rings:browse:$unique_browse_product_filename_without_ext$</logical_identifier> <!-- MJTM: Update product ID part of LID -->
+        <version_id>1.0</version_id>
+        <title>Browse image for F Ring Reprojected Cassini ISS Calibrated $image_or_mosaic$ from
+            $observation_id$ from $start_date$ to $stop_date$</title> <!-- MJTM: update type of browse image, obs id, and time period -->
+        <information_model_version>1.19.0.0</information_model_version>
+        <product_class>Product_Browse</product_class>
+    </Identification_Area>
+    <Reference_List>
+        <Internal_Reference>
+            <!-- MJTM: update. Reference the individual image or mosaic for which this browse product is a preview image, as appropriate -->
+            <lid_reference>urn:nasa:pds:cdap2020_hedman_saturn_dusty_rings:data_rprj:unique_reprojected_filename_without_ext</lid_reference> <!-- MJTM: Update the LID (including collection and product ID parts). For this example, it's an individual image, but could be a mosaic -->
+            <reference_type>browse_to_data</reference_type>
+        </Internal_Reference>
+    </Reference_List>
+    <File_Area_Browse>
+        <File>
+            <file_name>$unique_reprojected_filename_without_ext$.png</file_name> <!-- MJTM: update -->
+            <creation_date_time>$creation_date_time$</creation_date_time> <!-- MJTM: update as appropriate, format YYYY-MM-DDTHH:MM:SS -->
+        </File>
+        <Encoded_Image>
+            <offset unit="byte">0</offset>
+            <encoding_standard_id>PNG</encoding_standard_id>
+        </Encoded_Image>
+    </File_Area_Browse>
+</Product_Browse>

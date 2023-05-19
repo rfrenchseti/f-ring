@@ -1,0 +1,338 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<?xml-model href="https://pds.nasa.gov/pds4/pds/v1/PDS4_PDS_1J00.sch"
+    schematypens="http://purl.oclc.org/dsdl/schematron"?>
+<?xml-model href="https://pds.nasa.gov/pds4/rings/v1/PDS4_RINGS_1J00_1B00.sch"
+    schematypens="http://purl.oclc.org/dsdl/schematron"?>
+<?xml-model href="https://pds.nasa.gov/pds4/disp/v1/PDS4_DISP_1J00_1510.sch"
+    schematypens="http://purl.oclc.org/dsdl/schematron"?>
+<?xml-model href="https://pds.nasa.gov/pds4/mission/cassini/v1/PDS4_CASSINI_1J00_1600.sch"
+schematypens="http://purl.oclc.org/dsdl/schematron"?>
+
+<Product_Ancillary
+    xmlns="http://pds.nasa.gov/pds4/pds/v1"
+    xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+    xmlns:disp="http://pds.nasa.gov/pds4/disp/v1"
+    xmlns:rings="http://pds.nasa.gov/pds4/rings/v1"
+    xmlns:cassini="http://pds.nasa.gov/pds4/mission/cassini/v1" xsi:schemaLocation="
+	http://pds.nasa.gov/pds4/pds/v1 https://pds.nasa.gov/pds4/pds/v1/PDS4_PDS_1J00.xsd
+	http://pds.nasa.gov/pds4/rings/v1 https://pds.nasa.gov/pds4/rings/v1/PDS4_RINGS_1J00_1B00.xsd
+	http://pds.nasa.gov/pds4/disp/v1 https://pds.nasa.gov/pds4/disp/v1/PDS4_DISP_1J00_1510.xsd
+	http://pds.nasa.gov/pds4/mission/cassini/v1 https://pds.nasa.gov/pds4/mission/cassini/v1/PDS4_CASSINI_1J00_1600.xsd">
+
+    <Identification_Area>
+        <logical_identifier>urn:nasa:pds:cdap2020_hedman_saturn_dusty_rings:data_derived:$LID$_metadata</logical_identifier>
+        <version_id>1.0</version_id>
+        <title>$TITLE$</title>
+        <information_model_version>1.19.0.0</information_model_version>
+        <product_class>Product_Ancillary</product_class>
+        <Citation_Information>
+            <author_list>Robert S. French, Matthew M. Hedman</author_list>
+            <editor_list>Mia J.T. Mace, Mitchell K. Gordon, Matthew S. Tiscareno </editor_list>
+            <publication_year>$PUBLICATION_YEAR$</publication_year>
+            <keyword>$KEYWORD$</keyword>
+            <description>$DESCRIPTION$</description>
+        </Citation_Information>
+        <Modification_History>
+            <Modification_Detail>
+                <modification_date>$MODIFICATION_DATE$</modification_date>
+                <version_id>1.0</version_id>
+                <description>Initial PDS4 Version.</description>
+            </Modification_Detail>
+        </Modification_History>
+    </Identification_Area>
+    <Context_Area>
+        <comment>
+        $COMMENT$
+	</comment>
+        <Time_Coordinates>
+            <start_date_time>$START_DATE_TIME$</start_date_time>
+            <stop_date_time>$STOP_DATE_TIME$</stop_date_time>
+        </Time_Coordinates>
+        <Primary_Result_Summary>
+            <purpose>Science</purpose>
+            <processing_level>Derived</processing_level>
+            <Science_Facets>
+                <wavelength_range>Visible</wavelength_range>
+                <discipline_name>Ring-Moon Systems</discipline_name>
+            </Science_Facets>
+        </Primary_Result_Summary>
+        <Investigation_Area>
+            <name>Cassini-Huygens</name>
+            <type>Mission</type>
+            <Internal_Reference>
+                <lid_reference>urn:nasa:pds:context:investigation:mission.cassini-huygens</lid_reference>
+                <reference_type>ancillary_to_investigation</reference_type>
+            </Internal_Reference>
+        </Investigation_Area>
+        <Observing_System>
+            <name>Cassini Orbiter Imaging Science Subsystem</name>
+            <Observing_System_Component>
+                <name>Cassini Orbiter</name>
+                <type>Host</type>
+                <Internal_Reference>
+                    <lid_reference>urn:nasa:pds:context:instrument_host:spacecraft.co</lid_reference>
+                    <reference_type>is_instrument_host</reference_type>
+                </Internal_Reference>
+            </Observing_System_Component>
+            <Observing_System_Component>
+                <name>Cassini Orbiter Imaging Science Subsystem - $CAMERA_WIDTH$ Angle Camera</name>
+                <type>Instrument</type>
+                <description>ISS$CAMERA_WN_UC$A</description>
+                <Internal_Reference>
+                    <lid_reference>urn:nasa:pds:context:instrument:iss$CAMERA_WN_LC$a.co</lid_reference>
+                    <reference_type>is_instrument</reference_type>
+                </Internal_Reference>
+            </Observing_System_Component>
+        </Observing_System>
+        <Target_Identification>
+            <name>F Ring of Saturn</name>
+            <type>Ring</type>
+            <Internal_Reference>
+                <lid_reference>urn:nasa:pds:context:target:ring.saturn.f_ring</lid_reference>
+                <reference_type>ancillary_to_target</reference_type>
+            </Internal_Reference>
+        </Target_Identification>
+        <Target_Identification>
+            <name>Saturn Rings</name>
+            <type>Ring</type>
+            <Internal_Reference>
+                <lid_reference>urn:nasa:pds:context:target:ring.saturn.rings</lid_reference>
+                <reference_type>ancillary_to_target</reference_type>
+            </Internal_Reference>
+        </Target_Identification>
+        $TARGET_IDENTIFICATION$
+        <Mission_Area>
+            <cassini:Cassini>
+                <cassini:ISS_Specific_Attributes>
+                    <cassini:mission_phase_name>$TOUR$</cassini:mission_phase_name> <!-- MJTM: update. Check Cassini Dictionary SOI, ...Tour, Equinox Mission, Extended Mission, Solstice Mission,... etc. The date ranges for these can be found in the rings dictionary: https://github.com/pds-data-dictionaries/ldd-cassini/blob/main/src/PDS4_CASSINI_IngestLDD.xml (search for "mission_phase_name", e.g. lines 164-165 gives SOI as 2004-07-01) -->
+                    <cassini:spacecraft_clock_count_partition>1</cassini:spacecraft_clock_count_partition>
+                    <cassini:spacecraft_clock_start_count>$SPACECRAFT_CLOCK_START_COUNT$</cassini:spacecraft_clock_start_count>
+                    <cassini:spacecraft_clock_stop_count>$SPACECRAFT_CLOCK_STOP_COUNT$</cassini:spacecraft_clock_stop_count>
+                    <cassini:filter_name_1>$FILTER1$</cassini:filter_name_1>
+                    <cassini:filter_name_2>$FILTER2$</cassini:filter_name_2>
+                    <cassini:observation_id>$OBSERVATION_ID$</cassini:observation_id>
+                </cassini:ISS_Specific_Attributes>
+            </cassini:Cassini>
+        </Mission_Area>
+        <Discipline_Area>
+            <rings:Ring_Moon_Systems>
+                <rings:Ring_Reprojection>
+                    <!-- <Local_Internal_Reference>
+                        <local_identifier_reference>image</local_identifier_reference>
+                        <local_reference_type>reprojection_to_array</local_reference_type>
+                    </Local_Internal_Reference> -->
+                    <rings:Reprojection_Geometry>
+                        <local_identifier>reproj_geom</local_identifier>
+                        <rings:description>
+                        $RINGS:DESCRIPTION$
+			            </rings:description>
+                        <local_identifier>reproj_geom</local_identifier>
+                        <rings:epoch_reprojection_basis_utc unit="s">2007-01-01T00:00:00.000Z</rings:epoch_reprojection_basis_utc>
+                        <rings:reprojection_plane>Equator</rings:reprojection_plane>
+                        <rings:corotating_flag>Y</rings:corotating_flag>
+                        <rings:corotation_rate unit="deg/s">0.006735694444</rings:corotation_rate> <!-- 581.964 deg/day -->
+                        <rings:mean_phase_angle unit="deg">$MEAN_PHASE_ANGLE$</rings:mean_phase_angle>
+                        <rings:minimum_phase_angle unit="deg">$MIN_PHASE_ANGLE$</rings:minimum_phase_angle>
+                        <rings:maximum_phase_angle unit="deg">$MAX_PHASE_ANGLE$</rings:maximum_phase_angle>
+                        <!-- The following are additional attributes that need to included in the updated rings dictionary -->
+                        <rings:mean_incidence_angle>$INCIDENCE_ANGLE$</rings:mean_incidence_angle>
+                        <!-- Incidence angle additional attributes that need to included in this class (already in rings dictionary) -->
+                        <rings:minimum_incidence_angle>$INCIDENCE_ANGLE$</rings:minimum_incidence_angle>
+                        <rings:maximum_incidence_angle>$INCIDENCE_ANGLE$</rings:maximum_incidence_angle>
+                        <rings:mean_observed_ring_elevation unit="deg">$MEAN_OBS_RING_ELEV$</rings:mean_observed_ring_elevation>
+                        <rings:minimum_observed_ring_elevation unit="deg">$MIN_OBS_RING_ELEV$</rings:minimum_observed_ring_elevation>
+                        <rings:maximum_observed_ring_elevation unit="deg">$MAX_OBS_RING_ELEV$</rings:maximum_observed_ring_elevation>
+                        <rings:minimum_ring_radius unit="km">$MIN_RING_RADIUS$</rings:minimum_ring_radius>
+                        <rings:maximum_ring_radius unit="km">$MAX_RING_RADIUS$</rings:maximum_ring_radius>
+                        <!--<rings:minimum_ring_longitude unit="deg">$MIN_RING_LONG$</rings:minimum_ring_longitude>--> <!--  MJTM: update. Inertial longitude -->
+                        <!--<rings:maximum_ring_longitude unit="deg">$MAX_RING_LONG$</rings:maximum_ring_longitude> --> <!--  MJTM: update. Inertial longitude -->
+                        <!-- Inertial longitude. This will be deprecated -->
+                        <!-- The following are additional attributes that need to included in the updated rings dictionary -->
+                        <!-- <rings:reprojection_grid_parameters> -->
+                        <!-- Check Cart, may already exist? -->
+                        <!-- <rings:reprojection_grid_radial_resolution_mean>$MEAN_REPROJ_GRID_RAD_RES$</rings:reprojection_grid_radial_resolution_mean>--><!-- MJTM: update -->
+                        <!-- <rings:reprojection_grid_radial_resolution_min>$MIN_REPROJ_GRID_RAD_RES$</rings:reprojection_grid_radial_resolution_min>--><!-- MJTM: update  -->
+                        <!-- <rings:reprojection_grid_radial_resolution_max>$MAX_REPROJ_GRID_RAD_RES$</rings:reprojection_grid_radial_resolution_max>--> <!-- MJTM: update-->
+                        <!-- Likewise for longitudinal grid res values  -->
+                        <!-- </rings:reprojection_grid_parameters> -->
+                    </rings:Reprojection_Geometry>
+                </rings:Ring_Reprojection>
+            </rings:Ring_Moon_Systems>
+        </Discipline_Area>
+    </Context_Area>
+    <!--Reference_List: don’t worry about referencing the data raw files, etc, but do reference User Guides -->
+    <Reference_List>
+        <!-- Reference both types of mosaic for the associated metadata -->
+        <Internal_Reference>
+            <lid_reference>urn:nasa:pds:cdap2020_hedman_saturn_dusty_rings:$data_derived$:$corresponding_mosaic_lid$</lid_reference> <!-- MJTM: update Associated mosaic (w/o background subtracted) -->
+            <reference_type>ancillary_to_data</reference_type> <!-- ancillary_to_derived_product is not permitted -->
+            <comment>
+	       Mosaic (without background subtraction)
+	       </comment>
+        </Internal_Reference>
+        <Internal_Reference>
+            <!-- Associated mosaic (background subtracted) -->
+            <lid_reference>urn:nasa:pds:cdap2020_hedman_saturn_dusty_rings:$data_derived$:$same_mosaic_lid$_bkg_sub</lid_reference> <!-- MJTM: update Use product LID for mosaic with bkg sub-->
+            <reference_type>ancillary_to_data</reference_type>
+            <comment>
+	       Mosaic with background subtraction
+	       </comment> <!-- MJTM: update -->
+        </Internal_Reference>
+        <Internal_Reference>
+            <!-- Rob's user guide to be written -->
+            <lid_reference>urn:nasa:pds:cdap2020_hedman_saturn_dusty_rings:document:XXXrob-detailed-users-guide</lid_reference> <!-- MJTM: update -->
+            <reference_type>ancillary_to_document</reference_type>
+            <comment>
+	        Detailed User's Guide
+	       </comment>
+        </Internal_Reference>
+        <Internal_Reference>
+            <lid_reference>urn:nasa:pds:cassini_iss_saturn:document:iss-data-user-guide</lid_reference>
+            <reference_type>ancillary_to_document</reference_type>
+            <comment>The ISS Data User's Guide</comment> <!-- Needs DOI -->
+        </Internal_Reference>
+    </Reference_List>
+
+    <File_Area_Ancillary>
+        <!-- Reference the text file that lists all the source images that went into making mosaic -->
+        <File>
+            <!-- Source images, LIDs metadata -->
+            <file_name>$IMAGE_TAB_FILENAME$</file_name> <!--MJTM: update. Note .tab is fixed width, ".dat" is typically used for binary tables. Standards Reference Table 6C-1, section 6C.1.6 https://pds.nasa.gov/datastandards/documents/sr/v1/StdRef_1.19.0.pdf -->
+            <creation_date_time>$NOW$</creation_date_time>
+            <md5_checksum>$IMAGE_TABLE_HASH$</md5_checksum>
+        </File>
+        <!-- Index for Source images (2 columns: Rob's index number for the image, LID) -->
+        <!-- This file contains identifiers for the source images of this mosaic (to map longitudes back to source image) -->
+        <Header>
+            <!-- Optional, there are only two cols so not really needed-->
+            <offset unit="byte">0</offset>
+            <object_length unit="byte">26</object_length>
+            <parsing_standard_id>UTF-8 Text</parsing_standard_id>
+            <description>Source Image Index, LIDVID</description>
+        </Header>
+        <Table_Character>
+            <offset unit="byte">23</offset> <!--This should match <Header>.<object_length> -->
+            <records>$NUM_IMAGES$</records>
+            <description>Source image indices and LIDVID</description>
+            <record_delimiter>Carriage-Return Line-Feed</record_delimiter>
+            <Record_Character>
+                <fields>2</fields>
+                <groups>0</groups>
+                <record_length unit="byte">$row_len$</record_length> <!-- MJTM: update. Number of bytes, including whitespace + comma -->
+                <Field_Character>
+                    <name>Source image index</name>
+                    <field_number>1</field_number>
+                    <field_location unit="byte">1</field_location>
+                    <data_type>ASCII_Real</data_type>
+                    <field_length unit="byte">4</field_length>
+                    <unit>none</unit> <!-- I think could simply delete this, if no units? -->
+                    <description>The index number specific to this pair of mosaics for the source image.
+		              A source image can appear in multiple mosaics and therefore likely referenced by different index numbers.
+			      <!-- Check whether Rob uniquely indexed images or not (is the index number of an image in this mosaic the same for the same image in another mosaic?) -->
+	              </description>
+                </Field_Character>
+                <Field_Character>
+                    <name>LIDVID</name>
+                    <field_number>2</field_number>
+                    <field_location unit="byte">10</field_location>
+                    <data_type>ASCII_Real</data_type>
+                    <field_length unit="byte">$lidvid_field$</field_length> <!-- MJTM: update -->
+                    <unit>none</unit>  <!-- I think I could simply delete this, if no units? -->
+                    <description>LIDVID for the source image.</description>
+                </Field_Character>
+            </Record_Character>
+        </Table_Character>
+    </File_Area_Ancillary>
+    <!--Metadata, up to 18000 rows, seven columns:
+	Co-rotating longitude, Source Image Index, Mid-time SPICE ET, Inertial longitude, Resolution, Phase angle, Emission angle -->
+    <File_Area_Ancillary>
+        <File>
+            <!-- Metadata parameters per longitude value -->
+            <file_name>$METADATA_PARAMS_TAB_FILENAME$</file_name> <!-- MJTM: update. Note .tab is fixed width, ".dat" is typically used for binary tables, or could use ".csv". Standards Reference Table 6C-1, section 6C.1.6 https://pds.nasa.gov/datastandards/documents/sr/v1/StdRef_1.19.0.pdf -->
+            <creation_date_time>$NOW$</creation_date_time>
+            <md5_checksum>$METADATA_TABLE_HASH$</md5_checksum>
+        </File>
+        <Header>
+            <!-- Optional to have column names -->
+            <offset unit="byte">0</offset>
+            <object_length unit="byte">113</object_length>
+            <parsing_standard_id>UTF-8 Text</parsing_standard_id>
+            <description>Corotating Longitude, Image Index, Mid-time SPICE ET, Inertial Longitude, Resolution, Phase Angle, Emission Angle</description>
+        </Header>
+        <!-- Metadata table. Fixed width, with <comma><whitespace> field separators -->
+        <Table_Character>
+            <offset unit="byte">121</offset> <!-- MJTM update: This should match <Header>.<object_length> -->
+            <records>$NUM_VALID_LONGITUDES$</records>
+            <description>Metadata for each co-rotating longtudinal value... etc ... </description>  <!-- MJTM update -->
+            <record_delimiter>Carriage-Return Line-Feed</record_delimiter>
+            <Record_Character>
+                <fields>7</fields>
+                <groups>0</groups>
+                <record_length unit="byte">72</record_length> <!-- Including <comma><whitespace>s -->
+                <Field_Character>
+                    <name>Corotating Longitude</name> <!-- Incrementing by 0.02 deg as read column top to bottom -->
+                    <field_number>1</field_number>
+                    <field_location unit="byte">1</field_location>
+                    <data_type>ASCII_Real</data_type>
+                    <field_length unit="byte">6</field_length>
+                    <unit>deg</unit>
+                    <description>Description of coord sys and corotating longitude</description>
+                </Field_Character>
+                <Field_Character>
+                    <name>Image Index</name>
+                    <field_number>2</field_number>
+                    <field_location unit="byte">9</field_location> <!-- added 2 bytes for <comma><whitespace> -->
+                    <data_type>ASCII_NonNegative_Integer</data_type>
+                    <field_length unit="byte">4</field_length>
+                    <unit>none</unit>
+                    <description>Source image index</description>
+                </Field_Character>
+                <Field_Character>
+                    <name>Mid-time SPICE ET</name>
+                    <field_number>3</field_number>
+                    <field_location unit="byte">15</field_location> <!-- added 2 bytes for <comma><whitespace> -->
+                    <data_type>ASCII_Real</data_type>
+                    <field_length unit="byte">13</field_length>
+                    <unit>s</unit>
+                    <description>Double precision number of TDB seconds past the J2000 epoch</description>
+                </Field_Character>
+                <Field_Character>
+                    <name>Inertial Longitude</name>
+                    <field_number>4</field_number>
+                    <field_location unit="byte">30</field_location> <!-- added 2 bytes for <comma><whitespace> -->
+                    <data_type>ASCII_Real</data_type>
+                    <field_length unit="byte">7</field_length>
+                    <unit>deg</unit>
+                    <description>Description of Longitude as measured in inertial frame</description>
+                </Field_Character>
+                <Field_Character>
+                    <name>Resolution</name>
+                    <field_number>5</field_number>
+                    <field_location unit="byte">39</field_location> <!-- added 2 bytes for <comma><whitespace> -->
+                    <data_type>ASCII_Real</data_type>
+                    <field_length unit="byte">10</field_length>
+                    <unit>km/pixel</unit>
+                    <description>Radial resolution?</description>
+                </Field_Character>
+                <Field_Character>
+                    <name>Phase Angle</name>
+                    <field_number>6</field_number>
+                    <field_location unit="byte">51</field_location> <!-- added 2 bytes for <comma><whitespace> -->
+                    <data_type>ASCII_Real</data_type>
+                    <field_length unit="byte">10</field_length>
+                    <unit>deg</unit>
+                    <description>Description of phase angle</description>
+                </Field_Character>
+                <Field_Character>
+                    <name>Emission Angle</name>
+                    <field_number>7</field_number>
+                    <field_location unit="byte">63</field_location> <!-- added 2 bytes for <comma><whitespace> -->
+                    <data_type>ASCII_Real</data_type>
+                    <field_length unit="byte">10</field_length>
+                    <unit>deg</unit>
+                    <description>Description of emission angle</description>
+                </Field_Character>
+            </Record_Character>
+        </Table_Character>
+    </File_Area_Ancillary>
+</Product_Ancillary>

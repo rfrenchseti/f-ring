@@ -9,17 +9,14 @@ import scipy.optimize as sciopt
 
 import julian
 
-# These environment variables only need to be set if they are going to be used
-BKGND_SUB_MOSAIC_DIR = os.environ.get('BKGND_SUB_MOSAIC_DIR', None)
-EW_DIR = os.environ.get('EW_DIR', None)
-POLAR_PNG_DIR = os.environ.get('POLAR_PNG_DIR', None)
 
-if BKGND_SUB_MOSAIC_DIR is not None:
-    BKGND_SUB_MOSAIC_DIR = BKGND_SUB_MOSAIC_DIR.rstrip('/')
-if EW_DIR is not None:
-    EW_DIR = EW_DIR.rstrip('/')
-if POLAR_PNG_DIR is not None:
-    POLAR_PNG_DIR = POLAR_PNG_DIR.rstrip('/')
+RING_TYPE = 'FMOVIE'
+DATA_ROOT = os.path.abspath(os.environ.get('FRING_DATA_ROOT'))
+MOSAIC_DIR = os.path.join(DATA_ROOT, f'mosaic_{RING_TYPE}')
+BKGND_DIR = os.path.join(DATA_ROOT, f'bkgnd_{RING_TYPE}')
+BKGND_SUB_MOSAIC_DIR = os.path.join(DATA_ROOT, f'bkgnd_sub_mosaic_{RING_TYPE}')
+REPRO_DIR = os.path.join(DATA_ROOT, 'ring_repro')
+
 
 TWOPI = np.pi*2
 
@@ -157,7 +154,7 @@ def get_root_list(dir):
 def enumerate_obsids(arguments):
     data_path, _ = bkgnd_sub_mosaic_paths(arguments, '', make_dirs=False)
     bp = data_path.replace(BKGND_SUB_MOSAIC_DIR+'/', '')
-    for dirpath, dirnames, filenames in os.walk(BKGND_SUB_MOSAIC_DIR):
+    for _, _, filenames in os.walk(BKGND_SUB_MOSAIC_DIR):
         for filename in sorted(filenames):
             if filename.endswith('.npz'):
                 ind = filename.find(bp)
@@ -176,9 +173,74 @@ def enumerate_obsids(arguments):
 
 ################################################################################
 #
-# COMPUTING PATHS
+# PATHS
 #
 ################################################################################
+
+# Mosaic and mosaic metata
+
+def mosaic_paths_spec(ring_radius, radius_inner, radius_outer,
+                      radius_resolution, longitude_resolution,
+                      radial_zoom_amount, longitude_zoom_amount,
+                      obsid, ring_type, make_dirs=False):
+    mosaic_res_data = ('_%06d_%06d_%06d_%06.3f_%05.3f_%d_%d' % (
+                       ring_radius, radius_inner, radius_outer,
+                       radius_resolution, longitude_resolution,
+                       radial_zoom_amount, longitude_zoom_amount))
+    if make_dirs and not os.path.exists(MOSAIC_DIR):
+        os.mkdir(MOSAIC_DIR)
+    data_path = file_clean_join(MOSAIC_DIR,
+                                obsid+mosaic_res_data+'-MOSAIC.npy')
+    metadata_path = file_clean_join(
+                     MOSAIC_DIR,
+                     obsid+mosaic_res_data+'-MOSAIC-METADATA.dat')
+
+    return (data_path, metadata_path)
+
+def mosaic_paths(arguments, obsid, make_dirs=False):
+    return mosaic_paths_spec(arguments.ring_radius,
+                             arguments.radius_inner_delta,
+                             arguments.radius_outer_delta,
+                             arguments.radius_resolution,
+                             arguments.longitude_resolution,
+                             arguments.radial_zoom_amount,
+                             arguments.longitude_zoom_amount,
+                             obsid, arguments.ring_type,
+                             make_dirs=make_dirs)
+
+# Background model and background model metadata
+
+def bkgnd_paths_spec(ring_radius, radius_inner, radius_outer,
+                     radius_resolution, longitude_resolution,
+                     radial_zoom_amount, longitude_zoom_amount,
+                     obsid, ring_type, make_dirs=False):
+    bkgnd_res_data = ('_%06d_%06d_%06d_%06.3f_%05.3f_%d_%d_1' % (
+                      ring_radius, radius_inner, radius_outer,
+                      radius_resolution, longitude_resolution,
+                      radial_zoom_amount, longitude_zoom_amount))
+    if make_dirs and not os.path.exists(BKGND_DIR):
+        os.mkdir(BKGND_DIR)
+    bkgnd_model_path = file_clean_join(
+                     BKGND_DIR,
+                     obsid+bkgnd_res_data+'-BKGND-MODEL.npz')
+    bkgnd_metadata_path = file_clean_join(
+                     BKGND_DIR,
+                     obsid+bkgnd_res_data+'-BKGND-METADATA.dat')
+
+    return (bkgnd_model_path, bkgnd_metadata_path)
+
+def bkgnd_paths(arguments, obsid, make_dirs=False):
+    return bkgnd_paths_spec(arguments.ring_radius,
+                            arguments.radius_inner_delta,
+                            arguments.radius_outer_delta,
+                            arguments.radius_resolution,
+                            arguments.longitude_resolution,
+                            arguments.radial_zoom_amount,
+                            arguments.longitude_zoom_amount,
+                            obsid, arguments.ring_type,
+                            make_dirs=make_dirs)
+
+# Background-subtracted-mosaic and associated metadata
 
 def bkgnd_sub_mosaic_paths_spec(ring_radius, radius_inner, radius_outer,
                                 radius_resolution, longitude_resolution,
