@@ -6,7 +6,7 @@
 <?xml-model href="https://pds.nasa.gov/pds4/disp/v1/PDS4_DISP_1J00_1510.sch"
     schematypens="http://purl.oclc.org/dsdl/schematron"?>
 <?xml-model href="https://pds.nasa.gov/pds4/mission/cassini/v1/PDS4_CASSINI_1J00_1600.sch"
-schematypens="http://purl.oclc.org/dsdl/schematron"?>
+    schematypens="http://purl.oclc.org/dsdl/schematron"?>
 
 <Product_Ancillary
     xmlns="http://pds.nasa.gov/pds4/pds/v1"
@@ -20,9 +20,9 @@ schematypens="http://purl.oclc.org/dsdl/schematron"?>
 	http://pds.nasa.gov/pds4/mission/cassini/v1 https://pds.nasa.gov/pds4/mission/cassini/v1/PDS4_CASSINI_1J00_1600.xsd">
 
     <Identification_Area>
-        <logical_identifier>urn:nasa:pds:cdap2020_hedman_saturn_dusty_rings:data_derived:$LID$_metadata</logical_identifier>
+        <logical_identifier>$MOSAIC_METADATA_LID$</logical_identifier>
         <version_id>1.0</version_id>
-        <title>$TITLE$</title>
+        <title>$MOSAIC_METADATA_TITLE$</title>
         <information_model_version>1.19.0.0</information_model_version>
         <product_class>Product_Ancillary</product_class>
         <Citation_Information>
@@ -30,7 +30,7 @@ schematypens="http://purl.oclc.org/dsdl/schematron"?>
             <editor_list>Mia J.T. Mace, Mitchell K. Gordon, Matthew S. Tiscareno </editor_list>
             <publication_year>$PUBLICATION_YEAR$</publication_year>
             <keyword>$KEYWORD$</keyword>
-            <description>$DESCRIPTION$</description>
+            <description>$MOSAIC_METADATA_DESCRIPTION$</description>
         </Citation_Information>
         <Modification_History>
             <Modification_Detail>
@@ -42,8 +42,8 @@ schematypens="http://purl.oclc.org/dsdl/schematron"?>
     </Identification_Area>
     <Context_Area>
         <comment>
-        $COMMENT$
-	</comment>
+$MOSAIC_METADATA_COMMENT$
+    	</comment>
         <Time_Coordinates>
             <start_date_time>$START_DATE_TIME$</start_date_time>
             <stop_date_time>$STOP_DATE_TIME$</stop_date_time>
@@ -99,12 +99,11 @@ schematypens="http://purl.oclc.org/dsdl/schematron"?>
                 <lid_reference>urn:nasa:pds:context:target:ring.saturn.rings</lid_reference>
                 <reference_type>ancillary_to_target</reference_type>
             </Internal_Reference>
-        </Target_Identification>
-        $TARGET_IDENTIFICATION$
+        </Target_Identification>$TARGET_IDENTIFICATION$
         <Mission_Area>
             <cassini:Cassini>
                 <cassini:ISS_Specific_Attributes>
-                    <cassini:mission_phase_name>$TOUR$</cassini:mission_phase_name> <!-- MJTM: update. Check Cassini Dictionary SOI, ...Tour, Equinox Mission, Extended Mission, Solstice Mission,... etc. The date ranges for these can be found in the rings dictionary: https://github.com/pds-data-dictionaries/ldd-cassini/blob/main/src/PDS4_CASSINI_IngestLDD.xml (search for "mission_phase_name", e.g. lines 164-165 gives SOI as 2004-07-01) -->
+                    <cassini:mission_phase_name>$TOUR$</cassini:mission_phase_name>
                     <cassini:spacecraft_clock_count_partition>1</cassini:spacecraft_clock_count_partition>
                     <cassini:spacecraft_clock_start_count>$SPACECRAFT_CLOCK_START_COUNT$</cassini:spacecraft_clock_start_count>
                     <cassini:spacecraft_clock_stop_count>$SPACECRAFT_CLOCK_STOP_COUNT$</cassini:spacecraft_clock_stop_count>
@@ -124,9 +123,8 @@ schematypens="http://purl.oclc.org/dsdl/schematron"?>
                     <rings:Reprojection_Geometry>
                         <local_identifier>reproj_geom</local_identifier>
                         <rings:description>
-                        $RINGS:DESCRIPTION$
+$MOSAIC_METADATA_RINGS:DESCRIPTION$
 			            </rings:description>
-                        <local_identifier>reproj_geom</local_identifier>
                         <rings:epoch_reprojection_basis_utc unit="s">2007-01-01T00:00:00.000Z</rings:epoch_reprojection_basis_utc>
                         <rings:reprojection_plane>Equator</rings:reprojection_plane>
                         <rings:corotating_flag>Y</rings:corotating_flag>
@@ -144,8 +142,8 @@ schematypens="http://purl.oclc.org/dsdl/schematron"?>
                         <rings:maximum_observed_ring_elevation unit="deg">$MAX_OBS_RING_ELEV$</rings:maximum_observed_ring_elevation>
                         <rings:minimum_ring_radius unit="km">$MIN_RING_RADIUS$</rings:minimum_ring_radius>
                         <rings:maximum_ring_radius unit="km">$MAX_RING_RADIUS$</rings:maximum_ring_radius>
-                        <!--<rings:minimum_ring_longitude unit="deg">$MIN_RING_LONG$</rings:minimum_ring_longitude>--> <!--  MJTM: update. Inertial longitude -->
-                        <!--<rings:maximum_ring_longitude unit="deg">$MAX_RING_LONG$</rings:maximum_ring_longitude> --> <!--  MJTM: update. Inertial longitude -->
+                        <!--<rings:minimum_ring_longitude unit="deg">$MIN_RING_INERTIAL_LONG$</rings:minimum_ring_longitude>--> <!--  MJTM: update. Inertial longitude -->
+                        <!--<rings:maximum_ring_longitude unit="deg">$MAX_RING_INERTIAL_LONG$</rings:maximum_ring_longitude> --> <!--  MJTM: update. Inertial longitude -->
                         <!-- Inertial longitude. This will be deprecated -->
                         <!-- The following are additional attributes that need to included in the updated rings dictionary -->
                         <!-- <rings:reprojection_grid_parameters> -->
@@ -164,27 +162,16 @@ schematypens="http://purl.oclc.org/dsdl/schematron"?>
     <Reference_List>
         <!-- Reference both types of mosaic for the associated metadata -->
         <Internal_Reference>
-            <lid_reference>urn:nasa:pds:cdap2020_hedman_saturn_dusty_rings:$data_derived$:$corresponding_mosaic_lid$</lid_reference> <!-- MJTM: update Associated mosaic (w/o background subtracted) -->
-            <reference_type>ancillary_to_data</reference_type> <!-- ancillary_to_derived_product is not permitted -->
-            <comment>
-	       Mosaic (without background subtraction)
-	       </comment>
-        </Internal_Reference>
-        <Internal_Reference>
-            <!-- Associated mosaic (background subtracted) -->
-            <lid_reference>urn:nasa:pds:cdap2020_hedman_saturn_dusty_rings:$data_derived$:$same_mosaic_lid$_bkg_sub</lid_reference> <!-- MJTM: update Use product LID for mosaic with bkg sub-->
+            <lid_reference>$MOSAIC_LID$</lid_reference>
             <reference_type>ancillary_to_data</reference_type>
             <comment>
-	       Mosaic with background subtraction
-	       </comment> <!-- MJTM: update -->
+            $MOSAIC_REFERENCE_COMMENT$
+	        </comment>
         </Internal_Reference>
         <Internal_Reference>
-            <!-- Rob's user guide to be written -->
-            <lid_reference>urn:nasa:pds:cdap2020_hedman_saturn_dusty_rings:document:XXXrob-detailed-users-guide</lid_reference> <!-- MJTM: update -->
+            <lid_reference>$USERGUIDE_LID$</lid_reference>
             <reference_type>ancillary_to_document</reference_type>
-            <comment>
-	        Detailed User's Guide
-	       </comment>
+            <comment>Detailed User's Guide</comment>
         </Internal_Reference>
         <Internal_Reference>
             <lid_reference>urn:nasa:pds:cassini_iss_saturn:document:iss-data-user-guide</lid_reference>
@@ -197,7 +184,7 @@ schematypens="http://purl.oclc.org/dsdl/schematron"?>
         <!-- Reference the text file that lists all the source images that went into making mosaic -->
         <File>
             <!-- Source images, LIDs metadata -->
-            <file_name>$IMAGE_TAB_FILENAME$</file_name> <!--MJTM: update. Note .tab is fixed width, ".dat" is typically used for binary tables. Standards Reference Table 6C-1, section 6C.1.6 https://pds.nasa.gov/datastandards/documents/sr/v1/StdRef_1.19.0.pdf -->
+            <file_name>$IMAGE_TABLE_FILENAME$</file_name>
             <creation_date_time>$NOW$</creation_date_time>
             <md5_checksum>$IMAGE_TABLE_HASH$</md5_checksum>
         </File>
@@ -213,30 +200,29 @@ schematypens="http://purl.oclc.org/dsdl/schematron"?>
         <Table_Character>
             <offset unit="byte">23</offset> <!--This should match <Header>.<object_length> -->
             <records>$NUM_IMAGES$</records>
-            <description>Source image indices and LIDVID</description>
-            <record_delimiter>Carriage-Return Line-Feed</record_delimiter>
+            <description>Source image indices and associated LIDVIDs</description>
+            <record_delimiter>Line-Feed</record_delimiter>
             <Record_Character>
                 <fields>2</fields>
                 <groups>0</groups>
-                <record_length unit="byte">$row_len$</record_length> <!-- MJTM: update. Number of bytes, including whitespace + comma -->
+                <record_length unit="byte">66</record_length>
                 <Field_Character>
-                    <name>Source image index</name>
+                    <name>Source Image Index</name>
                     <field_number>1</field_number>
                     <field_location unit="byte">1</field_location>
-                    <data_type>ASCII_Real</data_type>
+                    <data_type>ASCII_NonNegative_Integer</data_type>
                     <field_length unit="byte">4</field_length>
                     <unit>none</unit> <!-- I think could simply delete this, if no units? -->
-                    <description>The index number specific to this pair of mosaics for the source image.
-		              A source image can appear in multiple mosaics and therefore likely referenced by different index numbers.
-			      <!-- Check whether Rob uniquely indexed images or not (is the index number of an image in this mosaic the same for the same image in another mosaic?) -->
-	              </description>
+                    <description>The index number specific to this mosaic for the source image.
+		              A source image can appear in multiple mosaics and therefore will be referenced by different index numbers.
+	                </description>
                 </Field_Character>
                 <Field_Character>
                     <name>LIDVID</name>
                     <field_number>2</field_number>
                     <field_location unit="byte">10</field_location>
-                    <data_type>ASCII_Real</data_type>
-                    <field_length unit="byte">$lidvid_field$</field_length> <!-- MJTM: update -->
+                    <data_type>ASCII_Real</data_type> <!-- XXX What should this be? String of some kind -->
+                    <field_length unit="byte">59</field_length> <!-- MJTM: update -->
                     <unit>none</unit>  <!-- I think I could simply delete this, if no units? -->
                     <description>LIDVID for the source image.</description>
                 </Field_Character>
@@ -248,9 +234,9 @@ schematypens="http://purl.oclc.org/dsdl/schematron"?>
     <File_Area_Ancillary>
         <File>
             <!-- Metadata parameters per longitude value -->
-            <file_name>$METADATA_PARAMS_TAB_FILENAME$</file_name> <!-- MJTM: update. Note .tab is fixed width, ".dat" is typically used for binary tables, or could use ".csv". Standards Reference Table 6C-1, section 6C.1.6 https://pds.nasa.gov/datastandards/documents/sr/v1/StdRef_1.19.0.pdf -->
+            <file_name>$METADATA_PARAMS_TABLE_FILENAME$</file_name>
             <creation_date_time>$NOW$</creation_date_time>
-            <md5_checksum>$METADATA_TABLE_HASH$</md5_checksum>
+            <md5_checksum>$METADATA_PARAMS_TABLE_HASH$</md5_checksum>
         </File>
         <Header>
             <!-- Optional to have column names -->
@@ -264,7 +250,7 @@ schematypens="http://purl.oclc.org/dsdl/schematron"?>
             <offset unit="byte">121</offset> <!-- MJTM update: This should match <Header>.<object_length> -->
             <records>$NUM_VALID_LONGITUDES$</records>
             <description>Metadata for each co-rotating longtudinal value... etc ... </description>  <!-- MJTM update -->
-            <record_delimiter>Carriage-Return Line-Feed</record_delimiter>
+            <record_delimiter>Line-Feed</record_delimiter>
             <Record_Character>
                 <fields>7</fields>
                 <groups>0</groups>

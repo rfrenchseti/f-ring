@@ -6,54 +6,47 @@
 <?xml-model href="https://pds.nasa.gov/pds4/disp/v1/PDS4_DISP_1J00_1510.sch"
     schematypens="http://purl.oclc.org/dsdl/schematron"?>
 <?xml-model href="https://pds.nasa.gov/pds4/mission/cassini/v1/PDS4_CASSINI_1J00_1600.sch"
-schematypens="http://purl.oclc.org/dsdl/schematron"?> 
+schematypens="http://purl.oclc.org/dsdl/schematron"?>
 
-<Product_Observational 
+<Product_Observational
     xmlns="http://pds.nasa.gov/pds4/pds/v1"
     xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
-    xmlns:disp="http://pds.nasa.gov/pds4/disp/v1" 
+    xmlns:disp="http://pds.nasa.gov/pds4/disp/v1"
     xmlns:rings="http://pds.nasa.gov/pds4/rings/v1"
     xmlns:cassini="http://pds.nasa.gov/pds4/mission/cassini/v1" xsi:schemaLocation="
-	http://pds.nasa.gov/pds4/pds/v1 https://pds.nasa.gov/pds4/pds/v1/PDS4_PDS_1J00.xsd  
+	http://pds.nasa.gov/pds4/pds/v1 https://pds.nasa.gov/pds4/pds/v1/PDS4_PDS_1J00.xsd
 	http://pds.nasa.gov/pds4/rings/v1 https://pds.nasa.gov/pds4/rings/v1/PDS4_RINGS_1J00_1B00.xsd
 	http://pds.nasa.gov/pds4/disp/v1 https://pds.nasa.gov/pds4/disp/v1/PDS4_DISP_1J00_1510.xsd
 	http://pds.nasa.gov/pds4/mission/cassini/v1 https://pds.nasa.gov/pds4/mission/cassini/v1/PDS4_CASSINI_1J00_1600.xsd">
-    
+
     <Identification_Area>
-        <logical_identifier>urn:nasa:pds:cdap2020_hedman_saturn_dusty_rings:$data_derived$:$unique_filename_without_ext$_mosaic</logical_identifier> <!-- MJTM: update-->
+        <logical_identifier>$MOSAIC_LID$</logical_identifier>
         <version_id>1.0</version_id>
-        <title>F Ring Mosaic of Reprojected Cassini ISS Calibrated Images from $observation_id$ from
-            $start_date$ to $stop_date$</title> <!-- Rob can choose a *unique* title, hence the dates suggestion -->
+        <title>$MOSAIC_TITLE$</title>
         <information_model_version>1.19.0.0</information_model_version>
         <product_class>Product_Observational</product_class>
         <Citation_Information>
             <author_list>Robert S. French, Matthew M. Hedman</author_list>
             <editor_list>Mia J.T. Mace, Mitchell K. Gordon, Matthew S. Tiscareno </editor_list>
-            <publication_year>$data-release-date$</publication_year> <!--2023, provided Rob gets it to peer review by Sept-->
-            <keyword>saturn rings</keyword> <!-- MJTM: add more as appropriate. I think these are free text. -->
-            <description>F Ring Mosaic of Reprojected Cassini ISS Calibrated Images from $observation_id$ from $start_date$ to $stop_date$</description><!-- MJTM: Update -->
+            <publication_year>$PUBLICATION_YEAR$</publication_year>
+            <keyword>$KEYWORD$</keyword>
+            <description>$MOSAIC_DESCRIPTION$</description>
         </Citation_Information>
         <Modification_History>
             <Modification_Detail>
-                <modification_date>$2023-03-01$</modification_date> <!-- MJTM: update -->
+                <modification_date>$MODIFICATION_DATE$</modification_date>
                 <version_id>1.0</version_id>
                 <description>Initial PDS4 Version.</description>
             </Modification_Detail>
         </Modification_History>
     </Identification_Area>
     <Observation_Area>
-        <comment> <!--Rob can elaborate -->
-	This data file is a mosaic of Saturn's F ring, stitched together from reprojected, calibrated images.
-	The reprojection takes the image space and reprojects it onto a regular radius/longitude grid,
-	where the longitude is co-rotating with the core of the F ring and the radius is really the offset
-        from the core at that longitude and time given a particular model of the F ring's orbit (in other 
-	words, even though the F ring is eccentric, in the mosaic it looks like a straight line at constant
-	radius). Thus rather than "radius" it would be more accurate to describe it as "radial offset" from 
-	the orbital solution.
+        <comment>
+$MOSAIC_COMMENT$
         </comment>
         <Time_Coordinates>
-            <start_date_time>$2004-02-06T02:07:06.418Z$</start_date_time><!-- MJTM: update . Start time for earliest image-->
-            <stop_date_time>$2004-02-06T02:07:06.498Z$</stop_date_time> <!-- MJTM: update . Stop time for latest image-->
+            <start_date_time>$START_DATE_TIME$</start_date_time>
+            <stop_date_time>$STOP_DATE_TIME$</stop_date_time>
         </Time_Coordinates>
         <Primary_Result_Summary>
             <purpose>Science</purpose>
@@ -81,29 +74,17 @@ schematypens="http://purl.oclc.org/dsdl/schematron"?>
                     <reference_type>is_instrument_host</reference_type>
                 </Internal_Reference>
             </Observing_System_Component>
-            <!-- MJTM: update instrument as appropriate -->
             <Observing_System_Component>
-                <name>Cassini Orbiter Imaging Science Subsystem - Narrow Angle Camera</name>
+                <name>Cassini Orbiter Imaging Science Subsystem - $CAMERA_WIDTH$ Angle Camera</name>
                 <type>Instrument</type>
-                <description>ISSNA</description>
+                <description>ISS$CAMERA_WN_UC$A</description>
                 <Internal_Reference>
-                    <lid_reference>urn:nasa:pds:context:instrument:issna.co</lid_reference>
-                    <reference_type>is_instrument</reference_type>
-                </Internal_Reference>
-            </Observing_System_Component>
-            <Observing_System_Component>
-                <name>Cassini Orbiter Imaging Science Subsystem - Wide Angle Camera</name>
-                <type>Instrument</type>
-                <description>ISSWA</description>
-                <Internal_Reference>
-                    <lid_reference>urn:nasa:pds:context:instrument:isswa.co</lid_reference>
+                    <lid_reference>urn:nasa:pds:context:instrument:iss$CAMERA_WN_LC$a.co</lid_reference>
                     <reference_type>is_instrument</reference_type>
                 </Internal_Reference>
             </Observing_System_Component>
         </Observing_System>
-        <!-- MJTM update: Specify targets, as appropriate (rings are required)-->
         <Target_Identification>
-            <!-- Required -->
             <name>F Ring of Saturn</name>
             <type>Ring</type>
             <Internal_Reference>
@@ -119,65 +100,17 @@ schematypens="http://purl.oclc.org/dsdl/schematron"?>
                 <lid_reference>urn:nasa:pds:context:target:ring.saturn.rings</lid_reference>
                 <reference_type>data_to_target</reference_type>
             </Internal_Reference>
-        </Target_Identification>
-        <Target_Identification>
-            <!-- Use when appropriate -->
-            <name>Prometheus</name>
-            <alternate_designation>Saturn XVI (Prometheus)</alternate_designation>
-            <alternate_designation>S/1980 S 27</alternate_designation>
-            <alternate_designation>NAIF ID 616</alternate_designation>
-            <type>Satellite</type>
-            <description>
-                NAIF ID: 616;
-                Center of motion: Saturn;
-                LID of central body: urn:nasa:pds:context:target:planet.saturn;
-                NAIF ID of central body: 699.
-            </description>
-            <Internal_Reference>
-                <lid_reference>urn:nasa:pds:context:target:satellite.saturn.prometheus</lid_reference>
-                <reference_type>data_to_target</reference_type>
-            </Internal_Reference>
-        </Target_Identification>
-        <Target_Identification>
-            <!-- Use when appropriate -->
-            <name>Pandora</name>
-            <alternate_designation>Saturn XVII (Pandora)</alternate_designation>
-            <alternate_designation>S/1980 S 26</alternate_designation>
-            <alternate_designation>NAIF ID 617</alternate_designation>
-            <type>Satellite</type>
-            <description>
-                NAIF ID: 617;
-                Center of motion: Saturn;
-                LID of central body: urn:nasa:pds:context:target:planet.saturn;
-                NAIF ID of central body: 699.
-            </description>
-            <Internal_Reference>
-                <lid_reference>urn:nasa:pds:context:target:satellite.saturn.pandora</lid_reference>
-                <reference_type>data_to_target</reference_type>
-            </Internal_Reference>
-        </Target_Identification>
-        <Target_Identification>
-            <!-- Use when appropriate, include occulted star -->
-            <name>$Spica$</name> <!-- MJTM: update -->
-            <!-- Ask Rob for list of all occulted stars in his data-->
-            <alternate_designation>$Alpha Virginis$</alternate_designation>
-            <alternate_designation>$Alpha Vir$</alternate_designation>
-            <type>Star</type>
-            <Internal_Reference>
-                <lid_reference>urn:nasa:pds:context:target:star.$alf_vir$</lid_reference>
-                <reference_type>data_to_target</reference_type>
-            </Internal_Reference>
-        </Target_Identification>
+        </Target_Identification>$TARGET_IDENTIFICATION$
         <Mission_Area>
             <cassini:Cassini>
                 <cassini:ISS_Specific_Attributes>
-                    <cassini:mission_phase_name>$Tour$</cassini:mission_phase_name> <!-- MJTM: update. Check Cassini Dictionary SOI, ...Tour, Equinox Mission, Extended Mission, Solstice Mission,... etc. The date ranges for these can be found in the rings dictionary: https://github.com/pds-data-dictionaries/ldd-cassini/blob/main/src/PDS4_CASSINI_IngestLDD.xml (search for "mission_phase_name", e.g. lines 164-165 gives SOI as 2004-07-01) -->
-                    <cassini:spacecraft_clock_count_partition>$1$</cassini:spacecraft_clock_count_partition>
-                    <cassini:spacecraft_clock_start_count>$1454725799.102$</cassini:spacecraft_clock_start_count> <!-- MJTM: update Start time of earliest image -->
-                    <cassini:spacecraft_clock_stop_count>$1454725799.122$</cassini:spacecraft_clock_stop_count> <!-- MJTM: update  Stop time of latest image -->
-                    <cassini:filter_name_1>$CL1$</cassini:filter_name_1> <!-- MJTM: update -->
-                    <cassini:filter_name_2>$CL2$</cassini:filter_name_2> <!-- MJTM: update -->
-                    <cassini:observation_id>$NAV_C42SK_OPNAV371_PRIME$</cassini:observation_id> <!-- MJTM: update. There is only ever a single obs id per mosaic. Note there may be multiple mosaics that use the same obs id-->
+                    <cassini:mission_phase_name>$TOUR$</cassini:mission_phase_name>
+                    <cassini:spacecraft_clock_count_partition>1</cassini:spacecraft_clock_count_partition>
+                    <cassini:spacecraft_clock_start_count>$SPACECRAFT_CLOCK_START_COUNT$</cassini:spacecraft_clock_start_count>
+                    <cassini:spacecraft_clock_stop_count>$SPACECRAFT_CLOCK_STOP_COUNT$</cassini:spacecraft_clock_stop_count>
+                    <cassini:filter_name_1>$FILTER1$</cassini:filter_name_1>
+                    <cassini:filter_name_2>$FILTER2$</cassini:filter_name_2>
+                    <cassini:observation_id>$OBSERVATION_ID$</cassini:observation_id>
                 </cassini:ISS_Specific_Attributes>
             </cassini:Cassini>
         </Mission_Area>
@@ -196,62 +129,47 @@ schematypens="http://purl.oclc.org/dsdl/schematron"?>
             </disp:Display_Settings>
             <rings:Ring_Moon_Systems>
                 <rings:Ring_Reprojection>
-                    <Local_Internal_Reference> 
+                    <Local_Internal_Reference>
                     <!-- Matt will define reprojection_to_array in the schematron rule, when he updates the rings dictionary -->
-                    <local_identifier_reference>mosaic</local_identifier_reference> 
-			        <local_reference_type>reprojection_to_array</local_reference_type> 
+                    <local_identifier_reference>mosaic</local_identifier_reference>
+			        <local_reference_type>reprojection_to_array</local_reference_type>
 			        </Local_Internal_Reference>
                     <rings:Reprojection_Geometry>
                         <local_identifier>reproj_geom</local_identifier>
                         <rings:description>
-	                 <!-- Same as Observation_Area comment? Rob to elaborate-->	
-	                 This data file is a mosaic, stitched together from $N$ reprojected, calibrated images.
-	                 The reprojection takes the image space and reprojects it onto a regular radius/longitude grid,
-	                 where the longitude is co-rotating with the core of the F ring and the radius is really the offset
-	                 from the core at that longitude and time given a particular model (Albers et al, 2009) of the
-	                 F ring's orbit (in other 
-	                 words, even though the F ring is eccentric, in the mosaic it looks like a straight line at constant
-	                 radius). Thus rather than "radius" it would be more accurate to describe it as "radial offset" from 
-	                 the orbital solution.
-	                 
-	                 The following parameters in this class use the Albers 2009 model:  
-	                 – epoch_reprojection_basis_utc is the date and time of zero longitude of the rotating frame
-	                 – corotation_rate is the mean corotation rate
-	                 
-	                 Mean/min/max values are based upon the aggregate of the source images for the following parameters:
-	                 phase angle, observed ring elevation, ring longitude,...etc 
-	                    </rings:description>
-                        <rings:epoch_reprojection_basis_utc unit="s">2007-01-01T00:00:00.000Z</rings:epoch_reprojection_basis_utc> <!-- Rob emailed the F ring co-rotating epoch as this datetime in 2007. Note,  J2000 = 2000-01-01T12:00:00.000Z. Format is YYYY-MM-DDTHH:MM:SS.SSSZ and may be truncated. -->
-                        <rings:reprojection_plane>Equator</rings:reprojection_plane> <!-- ignore any inclination -->
-                        <rings:corotating_flag>Y</rings:corotating_flag> <!--Required yes/no-->
-                        <rings:corotation_rate unit="deg/s">$rate$</rings:corotation_rate> <!-- MJTM: update. Use if corotating_flag is Y AND corotation_rate_type is constant-->
-                        <rings:mean_phase_angle unit="deg">$mean_phase_angle$</rings:mean_phase_angle> <!-- MJTM: update -->
-                        <rings:minimum_phase_angle unit="deg">$min_phase_angle$</rings:minimum_phase_angle> <!-- MJTM: update -->
-                        <rings:maximum_phase_angle unit="deg">$max_phase_angle$</rings:maximum_phase_angle> <!-- MJTM: update -->
+$MOSAIC_RINGS:DESCRIPTION$
+			            </rings:description>
+                        <rings:epoch_reprojection_basis_utc unit="s">2007-01-01T00:00:00.000Z</rings:epoch_reprojection_basis_utc>
+                        <rings:reprojection_plane>Equator</rings:reprojection_plane>
+                        <rings:corotating_flag>Y</rings:corotating_flag>
+                        <rings:corotation_rate unit="deg/s">0.006735694444</rings:corotation_rate> <!-- 581.964 deg/day -->
+                        <rings:mean_phase_angle unit="deg">$MEAN_PHASE_ANGLE$</rings:mean_phase_angle>
+                        <rings:minimum_phase_angle unit="deg">$MIN_PHASE_ANGLE$</rings:minimum_phase_angle>
+                        <rings:maximum_phase_angle unit="deg">$MAX_PHASE_ANGLE$</rings:maximum_phase_angle>
                         <!-- The following are additional attributes that need to included in the updated rings dictionary -->
-                        <rings:mean_incidence_angle>$incid_ang$</rings:mean_incidence_angle> <!-- MJTM: update. constant -->
+                        <rings:mean_incidence_angle>$INCIDENCE_ANGLE$</rings:mean_incidence_angle>
                         <!-- Incidence angle additional attributes that need to included in this class (already in rings dictionary) -->
-                        <rings:minimum_incidence_angle>$incid_ang$</rings:minimum_incidence_angle> <!-- MJTM: update. constant -->
-                        <rings:maximum_incidence_angle>$incid_ang$</rings:maximum_incidence_angle> <!-- MJTM: update. constant -->
-                        <rings:mean_observed_ring_elevation unit="deg">$mean_obs_ring_elev$</rings:mean_observed_ring_elevation> <!-- MJTM: update -->
-                        <rings:minimum_observed_ring_elevation unit="deg">$min_obs_ring_elev$</rings:minimum_observed_ring_elevation> <!-- MJTM: update -->
-                        <rings:maximum_observed_ring_elevation unit="deg">$max_obs_ring_elev$</rings:maximum_observed_ring_elevation> <!-- MJTM: update -->
-                        <rings:minimum_ring_radius unit="km">$min_ring_rad$</rings:minimum_ring_radius> <!-- MJTM: update. fixed across all images (a - 1000km)  -->
-                        <rings:maximum_ring_radius unit="km">$max_ring_rad$</rings:maximum_ring_radius> <!-- MJTM: update. fixed across all images (a + 1000km) -->
-                        <!--<rings:minimum_ring_longitude unit="deg">$min_ring_long$</rings:minimum_ring_longitude>--> <!--  MJTM: update. Inertial longitude -->
-                        <!--<rings:maximum_ring_longitude unit="deg">$max_ring_long$</rings:maximum_ring_longitude> --> <!--  MJTM: update. Inertial longitude -->
+                        <rings:minimum_incidence_angle>$INCIDENCE_ANGLE$</rings:minimum_incidence_angle>
+                        <rings:maximum_incidence_angle>$INCIDENCE_ANGLE$</rings:maximum_incidence_angle>
+                        <rings:mean_observed_ring_elevation unit="deg">$MEAN_OBS_RING_ELEV$</rings:mean_observed_ring_elevation>
+                        <rings:minimum_observed_ring_elevation unit="deg">$MIN_OBS_RING_ELEV$</rings:minimum_observed_ring_elevation>
+                        <rings:maximum_observed_ring_elevation unit="deg">$MAX_OBS_RING_ELEV$</rings:maximum_observed_ring_elevation>
+                        <rings:minimum_ring_radius unit="km">$MIN_RING_RADIUS$</rings:minimum_ring_radius>
+                        <rings:maximum_ring_radius unit="km">$MAX_RING_RADIUS$</rings:maximum_ring_radius>
+                        <!--<rings:minimum_ring_longitude unit="deg">min_ring_long</rings:minimum_ring_longitude>--> <!--  MJTM: update. Inertial longitude -->
+                        <!--<rings:maximum_ring_longitude unit="deg">max_ring_long</rings:maximum_ring_longitude> --> <!--  MJTM: update. Inertial longitude -->
                         <!-- The two longitudes above will be deprecated in Matt's update to the rings dictionary (in favour of more clearly named attributes) -->
                         <!-- The following are additional placeholder attributes that need to included either in the updated rings (or, possibly pre-existing in the cart dictionary?) -->
-                        <rings:minimum_ring_longitude_inertial unit="deg">$min_ring_long_inertial$</rings:minimum_ring_longitude_inertial>
-                        <rings:maximum_ring_longitude_inertial unit="deg">$max_ring_long_inertial$</rings:maximum_ring_longitude_inertial>
-                        <rings:minimum_ring_longitude_corotating unit="deg">$min_ring_long_corotating$</rings:minimum_ring_longitude_corotating>
-                        <rings:maximum_ring_longitude_corotating unit="deg">$max_ring_long_corotating$</rings:maximum_ring_longitude_corotating>
+                        <rings:minimum_ring_longitude_inertial unit="deg">$MIN_RING_INERTIAL_LONG$</rings:minimum_ring_longitude_inertial>
+                        <rings:maximum_ring_longitude_inertial unit="deg">$MAX_RING_INERTIAL_LONG$</rings:maximum_ring_longitude_inertial>
+                        <rings:minimum_ring_longitude_corotating unit="deg">$MIN_RING_COROT_LONG$</rings:minimum_ring_longitude_corotating>
+                        <rings:maximum_ring_longitude_corotating unit="deg">$MAX_RING_COROT_LONG$</rings:maximum_ring_longitude_corotating>
                         <!-- The following are additional attributes that need to included in the updated rings dictionary -->
                         <!-- <rings:reprojection_grid_parameters> -->
                         <!-- Check Cart, prob already exists? -->
-                        <!-- <rings:reprojection_grid_radial_resolution_mean>$reproj_grid_rad_res_mean$</rings:reprojection_grid_radial_resolution_mean>--><!-- MJTM: update -->
-                        <!-- <rings:reprojection_grid_radial_resolution_min>$reproj_grid_rad_res_min$</rings:reprojection_grid_radial_resolution_min>--><!-- MJTM: update  -->
-                        <!-- <rings:reprojection_grid_radial_resolution_max>$reproj_grid_rad_res_max$</rings:reprojection_grid_radial_resolution_max>--> <!-- MJTM: update-->
+                        <!-- <rings:reprojection_grid_radial_resolution_mean>$MEAN_REPROJ_GRID_RAD_RES$</rings:reprojection_grid_radial_resolution_mean>--><!-- MJTM: update -->
+                        <!-- <rings:reprojection_grid_radial_resolution_min>$MIN_REPROJ_GRID_RAD_RES$</rings:reprojection_grid_radial_resolution_min>--><!-- MJTM: update  -->
+                        <!-- <rings:reprojection_grid_radial_resolution_max>$MAX_REPROJ_GRID_RAD_RES$</rings:reprojection_grid_radial_resolution_max>--> <!-- MJTM: update-->
                         <!-- Likewise for longitudinal grid res values  -->
                         <!-- </rings:reprojection_grid_parameters> -->
                     </rings:Reprojection_Geometry>
@@ -263,12 +181,9 @@ schematypens="http://purl.oclc.org/dsdl/schematron"?>
     <!--Reference_List: don’t worry about referencing the data raw files, etc, but do reference User Guides -->
     <Reference_List>
         <Internal_Reference>
-            <!-- To be written -->
-            <lid_reference>urn:nasa:pds:cdap2020_hedman_saturn_dusty_rings:document:$rob-detailed-users-guide$</lid_reference> <!--MJTM: update -->
+            <lid_reference>$USERGUIDE_LID$</lid_reference>
             <reference_type>data_to_document</reference_type>
-            <comment>
-	    Rob's Detailed User's Guide
-	    </comment>
+            <comment>Detailed User's Guide</comment>
         </Internal_Reference>
         <Internal_Reference>
             <lid_reference>urn:nasa:pds:cassini_iss_saturn:document:iss-data-user-guide</lid_reference>
@@ -277,37 +192,27 @@ schematypens="http://purl.oclc.org/dsdl/schematron"?>
             <!-- Put DOI in -->
         </Internal_Reference>
         <Internal_Reference>
-            <!-- Associated metadata (same for both types of mosaic)-->
-            <lid_reference>urn:nasa:pds:cdap2020_hedman_saturn_dusty_rings:data:$same_filename_as_mosaic_metadata$</lid_reference> <!--MJTM: update -->
+            <lid_reference>$MOSAIC_METADATA_LID$</lid_reference>
             <reference_type>data_to_ancillary_data</reference_type>
             <comment>
-		  Two files: 1) source image index/LIDs, 2) Table of metadata parameters indexed by corotating longitude 
+		  Two files: 1) source image index/LIDs, 2) Table of metadata parameters indexed by corotating longitude
 	    </comment>
         </Internal_Reference>
         <Internal_Reference>
-            <!-- Associated mosaic with background subtracted -->
-            <lid_reference>urn:nasa:pds:cdap2020_hedman_saturn_dusty_rings:derived_data:$same_filename_as_mosaic_bkg_subtract$</lid_reference> <!--MJTM: update -->
-            <reference_type>data_to_derived_product</reference_type>
-            <comment>
-	    Mosaic with background subtracted
-	    </comment>
-        </Internal_Reference>
-        <Internal_Reference>
-            <lid_reference>urn:nasa:pds:cdap2020_hedman_saturn_dusty_rings:browse:$filename-without-ext$</lid_reference> <!--MJTM: update -->
-            <!-- Rob said he'd produce full, small, etc -->
+            <lid_reference>$MOSAIC_BROWSE_LID$</lid_reference>
             <reference_type>data_to_browse</reference_type>
             <comment>
-		The browse image of the mosaic in multiple sizes in ??PNG format.
+		The browse image of the mosaic in multiple sizes in PNG format.
             </comment>
         </Internal_Reference>
     </Reference_List>
 
     <File_Area_Observational>
         <File>
-            <file_name>$unique_filename$_mosaic.img</file_name> <!--MJTM: update. Check Standards Reference for file extension for binary files. Table 6C-1, section 6C.1.6 https://pds.nasa.gov/datastandards/documents/sr/v1/StdRef_1.19.0.pdf -->
+            <file_name>$MOSAIC_IMG_FILENAME$</file_name> <!--MJTM: update. Check Standards Reference for file extension for binary files. Table 6C-1, section 6C.1.6 https://pds.nasa.gov/datastandards/documents/sr/v1/StdRef_1.19.0.pdf -->
             <!-- .img is a reserved file name extension for “raster formatted image data (may contain headers)”. ".IMG" is typically used for VICAR, but doesn't have to be VICAR. ".dat" is not used for images, effectively it is for binary tables. -->
-            <creation_date_time>$2019-06-06T13:16:39Z$</creation_date_time> <!-- MJTM: update -->
-            <md5_checksum>$e03c631bf5c0f11921fee9cb802d5200$</md5_checksum> <!-- MJTM: update -->
+            <creation_date_time>$NOW$</creation_date_time>
+            <md5_checksum>$MOSAIC_IMG_HASH$</md5_checksum>
         </File>
 
         <!-- The mosaic -->
@@ -317,22 +222,22 @@ schematypens="http://purl.oclc.org/dsdl/schematron"?>
             <axes>2</axes>
             <axis_index_order>Last Index Fastest</axis_index_order>
             <Element_Array>
-                <data_type>$IEEE754LSBSingle$</data_type> <!-- MJTM update: 32 bit float. e.g. IEEE754MSBSingle, IEEE754LSBSingle -->
+                <data_type>IEEE754LSBSingle</data_type> <!-- MJTM update: 32 bit float. e.g. IEEE754MSBSingle, IEEE754LSBSingle -->
                 <unit>unknown</unit> <!-- I/F. If unitless, delete this line. Check https://pds.nasa.gov/datastandards/documents/im/v1/index_1J00.html#class_pds_units_of_energy Units_of_None/ Units_of_Misc -->
             </Element_Array>
             <Axis_Array>
                 <axis_name>Sample</axis_name> <!--horizontal (longitude) -->
-                <elements>$18000$</elements> <!-- $ MJTM: update. Max is 18000 -->
+                <elements>$MOSAIC_NUM_SAMPLES$</elements>
                 <sequence_number>1</sequence_number>
             </Axis_Array>
             <Axis_Array>
                 <axis_name>Line</axis_name> <!-- vertical (radial) -->
-                <elements>$400$</elements> <!--$ MJTM: update. Max is 400 -->
+                <elements>$MOSAIC_NUM_LINES$</elements>
                 <sequence_number>2</sequence_number>
             </Axis_Array>
             <Special_Constants>
                 <!-- Data was missing or corrupted in the original image (either because it was off the edge of the FOV or because of a transmission error resulting in a partial or corrupted image) -->
-                <missing_constant>-9999.9999</missing_constant> <!-- MJTM: update (use same precision as data) -->
+                <missing_constant>$SENTINEL$</missing_constant>
             </Special_Constants>
         </Array_2D_Image>
     </File_Area_Observational>
