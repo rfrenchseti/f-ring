@@ -9,9 +9,27 @@ schematypens="http://purl.oclc.org/dsdl/schematron"?>
     <Identification_Area>
         <logical_identifier>$MOSAIC_BROWSE_LID$</logical_identifier>
         <version_id>1.0</version_id>
-        <title>$MOSAIC_BROWSE_TITLE$</title>
+        <title>
+$MOSAIC_BROWSE_TITLE$
+        </title>
         <information_model_version>1.19.0.0</information_model_version>
         <product_class>Product_Browse</product_class>
+        <Citation_Information>
+            <author_list>Robert S. French, Matthew M. Hedman</author_list>
+            <editor_list>Mia J.T. Mace, Mitchell K. Gordon, Matthew S. Tiscareno</editor_list>
+            <publication_year>$PUBLICATION_YEAR$</publication_year>
+            <keyword>$KEYWORD$</keyword>
+            <description>
+$MOSAIC_BROWSE_DESCRIPTION$
+            </description>
+        </Citation_Information>
+        <Modification_History>
+            <Modification_Detail>
+                <modification_date>$MODIFICATION_DATE$</modification_date>
+                <version_id>1.0</version_id>
+                <description>Initial PDS4 Version.</description>
+            </Modification_Detail>
+        </Modification_History>
     </Identification_Area>
     <Reference_List>
         <Internal_Reference>
@@ -21,8 +39,9 @@ schematypens="http://purl.oclc.org/dsdl/schematron"?>
     </Reference_List>
     <File_Area_Browse>
         <File>
-            <file_name>$MOSAIC_BROWSE_THUMB_FILENAME$</file_name>
+            <file_name>$BROWSE_THUMB_FILENAME$</file_name>
             <creation_date_time>$NOW$</creation_date_time>
+            <md5_checksum>$BROWSE_THUMB_HASH$</md5_checksum>
         </File>
         <Encoded_Image>
             <offset unit="byte">0</offset>
@@ -31,8 +50,9 @@ schematypens="http://purl.oclc.org/dsdl/schematron"?>
     </File_Area_Browse>
     <File_Area_Browse>
         <File>
-            <file_name>$MOSAIC_BROWSE_SMALL_FILENAME$</file_name>
+            <file_name>$BROWSE_SMALL_FILENAME$</file_name>
             <creation_date_time>$NOW$</creation_date_time>
+            <md5_checksum>$BROWSE_SMALL_HASH$</md5_checksum>
         </File>
         <Encoded_Image>
             <offset unit="byte">0</offset>
@@ -41,8 +61,9 @@ schematypens="http://purl.oclc.org/dsdl/schematron"?>
     </File_Area_Browse>
     <File_Area_Browse>
         <File>
-            <file_name>$MOSAIC_BROWSE_MED_FILENAME$</file_name>
+            <file_name>$BROWSE_MED_FILENAME$</file_name>
             <creation_date_time>$NOW$</creation_date_time>
+            <md5_checksum>$BROWSE_MED_HASH$</md5_checksum>
         </File>
         <Encoded_Image>
             <offset unit="byte">0</offset>
@@ -51,8 +72,9 @@ schematypens="http://purl.oclc.org/dsdl/schematron"?>
     </File_Area_Browse>
     <File_Area_Browse>
         <File>
-            <file_name>$MOSAIC_BROWSE_FULL_FILENAME$</file_name>
+            <file_name>$BROWSE_FULL_FILENAME$</file_name>
             <creation_date_time>$NOW$</creation_date_time>
+            <md5_checksum>$BROWSE_FULL_HASH$</md5_checksum>
         </File>
         <Encoded_Image>
             <offset unit="byte">0</offset>

@@ -6,24 +6,25 @@
 <?xml-model href="https://pds.nasa.gov/pds4/disp/v1/PDS4_DISP_1J00_1510.sch"
     schematypens="http://purl.oclc.org/dsdl/schematron"?>
 <?xml-model href="https://pds.nasa.gov/pds4/mission/cassini/v1/PDS4_CASSINI_1J00_1600.sch"
-    schematypens="http://purl.oclc.org/dsdl/schematron"?>
+schematypens="http://purl.oclc.org/dsdl/schematron"?>
 
 <Product_Ancillary
     xmlns="http://pds.nasa.gov/pds4/pds/v1"
     xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
     xmlns:disp="http://pds.nasa.gov/pds4/disp/v1"
     xmlns:rings="http://pds.nasa.gov/pds4/rings/v1"
-    xmlns:cassini="http://pds.nasa.gov/pds4/mission/cassini/v1" xsi:schemaLocation="
+    xmlns:cassini="http://pds.nasa.gov/pds4/mission/cassini/v1"
+    xsi:schemaLocation="
 	http://pds.nasa.gov/pds4/pds/v1 https://pds.nasa.gov/pds4/pds/v1/PDS4_PDS_1J00.xsd
 	http://pds.nasa.gov/pds4/rings/v1 https://pds.nasa.gov/pds4/rings/v1/PDS4_RINGS_1J00_1B00.xsd
 	http://pds.nasa.gov/pds4/disp/v1 https://pds.nasa.gov/pds4/disp/v1/PDS4_DISP_1J00_1510.xsd
 	http://pds.nasa.gov/pds4/mission/cassini/v1 https://pds.nasa.gov/pds4/mission/cassini/v1/PDS4_CASSINI_1J00_1600.xsd">
 
     <Identification_Area>
-        <logical_identifier>$MOSAIC_METADATA_LID$</logical_identifier>
+        <logical_identifier>$REPROJ_METADATA_LID$</logical_identifier>
         <version_id>1.0</version_id>
         <title>
-$MOSAIC_METADATA_TITLE$
+$REPROJ_METADATA_TITLE$
         </title>
         <information_model_version>1.19.0.0</information_model_version>
         <product_class>Product_Ancillary</product_class>
@@ -33,7 +34,7 @@ $MOSAIC_METADATA_TITLE$
             <publication_year>$PUBLICATION_YEAR$</publication_year>
             <keyword>$KEYWORD$</keyword>
             <description>
-$MOSAIC_METADATA_DESCRIPTION$
+$REPROJ_METADATA_DESCRIPTION$
             </description>
         </Citation_Information>
         <Modification_History>
@@ -46,7 +47,7 @@ $MOSAIC_METADATA_DESCRIPTION$
     </Identification_Area>
     <Context_Area>
         <comment>
-$MOSAIC_METADATA_COMMENT$
+$REPROJ_METADATA_COMMENT$
     	</comment>
         <Time_Coordinates>
             <start_date_time>$START_DATE_TIME$</start_date_time>
@@ -127,7 +128,7 @@ $MOSAIC_METADATA_COMMENT$
                     <rings:Reprojection_Geometry>
                         <local_identifier>reproj_geom</local_identifier>
                         <rings:description>
-$MOSAIC_METADATA_RINGS:DESCRIPTION$
+$REPROJ_METADATA_RINGS:DESCRIPTION$
 			            </rings:description>
                         <rings:epoch_reprojection_basis_utc unit="s">2007-01-01T00:00:00.000Z</rings:epoch_reprojection_basis_utc>
                         <rings:reprojection_plane>Equator</rings:reprojection_plane>
@@ -165,10 +166,24 @@ $MOSAIC_METADATA_RINGS:DESCRIPTION$
     <!--Reference_List: don’t worry about referencing the data raw files, etc, but do reference User Guides -->
     <Reference_List>
         <Internal_Reference>
-            <lid_reference>$MOSAIC_LID$</lid_reference>
+            <lid_reference>$REPROJ_LID$</lid_reference>
             <reference_type>ancillary_to_data</reference_type>
             <comment>
-            $MOSAIC_REFERENCE_COMMENT$
+Comment here. XXX
+	        </comment>
+        </Internal_Reference>
+        <Internal_Reference>
+            <lid_reference>$MOSAIC_ORIGINAL_LID$</lid_reference>
+            <reference_type>ancillary_to_data</reference_type>
+            <comment>
+Comment here. XXX
+	        </comment>
+        </Internal_Reference>
+        <Internal_Reference>
+            <lid_reference>$MOSAIC_BKG_SUB_LID$</lid_reference>
+            <reference_type>ancillary_to_data</reference_type>
+            <comment>
+Comment here. XXX
 	        </comment>
         </Internal_Reference>
         <Internal_Reference>
@@ -184,57 +199,8 @@ $MOSAIC_METADATA_RINGS:DESCRIPTION$
     </Reference_List>
 
     <File_Area_Ancillary>
-        <!-- Reference the text file that lists all the source images that went into making mosaic -->
-        <File>
-            <!-- Source images, LIDs metadata -->
-            <file_name>$IMAGE_TABLE_FILENAME$</file_name>
-            <creation_date_time>$NOW$</creation_date_time>
-            <md5_checksum>$IMAGE_TABLE_HASH$</md5_checksum>
-        </File>
-        <!-- Index for Source images (2 columns: Rob's index number for the image, LID) -->
-        <!-- This file contains identifiers for the source images of this mosaic (to map longitudes back to source image) -->
-        <Header>
-            <!-- Optional, there are only two cols so not really needed-->
-            <offset unit="byte">0</offset>
-            <object_length unit="byte">26</object_length>
-            <parsing_standard_id>UTF-8 Text</parsing_standard_id>
-            <description>Source Image Index, LIDVID</description>
-        </Header>
-        <Table_Character>
-            <offset unit="byte">23</offset> <!--This should match <Header>.<object_length> -->
-            <records>$NUM_IMAGES$</records>
-            <description>Source image indices and associated LIDVIDs</description>
-            <record_delimiter>Line-Feed</record_delimiter>
-            <Record_Character>
-                <fields>2</fields>
-                <groups>0</groups>
-                <record_length unit="byte">66</record_length>
-                <Field_Character>
-                    <name>Source Image Index</name>
-                    <field_number>1</field_number>
-                    <field_location unit="byte">1</field_location>
-                    <data_type>ASCII_NonNegative_Integer</data_type>
-                    <field_length unit="byte">4</field_length>
-                    <unit>none</unit> <!-- I think could simply delete this, if no units? -->
-                    <description>The index number specific to this mosaic for the source image.
-		              A source image can appear in multiple mosaics and therefore will be referenced by different index numbers.
-	                </description>
-                </Field_Character>
-                <Field_Character>
-                    <name>LIDVID</name>
-                    <field_number>2</field_number>
-                    <field_location unit="byte">10</field_location>
-                    <data_type>ASCII_Real</data_type> <!-- XXX What should this be? String of some kind -->
-                    <field_length unit="byte">59</field_length> <!-- MJTM: update -->
-                    <unit>none</unit>  <!-- I think I could simply delete this, if no units? -->
-                    <description>LIDVID for the source image.</description>
-                </Field_Character>
-            </Record_Character>
-        </Table_Character>
-    </File_Area_Ancillary>
-    <!--Metadata, up to 18000 rows, seven columns:
-	Co-rotating longitude, Source Image Index, Mid-time SPICE ET, Inertial longitude, Resolution, Phase angle, Emission angle -->
-    <File_Area_Ancillary>
+        <!--Metadata, six columns:
+	     Co-rotating longitude, Mid-time SPICE ET, Inertial longitude, Resolution, Phase angle, Emission angle -->
         <File>
             <!-- Metadata parameters per longitude value -->
             <file_name>$METADATA_PARAMS_TABLE_FILENAME$</file_name>
@@ -244,22 +210,23 @@ $MOSAIC_METADATA_RINGS:DESCRIPTION$
         <Header>
             <!-- Optional to have column names -->
             <offset unit="byte">0</offset>
-            <object_length unit="byte">113</object_length>
+            <object_length unit="byte">81</object_length> <!-- MJTM update: "Co-rotating longitude, Image Index, ..." -->
             <parsing_standard_id>UTF-8 Text</parsing_standard_id>
-            <description>Corotating Longitude, Image Index, Mid-time SPICE ET, Inertial Longitude, Resolution, Phase Angle, Emission Angle</description>
+            <description>Corotating Longitude, Inertial Longitude, Resolution, Phase Angle, Emission Angle</description>
         </Header>
         <!-- Metadata table. Fixed width, with <comma><whitespace> field separators -->
         <Table_Character>
-            <offset unit="byte">121</offset> <!-- MJTM update: This should match <Header>.<object_length> -->
+            <offset unit="byte">81</offset> <!-- MJTM update: This should match <Header>.<object_length> -->
             <records>$NUM_VALID_LONGITUDES$</records>
             <description>
-Description here XXX
+Description here. XXX
             </description>
             <record_delimiter>Line-Feed</record_delimiter>
             <Record_Character>
-                <fields>7</fields>
+                <fields>5</fields>
                 <groups>0</groups>
-                <record_length unit="byte">72</record_length> <!-- Including <comma><whitespace>s -->
+                <record_length unit="byte">51</record_length>
+                <!-- Including <comma><whitespace>s -->
                 <Field_Character>
                     <name>Corotating Longitude</name> <!-- Incrementing by 0.02 deg as read column top to bottom -->
                     <field_number>1</field_number>
@@ -270,27 +237,9 @@ Description here XXX
                     <description>Description of coord sys and corotating longitude XXX</description>
                 </Field_Character>
                 <Field_Character>
-                    <name>Image Index</name>
-                    <field_number>2</field_number>
-                    <field_location unit="byte">9</field_location> <!-- added 2 bytes for <comma><whitespace> -->
-                    <data_type>ASCII_NonNegative_Integer</data_type>
-                    <field_length unit="byte">4</field_length>
-                    <unit>none</unit>
-                    <description>Source image index XXX</description>
-                </Field_Character>
-                <Field_Character>
-                    <name>Mid-time SPICE ET</name>
-                    <field_number>3</field_number>
-                    <field_location unit="byte">15</field_location> <!-- added 2 bytes for <comma><whitespace> -->
-                    <data_type>ASCII_Real</data_type>
-                    <field_length unit="byte">13</field_length>
-                    <unit>s</unit>
-                    <description>Double precision number of TDB seconds past the J2000 epoch XXX</description>
-                </Field_Character>
-                <Field_Character>
                     <name>Inertial Longitude</name>
-                    <field_number>4</field_number>
-                    <field_location unit="byte">30</field_location> <!-- added 2 bytes for <comma><whitespace> -->
+                    <field_number>2</field_number>
+                    <field_location unit="byte">9</field_location> <!-- add 2 bytes for <comma><whitespace> -->
                     <data_type>ASCII_Real</data_type>
                     <field_length unit="byte">7</field_length>
                     <unit>deg</unit>
@@ -298,8 +247,8 @@ Description here XXX
                 </Field_Character>
                 <Field_Character>
                     <name>Resolution</name>
-                    <field_number>5</field_number>
-                    <field_location unit="byte">39</field_location> <!-- added 2 bytes for <comma><whitespace> -->
+                    <field_number>3</field_number>
+                    <field_location unit="byte">18</field_location> <!-- add 2 bytes for <comma><whitespace> -->
                     <data_type>ASCII_Real</data_type>
                     <field_length unit="byte">10</field_length>
                     <unit>km/pixel</unit>
@@ -307,8 +256,8 @@ Description here XXX
                 </Field_Character>
                 <Field_Character>
                     <name>Phase Angle</name>
-                    <field_number>6</field_number>
-                    <field_location unit="byte">51</field_location> <!-- added 2 bytes for <comma><whitespace> -->
+                    <field_number>4</field_number>
+                    <field_location unit="byte">30</field_location> <!-- add 2 bytes for <comma><whitespace> -->
                     <data_type>ASCII_Real</data_type>
                     <field_length unit="byte">10</field_length>
                     <unit>deg</unit>
@@ -316,8 +265,8 @@ Description here XXX
                 </Field_Character>
                 <Field_Character>
                     <name>Emission Angle</name>
-                    <field_number>7</field_number>
-                    <field_location unit="byte">63</field_location> <!-- added 2 bytes for <comma><whitespace> -->
+                    <field_number>5</field_number>
+                    <field_location unit="byte">42</field_location> <!-- add 2 bytes for <comma><whitespace> -->
                     <data_type>ASCII_Real</data_type>
                     <field_length unit="byte">10</field_length>
                     <unit>deg</unit>
