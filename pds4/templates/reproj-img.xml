@@ -189,7 +189,9 @@ $REPROJ_RINGS:DESCRIPTION$
         <Internal_Reference>
             <lid_reference>$USERGUIDE_LID$</lid_reference>
             <reference_type>data_to_document</reference_type>
-            <comment>Detailed User's Guide</comment>
+            <comment>
+$USERGUIDE_COMMENT$
+            </comment>
         </Internal_Reference>
         <Internal_Reference>
             <lid_reference>urn:nasa:pds:cassini_iss_saturn:document:iss-data-user-guide</lid_reference>
@@ -201,27 +203,32 @@ $REPROJ_RINGS:DESCRIPTION$
             <lid_reference>$REPROJ_METADATA_LID$</lid_reference>
             <reference_type>data_to_ancillary_data</reference_type>
             <comment>
-	        Metadata table (parameters per longitude)
-	        </comment>
+The reprojected image metadata consisting of one file with metadata parameters
+indexed by co-rotating longitude.
+    	    </comment>
         </Internal_Reference>
         <Internal_Reference>
-            <!-- Associated mosaic -->
             <lid_reference>$MOSAIC_LID$</lid_reference>
             <reference_type>data_to_derived_product</reference_type>
             <comment>
-	         Mosaic
-	        </comment>
+$MOSAIC_REFERENCE_COMMENT$
+    	    </comment>
+        </Internal_Reference>
+        <Internal_Reference>
+            <lid_reference>$MOSAIC_OTHER_LID$</lid_reference>
+            <reference_type>data_to_derived_product</reference_type>
+            <comment>
+$MOSAIC_OTHER_REFERENCE_COMMENT$
+    	    </comment>
         </Internal_Reference>
         <Internal_Reference>
             <lid_reference>$REPROJ_BROWSE_LID$</lid_reference>
             <reference_type>data_to_browse</reference_type>
             <comment>
-		    The browse image of the reprojected image in multiple sizes in PNG format.
-	        of this data.
+The browse image of the reprojected image in multiple sizes in PNG format.
             </comment>
         </Internal_Reference>
     </Reference_List>
-
     <File_Area_Observational>
         <File>
             <file_name>$REPROJ_IMG_FILENAME$</file_name> <!--MJTM: update. Check Standards Reference for file extension for binary files. Table 6C-1, section 6C.1.6 https://pds.nasa.gov/datastandards/documents/sr/v1/StdRef_1.19.0.pdf -->

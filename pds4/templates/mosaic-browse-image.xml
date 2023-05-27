@@ -33,8 +33,24 @@ $MOSAIC_BROWSE_DESCRIPTION$
     </Identification_Area>
     <Reference_List>
         <Internal_Reference>
+            <lid_reference>$USERGUIDE_LID$</lid_reference>
+            <reference_type>data_to_document</reference_type>
+            <comment>
+$USERGUIDE_COMMENT$
+            </comment>
+        </Internal_Reference>
+        <Internal_Reference>
+            <lid_reference>urn:nasa:pds:cassini_iss_saturn:document:iss-data-user-guide</lid_reference>
+            <reference_type>data_to_document</reference_type>
+            <comment>The ISS Data User's Guide</comment>
+            <!-- Put DOI in -->
+        </Internal_Reference>
+        <Internal_Reference>
             <lid_reference>$MOSAIC_LID$</lid_reference>
             <reference_type>browse_to_data</reference_type>
+            <comment>
+$MOSAIC_REFERENCE_COMMENT$
+	        </comment>
         </Internal_Reference>
     </Reference_List>
     <File_Area_Browse>

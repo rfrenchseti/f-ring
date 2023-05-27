@@ -166,38 +166,26 @@ $REPROJ_METADATA_RINGS:DESCRIPTION$
     <!--Reference_List: don’t worry about referencing the data raw files, etc, but do reference User Guides -->
     <Reference_List>
         <Internal_Reference>
-            <lid_reference>$REPROJ_LID$</lid_reference>
-            <reference_type>ancillary_to_data</reference_type>
-            <comment>
-Comment here. XXX
-	        </comment>
-        </Internal_Reference>
-        <Internal_Reference>
-            <lid_reference>$MOSAIC_ORIGINAL_LID$</lid_reference>
-            <reference_type>ancillary_to_data</reference_type>
-            <comment>
-Comment here. XXX
-	        </comment>
-        </Internal_Reference>
-        <Internal_Reference>
-            <lid_reference>$MOSAIC_BKG_SUB_LID$</lid_reference>
-            <reference_type>ancillary_to_data</reference_type>
-            <comment>
-Comment here. XXX
-	        </comment>
-        </Internal_Reference>
-        <Internal_Reference>
             <lid_reference>$USERGUIDE_LID$</lid_reference>
-            <reference_type>ancillary_to_document</reference_type>
-            <comment>Detailed User's Guide</comment>
+            <reference_type>data_to_document</reference_type>
+            <comment>
+$USERGUIDE_COMMENT$
+            </comment>
         </Internal_Reference>
         <Internal_Reference>
             <lid_reference>urn:nasa:pds:cassini_iss_saturn:document:iss-data-user-guide</lid_reference>
-            <reference_type>ancillary_to_document</reference_type>
-            <comment>The ISS Data User's Guide</comment> <!-- Needs DOI -->
+            <reference_type>data_to_document</reference_type>
+            <comment>The ISS Data User's Guide</comment>
+            <!-- Put DOI in -->
+        </Internal_Reference>
+        <Internal_Reference>
+            <lid_reference>$REPROJ_LID$</lid_reference>
+            <reference_type>ancillary_to_data</reference_type>
+            <comment>
+The reproject image.
+	        </comment>
         </Internal_Reference>
     </Reference_List>
-
     <File_Area_Ancillary>
         <!--Metadata, six columns:
 	     Co-rotating longitude, Mid-time SPICE ET, Inertial longitude, Resolution, Phase angle, Emission angle -->
