@@ -3,3 +3,5 @@ __pycache__
 *-checkpoint.ipynb
 *.png
 plots*
+bundle/
+logs/

@@ -33,13 +33,6 @@ $REPROJ_BROWSE_DESCRIPTION$
     </Identification_Area>
     <Reference_List>
         <Internal_Reference>
-            <lid_reference>$REPROJ_LID$</lid_reference>
-            <reference_type>browse_to_data</reference_type>
-        </Internal_Reference>
-    </Reference_List>
-
-    <Reference_List>
-        <Internal_Reference>
             <lid_reference>$USERGUIDE_LID$</lid_reference>
             <reference_type>data_to_document</reference_type>
             <comment>

@@ -120,10 +120,10 @@ $MOSAIC_METADATA_COMMENT$
         <Discipline_Area>
             <rings:Ring_Moon_Systems>
                 <rings:Ring_Reprojection>
-                    <!-- <Local_Internal_Reference>
+                    <Local_Internal_Reference>
                         <local_identifier_reference>image</local_identifier_reference>
                         <local_reference_type>reprojection_to_array</local_reference_type>
-                    </Local_Internal_Reference> -->
+                    </Local_Internal_Reference>
                     <rings:Reprojection_Geometry>
                         <local_identifier>reproj_geom</local_identifier>
                         <rings:description>
@@ -136,19 +136,16 @@ $MOSAIC_METADATA_RINGS:DESCRIPTION$
                         <rings:mean_phase_angle unit="deg">$MEAN_PHASE_ANGLE$</rings:mean_phase_angle>
                         <rings:minimum_phase_angle unit="deg">$MIN_PHASE_ANGLE$</rings:minimum_phase_angle>
                         <rings:maximum_phase_angle unit="deg">$MAX_PHASE_ANGLE$</rings:maximum_phase_angle>
-                        <!-- The following are additional attributes that need to included in the updated rings dictionary -->
-                        <rings:mean_incidence_angle>$INCIDENCE_ANGLE$</rings:mean_incidence_angle>
-                        <!-- Incidence angle additional attributes that need to included in this class (already in rings dictionary) -->
                         <rings:minimum_incidence_angle>$INCIDENCE_ANGLE$</rings:minimum_incidence_angle>
                         <rings:maximum_incidence_angle>$INCIDENCE_ANGLE$</rings:maximum_incidence_angle>
-                        <rings:mean_observed_ring_elevation unit="deg">$MEAN_OBS_RING_ELEV$</rings:mean_observed_ring_elevation>
                         <rings:minimum_observed_ring_elevation unit="deg">$MIN_OBS_RING_ELEV$</rings:minimum_observed_ring_elevation>
                         <rings:maximum_observed_ring_elevation unit="deg">$MAX_OBS_RING_ELEV$</rings:maximum_observed_ring_elevation>
                         <rings:minimum_ring_radius unit="km">$MIN_RING_RADIUS$</rings:minimum_ring_radius>
                         <rings:maximum_ring_radius unit="km">$MAX_RING_RADIUS$</rings:maximum_ring_radius>
-                        <!--<rings:minimum_ring_longitude unit="deg">$MIN_RING_INERTIAL_LONG$</rings:minimum_ring_longitude>--> <!--  MJTM: update. Inertial longitude -->
-                        <!--<rings:maximum_ring_longitude unit="deg">$MAX_RING_INERTIAL_LONG$</rings:maximum_ring_longitude> --> <!--  MJTM: update. Inertial longitude -->
-                        <!-- Inertial longitude. This will be deprecated -->
+                        <rings:minimum_inertial_ring_longitude unit="deg">$MIN_RING_INERTIAL_LONG$</rings:minimum_inertial_ring_longitude> <!-- mjtm: "inertial" comes before "ring_longitude" in rings dictionary defn -->
+                        <rings:maximum_inertial_ring_longitude unit="deg">$MAX_RING_INERTIAL_LONG$</rings:maximum_inertial_ring_longitude> <!-- mjtm: "inertial" comes before "ring_longitude" in rings dictionary defn -->
+            			<rings:minimum_corotating_ring_longitude unit="deg">$MIN_RING_COROTATING_LONG$</rings:minimum_corotating_ring_longitude> <!-- mjtm: include this? -->
+                        <rings:maximum_corotating_ring_longitude unit="deg">$MAX_RING_COROTATING_LONG$</rings:maximum_corotating_ring_longitude> <!-- mjtm: include this? -->
                         <!-- The following are additional attributes that need to included in the updated rings dictionary -->
                         <!-- <rings:reprojection_grid_parameters> -->
                         <!-- Check Cart, may already exist? -->
@@ -203,7 +200,7 @@ $MOSAIC_REFERENCE_COMMENT$
             <description>Source Image Index, LIDVID</description>
         </Header>
         <Table_Character>
-            <offset unit="byte">23</offset> <!--This should match <Header>.<object_length> -->
+            <offset unit="byte">26</offset>
             <records>$NUM_IMAGES$</records>
             <description>Source image indices and associated LIDVIDs</description>
             <record_delimiter>Line-Feed</record_delimiter>
@@ -217,7 +214,6 @@ $MOSAIC_REFERENCE_COMMENT$
                     <field_location unit="byte">1</field_location>
                     <data_type>ASCII_NonNegative_Integer</data_type>
                     <field_length unit="byte">4</field_length>
-                    <unit>none</unit> <!-- I think could simply delete this, if no units? -->
                     <description>The index number specific to this mosaic for the source image.
 		              A source image can appear in multiple mosaics and therefore will be referenced by different index numbers.
 	                </description>
@@ -225,10 +221,9 @@ $MOSAIC_REFERENCE_COMMENT$
                 <Field_Character>
                     <name>LIDVID</name>
                     <field_number>2</field_number>
-                    <field_location unit="byte">10</field_location>
-                    <data_type>ASCII_Real</data_type> <!-- XXX What should this be? String of some kind -->
-                    <field_length unit="byte">59</field_length> <!-- MJTM: update -->
-                    <unit>none</unit>  <!-- I think I could simply delete this, if no units? -->
+                    <field_location unit="byte">7</field_location>
+                    <data_type>ASCII_LIDVID</data_type>
+                    <field_length unit="byte">59</field_length>
                     <description>LIDVID for the source image.</description>
                 </Field_Character>
             </Record_Character>
@@ -252,7 +247,7 @@ $MOSAIC_REFERENCE_COMMENT$
         </Header>
         <!-- Metadata table. Fixed width, with <comma><whitespace> field separators -->
         <Table_Character>
-            <offset unit="byte">121</offset> <!-- MJTM update: This should match <Header>.<object_length> -->
+            <offset unit="byte">113</offset>
             <records>$NUM_VALID_LONGITUDES$</records>
             <description>
 Description here XXX

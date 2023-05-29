@@ -3,7 +3,6 @@
 ##########################################################################################
 
 import argparse
-import csv
 from datetime import datetime
 import hashlib
 import logging
@@ -14,7 +13,6 @@ import sys
 import textwrap
 import traceback
 
-import matplotlib.pyplot as plt
 import msgpack
 import msgpack_numpy
 import numpy as np
@@ -33,23 +31,30 @@ import f_ring_util.f_ring as f_ring
 #   bundle.xml                                      [RMS]
 #   readme.txt                                      [RF writes]
 #   browse_mosaic/
+#     collection_browse_mosaic.csv                 +[generated: [P|S], LIDVID]
+#     collection_browse_mosaic.xml                  [RMS]
 #     OBSID/
-#       collection_browse_mosaic.csv               +[generated: [P|S], LIDVID]
-#       collection_browse_mosaic.xml                [RMS]
 #       OBSID_browse_mosaic_full.png               +[generated]
 #       OBSID_browse_mosaic_med.png                +[generated]
 #       OBSID_browse_mosaic_small.png              +[generated]
 #       OBSID_browse_mosaic_thumb.png              +[generated]
-#       OBSID_browse_mosaic.xml                    +[template browse-image.xml]
+#       OBSID_browse_mosaic.xml                    +[template mosaic-browse-image.xml]
 #   browse_mosaic_bkg_sub/
+#     collection_browse_mosaic_bkg_sub.csv         +[generated: [P|S], LIDVID]
+#     collection_browse_mosaic_bkg_sub.xml          [RMS]
 #     OBSID/
-#       collection_browse_mosaic_bkg_sub.csv       +[generated: [P|S], LIDVID]
-#       collection_browse_mosaic_bkg_sub.xml        [RMS]
 #       OBSID_browse_mosaic_bkg_sub_full.png       +[generated]
 #       OBSID_browse_mosaic_bkg_sub_med.png        +[generated]
 #       OBSID_browse_mosaic_bkg_sub_small.png      +[generated]
 #       OBSID_browse_mosaic_bkg_sub_thumb.png      +[generated]
-#       OBSID_browse_mosaic_bkg_sub.xml            +[template browse-image.xml]
+#       OBSID_browse_mosaic_bkg_sub.xml            +[template mosaic-browse-image.xml]
+#   browse_reproj_img/
+#     collection_browse_reproj_img.csv             +[generated: [P|S], LIDVID]
+#     collection_browse_reproj_img.xml              [RMS]
+#     OBSID/
+#       IMG_browse_reproj_img_full.png             +[generated]
+#       IMG_browse_reproj_img_thumb.png            +[generated]
+#       IMG_browse_reproj_img.xml                  +[template reproj-browse-image.xml]
 #   context/
 #     [written by RMS]
 #   data_mosaic/
@@ -71,8 +76,8 @@ import f_ring_util.f_ring as f_ring
 #       OBSID_mosaic_bkg_sub_metadata_params.tab   +[generated]
 #       OBSID_mosaic_bkg_sub_metadata.xml          +[template mosaic-metadata.xml]
 #   data_reproj_img/
-#     collection_data_reproj_imgs.csv              +[generated: [P|S], LIDVID]
-#     collection_data_reproj_imgs.xml               [RMS]
+#     collection_data_reproj_img.csv               +[generated: [P|S], LIDVID]
+#     collection_data_reproj_img.xml                [RMS]
 #     OBSID/
 #       IMG_reproj_img.img                         +[generated]
 #       IMG_reproj_img.xml                         +[template reproj-img.xml]
@@ -85,6 +90,17 @@ import f_ring_util.f_ring as f_ring
 #     document-01.xml                               [RMS]
 #   xml_schema/
 #     [writted by RMS]                              [RMS]
+#
+# Internal_Reference:
+#   Mosaic: Mosaic Metadata, Mosaic Browse, BSMosaic
+#   Mosaic Metadata: Mosaic
+#   Mosaic Browse: Mosaic
+#   BSMosaic: BSMosaic Metadata, BSMosaic Browse, Mosaic
+#   BSMosaic Metadata: BSMosaic
+#   BSMosaic Browse: BSMosaic
+#   Reproj Image: Reproj Image Metadata, Reproj Image Browse, Mosaic, BSMosaic
+#   Reproj Image Metadata: Reproj Image
+#   Reproj Image Browse: Reproj Image
 
 
 ##########################################################################################
@@ -489,6 +505,8 @@ def read_mosaic(data_path, metadata_path, *, bkg_sub=False, read_img=True):
         if bkg_sub:
             with np.load(data_path) as npz:
                 metadata['img'] = ma.MaskedArray(**npz)
+                # The background image mask shows the "bad pixels"
+                metadata['img'].mask = False
         else:
             metadata['img'] = ma.MaskedArray(np.load(data_path))
 
@@ -825,12 +843,16 @@ def xml_metadata_for_image(obsid, metadata, img_type):
         ret['MOSAIC_OTHER_REFERENCE_COMMENT'] = ('The original mosaic without the '
                                                  'background subtracted.')
         ret['MOSAIC_REFERENCE_COMMENT'] = 'The mosaic with the background subtracted.'
+        ret['MOSAIC_BROWSE_COMMENT'] = ('Browse images of the background-subtracted '
+                                        'mosaic in multiple sizes in PNG format.')
     else:
         ret['MOSAIC_OTHER_LID'] = ret['MOSAIC_BKG_SUB_LID']
         ret['MOSAIC_REFERENCE_COMMENT'] = ('The original mosaic without the '
                                             'background subtracted.')
         ret['MOSAIC_OTHER_REFERENCE_COMMENT'] = ('The mosaic with the background '
                                                  'subtracted.')
+        ret['MOSAIC_BROWSE_COMMENT'] = ('Browse images of the mosaic in multiple '
+                                        'sizes in PNG format.')
 
 
     if img_type == 'r':
@@ -839,11 +861,11 @@ def xml_metadata_for_image(obsid, metadata, img_type):
         ret['REPROJ_METADATA_LID'] = image_name_to_reproj_lid(image_name)
         ret['REPROJ_TITLE'] = wrap(f"""
 Reprojected version of Cassini ISS calibrated image {image_name} from
-observation {obsid} spanning {start_date} to {stop_date}
+observation {root_obsid} taken at {start_date}
 """)
         ret['REPROJ_METADATA_TITLE'] = wrap(f"""
 Metadata for the reprojected version of Cassini ISS calibrated image
-{image_name} from observation {root_obsid} spanning {start_date} to {stop_date}
+{image_name} from observation {root_obsid} taken at {start_date}
 """)
         ret['REPROJ_LID'] = image_name_to_reproj_lid(image_name)
         ret['REPROJ_BROWSE_LID'] = image_name_to_reproj_browse_lid(image_name)
@@ -857,8 +879,8 @@ Cassini ISS image {image_name} taken at {start_date}. In this image, Cassini
 observed an area of space covering {diff_inertial:.2f} degrees of inertial
 longitude from {min_inertial:.2f} to {max_inertial:.2f}. The source image was
 calibrated using CISSCAL 4.0 and the data values are in units of I/F. The
-mosaics, in the data_mosaics and data_mosaics_bkg_sub collections, were
-generated by stitching together reprojected, calibrated images such as this.
+mosaics, in the data_mosaic and data_mosaic_bkg_sub collections, were generated
+by stitching together reprojected, calibrated images such as this.
 
 The reprojection takes the image space and reprojects it onto a regular
 radius/longitude grid, where the longitude (sampled at 0.02 degrees) is
@@ -886,10 +908,9 @@ longitude,...etc XXX
 
         ret['REPROJ_METADATA_DESCRIPTION'] = ret['REPROJ_METADATA_TITLE']
         ret['REPROJ_METADATA_COMMENT'] = wrap(f"""
-Two files containing metadata for the mosaics created from reprojected
-Cassini ISS calibrated images from {obsid}, {start_date} to {stop_date}:
-1) Indices and LIDs of source images
-2) Metadata parameters per corotating longitude
+One file containing metadata parameters per corotating longitude for the
+reprojected version of the Cassini ISS calibrated image {image_name} from
+{root_obsid} taken at {start_date}.
 """)
         ret['REPROJ_METADATA_RINGS:DESCRIPTION'] = ret['REPROJ_METADATA_DESCRIPTION']
 
@@ -1055,12 +1076,16 @@ reprojected Cassini ISS calibrated images from {root_obsid}, {start_date} to
         ret['CAMERA_WN_UC'] = 'W'
         ret['CAMERA_WN_LC'] = 'w'
 
-    # Mosaics are always written out to their full extent even if not all
-    # longitudes are populated.
-    ret['MIN_RING_COROT_LONG'] = '0'
-    ret['MAX_RING_COROT_LONG'] = '360'
-    ret['MIN_RING_INERTIAL_LONG'] = '0'   # XXX Deprecated - not used?
-    ret['MAX_RING_INERTIAL_LONG'] = '360'
+    if img_type == 'r':
+        ret['MIN_RING_COROTATING_LONG'] = f'{min_corot_long:.2f}'
+        ret['MAX_RING_COROTATING_LONG'] = f'{max_corot_long:.2f}'
+    else:
+        # Mosaics are always written out to their full extent even if not all
+        # longitudes are populated.
+        ret['MIN_RING_COROTATING_LONG'] = '0.00'
+        ret['MAX_RING_COROTATING_LONG'] = '360.00'
+    ret['MIN_RING_INERTIAL_LONG'] = f'{min_inertial:.2f}'
+    ret['MAX_RING_INERTIAL_LONG'] = f'{max_inertial:.2f}'
 
     return ret
 
@@ -1422,7 +1447,7 @@ calibrated image {image_name} taken at {start_date}
         xml_metadata['REPROJ_BROWSE_DESCRIPTION'] = wrap(f"""
 These browse images correspond to the reprojected image of Cassini ISS
 calibrated image {image_name}. The reprojected image is in units of I/F. The
-browse images map I/F to 8-bit greyscale and are constrast-stretched for easier
+browse images map I/F to 8-bit greyscale and are contrast-stretched for easier
 viewing, using a blackpoint at the minimum image value, a whitepoint at the
 99.5% maximum image value, and a gamma of 0.5. Browse images are available in
 two sizes: full (equal in size to the reprojected image) and thumb (100x100,
@@ -1445,15 +1470,15 @@ as black.
         xml_metadata['MOSAIC_BROWSE_LID'] = obsid_to_mosaic_browse_lid(obsid,
                                                                        img_type == 'b')
         xml_metadata['MOSAIC_BROWSE_TITLE'] = wrap(f"""
-Browse images for the F Ring mosaic created from reprojected Cassini ISS
-calibrated images from observation {root_obsid} spanning {start_date}
-({min_image_name}) to {stop_date} ({max_image_name})
+Browse images for the {cap_bkg.lower()}F Ring mosaic created from reprojected
+Cassini ISS calibrated images from observation {root_obsid} spanning
+{start_date} ({min_image_name}) to {stop_date} ({max_image_name})
 """)
         xml_metadata['MOSAIC_BROWSE_DESCRIPTION'] = wrap(f"""
 These browse images correspond to the {cap_bkg.lower()}F Ring mosaic created
 from reprojected Cassini ISS calibrated images from observation {root_obsid}.
 The mosaic is in units of I/F. The browse images map I/F to 8-bit greyscale and
-are constrast-stretched for easier viewing, using a blackpoint at the minimum
+are contrast-stretched for easier viewing, using a blackpoint at the minimum
 mosaic value, a whitepoint at the 99.5% maximum mosaic value, and a gamma of
 0.5. Browse images are available in four sizes: full (18000x401), med
 (1800x400), small (400x400), and thumb (100x100). The full longitude range is
@@ -1747,13 +1772,35 @@ if GENERATE_REPROJ_BROWSE_COLLECTIONS:
 
 
 """
-How much cross-referencing for internal_reference?
-
 Full Cassini image info for reproj image metadata?
 
 SPICE kernel and navigation info for reproj image?
 
-Handle OBSID_1 _2 etc
+Mosaic metadata_src_imgs is using data_calibrated.
 
-Bkg-sub browse images are removing all bad pixels
+Fix up intertial and co-rotating longitude limits
+
+File creation date should really be the creation date of the file, not NOW
+
+corotating or co-rotating?
+
+How do we wrap and indent?
+			<rings:description> <!-- mjtm: indentation and wrapping-->
+Metadata for F Ring mosaics of reprojected Cassini ISS calibrated images from observation ISS_039RF_FMOVIE001_VIMS, 2007-02-27T07:18:39Z to 2007-02-27T22:58:23Z
+			</rings:description>
+
+But mean phase angle is?
+			<rings:minimum_observed_ring_elevation unit="deg">143.665878</rings:minimum_observed_ring_elevation> <!--mjtm: I opted to remove mean_observed_ring_elevation as not useful, also not present in Rings dictionary-->
+And why isn't mean incidence angle?
+
+Add Cassini ISS User's Manual DOI <!--mjtm DOI: 10.17189/1504135 -->
+
+Should this offset include the NEWLINE?
+<offset unit="byte">26</offset> <!--mjtm: This should match <Header>.<object_length> -->
+
+Is IEEE754LSBSingle the correct data type?
+
+<!--mjtm: the data_type above is single precision float, so the missing_constant needs to have appropriate number of decimal places -->
+What is the number of decimal places for a float?
+
 """

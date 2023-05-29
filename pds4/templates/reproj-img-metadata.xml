@@ -121,10 +121,10 @@ $REPROJ_METADATA_COMMENT$
         <Discipline_Area>
             <rings:Ring_Moon_Systems>
                 <rings:Ring_Reprojection>
-                    <!-- <Local_Internal_Reference>
+                    <Local_Internal_Reference>
                         <local_identifier_reference>image</local_identifier_reference>
                         <local_reference_type>reprojection_to_array</local_reference_type>
-                    </Local_Internal_Reference> -->
+                    </Local_Internal_Reference>
                     <rings:Reprojection_Geometry>
                         <local_identifier>reproj_geom</local_identifier>
                         <rings:description>
@@ -137,19 +137,16 @@ $REPROJ_METADATA_RINGS:DESCRIPTION$
                         <rings:mean_phase_angle unit="deg">$MEAN_PHASE_ANGLE$</rings:mean_phase_angle>
                         <rings:minimum_phase_angle unit="deg">$MIN_PHASE_ANGLE$</rings:minimum_phase_angle>
                         <rings:maximum_phase_angle unit="deg">$MAX_PHASE_ANGLE$</rings:maximum_phase_angle>
-                        <!-- The following are additional attributes that need to included in the updated rings dictionary -->
-                        <rings:mean_incidence_angle>$INCIDENCE_ANGLE$</rings:mean_incidence_angle>
-                        <!-- Incidence angle additional attributes that need to included in this class (already in rings dictionary) -->
                         <rings:minimum_incidence_angle>$INCIDENCE_ANGLE$</rings:minimum_incidence_angle>
                         <rings:maximum_incidence_angle>$INCIDENCE_ANGLE$</rings:maximum_incidence_angle>
-                        <rings:mean_observed_ring_elevation unit="deg">$MEAN_OBS_RING_ELEV$</rings:mean_observed_ring_elevation>
                         <rings:minimum_observed_ring_elevation unit="deg">$MIN_OBS_RING_ELEV$</rings:minimum_observed_ring_elevation>
                         <rings:maximum_observed_ring_elevation unit="deg">$MAX_OBS_RING_ELEV$</rings:maximum_observed_ring_elevation>
                         <rings:minimum_ring_radius unit="km">$MIN_RING_RADIUS$</rings:minimum_ring_radius>
                         <rings:maximum_ring_radius unit="km">$MAX_RING_RADIUS$</rings:maximum_ring_radius>
-                        <!--<rings:minimum_ring_longitude unit="deg">$MIN_RING_INERTIAL_LONG$</rings:minimum_ring_longitude>--> <!--  MJTM: update. Inertial longitude -->
-                        <!--<rings:maximum_ring_longitude unit="deg">$MAX_RING_INERTIAL_LONG$</rings:maximum_ring_longitude> --> <!--  MJTM: update. Inertial longitude -->
-                        <!-- Inertial longitude. This will be deprecated -->
+                        <rings:minimum_inertial_ring_longitude unit="deg">$MIN_RING_INERTIAL_LONG$</rings:minimum_inertial_ring_longitude> <!-- mjtm: "inertial" comes before "ring_longitude" in rings dictionary defn -->
+                        <rings:maximum_inertial_ring_longitude unit="deg">$MAX_RING_INERTIAL_LONG$</rings:maximum_inertial_ring_longitude> <!-- mjtm: "inertial" comes before "ring_longitude" in rings dictionary defn -->
+            			<rings:minimum_corotating_ring_longitude unit="deg">$MIN_RING_COROTATING_LONG$</rings:minimum_corotating_ring_longitude> <!-- mjtm: include this? -->
+                        <rings:maximum_corotating_ring_longitude unit="deg">$MAX_RING_COROTATING_LONG$</rings:maximum_corotating_ring_longitude> <!-- mjtm: include this? -->
                         <!-- The following are additional attributes that need to included in the updated rings dictionary -->
                         <!-- <rings:reprojection_grid_parameters> -->
                         <!-- Check Cart, may already exist? -->
@@ -182,7 +179,7 @@ $USERGUIDE_COMMENT$
             <lid_reference>$REPROJ_LID$</lid_reference>
             <reference_type>ancillary_to_data</reference_type>
             <comment>
-The reproject image.
+The reprojected image.
 	        </comment>
         </Internal_Reference>
     </Reference_List>
@@ -204,7 +201,7 @@ The reproject image.
         </Header>
         <!-- Metadata table. Fixed width, with <comma><whitespace> field separators -->
         <Table_Character>
-            <offset unit="byte">81</offset> <!-- MJTM update: This should match <Header>.<object_length> -->
+            <offset unit="byte">81</offset>
             <records>$NUM_VALID_LONGITUDES$</records>
             <description>
 Description here. XXX
