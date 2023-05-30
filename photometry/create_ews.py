@@ -24,6 +24,9 @@ import sys
 import traceback
 import warnings
 
+import msgpack
+import msgpack_numpy
+
 import matplotlib.pyplot as plt
 import numpy as np
 import numpy.ma as ma
@@ -344,7 +347,9 @@ for obs_id in f_ring.enumerate_obsids(arguments):
         continue
 
     with open(bkgnd_sub_mosaic_metadata_filename, 'rb') as bkgnd_metadata_fp:
-        metadata = pickle.load(bkgnd_metadata_fp, encoding='latin1')
+        metadata = msgpack.unpackb(bkgnd_metadata_fp.read(),
+                                   max_str_len=40*1024*1024,
+                                   object_hook=msgpack_numpy.decode)
     with np.load(bkgnd_sub_mosaic_filename) as npz:
         bsm_img = ma.MaskedArray(**npz)
         bsm_img = ma.masked_equal(bsm_img, -999)
@@ -352,12 +357,12 @@ for obs_id in f_ring.enumerate_obsids(arguments):
     ds = arguments.downsample
 
     longitudes = metadata['longitudes'][::ds].view(ma.MaskedArray)
-    resolutions = metadata['resolutions'][::ds]
-    image_numbers = metadata['image_numbers'][::ds]
-    ETs = metadata['ETs'][::ds]
-    emission_angles = metadata['emission_angles'][::ds]
-    incidence_angle = metadata['incidence_angle']
-    phase_angles = metadata['phase_angles'][::ds]
+    resolutions = metadata['mean_resolution'][::ds]
+    image_numbers = metadata['image_number'][::ds]
+    ETs = metadata['time'][::ds]
+    emission_angles = metadata['mean_emission'][::ds]
+    incidence_angle = metadata['mean_incidence']
+    phase_angles = metadata['mean_phase'][::ds]
     inertial_longitudes = f_ring.fring_corotating_to_inertial(longitudes, ETs)
     longitude_of_pericenters = f_ring.fring_longitude_of_pericenter(ETs)
     true_anomalies = f_ring.fring_true_anomaly(ETs, inertial_longitudes)
