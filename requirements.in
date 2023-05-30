@@ -6,6 +6,9 @@ ipython
 jupyter
 
 matplotlib
+mplcursors
 plotly
 dash
 jupyter-dash
+
+pip-tools

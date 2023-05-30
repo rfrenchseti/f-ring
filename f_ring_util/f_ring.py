@@ -10,17 +10,6 @@ import scipy.optimize as sciopt
 import julian
 
 
-RING_TYPE = 'FMOVIE'
-DATA_ROOT = os.path.abspath(os.environ.get('FRING_DATA_ROOT'))
-MOSAIC_DIR = os.path.join(DATA_ROOT, f'mosaic_{RING_TYPE}')
-BKGND_DIR = os.path.join(DATA_ROOT, f'bkgnd_{RING_TYPE}')
-BKGND_SUB_MOSAIC_DIR = os.path.join(DATA_ROOT, f'bkgnd_sub_mosaic_{RING_TYPE}')
-REPRO_DIR = os.path.join(DATA_ROOT, 'ring_repro')
-
-
-TWOPI = np.pi*2
-
-
 # Mosaic metadata is a dictionary with the following keys:
 #   ring_lower_limit        An integer indicating the lowest radial index in the
 #                           mosaic that is part of the image and not the
@@ -147,7 +136,7 @@ def get_root_list(dir):
     for dirpath, dirnames, filenames in os.walk(dir):
         for filename in sorted(filenames):
             if filename.endswith('.npy') and filename.find('WIDTH') == -1:
-                root_list.append(os.path.join(dir, filename.replace('.npy', '')))
+                root_list.append(file_clean_join(dir, filename.replace('.npy', '')))
     root_list.sort()
     return root_list
 
@@ -378,19 +367,19 @@ def clumpdb_paths(options):
                     options.core_radius_start,
                     options.core_radius_end))
     assert False
-    # cl_data_filename = os.path.join(ROOT, 'clump-data',
+    # cl_data_filename = file_clean_join(ROOT, 'clump-data',
     #                                 'clumpdb'+cl_res_data+'.pickle')
-    # cc_data_filename = os.path.join(ROOT, 'clump-data',
+    # cc_data_filename = file_clean_join(ROOT, 'clump-data',
     #                                  'clumpchains'+cl_res_data+'.pickle')
     # if options.voyager:
-    #     cl_data_filename = os.path.join(ROOT, 'clump-data',
+    #     cl_data_filename = file_clean_join(ROOT, 'clump-data',
     #                                     'voyager_clumpdb'+cl_res_data+'.pickle')
-    #     cc_data_filename = os.path.join(ROOT, 'clump-data',
+    #     cc_data_filename = file_clean_join(ROOT, 'clump-data',
     #                                     'voyager_clumpchains'+cl_res_data+'.pickle')
     # if options.downsample:
-    #     cl_data_filename = os.path.join(ROOT, 'clump-data',
+    #     cl_data_filename = file_clean_join(ROOT, 'clump-data',
     #                                     'downsampled_clumpdb'+cl_res_data+'.pickle')
-    #     cc_data_filename = os.path.join(ROOT, 'clump-data',
+    #     cc_data_filename = file_clean_join(ROOT, 'clump-data',
     #                                     'downsampled_clumpchains'+cl_res_data+'.pickle')
     # return cl_data_filename, cc_data_filename
 
@@ -882,3 +871,15 @@ def limit_by_quant(obsdata, cutoff1, cutoff2, col='Normal EW Mean'):
     obsdata['_control'] = xform
     obsdata.dropna(inplace=True)
     return obsdata
+
+################################################################################
+
+RING_TYPE = 'FMOVIE'
+DATA_ROOT = os.path.abspath(os.environ.get('FRING_DATA_ROOT'))
+MOSAIC_DIR = file_clean_join(DATA_ROOT, f'mosaic_{RING_TYPE}')
+BKGND_DIR = file_clean_join(DATA_ROOT, f'bkgnd_{RING_TYPE}')
+BKGND_SUB_MOSAIC_DIR = file_clean_join(DATA_ROOT, f'bkgnd_sub_mosaic_{RING_TYPE}')
+REPRO_DIR = file_clean_join(DATA_ROOT, 'ring_repro')
+
+
+TWOPI = np.pi*2

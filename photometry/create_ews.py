@@ -28,6 +28,10 @@ import matplotlib.pyplot as plt
 import numpy as np
 import numpy.ma as ma
 
+parent_dir = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
+sys.path.append(parent_dir)
+sys.path.append(os.path.join(parent_dir, 'external'))
+
 import f_ring_util.f_ring as f_ring
 
 
