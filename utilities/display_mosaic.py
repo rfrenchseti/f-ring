@@ -7,11 +7,18 @@ import pickle
 import subprocess
 import sys
 
+import msgpack
+import msgpack_numpy
+
 import matplotlib.pyplot as plt
 from tkinter import *
 from PIL import Image
-from imgdisp import ImageDisp
 
+parent_dir = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
+sys.path.append(parent_dir)
+sys.path.append(os.path.join(parent_dir, 'external'))
+
+from imgdisp import ImageDisp
 import julian
 
 import f_ring_util.f_ring as f_ring
@@ -53,12 +60,12 @@ def update_mosaicdata(mosaicdata, metadata):
     mosaicdata.radius_resolution = metadata['radius_resolution']
     mosaicdata.longitude_resolution = metadata['longitude_resolution']
     mosaicdata.long_mask = metadata['long_mask']
-    mosaicdata.image_numbers = metadata['image_numbers']
-    mosaicdata.ETs = metadata['ETs']
-    mosaicdata.emission_angles = metadata['emission_angles']
-    mosaicdata.incidence_angle = metadata['incidence_angle']
-    mosaicdata.phase_angles = metadata['phase_angles']
-    mosaicdata.resolutions = metadata['resolutions']
+    mosaicdata.image_numbers = metadata['image_number']
+    mosaicdata.ETs = metadata['time']
+    mosaicdata.emission_angles = metadata['mean_emission']
+    mosaicdata.incidence_angle = metadata['mean_incidence']
+    mosaicdata.phase_angles = metadata['mean_phase']
+    mosaicdata.resolutions = metadata['mean_resolution']
     mosaicdata.longitudes = metadata['longitudes']
     mosaicdata.obsid_list = metadata['obsid_list']
     mosaicdata.image_name_list = metadata['image_name_list']
@@ -122,6 +129,8 @@ def setup_mosaic_window(mosaicdata, mosaicdispdata):
 
     mask_overlay = np.zeros((mosaicdata.img.shape[0], mosaicdata.img.shape[1], 3))
     mask_overlay[ma.getmaskarray(mosaicdata.img), 0] = 1
+    unmasked_data = mosaicdata.img.copy()
+    unmasked_data[ma.getmaskarray(mosaicdata.img)] = 0
 
     if arguments.show_radii:
         for radius_str in arguments.show_radii.split(','):
@@ -131,7 +140,7 @@ def setup_mosaic_window(mosaicdata, mosaicdispdata):
             mask_overlay[radius_pix, :, 1] = 1
 
 
-    mosaicdispdata.imdisp = ImageDisp([mosaicdata.img.data],
+    mosaicdispdata.imdisp = ImageDisp([unmasked_data],
                                       overlay_list=[mask_overlay],
                                       canvas_size=(1500,401),
                                       parent=frame_toplevel, flip_y=True,
@@ -425,7 +434,11 @@ for obs_id in f_ring.enumerate_obsids(arguments):
     mosaicdata.obsid = obs_id
     with np.load(data_path) as npz:
         mosaicdata.img = ma.MaskedArray(**npz)
+        mosaicdata.img.mask = False
+        mosaicdata.img = ma.masked_equal(mosaicdata.img, -999)
     with open(metadata_path, 'rb') as metadata_fp:
-        metadata = pickle.load(metadata_fp, encoding='latin1')
+        metadata = msgpack.unpackb(metadata_fp.read(),
+                                   max_str_len=40*1024*1024,
+                                   object_hook=msgpack_numpy.decode)
     update_mosaicdata(mosaicdata, metadata)
     display_mosaic(mosaicdata, mosaicdispdata)

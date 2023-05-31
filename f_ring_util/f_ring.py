@@ -2,6 +2,7 @@ import matplotlib.pyplot as plt
 import mplcursors
 import os
 import pickle
+import sys
 
 import numpy as np
 import pandas as pd
@@ -875,7 +876,11 @@ def limit_by_quant(obsdata, cutoff1, cutoff2, col='Normal EW Mean'):
 ################################################################################
 
 RING_TYPE = 'FMOVIE'
-DATA_ROOT = os.path.abspath(os.environ.get('FRING_DATA_ROOT'))
+FRING_DATA_ROOT = os.environ.get('FRING_DATA_ROOT')
+if FRING_DATA_ROOT is None:
+    print('Please set the environment variable FRING_DATA_ROOT')
+    sys.exit(-1)
+DATA_ROOT = os.path.abspath(FRING_DATA_ROOT)
 MOSAIC_DIR = file_clean_join(DATA_ROOT, f'mosaic_{RING_TYPE}')
 BKGND_DIR = file_clean_join(DATA_ROOT, f'bkgnd_{RING_TYPE}')
 BKGND_SUB_MOSAIC_DIR = file_clean_join(DATA_ROOT, f'bkgnd_sub_mosaic_{RING_TYPE}')
