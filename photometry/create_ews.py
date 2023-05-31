@@ -268,7 +268,7 @@ csv_fp = None
 if arguments.output_csv_filename:
     assert (arguments.slice_size == 0 or
             360 / arguments.slice_size == int(360 / arguments.slice_size))
-    csv_fp = open(arguments.output_csv_filename, 'w')
+    csv_fp = open(arguments.output_csv_filename, 'w', newline='')
     writer = csv.writer(csv_fp)
     hdr = ['Observation', 'Slice#', 'Num Data', 'Date',
            'Min Long', 'Max Long', 'Mean Long',

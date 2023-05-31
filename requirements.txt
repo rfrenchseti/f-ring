@@ -183,6 +183,12 @@ mistune==2.0.5
     # via nbconvert
 mplcursors==0.5.2
     # via -r requirements.in
+msgpack==1.0.5
+    # via
+    #   -r requirements.in
+    #   msgpack-numpy
+msgpack-numpy==0.4.8
+    # via -r requirements.in
 nbclassic==1.0.0
     # via notebook
 nbclient==0.8.0
@@ -215,6 +221,7 @@ numpy==1.24.3
     #   -r requirements.in
     #   contourpy
     #   matplotlib
+    #   msgpack-numpy
     #   pandas
     #   scipy
 overrides==7.3.1
