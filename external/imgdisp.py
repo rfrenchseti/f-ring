@@ -575,7 +575,7 @@ class ImageDisp(tk.Frame):
                     if self._whitepoint_ignore_frac == 1.0:
                         themax = img.max()
                     else:
-                        img_sorted = sorted(list(img.flatten()))
+                        img_sorted = np.sort(img.flatten())
                         themax = img_sorted[
                             np.clip(int(len(img_sorted)*
                                         self._whitepoint_ignore_frac[i]),
@@ -607,7 +607,7 @@ class ImageDisp(tk.Frame):
                     if self._whitepoint_ignore_frac == 1.0:
                         imgdata_max_list.append(img.max())
                     else:
-                        img_sorted = sorted(list(img.flatten()))
+                        img_sorted = np.sort(img.flatten())
                         perc_wp = img_sorted[
                             np.clip(int(len(img_sorted)*
                                         self._whitepoint_ignore_frac[i]),

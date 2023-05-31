@@ -3,8 +3,6 @@ import colorsys
 import numpy as np
 import numpy.ma as ma
 import os
-import pickle
-import subprocess
 import sys
 
 import msgpack
@@ -12,7 +10,14 @@ import msgpack_numpy
 
 import matplotlib.pyplot as plt
 from tkinter import *
-from PIL import Image
+
+PROFILE_AVAILABLE = True
+try:
+    import cProfile
+    import io
+    import pstats
+except ImportError:
+    PROFILE_AVAILABLE = False
 
 parent_dir = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 sys.path.append(parent_dir)
@@ -35,6 +40,12 @@ parser = argparse.ArgumentParser()
 parser.add_argument(
     '--show-radii', default='',
     help='Comma-separated list of radii to highlight')
+
+if PROFILE_AVAILABLE:
+    parser.add_argument(
+        '--profile', action='store_true', default=False,
+        help='Profile performance'
+    )
 
 f_ring.add_parser_arguments(parser)
 
@@ -366,6 +377,9 @@ def callback_b1press_mosaic(x, y, mosaicdata):
 
 def display_mosaic(mosaicdata, mosaicdispdata):
     setup_mosaic_window(mosaicdata, mosaicdispdata)
+    if PROFILE_AVAILABLE:
+        if arguments.profile:
+            return
     mainloop()
 
 # The callback for mouse move events on the mosaic image
@@ -428,6 +442,11 @@ def callback_move_mosaic(x, y, mosaicdata):
 #
 ################################################################################
 
+if PROFILE_AVAILABLE:
+    if arguments.profile:
+        profile = cProfile.Profile()
+        profile.enable()
+
 for obs_id in f_ring.enumerate_obsids(arguments):
     mosaicdata = MosaicData()
     data_path, metadata_path = f_ring.bkgnd_sub_mosaic_paths(arguments, obs_id)
@@ -442,3 +461,15 @@ for obs_id in f_ring.enumerate_obsids(arguments):
                                    object_hook=msgpack_numpy.decode)
     update_mosaicdata(mosaicdata, metadata)
     display_mosaic(mosaicdata, mosaicdispdata)
+    if PROFILE_AVAILABLE:
+        if arguments.profile:
+            break
+
+if PROFILE_AVAILABLE:
+    profile.disable()
+    s = io.StringIO()
+    ps = pstats.Stats(profile, stream=s).sort_stats('cumulative')
+    ps.print_stats()
+    ps.print_callers()
+    with open('profile.txt', 'w') as fp:
+        fp.write(s.getvalue())
