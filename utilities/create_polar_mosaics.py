@@ -1,17 +1,19 @@
 import argparse
-import colorsys
 import numpy as np
 import numpy.ma as ma
-import pickle
 import os
 import sys
 
-from imgdisp import ImageDisp, FloatEntry
+import msgpack
+import msgpack_numpy
+
+from imgdisp import ImageDisp
 from PIL import Image
 import matplotlib.pyplot as plt
 
-import msgpack
-import msgpack_numpy
+parent_dir = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
+sys.path.append(parent_dir)
+sys.path.append(os.path.join(parent_dir, 'external'))
 
 import f_ring_util.f_ring as f_ring
 
@@ -26,13 +28,13 @@ parser = argparse.ArgumentParser()
 ##
 ## Options for mosaic creation
 ##
-parser.add_argument('--display-radius-inner', type=float, default=1e38)
-parser.add_argument('--display-radius-outer', type=float, default=1e38)
+parser.add_argument('--display-radius-inner', type=float, default=None)
+parser.add_argument('--display-radius-outer', type=float, default=None)
 parser.add_argument('--radius-polar-base-factor', type=float, default=1.0)
 parser.add_argument('--image-size', type=int, default=1024)
-parser.add_argument('--whitepoint', type=float, default=1e38)
-parser.add_argument('--blackpoint', type=float, default=1e38)
-parser.add_argument('--gamma', type=float, default=1e38)
+parser.add_argument('--whitepoint', type=float, default=None)
+parser.add_argument('--blackpoint', type=float, default=None)
+parser.add_argument('--gamma', type=float, default=None)
 parser.add_argument('--display', action='store_true', default=False)
 
 f_ring.add_parser_arguments(parser)
@@ -49,9 +51,13 @@ def polar_project_mosaic(obsid):
     data_path, metadata_path = f_ring.bkgnd_sub_mosaic_paths(arguments, obsid)
     with np.load(data_path) as npz:
         img = ma.MaskedArray(**npz)
+        img.mask = False
+        img = ma.masked_equal(img, -999)
         img = ma.filled(img, 0)
     with open(metadata_path, 'rb') as metadata_fp:
-        metadata = pickle.load(metadata_fp, encoding='latin1')
+        metadata = msgpack.unpackb(metadata_fp.read(),
+                                   max_str_len=40*1024*1024,
+                                   object_hook=msgpack_numpy.decode)
 
     image_size = arguments.image_size
     radius_polar_base_factor = arguments.radius_polar_base_factor
@@ -63,10 +69,10 @@ def polar_project_mosaic(obsid):
     radius_inner = arguments.ring_radius + arguments.radius_inner_delta
     radius_outer = arguments.ring_radius + arguments.radius_outer_delta
     display_radius_inner = arguments.display_radius_inner
-    if display_radius_inner == 1e38:
+    if display_radius_inner is None:
         display_radius_inner = radius_inner
     display_radius_outer = arguments.display_radius_outer
-    if display_radius_outer == 1e38:
+    if display_radius_outer is None:
         display_radius_outer = radius_outer
 
     display_radius_min = (display_radius_outer -
@@ -103,18 +109,18 @@ def polar_project_mosaic(obsid):
     img_y = img_y[mask]
     polar_img[polar_pixel_y, polar_pixel_x] = img[img_y, img_x]
 
-    if arguments.blackpoint != 1e38:
+    if arguments.blackpoint is not None:
         blackpoint = arguments.blackpoint
     else:
         blackpoint = max(np.min(polar_img), 0)
     whitepoint_ignore_frac = 0.995
-    if arguments.whitepoint != 1e38:
+    if arguments.whitepoint is not None:
         whitepoint = arguments.whitepoint
     else:
-        img_sorted = sorted(list(polar_img.flatten()))
+        img_sorted = np.sort(polar_img, axis=None)
         whitepoint = img_sorted[np.clip(int(len(img_sorted) * whitepoint_ignore_frac),
                                         0, len(img_sorted)-1)]
-    if arguments.gamma != 1e38:
+    if arguments.gamma is not None:
         gamma = arguments.gamma
     else:
         gamma = 0.5

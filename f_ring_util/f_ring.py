@@ -885,6 +885,6 @@ MOSAIC_DIR = file_clean_join(DATA_ROOT, f'mosaic_{RING_TYPE}')
 BKGND_DIR = file_clean_join(DATA_ROOT, f'bkgnd_{RING_TYPE}')
 BKGND_SUB_MOSAIC_DIR = file_clean_join(DATA_ROOT, f'bkgnd_sub_mosaic_{RING_TYPE}')
 REPRO_DIR = file_clean_join(DATA_ROOT, 'ring_repro')
-
+POLAR_PNG_DIR = file_clean_join(DATA_ROOT, f'png_polar_{RING_TYPE}')
 
 TWOPI = np.pi*2
