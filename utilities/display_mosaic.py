@@ -73,11 +73,11 @@ def update_mosaicdata(mosaicdata, metadata):
     mosaicdata.long_mask = metadata['long_mask']
     mosaicdata.image_numbers = metadata['image_number']
     mosaicdata.ETs = metadata['time']
-    mosaicdata.emission_angles = metadata['mean_emission']
-    mosaicdata.incidence_angle = metadata['mean_incidence']
-    mosaicdata.phase_angles = metadata['mean_phase']
+    mosaicdata.emission_angles = np.degrees(metadata['mean_emission'])
+    mosaicdata.incidence_angle = np.degrees(metadata['mean_incidence'])
+    mosaicdata.phase_angles = np.degrees(metadata['mean_phase'])
     mosaicdata.resolutions = metadata['mean_resolution']
-    mosaicdata.longitudes = metadata['longitudes']
+    mosaicdata.longitudes = np.degrees(metadata['longitudes'])
     mosaicdata.obsid_list = metadata['obsid_list']
     mosaicdata.image_name_list = metadata['image_name_list']
     mosaicdata.image_path_list = metadata['image_path_list']
@@ -365,7 +365,7 @@ def callback_b1press_mosaic(x, y, mosaicdata):
                        arguments.ring_radius+arguments.radius_inner_delta)
     ew_mean = np.mean(ew_data)
     ew_std = np.std(ew_data)
-    plt.plot(np.degrees(mosaicdata.longitudes), ew_data,
+    plt.plot(mosaicdata.longitudes, ew_data,
              label=f'{radius_lower:d}-{radius_upper:d}={ew_mean:.2f}\u00b1{ew_std:.2f}')
     plt.xlabel('Longitude (degrees)')
     plt.ylabel('I/F')
@@ -403,17 +403,17 @@ def callback_move_mosaic(x, y, mosaicdata):
         mosaicdispdata.label_ewmu.config(text='')
     else:
         mosaicdispdata.label_inertial_longitude.config(text=
-                    ('%7.3f'%(np.degrees(f_ring.fring_corotating_to_inertial(
+                    ('%7.3f'%(f_ring.fring_corotating_to_inertial(
                                             mosaicdata.longitudes[x],
-                                            mosaicdata.ETs[x])))))
+                                            mosaicdata.ETs[x]))))
         mosaicdispdata.label_longitude.config(text=
-                    ('%7.3f'%(np.degrees(mosaicdata.longitudes[x]))))
+                    ('%7.3f'%(mosaicdata.longitudes[x])))
         mosaicdispdata.label_phase.config(text=
-                    ('%7.3f'%(np.degrees(mosaicdata.phase_angles[x]))))
+                    ('%7.3f'%(mosaicdata.phase_angles[x])))
         mosaicdispdata.label_incidence.config(text=
-                    ('%7.3f'%(np.degrees(mosaicdata.incidence_angle))))
+                    ('%7.3f'%(mosaicdata.incidence_angle)))
         mosaicdispdata.label_emission.config(text=
-                    ('%7.3f'%(np.degrees(mosaicdata.emission_angles[x]))))
+                    ('%7.3f'%(mosaicdata.emission_angles[x])))
         mosaicdispdata.label_resolution.config(text=
                     ('%7.3f'%mosaicdata.resolutions[x]))
         mosaicdispdata.label_image.config(text=
