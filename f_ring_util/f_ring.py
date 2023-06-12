@@ -1,4 +1,10 @@
-import matplotlib.pyplot as plt
+################################################################################
+# f_ring_util/f_ring.py
+#
+# This file contains a variety of general utility functions used for F ring
+# research.
+################################################################################
+
 import mplcursors
 import os
 import pickle
@@ -74,12 +80,21 @@ import julian
 ################################################################################
 
 def utc2et(s):
+    """Convert a date/time in UTC format to SPICE Ephemeris Time."""
     return julian.tdb_from_tai(julian.tai_from_iso(s))
 
+
 def et2utc(et):
+    """Convert a SPICE Ephemeris Time to UTC format."""
     return julian.iso_from_tai(julian.tai_from_tdb(et))
 
+
 def file_clean_join(*args):
+    """Join multiple paths using only / separators.
+
+    We use this to combine paths so that on Windows so don't end up with
+    strings that have backslashes in them.
+    """
     ret = os.path.join(*args)
     return ret.replace('\\', '/')
 
@@ -91,6 +106,7 @@ def file_clean_join(*args):
 ################################################################################
 
 def add_parser_arguments(parser):
+    """Add general mosaic selection arguments to the given ArgumentParser."""
     parser.add_argument(
         'obsid', action='append', nargs='*',
         help='Specific OBSIDs to process')
@@ -129,19 +145,9 @@ def add_parser_arguments(parser):
         help='The amount of longitude zoom for reprojection')
     parser.add_argument('--verbose', action='store_true', default=False)
 
-# Given a directory, this returns a list of all the filenames in that directory
-# that end with ".npy", but with that suffix stripped. We call that
-# stripped filename a "root" filename.
-def get_root_list(dir):
-    root_list = []
-    for dirpath, dirnames, filenames in os.walk(dir):
-        for filename in sorted(filenames):
-            if filename.endswith('.npy') and filename.find('WIDTH') == -1:
-                root_list.append(file_clean_join(dir, filename.replace('.npy', '')))
-    root_list.sort()
-    return root_list
 
 def enumerate_obsids(arguments):
+    """Based on the given command line argument, yield a list of obsids."""
     data_path, _ = bkgnd_sub_mosaic_paths(arguments, '', make_dirs=False)
     bp = data_path.replace(BKGND_SUB_MOSAIC_DIR+'/', '')
     for _, _, filenames in os.walk(BKGND_SUB_MOSAIC_DIR):
@@ -167,18 +173,21 @@ def enumerate_obsids(arguments):
 #
 ################################################################################
 
-# Mosaic and mosaic metata
+def mosaic_paths(arguments, obsid, make_dirs=False):
+    """"Return paths for mosaic data and mosaic metadata.
 
-def mosaic_paths_spec(ring_radius, radius_inner, radius_outer,
-                      radius_resolution, longitude_resolution,
-                      radial_zoom_amount, longitude_zoom_amount,
-                      obsid, ring_type, make_dirs=False):
+    There are found in MOSAIC_DIR and have the extensions -MOSAIC.npy
+    and -MOSAIC-METADATA.dat, respectively."""
     mosaic_res_data = ('_%06d_%06d_%06d_%06.3f_%05.3f_%d_%d' % (
-                       ring_radius, radius_inner, radius_outer,
-                       radius_resolution, longitude_resolution,
-                       radial_zoom_amount, longitude_zoom_amount))
-    if make_dirs and not os.path.exists(MOSAIC_DIR):
-        os.mkdir(MOSAIC_DIR)
+                       arguments.ring_radius,
+                       arguments.radius_inner_delta,
+                       arguments.radius_outer_delta,
+                       arguments.radius_resolution,
+                       arguments.longitude_resolution,
+                       arguments.radial_zoom_amount,
+                       arguments.longitude_zoom_amount))
+    if make_dirs:
+        os.makedirs(MOSAIC_DIR, exist_ok=True)
     data_path = file_clean_join(MOSAIC_DIR,
                                 obsid+mosaic_res_data+'-MOSAIC.npy')
     metadata_path = file_clean_join(
@@ -187,29 +196,22 @@ def mosaic_paths_spec(ring_radius, radius_inner, radius_outer,
 
     return (data_path, metadata_path)
 
-def mosaic_paths(arguments, obsid, make_dirs=False):
-    return mosaic_paths_spec(arguments.ring_radius,
-                             arguments.radius_inner_delta,
-                             arguments.radius_outer_delta,
-                             arguments.radius_resolution,
-                             arguments.longitude_resolution,
-                             arguments.radial_zoom_amount,
-                             arguments.longitude_zoom_amount,
-                             obsid, arguments.ring_type,
-                             make_dirs=make_dirs)
 
-# Background model and background model metadata
+def bkgnd_paths(arguments, obsid, make_dirs=False):
+    """"Return paths for background model and background model metadata.
 
-def bkgnd_paths_spec(ring_radius, radius_inner, radius_outer,
-                     radius_resolution, longitude_resolution,
-                     radial_zoom_amount, longitude_zoom_amount,
-                     obsid, ring_type, make_dirs=False):
+    There are found in BKGND_DIR and have the extensions -BKGND-MODEL.npz
+    and -BKGND-METADATA.dat, respectively."""
     bkgnd_res_data = ('_%06d_%06d_%06d_%06.3f_%05.3f_%d_%d_1' % (
-                      ring_radius, radius_inner, radius_outer,
-                      radius_resolution, longitude_resolution,
-                      radial_zoom_amount, longitude_zoom_amount))
-    if make_dirs and not os.path.exists(BKGND_DIR):
-        os.mkdir(BKGND_DIR)
+                      arguments.ring_radius,
+                      arguments.radius_inner_delta,
+                      arguments.radius_outer_delta,
+                      arguments.radius_resolution,
+                      arguments.longitude_resolution,
+                      arguments.radial_zoom_amount,
+                      arguments.longitude_zoom_amount))
+    if make_dirs:
+        os.makedirs(BKGND_DIR, exist_ok=True)
     bkgnd_model_path = file_clean_join(
                      BKGND_DIR,
                      obsid+bkgnd_res_data+'-BKGND-MODEL.npz')
@@ -219,29 +221,22 @@ def bkgnd_paths_spec(ring_radius, radius_inner, radius_outer,
 
     return (bkgnd_model_path, bkgnd_metadata_path)
 
-def bkgnd_paths(arguments, obsid, make_dirs=False):
-    return bkgnd_paths_spec(arguments.ring_radius,
-                            arguments.radius_inner_delta,
-                            arguments.radius_outer_delta,
-                            arguments.radius_resolution,
-                            arguments.longitude_resolution,
-                            arguments.radial_zoom_amount,
-                            arguments.longitude_zoom_amount,
-                            obsid, arguments.ring_type,
-                            make_dirs=make_dirs)
 
-# Background-subtracted-mosaic and associated metadata
+def bkgnd_sub_mosaic_paths(arguments, obsid, make_dirs=False):
+    """"Return paths for background-subtracted mosaic and metadata.
 
-def bkgnd_sub_mosaic_paths_spec(ring_radius, radius_inner, radius_outer,
-                                radius_resolution, longitude_resolution,
-                                radial_zoom_amount, longitude_zoom_amount,
-                                obsid, ring_type, make_dirs=False):
+    There are found in BKGND_DIR and have the extensions -BKGND-MODEL.npz
+    and -BKGND-METADATA.dat, respectively."""
     bkgnd_res_data = ('_%06d_%06d_%06d_%06.3f_%05.3f_%d_%d_1' % (
-                      ring_radius, radius_inner, radius_outer,
-                      radius_resolution, longitude_resolution,
-                      radial_zoom_amount, longitude_zoom_amount))
-    if make_dirs and not os.path.exists(BKGND_SUB_MOSAIC_DIR):
-        os.mkdir(BKGND_SUB_MOSAIC_DIR)
+                      arguments.ring_radius,
+                      arguments.radius_inner_delta,
+                      arguments.radius_outer_delta,
+                      arguments.radius_resolution,
+                      arguments.longitude_resolution,
+                      arguments.radial_zoom_amount,
+                      arguments.longitude_zoom_amount))
+    if make_dirs:
+        os.makedirs(BKGND_SUB_MOSAIC_DIR, exist_ok=True)
     data_path = file_clean_join(BKGND_SUB_MOSAIC_DIR,
                                 obsid+bkgnd_res_data+'-BKGND-SUB-MOSAIC.npz')
     metadata_path = file_clean_join(
@@ -250,139 +245,25 @@ def bkgnd_sub_mosaic_paths_spec(ring_radius, radius_inner, radius_outer,
 
     return (data_path, metadata_path)
 
-def bkgnd_sub_mosaic_paths(arguments, obsid, make_dirs=False):
-    return bkgnd_sub_mosaic_paths_spec(arguments.ring_radius,
-                                       arguments.radius_inner_delta,
-                                       arguments.radius_outer_delta,
-                                       arguments.radius_resolution,
-                                       arguments.longitude_resolution,
-                                       arguments.radial_zoom_amount,
-                                       arguments.longitude_zoom_amount,
-                                       obsid, arguments.ring_type,
-                                       make_dirs=make_dirs)
 
-def polar_png_path_spec(ring_radius, radius_inner, radius_outer,
-                        radius_resolution, longitude_resolution,
-                        radial_zoom_amount, longitude_zoom_amount,
-                        obsid, ring_type, make_dirs=False):
+def polar_png_path(arguments, obsid, make_dirs=False):
+    """"Return path for polar-projected PNG.
+
+    This is POLAR_PNG_DIR/...-POLAR.png
+    """
     png_res_data = ('_%06d_%06d_%06d_%06.3f_%05.3f_%d_%d_1' % (
-                      ring_radius, radius_inner, radius_outer,
-                      radius_resolution, longitude_resolution,
-                      radial_zoom_amount, longitude_zoom_amount))
-    if make_dirs and not os.path.exists(POLAR_PNG_DIR):
-        os.mkdir(POLAR_PNG_DIR)
+                    arguments.ring_radius,
+                    arguments.radius_inner_delta,
+                    arguments.radius_outer_delta,
+                    arguments.radius_resolution,
+                    arguments.longitude_resolution,
+                    arguments.radial_zoom_amount,
+                    arguments.longitude_zoom_amount))
+    if make_dirs:
+        os.makedirs(POLAR_PNG_DIR, exist_ok=True)
     data_path = file_clean_join(POLAR_PNG_DIR,
                                 obsid+png_res_data+'-POLAR.png')
     return data_path
-
-def polar_png_path(arguments, obsid, make_dirs=False):
-    return polar_png_path_spec(arguments.ring_radius,
-                               arguments.radius_inner_delta,
-                               arguments.radius_outer_delta,
-                               arguments.radius_resolution,
-                               arguments.longitude_resolution,
-                               arguments.radial_zoom_amount,
-                               arguments.longitude_zoom_amount,
-                               obsid, arguments.ring_type,
-                               make_dirs=make_dirs)
-
-def read_ew(root):
-    return np.load(root+'.npy')
-
-def read_ew_metadata(root):
-    with open(root+'-METADATA.dat', 'rb') as fp:
-        metadata = pickle.load(fp, encoding='latin1')
-    return metadata
-
-def get_ew_valid_longitudes(ew, ew_metadata):
-    return (ew != 0) & (ew_metadata['longitudes'] >= 0)
-
-def ew_paths_spec(ring_radius, radius_inner, radius_outer,
-                  radius_resolution, longitude_resolution,
-                  radial_zoom_amount, longitude_zoom_amount,
-                  obsid, ring_type, make_dirs=False):
-    ew_res_data = ('_%06d_%06d_%06d_%06.3f_%05.3f_%d_%d_1' % (
-                   ring_radius, radius_inner, radius_outer,
-                   radius_resolution, longitude_resolution,
-                   radial_zoom_amount, longitude_zoom_amount))
-    if make_dirs and not os.path.exists(EW_DIR):
-        os.mkdir(EW_DIR)
-    data_path = file_clean_join(EW_DIR, obsid+ew_res_data)
-    metadata_path = file_clean_join(EW_DIR, obsid+ew_res_data+'-METADATA.dat')
-
-    return data_path, metadata_path
-
-def ew_paths(arguments, obsid, make_dirs=False):
-    return ew_paths_spec(arguments.ring_radius,
-                         arguments.radius_inner_delta,
-                         arguments.radius_outer_delta,
-                         arguments.radius_resolution,
-                         arguments.longitude_resolution,
-                         arguments.radial_zoom_amount,
-                         arguments.longitude_zoom_amount,
-                         obsid, arguments.ring_type,
-                         make_dirs=make_dirs)
-
-def write_ew(ew_filename, ew, ew_metadata_filename, ew_metadata):
-    np.save(ew_filename, ew)
-    with open(ew_metadata_filename, 'wb') as ew_metadata_fp:
-        pickle.dump(ew_metadata, ew_metadata_fp)
-
-def read_width(root):
-    return np.load(root+'-WIDTH.npy')
-
-def width_paths_spec(ring_radius, radius_inner, radius_outer,
-                     radius_resolution, longitude_resolution,
-                     radial_zoom_amount, longitude_zoom_amount,
-                     obsid, ring_type, make_dirs=False):
-    width_res_data = ('_%06d_%06d_%06d_%06.3f_%05.3f_%d_%d_1' % (
-                      ring_radius, radius_inner, radius_outer,
-                      radius_resolution, longitude_resolution,
-                      radial_zoom_amount, longitude_zoom_amount))
-    if make_dirs and not os.path.exists(EW_DIR):
-        os.mkdir(EW_DIR)
-    data_path = file_clean_join(EW_DIR, obsid+width_res_data+'-WIDTH')
-
-    return data_path
-
-def width_paths(arguments, obsid, make_dirs=False):
-    return width_paths_spec(arguments.ring_radius,
-                            arguments.radius_inner_delta,
-                            arguments.radius_outer_delta,
-                            arguments.radius_resolution,
-                            arguments.longitude_resolution,
-                            arguments.radial_zoom_amount,
-                            arguments.longitude_zoom_amount,
-                            obsid, arguments.ring_type,
-                            make_dirs=make_dirs)
-
-def write_width(width_filename, widths):
-    np.save(width_filename, widths)
-
-def clumpdb_paths(options):
-    cl_res_data = ('_%06d_%06d_%06.3f_%05.3f_%02d_%02d_%06d_%06d' %
-                   (options.radius_start, options.radius_end,
-                    options.radius_resolution,
-                    options.longitude_resolution,
-                    options.reproject_zoom_factor,
-                    options.core_radius_start,
-                    options.core_radius_end))
-    assert False
-    # cl_data_filename = file_clean_join(ROOT, 'clump-data',
-    #                                 'clumpdb'+cl_res_data+'.pickle')
-    # cc_data_filename = file_clean_join(ROOT, 'clump-data',
-    #                                  'clumpchains'+cl_res_data+'.pickle')
-    # if options.voyager:
-    #     cl_data_filename = file_clean_join(ROOT, 'clump-data',
-    #                                     'voyager_clumpdb'+cl_res_data+'.pickle')
-    #     cc_data_filename = file_clean_join(ROOT, 'clump-data',
-    #                                     'voyager_clumpchains'+cl_res_data+'.pickle')
-    # if options.downsample:
-    #     cl_data_filename = file_clean_join(ROOT, 'clump-data',
-    #                                     'downsampled_clumpdb'+cl_res_data+'.pickle')
-    #     cc_data_filename = file_clean_join(ROOT, 'clump-data',
-    #                                     'downsampled_clumpchains'+cl_res_data+'.pickle')
-    # return cl_data_filename, cc_data_filename
 
 
 ################################################################################
@@ -399,43 +280,48 @@ def clumpdb_paths(options):
 
 # F ring orbit from Albers 2012
 FRING_ROTATING_ET = utc2et('2007-01-01')
-FRING_ORBIT_EPOCH = utc2et('2000-01-01T12:00:00') # J2000
-FRING_MEAN_MOTION = np.radians(581.964)
+FRING_ORBIT_EPOCH = utc2et('2000-01-01T12:00:00')  # J2000
+FRING_MEAN_MOTION = 581.964  # deg/day
 FRING_A = 140221.3
 FRING_E = 0.00235
-FRING_W0 = np.radians(24.2)
-FRING_DW = np.radians(2.70025)
+FRING_W0 = 24.2
+FRING_DW = 2.70025
+
 
 def _compute_fring_longitude_shift(et):
     return - (FRING_MEAN_MOTION *
-              ((et - FRING_ROTATING_ET) / 86400.)) % TWOPI
+              ((et - FRING_ROTATING_ET) / 86400.)) % 360.
+
 
 def fring_inertial_to_corotating(longitude, et):
     """Convert inertial longitude to corotating."""
-    return (longitude + _compute_fring_longitude_shift(et)) % TWOPI
+    return (longitude + _compute_fring_longitude_shift(et)) % 360.
+
 
 def fring_corotating_to_inertial(co_long, et):
-    """Convert corotating longitude (deg) to inertial."""
-    return (co_long - _compute_fring_longitude_shift(et)) % TWOPI
+    """Convert corotating longitude to inertial."""
+    return (co_long - _compute_fring_longitude_shift(et)) % 360.
+
+
+def fring_longitude_of_pericenter(et):
+    """Return the longitude of pericenter at the given time."""
+    return (FRING_W0 + FRING_DW*et/86400.) % 360.
+
+
+def fring_true_anomaly(et, longitude):
+    """Return the true anomaly at the given time and inertial longitude."""
+    curly_w = FRING_W0 + FRING_DW*et/86400.
+    return (longitude - curly_w) % 360.
+
 
 def fring_radius_at_longitude(et, longitude):
-    """Return the radius (km) of the F ring core at a given inertial longitude
-    (deg)."""
+    """Return the radius (km) of the F ring core at inertial longitude."""
     true_anomaly = fring_true_anomaly(et, longitude)
 
     radius = (FRING_A * (1-FRING_E**2) /
-              (1 + FRING_E * np.cos(true_anomaly)))
+              (1 + FRING_E * np.cos(np.radians(true_anomaly))))
 
     return radius
-
-def fring_longitude_of_pericenter(et):
-    """Return the longitude of pericenter (radians) at the given time."""
-    return (FRING_W0 + FRING_DW*et/86400.) % TWOPI
-
-def fring_true_anomaly(et, longitude):
-    """Return the true anomaly (radians) at the given time and inertial longitude."""
-    curly_w = FRING_W0 + FRING_DW*et/86400.
-    return (longitude - curly_w) % TWOPI
 
 
 ################################################################################
@@ -445,22 +331,29 @@ def fring_true_anomaly(et, longitude):
 ################################################################################
 
 def compute_mu(e):
+    """Return mu from emission angle."""
     if isinstance(e, (list, tuple)):
         e = np.array(e)
     return np.abs(np.cos(np.radians(e)))
 
+
 def compute_mu0(i):
+    """Return mu0 from incidence angle."""
     if isinstance(i, (list, tuple)):
         i = np.array(i)
     return np.abs(np.cos(np.radians(i)))
 
+
 def compute_z(mu, mu0, tau, is_transmission):
+    """Return Z."""
     transmission_list = tau*(mu-mu0)/(mu*mu0*(np.exp(-tau/mu)-np.exp(-tau/mu0)))
     reflection_list = tau*(mu+mu0)/(mu*mu0*(1-np.exp(-tau*(1/mu+1/mu0))))
     ret = np.where(is_transmission, transmission_list, reflection_list)
     return ret
 
+
 def compute_corrected_ew(normal_ew, emission, incidence, tau):
+    """Compute corrected EW from normal EW and lighting geometry."""
     if tau == 0:
         return normal_ew
     if isinstance(emission, (tuple,list)):
@@ -473,9 +366,11 @@ def compute_corrected_ew(normal_ew, emission, incidence, tau):
     ret = normal_ew * compute_z(mu, mu0, tau, is_transmission)
     return ret
 
+
 def compute_corrected_ew_col(obsdata, col_tau=('Normal EW Mean', None),
                              emission_col='Mean Emission',
                              incidence_col='Incidence'):
+    """Compute corrected EW from one or more columns and taus."""
     total_ew = None
     for i in range(0, len(col_tau), 2):
         col = col_tau[i]
@@ -501,10 +396,12 @@ def compute_corrected_ew_col(obsdata, col_tau=('Normal EW Mean', None),
 ################################################################################
 
 def hg(alpha, g):
-    # Henyey-Greenstein function
+    """Compute Henyey-Greenstein phase function."""
     return (1-g**2) / (1+g**2-2*g*np.cos(np.radians(alpha)))**1.5 / 2
 
+
 def hg_func(params, xpts):
+    """Compute multiple weighted H-G phase functions at given phase angles."""
     ypts = None
     for i in range(len(params)//2):
         g, scale = params[i*2:i*2+2]
@@ -514,21 +411,25 @@ def hg_func(params, xpts):
             ypts += scale * hg(xpts, g)
     return ypts
 
+
 def hg_fit_func(params, xpts, ypts, ystd):
     if ystd is None:
         ystd = 1
     return (ypts - hg_func(params, xpts)) / ystd
     # return np.log(ypts) - np.log(hg_func(params, xpts))
 
+
 def hg_fit_func_scale(scale, params, xpts, ypts):
     ret = ypts - hg_func(params, xpts)*scale
     return ret
 
-# Fit a phase curve and remove data points more than nstd sigma away
-# Use std=None to not remove outliers
-# Do the modeling on a copy of the data so we can remove outliers
 def fit_hg_phase_function(n_hg, nstd, data, col_tau=('Normal EW Mean', None),
                           phase_col='Mean Phase', std_col=None, verbose=False):
+    """Fit a phase curve and remove data points more than nstd sigma away.
+
+    Use std=None to not remove outliers.
+    Do the modeling on a copy of the data so we can remove outliers.
+    """
     phasedata = data.copy()
     normal_ew = compute_corrected_ew_col(phasedata, col_tau=col_tau)
 
@@ -570,7 +471,9 @@ def fit_hg_phase_function(n_hg, nstd, data, col_tau=('Normal EW Mean', None),
     params = [x for sublist in param_list for x in sublist]
     return params, phasedata, std
 
+
 def print_hg_params(params, indent=0):
+    """Print HG params at the given indent level."""
     total_scale = sum(params[i] for i in range(1,len(params),2))
     res = []
     for i in range(0,len(params)//2):
@@ -583,38 +486,24 @@ def print_hg_params(params, indent=0):
             avg = np.mean([x[2] for x in res])
             term = f' Avg scale {avg:.3f}'
         print((' ' * indent) +
-              (f'g{i+1} = {res[i][1]:6.3f} / scale{i+1} = {res[i][2]:6.3f} / weight{i+1} = {res[i][0]:5.3f} {term}'))
+              (f'g{i+1} = {res[i][1]:6.3f} / scale{i+1} = {res[i][2]:6.3f} '
+               f'/ weight{i+1} = {res[i][0]:5.3f} {term}'))
 
-# Fit a phase curve and remove data points more than nstd sigma away
-# Use std=None to not remove outliers
-# Do the modeling on a copy of the data so we can remove outliers
+
 def scale_hg_phase_function(params, data, col_tau=('Normal EW Mean', None),
                             phase_col='Mean Phase'):
-    phasedata = data.copy()
-    normal_ew = compute_corrected_ew_col(phasedata, col_tau=col_tau)
+    """Fit a known phase curve to the data points."""
+    normal_ew = compute_corrected_ew_col(data, col_tau=col_tau)
 
     initial_guess = [1.]
     bounds1 = [0.]
     bounds2 = [10.]
-    phase_degrees = phasedata[phase_col]
+    phase_degrees = data[phase_col]
     params = sciopt.least_squares(hg_fit_func_scale, initial_guess,
                                   bounds=(bounds1, bounds2),
                                   args=(params, phase_degrees, normal_ew))
     scale = params['x'][0]
     return scale
-
-
-# def transmission_function(tau, emission, incidence):
-#     # incidence angle is always less than 90, therefore the only case we have to worry
-#     # about is when Emission Angle changes.
-#     # E > 90 = Transmission, E < 90 = Reflection
-#     mu0 = compute_mu0(incidence)
-#     mu = compute_mu(emission)
-#
-#     if np.mean(emission[np.nonzero(emission)]) > 90:
-#         return mu * mu0 * (np.exp(-tau/mu)-np.exp(-tau/mu0)) / (tau * (mu-mu0))
-#     return mu * mu0 * (1.-np.exp(-tau*(1/mu+1/mu0))) / (tau * (mu+mu0))
-#
 
 
 ################################################################################
@@ -625,22 +514,25 @@ def scale_hg_phase_function(params, data, col_tau=('Normal EW Mean', None),
 
 ### READ EW STATS AND OBS_LIST RESTRICTIONS
 
-OBS_LIST = None
+OBS_LISTS = {}
 
-def read_obs_list():
-    global OBS_LIST
-    if OBS_LIST is None:
-        OBS_LIST = pd.read_csv('../observation_lists/CASSINI_OBSERVATION_LIST.csv',
-                               parse_dates=['Date'],
-                               index_col='Observation')
+def read_obs_list(filename='CASSINI_OBSERVATION_LIST'):
+    """Read an observation list used to restrict EW stats."""
+    if filename not in OBS_LISTS:
+        OBS_LISTS[filename] = pd.read_csv(f'../observation_lists/{filename}.csv',
+                                          parse_dates=['Date'],
+                                          index_col='Observation')
 
-def read_cassini_ew_stats(filename, use_obs_list=True, verbose=True):
+
+def read_ew_stats(filename, obslist_filename=None, obslist_column=None,
+                  verbose=True):
+    """Read an EW stats file with an optional restriction column."""
     obsdata = pd.read_csv(filename, parse_dates=['Date'],
                           index_col='Observation')
-    if use_obs_list:
-        read_obs_list()
-        obsdata = obsdata.join(OBS_LIST, rsuffix='_obslist')
-        obsdata = obsdata[obsdata['For Photometry'] == 1]
+    if obslist_filename is not None and obslist_column is not None:
+        read_obs_list(obslist_filename)
+        obsdata = obsdata.join(OBS_LISTS[obslist_filename], rsuffix='_obslist')
+        obsdata = obsdata[obsdata[obslist_column] == 1]
     if verbose:
         print(f'** SUMMARY STATISTICS - {filename} **')
         print('Unique observation names:', len(obsdata.groupby('Observation')))
@@ -654,22 +546,9 @@ def read_cassini_ew_stats(filename, use_obs_list=True, verbose=True):
     obsdata['Mu0'] = np.abs(np.cos(np.radians(obsdata['Incidence'])))
     return obsdata
 
-def read_voyager_ew_stats(filename, verbose=True):
-    obsdata = pd.read_csv(filename, parse_dates=['Date'])
-    if verbose:
-        print(f'** SUMMARY STATISTICS - {filename} **')
-        print('Unique observation names:', len(obsdata.groupby('Observation')))
-        print('Total slices:', len(obsdata))
-        print('Starting date:', obsdata['Date'].min())
-        print('Ending date:', obsdata['Date'].max())
-        print('Time span:', obsdata['Date'].max()-obsdata['Date'].min())
-    time0 = np.datetime64('1970-01-01T00:00:00') # Epoch
-    obsdata['Date_days'] = (obsdata['Date']-time0).dt.total_seconds()/86400
-    obsdata['Mu'] = np.abs(np.cos(np.radians(obsdata['Mean Emission'])))
-    obsdata['Mu0'] = np.abs(np.cos(np.radians(obsdata['Incidence'])))
-    return obsdata
 
 def read_showalter_voyager_ew_stats(filename, verbose=True):
+    """Read Showalter's original Voyager EW stats."""
     obsdata = pd.read_csv(filename, index_col='FDS', delim_whitespace=True)
     if verbose:
         print(f'** SUMMARY STATISTICS - {filename} **')
@@ -713,6 +592,7 @@ def add_hover(obsdata, p1, obsdata2=None, p2=None):
             for s in cursor1.selections:
                 cursor1.remove_selection(s)
 
+
 # These EWs are raw, not adjusted for emission angle
 DATA2012_DICT = {
     'ISS_000RI_SATSRCHAP001_PRIME': [ 2.6, 0.8],
@@ -749,6 +629,7 @@ DATA2012_DF = pd.DataFrame({'EW Mean': _data2012_ew,
                             index=_data2012_obsname)
 
 def find_common_data_2012(obsdata, verbose=True):
+    """Find data in obsdata that was used in the 2012 paper."""
     commondata = obsdata.join(DATA2012_DF, on='Observation', how='inner',
                               rsuffix='_2012')
 
@@ -843,6 +724,7 @@ _cr_ratio = CISSCAL_RATIO_DICT.values()
 CISSCAL_RATIO_DF = pd.DataFrame({'CISSCAL Ratio': _cr_ratio}, index=_cr_obsname)
 
 def add_cisscal_ratios(obsdata):
+    """Add CISSCAL ratios to obsdata."""
     obsdata =  obsdata.join(CISSCAL_RATIO_DF, on='Observation', how='inner',
                             rsuffix='_old')
     obsdata['Adjusted Normal EW Mean_2012'] = (obsdata['Normal EW Mean_2012'] *
@@ -851,12 +733,10 @@ def add_cisscal_ratios(obsdata):
     return obsdata
 
 
-# print('Number of old observations:', len(cr_obsname))
-# print('Number of common observations:', len(commondata))
-
 ### CALCULATE QUANTILES
 
-def limit_by_quant(obsdata, cutoff1, cutoff2, col='Normal EW Mean'):
+def limit_by_quant(obsdata, cutoff1, cutoff2=None, col='Normal EW Mean'):
+    """Return data between the given quantiles"""
     def xform_func(column):
         if quant2 is None:
             return [(None if z > quant1[column.name] else z) for z in column]
@@ -873,6 +753,7 @@ def limit_by_quant(obsdata, cutoff1, cutoff2, col='Normal EW Mean'):
     obsdata.dropna(inplace=True)
     return obsdata
 
+
 ################################################################################
 
 RING_TYPE = 'FMOVIE'
@@ -886,5 +767,3 @@ BKGND_DIR = file_clean_join(DATA_ROOT, f'bkgnd_{RING_TYPE}')
 BKGND_SUB_MOSAIC_DIR = file_clean_join(DATA_ROOT, f'bkgnd_sub_mosaic_{RING_TYPE}')
 REPRO_DIR = file_clean_join(DATA_ROOT, 'ring_repro')
 POLAR_PNG_DIR = file_clean_join(DATA_ROOT, f'png_polar_{RING_TYPE}')
-
-TWOPI = np.pi*2

@@ -1772,6 +1772,82 @@ if GENERATE_REPROJ_BROWSE_COLLECTIONS:
 
 
 """
+- How do we include SPICE kernel information with the reprojected images?
+- How do we include pointing navigation information with the reprojected images?
+
+    I'm not sure of the answer to these - there's ongoing discussion with Boris about how
+    to include SPICE information (and I see you've been cc'ed on that)
+
+- What LID should I use for the Cassini original images, since I want to reference the
+  calibrated images?
+
+   I'd contacted @Mitch Gordon about this and we need to discuss this with @Matt Tiscareno
+   (he/him). I could also initiate a wider discussion in Slack, but as we're planning to
+   meet this week about something else that may be a good time.
+
+- How does indenting of text work? You didn't like having the text left-justified, so I
+  assume it has to be indented at the appropriate XML level. But then how do you want it
+  wrapped? I've been wrapping to 80 characters left-justified, like this:
+        <title>
+F Ring mosaic created from reprojected Cassini ISS calibrated images from observation
+ISS_079RI_FMONITOR002_PRIME spanning 2008-08-02T01:25:19Z (W1596333808_1) to
+2008-08-02T01:54:07Z (W1596335548_1)
+        </title>
+so this is what you'll see in the latest sample. Do you want it indented, but then still
+wrapped at 80 characters? Or something else?
+        <title>
+            F Ring mosaic created from reprojected Cassini ISS calibrated images from
+            observation ISS_079RI_FMONITOR002_PRIME spanning 2008-08-02T01:25:19Z
+            (W1596333808_1) to 2008-08-02T01:54:07Z (W1596335548_1)
+        </title>
+
+    As far as I know, there are no hard and fast rules about indenting, so don't worry too
+    much about it. I prefer when the contents of the xml element are indented to the same
+    amount as the tags. Wrapping at 80 characters looks good, i.e. as in your second
+    example:
+
+- Why did you remove the mean incidence angle and mean ring opening angle, but not the
+  mean phase angle? I actually think all of the means are useful, because they aren't just
+  (min+max)/2, they are the mean of the metadata available for all the longitudes.
+
+    I removed the mean incidence angle because it doesn't exist in the Rings dictionary
+    (only min/max incidence angles are defined) and I removed the mean ring opening angle
+    because thought that wouldn't vary much. However, if you think they would be useful
+    then we should talk about including them.
+
+- You commented that you now have the Cassini ISS User's Guide DOI, but I don't know how
+  to actually include it in the XML.
+
+    <Internal_Reference>s don’t have a <doi> element like <External_Reference>s do, so to
+    include a DOI please use the <comment>: <comment>The Cassini ISS Data User's Guide
+    (PDS3); DOI: 10.17189/1504135</comment>
+
+- When providing the <offset> field for metadata, should the offset include the newline?
+  Your comment says "<!--mjtm: This should match <Header>.<object_length> -->". However,
+  the header object length is currently just the length of the text, right? Not including
+  the newline. So shouldn't the offset include the newline so that if you seek to that
+  byte in the file you actually start at the proper location?
+
+    I thought  <Header>.<offset> included the newline, so that <Table_Character>.<offset>
+    is the same number of bytes. Requesting 2nd opinion from @Mitch Gordon!
+
+- You comment "<!--mjtm: the data_type above is single precision float, so the
+  missing_constant needs to have appropriate number of decimal places -->". But I don't
+  know what that means. What is the "appropriate number of decimal places" for a
+  single-precision float? Since it's a floating point number, by definition the number of
+  decimal places changes based on the magnitude of the number. Would it be OK just to say
+  -999.0?
+
+    Good question, I thought that maybe you were outputting values like 123.456, 789.012,
+    ... etc in which case you would use -999.000. I think that -999.0 should be OK
+
+- Should we include all of the Cassini ISS metadata fields for the reprojected images?
+  (edited)
+
+    I think it makes sense to include whatever metadata fields you think would be useful
+
+
+
 Full Cassini image info for reproj image metadata?
 
 SPICE kernel and navigation info for reproj image?
@@ -1785,22 +1861,27 @@ File creation date should really be the creation date of the file, not NOW
 corotating or co-rotating?
 
 How do we wrap and indent?
-			<rings:description> <!-- mjtm: indentation and wrapping-->
-Metadata for F Ring mosaics of reprojected Cassini ISS calibrated images from observation ISS_039RF_FMOVIE001_VIMS, 2007-02-27T07:18:39Z to 2007-02-27T22:58:23Z
-			</rings:description>
+            <rings:description> <!-- mjtm: indentation and wrapping-->
+Metadata for F Ring mosaics of reprojected Cassini ISS calibrated images from observation
+ISS_039RF_FMOVIE001_VIMS, 2007-02-27T07:18:39Z to 2007-02-27T22:58:23Z
+            </rings:description>
 
 But mean phase angle is?
-			<rings:minimum_observed_ring_elevation unit="deg">143.665878</rings:minimum_observed_ring_elevation> <!--mjtm: I opted to remove mean_observed_ring_elevation as not useful, also not present in Rings dictionary-->
+            <rings:minimum_observed_ring_elevation
+            unit="deg">143.665878</rings:minimum_observed_ring_elevation> <!--mjtm: I
+            opted to remove mean_observed_ring_elevation as not useful, also not present
+            in Rings dictionary-->
 And why isn't mean incidence angle?
 
 Add Cassini ISS User's Manual DOI <!--mjtm DOI: 10.17189/1504135 -->
 
-Should this offset include the NEWLINE?
-<offset unit="byte">26</offset> <!--mjtm: This should match <Header>.<object_length> -->
+Should this offset include the NEWLINE? <offset unit="byte">26</offset> <!--mjtm: This
+should match <Header>.<object_length> -->
 
 Is IEEE754LSBSingle the correct data type?
 
-<!--mjtm: the data_type above is single precision float, so the missing_constant needs to have appropriate number of decimal places -->
-What is the number of decimal places for a float?
+<!--mjtm: the data_type above is single precision float, so the missing_constant needs to
+have appropriate number of decimal places --> What is the number of decimal places for a
+float?
 
 """

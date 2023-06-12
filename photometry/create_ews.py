@@ -356,7 +356,7 @@ for obs_id in f_ring.enumerate_obsids(arguments):
 
     ds = arguments.downsample
 
-    longitudes = metadata['longitudes'][::ds].view(ma.MaskedArray)
+    longitudes = np.degrees(metadata['longitudes'][::ds]).view(ma.MaskedArray)
     resolutions = metadata['mean_resolution'][::ds]
     image_numbers = metadata['image_number'][::ds]
     ETs = metadata['time'][::ds]
@@ -576,21 +576,21 @@ for obs_id in f_ring.enumerate_obsids(arguments):
                 slice_w3o = widths3[slice_start:slice_end, 1][slice_good_long]
             if arguments.compute_core_center:
                 slice_core_centers = core_centers[slice_start:slice_end][slice_good_long]
-            slice_min_long = np.degrees(ma.min(slice_longitudes))
-            slice_max_long = np.degrees(ma.max(slice_longitudes))
-            slice_mean_long = np.degrees(ma.mean(slice_longitudes))
+            slice_min_long = ma.min(slice_longitudes)
+            slice_max_long = ma.max(slice_longitudes)
+            slice_mean_long = ma.mean(slice_longitudes)
 
-            slice_min_inertial_long = np.degrees(ma.min(slice_inertial_longs))
-            slice_max_inertial_long = np.degrees(ma.max(slice_inertial_longs))
-            slice_mean_inertial_long = np.degrees(ma.mean(slice_inertial_longs))
+            slice_min_inertial_long = ma.min(slice_inertial_longs)
+            slice_max_inertial_long = ma.max(slice_inertial_longs)
+            slice_mean_inertial_long = ma.mean(slice_inertial_longs)
 
-            slice_min_long_of_peri = np.degrees(ma.min(slice_longitude_of_pericenters))
-            slice_max_long_of_peri = np.degrees(ma.max(slice_longitude_of_pericenters))
-            slice_mean_long_of_peri = np.degrees(ma.mean(slice_longitude_of_pericenters))
+            slice_min_long_of_peri = ma.min(slice_longitude_of_pericenters)
+            slice_max_long_of_peri = ma.max(slice_longitude_of_pericenters)
+            slice_mean_long_of_peri = ma.mean(slice_longitude_of_pericenters)
 
-            slice_min_true_anomaly = np.degrees(ma.min(slice_true_anomalies))
-            slice_max_true_anomaly = np.degrees(ma.max(slice_true_anomalies))
-            slice_mean_true_anomaly = np.degrees(ma.mean(slice_true_anomalies))
+            slice_min_true_anomaly = ma.min(slice_true_anomalies)
+            slice_max_true_anomaly = ma.max(slice_true_anomalies)
+            slice_mean_true_anomaly = ma.mean(slice_true_anomalies)
 
             slice_min_et = ma.min(slice_ETs)
             slice_max_et = ma.max(slice_ETs)
@@ -819,11 +819,11 @@ for obs_id in f_ring.enumerate_obsids(arguments):
             ax = fig.add_subplot(311)
         else:
             ax = fig.add_subplot(111)
-        plt.plot(np.degrees(longitudes), ew_profile, label='Full')
+        plt.plot(longitudes, ew_profile, label='Full')
         if three_zone:
-            plt.plot(np.degrees(longitudes), ew_profile1, label='Inner')
-            plt.plot(np.degrees(longitudes), ew_profile2, label='Core')
-            plt.plot(np.degrees(longitudes), ew_profile3, label='Outer')
+            plt.plot(longitudes, ew_profile1, label='Inner')
+            plt.plot(longitudes, ew_profile2, label='Core')
+            plt.plot(longitudes, ew_profile3, label='Outer')
             plt.legend()
         plt.xlim(0, 360)
         plt.ylabel('EW (km)')
@@ -847,12 +847,12 @@ for obs_id in f_ring.enumerate_obsids(arguments):
                                arguments.ew_outer_radius - arguments.ring_radius),
                        aspect='auto',
                        cmap='gray', vmin=0, vmax=255)
-            plt.plot(np.degrees(longitudes), widths1[:,0], color='cyan', lw=1, alpha=0.5)
-            plt.plot(np.degrees(longitudes), widths1[:,1], color='cyan', lw=1, alpha=0.5)
-            plt.plot(np.degrees(longitudes), widths2[:,0], color='orange', lw=1, alpha=0.5)
-            plt.plot(np.degrees(longitudes), widths2[:,1], color='orange', lw=1, alpha=0.5)
-            plt.plot(np.degrees(longitudes), widths3[:,0], color='red', lw=1, alpha=0.5)
-            plt.plot(np.degrees(longitudes), widths3[:,1], color='red', lw=1, alpha=0.5)
+            plt.plot(longitudes, widths1[:,0], color='cyan', lw=1, alpha=0.5)
+            plt.plot(longitudes, widths1[:,1], color='cyan', lw=1, alpha=0.5)
+            plt.plot(longitudes, widths2[:,0], color='orange', lw=1, alpha=0.5)
+            plt.plot(longitudes, widths2[:,1], color='orange', lw=1, alpha=0.5)
+            plt.plot(longitudes, widths3[:,0], color='red', lw=1, alpha=0.5)
+            plt.plot(longitudes, widths3[:,1], color='red', lw=1, alpha=0.5)
             # plt.legend()
             plt.xlim(0, 360)
             plt.ylim(arguments.ew_inner_radius - arguments.ring_radius,
@@ -860,9 +860,9 @@ for obs_id in f_ring.enumerate_obsids(arguments):
             plt.ylabel('Core offset (km)')
             plt.xlabel('Longitude (degrees)')
             ax = fig.add_subplot(313)
-            plt.plot(np.degrees(longitudes), w1, color='cyan', label='W1')
-            plt.plot(np.degrees(longitudes), w2, color='orange', label='W2')
-            plt.plot(np.degrees(longitudes), w3, color='red', label='W3')
+            plt.plot(longitudes, w1, color='cyan', label='W1')
+            plt.plot(longitudes, w2, color='orange', label='W2')
+            plt.plot(longitudes, w3, color='red', label='W3')
             plt.legend()
             plt.xlim(0, 360)
             plt.ylim(0, 1500)
