@@ -457,8 +457,7 @@ for pd_index, row in data_pd.iterrows():
         sma_idx = np.argmin(np.abs(radii_slush-140221))
         et_at_sma = date_slush[sma_idx]
         long_at_sma = long_slush[sma_idx]
-        core_radius = f_ring.fring_radius_at_longitude(et_at_sma,
-                                                            np.radians(long_at_sma))
+        core_radius = f_ring.fring_radius_at_longitude(long_at_sma, et_at_sma)
         # Find the radius in the data closest to the known radius of the core
         core_idx = np.argmin(np.abs(radii_slush-core_radius))
         print(core_radius, core_idx)

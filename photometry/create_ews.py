@@ -1,25 +1,128 @@
 ##########################################################################################
 # Create various types of equivalent width for the observations.
 #
-# By default we create:
-#   EW, EW Std, Normal EW, Normal EW Std
+# CSV fields:
+#
+#   Observation             The Cassini observation name, including potentially the _N
+#                           suffix for multiple mosaics for a single observation.
+#
+#   Slice#                  The slice number, ranging from 0 to 360/slice_size. If a
+#                           slice has no valid data, or doesn't meet other inclusive
+#                           criteria, it is omitted.
+#
+#   Num Data                The number of radial slices that went into computing the
+#                           results for this slice. This can range from 1 to
+#                           slice_size / longitude_resolution.
+#
+#   Date                    The date/time (ISO 8601 format) of the minimum ET for the
+#                           slice.
+#
+#   Min/Max/Mean Long       The minimum/maximum/mean co-rotating longitude (degrees)
+#                           of valid data in the slice, relative to the epoch
+#                           2007-01-01T00:00:00.
+#
+#   Min/Max/Mean Inertial Long
+#                           The minimum/maximum/mean inertial longitude (degrees)
+#                           of valid data in the slice in J2000.
+#
+#   Min/Max/Mean Long of Pericenter
+#                           The minimum/maximum/mean longitude of pericenter (degrees)
+#                           of the F ring for the times of valid data in the slice.
+#
+#   Min/Max/Mean True Anomaly
+#                           The minimum/maximum/mean true anomaly (degrees) for the
+#                           longitudes with valid data in the slice.
+#
+#   Min/Max/Mean Res        The minimum/maximum/mean radial resolution (km/pixel) for
+#                           the valid data in the slice.
+#
+#   Min/Max/Mean Phase      The minimum/maximum/mean phase angles (degrees) for the
+#                           valid data in the slice.
+#
+#   Min/Max/Mean Emission   The minimum/maximum/mean emission angles (degrees) for the
+#                           valid data in the slice.
+#
+#   Incidence               The incidence angle for the valid data in the slice.
+#                           We assume this does not change over the course of a single
+#                           observation.
+#
+#   % Coverage              The percentage of 360 longitude covered by this entire
+#                           observation (not this slice). If there is more than one
+#                           slice for the observation, they all list the same coverage.
+#
+#   EW Median/
+#   EW Mean/
+#   EW Std                  The median, mean, and standard deviation of EW measurements
+#                           for the valid data in this slice. These EWs are the raw
+#                           measurements with no adjustment for viewing geometry.
+#
+#   Normal EW Median/
+#   Normal EW Mean/
+#   Normal EW Std           The median, mean, and standard deviation of normal
+#                           (mu-adjusted) EW measurements for the valid data in this
+#                           slice.
+#
+# If --include-quantiles is specified, we also include:
+#
+#   EW Mean 15/EW Std 15/Normal EW Mean 15/Normal EW Std 15
+#   EW Mean 25/EW Std 25/Normal EW Mean 25/Normal EW Std 25
+#   EW Mean 50/EW Std 50/Normal EW Mean 50/Normal EW Std 50
+#   EW Mean 75/EW Std 75/Normal EW Mean 75/Normal EW Std 75
+#   EW Mean 85/EW Std 85/Normal EW Mean 85/Normal EW Std 85
+#                           The mean and standard deviation of the EW/Normal EW
+#                           for the given quantile for the valid data in this slice.
 #
 # If --ew-core-inner-radius and --ew-core-outer-radius are specified, we also create:
-#   EWI, EWC, EWO and their associated Std and Normal versions
+#
+#   EWI Mean/EWI Std/Normal EWI Mean/Normal EWI Std
+#   EWC Mean/EWC Std/Normal EWC Mean/Normal EWC Std
+#   EWO Mean/EWO Std/Normal EWO Mean/Normal EWO Std
+#                           The mean and standard deviation of the EW/Normal EW
+#                           for the inner/core/outer regions for the valid data
+#                           in this slice.
+#
 # If --tau and --phase-curve-params are also specified, we also create:
-#   Normal EW3Z, Normal EW3Z Std, Normal EW3ZPN, Normal EW3ZPN Std
+#
+#   Normal EW3Z Mean/Normal EW3Z Std/
+#   Normal EW3ZPNMean /Normal EW3ZPN Std
+#                           The mean and standard deviation of the Normal EW
+#                           adjusted for tau and phase-normalized for the valid
+#                           data in this slice.
 #
 # If --radial-step is specified, we also create:
-#   EW<radius> and their associated Std and Normal versions for each radius
+#
+#   EW<radius> Mean/EW<radius> Std/
+#   Normal EW<radius> Mean/Normal EW<radius> Std
+#                           The mean and standard deviation of the EW/Normal EW
+#                           for the given radial slice for the valid data in this
+#                           slice.
+#
 #
 # If --compute-widths is specified, we also create:
-#   Width1, Width1 Std, Width2, Width2 Std, Width3, Width3 Std
+#   <TBD>
+#
+# If --compute-core-center is specified, we also create:
+#
+#   Core Offset Median/Core Offset Mean/Core Offset Std
+#                           The median, mean, and standard deviation of the radial
+#                           positions of the core (defined as the brightest pixel
+#                           along the radial slice) for the valid data in this
+#                           slice.
+#
+# If --compute-moon-info is specified, we also create:
+#
+#   Pandora Distance/Pandora Long
+#   Prometheus Distance/Prometheus Long
+#                           The distance (km) and co-rotating longitude (degrees)
+#                           for Pandora/Prometheus at the mean time of valid data
+#                           in this slice.
+#
 ##########################################################################################
 
 import argparse
 import csv
+import math
 import os
-import pickle
 import sys
 import traceback
 import warnings
@@ -56,53 +159,69 @@ if len(cmd_line) == 0:
 
 parser = argparse.ArgumentParser()
 
+parser.add_argument('--minimum-coverage', type=float, default=0,
+                    help='Minimum total coverage (in degrees) allowed for a good obsid')
+parser.add_argument('--maximum-bad-pixels-percentage', type=float, default=1,
+                    help='Maximum percentage of bad pixels for a good radial slice')
+parser.add_argument('--slice-size', type=float, default=0,
+                    help='Slice size in degrees longitude; 0 means 360')
+parser.add_argument('--minimum-slice-coverage', type=float, default=0,
+                    help='Minimum coverage (in degrees) allowed for a good slice')
+parser.add_argument('--maximum-slice-resolution', type=float, default=1e38,
+                    help='Maximum resolution allowed for a good slice')
+
+parser.add_argument('--output-csv-filename', type=str,
+                    help='Name of output CSV file')
+parser.add_argument('--agg-csv-filename', type=str,
+                    help='Name of aggregate (mean) output CSV file')
+
+parser.add_argument('--downsample', type=int, default=1,
+                    help='Amount to downsample the mosaic in longitude')
+
 parser.add_argument('--ew-inner-radius', type=int, default=140220-750,
-                    help='The inner radius of the range')
+                    help='The inner radius of the range for EW computation; '
+                         'this generally excludes the background region')
 parser.add_argument('--ew-outer-radius', type=int, default=140220+750,
-                    help='The outer radius of the range')
+                    help='The outer radius of the range for EW computation; '
+                         'this generally excludes the background region')
+
 parser.add_argument('--ew-core-inner-radius', type=int, default=None,
-                    help='The inner radius of the core, if applicable')
+                    help='The inner radius of the core for a 3-zone model')
 parser.add_argument('--ew-core-outer-radius', type=int, default=None,
-                    help='The outer radius of the core, if applicable')
-parser.add_argument('--compute-core-center', action='store_true', default=False,
-                    help='Compute the core location based on the brightest pixel')
+                    help='The outer radius of the core for a 3-zone model')
+parser.add_argument('--tau', type=float, default=None,
+                    help='Tau to use computing 3-zone EW and phase-normalization')
+parser.add_argument('--phase-curve-params', type=str, default=None,
+                    # default='0.634,1.874,-0.026,0.876',
+                    help='The H-G parameters for the phase curve '
+                         '(scale1, g1, scale2, g2)')
+
+parser.add_argument('--include-quantiles', action='store_true', default=False,
+                    help='Include (Normal) EW Mean/Std for quantiles at 15/25/50/75/85%')
+
+parser.add_argument('--radial-step', type=int, default=None,
+                    help='Radial step size for multiple small radial steps')
+
 parser.add_argument('--compute-widths', action='store_true', default=False,
                     help='Compute the widths for each slice')
 parser.add_argument('--widths-frac-mode', action='store_true', default=False,
                     help='Compute widths in fractional mode')
-parser.add_argument('--tau', type=float, default=None, # default=0.042,
-                    help='Tau to use computing 3-zone EW and phase-normalization')
-parser.add_argument('--phase-curve-params', type=str, default=None,
-                    # default='0.634,1.874,-0.026,0.876',
-                    help='The parameters for the phase curve for width computation')
 parser.add_argument('--width-thresholds-abs', type=str, default=None,
                     # default='0.002,0.001,0.0002',
                     help='The default width threshold values in absolute mode')
 parser.add_argument('--width-thresholds-frac', type=str, default=None,
                     # default='.75,.85,.95',
                     help='The default width threshold values in fractional mode')
+
 parser.add_argument('--plot-results', action='store_true', default=False,
                     help='Plot the EW and Width results')
 parser.add_argument('--save-plots', action='store_true', default=False,
                     help='Same as --plot-results but save plots to disk instead')
-parser.add_argument('--downsample', type=int, default=1,
-                    help='Amount to downsample the mosaic in longitude')
-parser.add_argument('--minimum-coverage', type=float, default=0, # XXX
-                    help='Minimum coverage (in degrees) allowed for a good obsid')
-parser.add_argument('--maximum-bad-pixels-percentage', type=float, default=1,
-                    help='Maximum percentage of bad pixels for a good radial slice')
-parser.add_argument('--slice-size', type=float, default=0,
-                    help='Slice size in degrees longitude')
-parser.add_argument('--minimum-slice-coverage', type=float, default=0,
-                    help='Minimum coverage (in degrees) allowed for a good slice')
-parser.add_argument('--maximum-slice-resolution', type=float, default=1e38,
-                    help='Maximum resolution allowed for a good slice')
-parser.add_argument('--output-csv-filename', type=str,
-                    help='Name of output CSV file')
-parser.add_argument('--agg-csv-filename', type=str,
-                    help='Name of aggregate (mean) output CSV file')
-parser.add_argument('--radial-step', type=int, default=None,
-                    help='Radial step size for multiple small radial steps')
+
+parser.add_argument('--compute-core-center', action='store_true', default=False,
+                    help='Compute the core location based on the brightest pixel')
+parser.add_argument('--compute-moon-info', action='store_true', default=False,
+                    help='Compute the distance and longitude of Prometheus and Pandora')
 
 f_ring.add_parser_arguments(parser)
 
@@ -112,6 +231,7 @@ if arguments.phase_curve_params is None:
     HG_PARAMS = None
 else:
     HG_PARAMS = [float(x) for x in arguments.phase_curve_params.split(',')]
+
 if arguments.widths_frac_mode:
     if arguments.width_thresholds_frac is None:
         WIDTH_THRESHOLDS = None
@@ -123,10 +243,15 @@ else:
     else:
         WIDTH_THRESHOLDS = [float(x) for x in arguments.width_thresholds_abs.split(',')]
 
+if arguments.compute_moon_info:
+    # Requires SPICE kernels so don't import unless needed
+    import f_ring_util.moons as moons
+
 
 ##########################################################################################
 
 def max_range(a, fracs, mean_brightness=None):
+    assert False
     ret = []
     frac_idx = 0
     if mean_brightness is None:
@@ -163,6 +288,7 @@ def width_from_wings(a, fracs, mean_brightness=None):
     return ret
 
 def width_from_abs(a, abs_vals):
+    assert False
     ret = []
     for abs_val in abs_vals:
         wing1_pos = np.argmax(a >= abs_val)
@@ -267,7 +393,8 @@ else:
 csv_fp = None
 if arguments.output_csv_filename:
     assert (arguments.slice_size == 0 or
-            360 / arguments.slice_size == int(360 / arguments.slice_size))
+            360 / arguments.slice_size == int(360 / arguments.slice_size)), \
+                'Slice size must divide evenly into 360'
     csv_fp = open(arguments.output_csv_filename, 'w', newline='')
     writer = csv.writer(csv_fp)
     hdr = ['Observation', 'Slice#', 'Num Data', 'Date',
@@ -280,27 +407,27 @@ if arguments.output_csv_filename:
            'Min Emission', 'Max Emission', 'Mean Emission',
            'Incidence',
            '% Coverage',
-           'EW Mean', 'EW Std', 'Normal EW Mean', 'Normal EW Std',
-           'EW Median', 'Normal EW Median']
-    if arguments.slice_size == 0:
+           'EW Median', 'EW Mean', 'EW Std',
+           'Normal EW Median', 'Normal EW Mean', 'Normal EW Std']
+    if arguments.include_quantiles:
         hdr += ['EW Mean 15', 'EW Std 15', 'Normal EW Mean 15', 'Normal EW Std 15',
                 'EW Mean 25', 'EW Std 25', 'Normal EW Mean 25', 'Normal EW Std 25',
                 'EW Mean 50', 'EW Std 50', 'Normal EW Mean 50', 'Normal EW Std 50',
                 'EW Mean 75', 'EW Std 75', 'Normal EW Mean 75', 'Normal EW Std 75',
                 'EW Mean 85', 'EW Std 85', 'Normal EW Mean 85', 'Normal EW Std 85']
     if three_zone:
-        hdr += ['EWI', 'EWI Std', 'Normal EWI', 'Normal EWI Std']
-        hdr += ['EWC', 'EWC Std', 'Normal EWC', 'Normal EWC Std']
-        hdr += ['EWO', 'EWO Std', 'Normal EWO', 'Normal EWO Std']
+        hdr += ['EWI Mean', 'EWI Std', 'Normal EWI Mean', 'Normal EWI Std']
+        hdr += ['EWC Mean', 'EWC Std', 'Normal EWC Mean', 'Normal EWC Std']
+        hdr += ['EWO Mean', 'EWO Std', 'Normal EWO Mean', 'Normal EWO Std']
         if arguments.tau is not None:
-            hdr += ['Normal EW3Z', 'Normal EW3Z Std',
-                    'Normal EW3ZPN', 'Normal EW3ZPN Std']
+            hdr += ['Normal EW3Z Mean', 'Normal EW3Z Std',
+                    'Normal EW3ZPN Mean', 'Normal EW3ZPN Std']
 
     if num_radial_steps is not None:
         for radial_step in range(num_radial_steps):
             start_ew = arguments.ew_inner_radius + radial_step * arguments.radial_step
-            hdr += [f'EW{start_ew}', f'EW{start_ew} Std',
-                    f'Normal EW{start_ew}', f'Normal EW{start_ew} Std']
+            hdr += [f'EW{start_ew} Mean', f'EW{start_ew} Std',
+                    f'Normal EW{start_ew} Mean', f'Normal EW{start_ew} Std']
 
     if arguments.compute_widths:
         hdr += ['Width1',  'Width1 Std',
@@ -317,6 +444,16 @@ if arguments.output_csv_filename:
         hdr += ['Core Offset Median',
                 'Core Offset Mean',
                 'Core Offset Std']
+
+    if arguments.compute_moon_info:
+        hdr += ['Pandora Closest Distance',
+                'Pandora Closest Long',
+                'Pandora Distance',
+                'Pandora Long',
+                'Prometheus Closest Distance',
+                'Prometheus Closest Long',
+                'Prometheus Distance',
+                'Prometheus Long']
 
     writer.writerow(hdr)
 
@@ -357,6 +494,7 @@ for obs_id in f_ring.enumerate_obsids(arguments):
     ds = arguments.downsample
 
     longitudes = np.degrees(metadata['longitudes'][::ds]).view(ma.MaskedArray)
+    orig_longitudes = longitudes.copy()
     resolutions = metadata['mean_resolution'][::ds]
     image_numbers = metadata['image_number'][::ds]
     ETs = metadata['time'][::ds]
@@ -365,7 +503,7 @@ for obs_id in f_ring.enumerate_obsids(arguments):
     phase_angles = metadata['mean_phase'][::ds]
     inertial_longitudes = f_ring.fring_corotating_to_inertial(longitudes, ETs)
     longitude_of_pericenters = f_ring.fring_longitude_of_pericenter(ETs)
-    true_anomalies = f_ring.fring_true_anomaly(ETs, inertial_longitudes)
+    true_anomalies = f_ring.fring_true_anomaly(inertial_longitudes, ETs)
     # bsm = background-subtracted-mosaic
     bsm_img = bsm_img[:,::ds]
 
@@ -679,13 +817,14 @@ for obs_id in f_ring.enumerate_obsids(arguments):
                    np.round(np.degrees(slice_mean_em), 8),
                    np.round(np.degrees(incidence_angle), 8),
                    np.round(percentage_ew_ok, 2),
+                   np.round(slice_ew_median, 8),
                    np.round(slice_ew_mean, 8),
                    np.round(slice_ew_std, 8),
+                   np.round(slice_ew_median_mu, 8),
                    np.round(slice_ew_mean_mu, 8),
-                   np.round(slice_ew_std_mu, 8),
-                   np.round(slice_ew_median, 8),
-                   np.round(slice_ew_median_mu, 8)]
-            if arguments.slice_size == 0:
+                   np.round(slice_ew_std_mu, 8)]
+
+            if arguments.include_quantiles:
                 row += [np.round(slice_ew_mean_15, 8),
                         np.round(slice_ew_std_15, 8),
                         np.round(slice_ew_mean_mu_15, 8),
@@ -809,6 +948,78 @@ for obs_id in f_ring.enumerate_obsids(arguments):
                 row += [np.round(ma.median(slice_core_centers), 3),
                         np.round(ma.mean(slice_core_centers), 3),
                         np.round(ma.std(slice_core_centers), 3)]
+
+            if arguments.compute_moon_info:
+                def _is_in_close(val, arr):
+                    for x in arr:
+                        if math.isclose(val, x):
+                            return True
+                    return False
+
+                # These are the original longitudes without anything being masked
+                # out because we don't want to use the radial slice to compute an EW
+                slice_orig_longitudes = orig_longitudes[slice_start:slice_end]
+
+                # Closest the moon gets to the ring during the upcoming orbit
+                (pandora_closest_dist,
+                 pandora_closest_long) = moons.pandora_close_approach(slice_min_et)
+                (prometheus_closest_dist,
+                 prometheus_closest_long) = moons.prometheus_close_approach(slice_min_et)
+
+                # Find the position of the moon in this slice, if it's there at all
+                unique_ets = set(slice_ETs)
+                for unique_et in unique_ets:
+                    pandora_dist, pandora_long = moons.saturn_to_pandora(unique_et)
+                    pandora_long = f_ring.fring_inertial_to_corotating(pandora_long,
+                                                                       unique_et)
+                    longs_for_et = [slice_orig_longitudes[i]
+                                        for i in range(len(slice_longitudes))
+                                            if slice_ETs[i] == unique_et]
+                    # Round to the nearest longitude incrementfmovie106
+                    pandora_long = (int(pandora_long / arguments.longitude_resolution) *
+                                    arguments.longitude_resolution)
+                    if _is_in_close(pandora_long, longs_for_et):
+                        inertial_long = f_ring.fring_corotating_to_inertial(
+                            pandora_long, unique_et)
+                        fring_r = f_ring.fring_radius_at_longitude(
+                            inertial_long, unique_et)
+                        pandora_long = np.round(pandora_long, 3)
+                        pandora_dist = np.round(pandora_dist - fring_r, 3)
+                        break
+                else:
+                    pandora_dist = 'NaN'
+                    pandora_long = 'NaN'
+                for unique_et in sorted(unique_ets):
+                    prometheus_dist, prometheus_long = moons.saturn_to_prometheus(unique_et)
+                    prometheus_long = f_ring.fring_inertial_to_corotating(prometheus_long,
+                                                                          unique_et)
+                    longs_for_et = [slice_orig_longitudes[i]
+                                        for i in range(len(slice_longitudes))
+                                            if slice_ETs[i] == unique_et]
+                    # Round to the nearest longitude increment
+                    prometheus_long = (int(prometheus_long / arguments.longitude_resolution) *
+                                       arguments.longitude_resolution)
+                    # print('***', unique_et, prometheus_long,
+                    #       min(longs_for_et), max(longs_for_et))
+                    if _is_in_close(prometheus_long, longs_for_et):
+                        inertial_long = f_ring.fring_corotating_to_inertial(
+                            prometheus_long, unique_et)
+                        fring_r = f_ring.fring_radius_at_longitude(
+                            inertial_long, unique_et)
+                        prometheus_long = np.round(prometheus_long, 3)
+                        prometheus_dist = np.round(fring_r - prometheus_dist, 3)
+                        break
+                else:
+                    prometheus_dist = 'NaN'
+                    prometheus_long = 'NaN'
+                row += [np.round(pandora_closest_dist, 3),
+                        np.round(pandora_closest_long, 3),
+                        pandora_dist,
+                        pandora_long,
+                        np.round(prometheus_closest_dist, 3),
+                        np.round(prometheus_closest_long, 3),
+                        prometheus_dist,
+                        prometheus_long]
 
             writer.writerow(row)
 

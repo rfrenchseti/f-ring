@@ -308,15 +308,15 @@ def fring_longitude_of_pericenter(et):
     return (FRING_W0 + FRING_DW*et/86400.) % 360.
 
 
-def fring_true_anomaly(et, longitude):
+def fring_true_anomaly(longitude, et):
     """Return the true anomaly at the given time and inertial longitude."""
     curly_w = FRING_W0 + FRING_DW*et/86400.
     return (longitude - curly_w) % 360.
 
 
-def fring_radius_at_longitude(et, longitude):
+def fring_radius_at_longitude(longitude, et):
     """Return the radius (km) of the F ring core at inertial longitude."""
-    true_anomaly = fring_true_anomaly(et, longitude)
+    true_anomaly = fring_true_anomaly(longitude, et)
 
     radius = (FRING_A * (1-FRING_E**2) /
               (1 + FRING_E * np.cos(np.radians(true_anomaly))))
