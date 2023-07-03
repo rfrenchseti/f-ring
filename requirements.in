@@ -1,3 +1,6 @@
+# Required for pip-compile to work
+pip-tools
+
 msgpack
 msgpack_numpy
 numpy
@@ -9,8 +12,6 @@ jupyter
 
 matplotlib
 mplcursors
-plotly
-dash
-jupyter-dash
 
-pip-tools
+cspyce
+rms-fpzip

@@ -575,7 +575,7 @@ class ImageDisp(tk.Frame):
                     if self._whitepoint_ignore_frac == 1.0:
                         themax = img.max()
                     else:
-                        img_sorted = np.sort(img, axis=None)
+                        img_sorted = sorted(list(img.flatten()))
                         themax = img_sorted[
                             np.clip(int(len(img_sorted)*
                                         self._whitepoint_ignore_frac[i]),
@@ -607,7 +607,7 @@ class ImageDisp(tk.Frame):
                     if self._whitepoint_ignore_frac == 1.0:
                         imgdata_max_list.append(img.max())
                     else:
-                        img_sorted = np.sort(img, axis=None)
+                        img_sorted = sorted(list(img.flatten()))
                         perc_wp = img_sorted[
                             np.clip(int(len(img_sorted)*
                                         self._whitepoint_ignore_frac[i]),
@@ -750,20 +750,68 @@ class ImageDisp(tk.Frame):
                                                      callback_func))
 
     def bind_b1press(self, img_num, callback_func):
-        """Bind a button-one callback for a single image.
+        """Bind a button-one press callback for a single image.
 
         Inputs:
 
         img_num            The number of the image
-        callback_func      The function to be called on mouse move; it is
+        callback_func      The function to be called on B1 press; it is
                            called with params (x, y) in image (not screen
                            pixel) coordinates.
         """
         canvas = self._canvas_list[img_num]
         canvas.bind("<Button-1>",
                     lambda event, callback_func=callback_func, img_num=img_num:
-                    self._b1press_callback_handler(event, img_num,
-                                                   callback_func))
+                    self._button_callback_handler(event, img_num,
+                                                  callback_func))
+
+    def bind_b3press(self, img_num, callback_func):
+        """Bind a button-three press callback for a single image.
+
+        Inputs:
+
+        img_num            The number of the image
+        callback_func      The function to be called on B3 press; it is
+                           called with params (x, y) in image (not screen
+                           pixel) coordinates.
+        """
+        canvas = self._canvas_list[img_num]
+        canvas.bind("<Button-3>",
+                    lambda event, callback_func=callback_func, img_num=img_num:
+                    self._button_callback_handler(event, img_num,
+                                                  callback_func))
+
+    def bind_b1release(self, img_num, callback_func):
+        """Bind a button-one release callback for a single image.
+
+        Inputs:
+
+        img_num            The number of the image
+        callback_func      The function to be called on B1 release; it is
+                           called with params (x, y) in image (not screen
+                           pixel) coordinates.
+        """
+        canvas = self._canvas_list[img_num]
+        canvas.bind("<ButtonRelease-1>",
+                    lambda event, callback_func=callback_func, img_num=img_num:
+                    self._button_callback_handler(event, img_num,
+                                                  callback_func))
+
+    def bind_b3release(self, img_num, callback_func):
+        """Bind a button-three release callback for a single image.
+
+        Inputs:
+
+        img_num            The number of the image
+        callback_func      The function to be called on B3 release; it is
+                           called with params (x, y) in image (not screen
+                           pixel) coordinates.
+        """
+        canvas = self._canvas_list[img_num]
+        canvas.bind("<ButtonRelease-3>",
+                    lambda event, callback_func=callback_func, img_num=img_num:
+                    self._button_callback_handler(event, img_num,
+                                                  callback_func))
 
     def bind_ctrl_b1press(self, img_num, callback_func):
         """Bind a Control+button-one callback for a single image.
@@ -779,8 +827,8 @@ class ImageDisp(tk.Frame):
         canvas = self._canvas_list[img_num]
         canvas.bind("<Control-Button-1>",
                     lambda event, callback_func=callback_func, img_num=img_num:
-                    self._b1press_ctrl_callback_handler(event, img_num,
-                                                        callback_func))
+                    self._button_callback_handler(event, img_num,
+                                                  callback_func))
 
     def bind_shift_b1press(self, img_num, callback_func):
         """Bind a Shift+button-one callback for a single image.
@@ -796,8 +844,8 @@ class ImageDisp(tk.Frame):
         canvas = self._canvas_list[img_num]
         canvas.bind("<Shift-Button-1>",
                     lambda event, callback_func=callback_func, img_num=img_num:
-                    self._b1press_shift_callback_handler(event, img_num,
-                                                         callback_func))
+                    self._button_callback_handler(event, img_num,
+                                                  callback_func))
 
 
     #==========================================================================
@@ -1133,40 +1181,8 @@ class ImageDisp(tk.Frame):
         if callback_func is not None:
             callback_func(x-self._origin[0], y-self._origin[1])
 
-    def _b1press_callback_handler(self, event, img_num, callback_func):
+    def _button_callback_handler(self, event, img_num, callback_func):
         """Internal - callback for button-one press."""
-        canvas = self._canvas_list[img_num]
-        xzoom, yzoom = self._get_zoom_factors()
-        x = (canvas.canvasx(event.x) * xzoom /
-             self._overlay_scale_x_list[img_num])
-        y = (canvas.canvasy(event.y) * yzoom /
-             self._overlay_scale_y_list[img_num])
-        if (x < 0 or y < 0 or
-            x >= self._imgdata_list[img_num].shape[1] or
-            y >= self._imgdata_list[img_num].shape[0]):
-            return
-        if self._flip_y:
-            y = self._imgdata_list[img_num].shape[0] - y -1
-        callback_func(x, y)
-
-    def _b1press_ctrl_callback_handler(self, event, img_num, callback_func):
-        """Internal - callback for Control+button-one press."""
-        canvas = self._canvas_list[img_num]
-        xzoom, yzoom = self._get_zoom_factors()
-        x = (canvas.canvasx(event.x) * xzoom /
-             self._overlay_scale_x_list[img_num])
-        y = (canvas.canvasy(event.y) * yzoom /
-             self._overlay_scale_y_list[img_num])
-        if (x < 0 or y < 0 or
-            x >= self._imgdata_list[img_num].shape[1] or
-            y >= self._imgdata_list[img_num].shape[0]):
-            return
-        if self._flip_y:
-            y = self._imgdata_list[img_num].shape[0] - y -1
-        callback_func(x, y)
-
-    def _b1press_shift_callback_handler(self, event, img_num, callback_func):
-        """Internal - callback for Shift+button-one press."""
         canvas = self._canvas_list[img_num]
         xzoom, yzoom = self._get_zoom_factors()
         x = (canvas.canvasx(event.x) * xzoom /
