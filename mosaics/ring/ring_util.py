@@ -382,6 +382,10 @@ def read_repro(repro_path):
         repro_data = {}
     if 'bad_pixel_map' not in repro_data:
         repro_data['bad_pixel_map'] = None
+    if 'mean_resolution' in repro_data: # Old format
+        repro_data['mean_radial_resolution'] = res = repro_data['mean_resolution']
+        del repro_data['mean_resolution']
+        repro_data['mean_angular_resolution'] = np.zeros(res.shape)
 
     return repro_data
 

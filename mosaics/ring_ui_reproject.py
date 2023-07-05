@@ -159,7 +159,8 @@ class OffRepDispData:
         self.repro_phase_angles = None
         self.repro_incidence_angle = None
         self.repro_emission_angles = None
-        self.repro_resolutions = None
+        self.repro_radial_resolutions = None
+        self.repro_angular_resolutions = None
         self.button_b1_down = False
         self.button_b3_down = False
 
@@ -350,7 +351,8 @@ def _update_offrepdata_repro(offrepdata, metadata):
         offrepdata.repro_long_mask = None
         offrepdata.repro_img = None
         offrepdata.repro_longitudes = None
-        offrepdata.repro_resolutions = None
+        offrepdata.repro_radial_resolutions = None
+        offrepdata.repro_angular_resolutions = None
         offrepdata.repro_phase_angles = None
         offrepdata.repro_emission_angles = None
         offrepdata.repro_incidence_angle = None
@@ -358,7 +360,8 @@ def _update_offrepdata_repro(offrepdata, metadata):
     else:
         offrepdata.repro_long_mask = metadata['long_mask']
         offrepdata.repro_img = metadata['img']
-        offrepdata.repro_resolutions = metadata['mean_resolution']
+        offrepdata.repro_radial_resolutions = metadata['mean_radial_resolution']
+        offrepdata.repro_angular_resolutions = metadata['mean_angular_resolution']
         offrepdata.repro_phase_angles = metadata['mean_phase']
         offrepdata.repro_emission_angles = metadata['mean_emission']
         offrepdata.repro_incidence_angle = metadata['incidence']
@@ -376,7 +379,8 @@ def _write_repro_data(offrepdata):
     metadata['bad_pixel_map'] = offrepdata.bad_pixel_map
     metadata['img'] = offrepdata.repro_img
     metadata['long_mask'] = offrepdata.repro_long_mask
-    metadata['mean_resolution'] = offrepdata.repro_resolutions
+    metadata['mean_radial_resolution'] = offrepdata.repro_radial_resolutions
+    metadata['mean_angular_resolution'] = offrepdata.repro_angular_resolutions
     metadata['mean_phase'] = offrepdata.repro_phase_angles
     metadata['mean_emission'] = offrepdata.repro_emission_angles
     metadata['incidence'] = offrepdata.repro_incidence_angle
@@ -391,8 +395,8 @@ def _write_repro_data(offrepdata):
     write_repro(offrepdata.repro_path, metadata)
 
 def _reproject_one_image(offrepdata):
-    image_logger.debug(f'Reading image file {offrepdata.image_path}')
     if offrepdata.obs is None:
+        image_logger.debug(f'Reading image file {offrepdata.image_path}')
         offrepdata.obs = Navigation(read_img_file(offrepdata.image_path,
                                                   arguments.instrument_host),
                                     arguments.instrument_host)
@@ -426,7 +430,7 @@ def _reproject_one_image(offrepdata):
                                             arguments.radius_inner_delta,
                                             arguments.ring_radius+
                                             arguments.radius_outer_delta),
-                              corotating=arguments.corot_type,
+                              corot_type=arguments.corot_type,
                               zoom_amt=(arguments.radial_zoom_amount,
                                         arguments.longitude_zoom_amount),
                               omit_saturns_shadow=arguments.omit_saturns_shadow)
@@ -731,7 +735,8 @@ def refresh_repro_img(offrepdata, offrepdispdata):
     _reproject_one_image(offrepdata)
 
     offrepdispdata.repro_longitudes = offrepdata.repro_longitudes
-    offrepdispdata.repro_resolutions = offrepdata.repro_resolutions
+    offrepdispdata.repro_radial_resolutions = offrepdata.repro_radial_resolutions
+    offrepdispdata.repro_angular_resolutions = offrepdata.repro_angular_resolutions
     offrepdispdata.repro_phase_angles = offrepdata.repro_phase_angles
     offrepdispdata.repro_emission_angles = offrepdata.repro_emission_angles
     offrepdispdata.repro_incidence_angle = offrepdata.repro_incidence_angle
@@ -930,16 +935,10 @@ def setup_offset_reproject_window(offrepdata, offrepdispdata):
     button_commit_changes.grid(row=gridrow, column=gridcolumn+1)
     gridrow += 1
 
-    # Display for longitude and radius
-    label = Label(img_addon_control_frame, text='Inertial Long:')
-    label.grid(row=gridrow, column=gridcolumn, sticky=W)
-    offrepdispdata.label_off_inertial_longitude = Label(img_addon_control_frame,
-                                                        text='')
-    offrepdispdata.label_off_inertial_longitude.grid(row=gridrow,
-                                                     column=gridcolumn+1,
-                                                     sticky=W)
-    gridrow += 1
+    gridcolumn += 2
+    gridrow = 0
 
+    # Display for longitude and radius
     label = Label(img_addon_control_frame, text='Co-Rot Long:')
     label.grid(row=gridrow, column=gridcolumn, sticky=W)
     offrepdispdata.label_off_corot_longitude = Label(img_addon_control_frame,
@@ -953,6 +952,15 @@ def setup_offset_reproject_window(offrepdata, offrepdispdata):
     offrepdispdata.label_off_radius = Label(img_addon_control_frame, text='')
     offrepdispdata.label_off_radius.grid(row=gridrow, column=gridcolumn+1,
                                          sticky=W)
+    gridrow += 1
+
+    label = Label(img_addon_control_frame, text='Inertial Long:')
+    label.grid(row=gridrow, column=gridcolumn, sticky=W)
+    offrepdispdata.label_off_inertial_longitude = Label(img_addon_control_frame,
+                                                        text='')
+    offrepdispdata.label_off_inertial_longitude.grid(row=gridrow,
+                                                     column=gridcolumn+1,
+                                                     sticky=W)
     gridrow += 1
 
     callback_mouse_offset_command = (lambda x, y, offrepdata=offrepdata,
@@ -1003,15 +1011,6 @@ def setup_offset_reproject_window(offrepdata, offrepdispdata):
     offrepdispdata.label_date.grid(row=gridrow, column=gridcolumn+1, sticky=W)
     gridrow += 1
 
-    label = Label(repro_addon_control_frame, text='Inertial Long:')
-    label.grid(row=gridrow, column=gridcolumn, sticky=W)
-    offrepdispdata.label_inertial_longitude = Label(repro_addon_control_frame,
-                                                    text='')
-    offrepdispdata.label_inertial_longitude.grid(row=gridrow,
-                                                 column=gridcolumn+1,
-                                                 sticky=W)
-    gridrow += 1
-
     label = Label(repro_addon_control_frame, text='Co-Rot Long:')
     label.grid(row=gridrow, column=gridcolumn, sticky=W)
     offrepdispdata.label_corot_longitude = Label(repro_addon_control_frame,
@@ -1046,11 +1045,27 @@ def setup_offset_reproject_window(offrepdata, offrepdispdata):
                                        sticky=W)
     gridrow += 1
 
-    label = Label(repro_addon_control_frame, text='Resolution:')
+    label = Label(repro_addon_control_frame, text='Radial Res:')
     label.grid(row=gridrow, column=gridcolumn, sticky=W)
-    offrepdispdata.label_resolution = Label(repro_addon_control_frame, text='')
-    offrepdispdata.label_resolution.grid(row=gridrow, column=gridcolumn+1,
-                                         sticky=W)
+    offrepdispdata.label_radial_resolution = Label(repro_addon_control_frame, text='')
+    offrepdispdata.label_radial_resolution.grid(row=gridrow, column=gridcolumn+1,
+                                                sticky=W)
+    gridrow += 1
+
+    label = Label(repro_addon_control_frame, text='Angular Res:')
+    label.grid(row=gridrow, column=gridcolumn, sticky=W)
+    offrepdispdata.label_angular_resolution = Label(repro_addon_control_frame, text='')
+    offrepdispdata.label_angular_resolution.grid(row=gridrow, column=gridcolumn+1,
+                                                sticky=W)
+    gridrow += 1
+
+    label = Label(repro_addon_control_frame, text='Inertial Long:')
+    label.grid(row=gridrow, column=gridcolumn, sticky=W)
+    offrepdispdata.label_inertial_longitude = Label(repro_addon_control_frame,
+                                                    text='')
+    offrepdispdata.label_inertial_longitude.grid(row=gridrow,
+                                                 column=gridcolumn+1,
+                                                 sticky=W)
     gridrow += 1
 
     offrepdispdata.imdisp_repro.pack(side=LEFT)
@@ -1085,8 +1100,7 @@ def display_offset_reproject(offrepdata, offrepdispdata, option_invalid_offset,
             if 'manual_offset' not in offrepdata.off_metadata:
                 offrepdata.manual_offset = None
             else:
-                offrepdata.manual_offset = offrepdata.off_metadata[
-                                                                'manual_offset']
+                offrepdata.manual_offset = offrepdata.off_metadata['manual_offset']
 
     if (option_invalid_offset and
         (offrepdata.the_offset is not None or
@@ -1110,7 +1124,8 @@ def display_offset_reproject(offrepdata, offrepdispdata, option_invalid_offset,
         offrepdispdata.repro_overlay = None
 
     offrepdispdata.repro_longitudes = offrepdata.repro_longitudes
-    offrepdispdata.repro_resolutions = offrepdata.repro_resolutions
+    offrepdispdata.repro_radial_resolutions = offrepdata.repro_radial_resolutions
+    offrepdispdata.repro_angular_resolutions = offrepdata.repro_angular_resolutions
     offrepdispdata.repro_phase_angles = offrepdata.repro_phase_angles
     offrepdispdata.repro_emission_angles = offrepdata.repro_emission_angles
     offrepdispdata.repro_incidence_angle = offrepdata.repro_incidence_angle
@@ -1139,8 +1154,10 @@ def callback_repro(x, y, offrepdata, offrepdispdata):
               arguments.ring_radius+
               arguments.radius_inner_delta)
     offrepdispdata.label_radius.config(text='%7.3f'%radius)
-    offrepdispdata.label_resolution.config(text=
-                ('%7.3f'%offrepdispdata.repro_resolutions[x]))
+    offrepdispdata.label_radial_resolution.config(text=
+                ('%7.3f'%offrepdispdata.repro_radial_resolutions[x]))
+    offrepdispdata.label_angular_resolution.config(text=
+                ('%7.4f'%np.degrees(offrepdispdata.repro_angular_resolutions[x])))
     offrepdispdata.label_phase.config(text=
                 ('%7.3f'%(np.degrees(offrepdispdata.repro_phase_angles[x]))))
     offrepdispdata.label_emission.config(text=
