@@ -53,3 +53,4 @@
 - Color slope using reprojection
 
 - Add ISS_029RI_AZSCNLOPH001_PRIME
+- FRSTRCHAN observations (full inertial longitudes)

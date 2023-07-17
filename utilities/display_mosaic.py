@@ -40,6 +40,10 @@ parser = argparse.ArgumentParser()
 parser.add_argument(
     '--show-radii', default='',
     help='Comma-separated list of radii to highlight')
+parser.add_argument(
+    '--ew-single-radius', action='store_true', default=False,
+    help='Single left click displays EW profile of current radius, otherwise '
+         'double click to specify a range')
 
 if PROFILE_AVAILABLE:
     parser.add_argument(
@@ -50,6 +54,9 @@ if PROFILE_AVAILABLE:
 f_ring.add_parser_arguments(parser)
 
 arguments = parser.parse_args(command_list)
+
+f_ring.init(arguments)
+
 
 class MosaicData(object):
     def __init__(self):
@@ -70,13 +77,14 @@ class MosaicDispData:
 def update_mosaicdata(mosaicdata, metadata):
     mosaicdata.radius_resolution = metadata['radius_resolution']
     mosaicdata.longitude_resolution = metadata['longitude_resolution']
-    mosaicdata.long_mask = metadata['long_mask']
+    mosaicdata.long_antimask = metadata['long_antimask']
     mosaicdata.image_numbers = metadata['image_number']
     mosaicdata.ETs = metadata['time']
     mosaicdata.emission_angles = np.degrees(metadata['mean_emission'])
     mosaicdata.incidence_angle = np.degrees(metadata['mean_incidence'])
     mosaicdata.phase_angles = np.degrees(metadata['mean_phase'])
-    mosaicdata.resolutions = metadata['mean_resolution']
+    mosaicdata.radial_resolutions = metadata['mean_radial_resolution']
+    mosaicdata.angular_resolutions = metadata['mean_angular_resolution']
     mosaicdata.longitudes = np.degrees(metadata['longitudes'])
     mosaicdata.obsid_list = metadata['obsid_list']
     mosaicdata.image_name_list = metadata['image_name_list']
@@ -102,8 +110,10 @@ def command_refresh_color(mosaicdata, mosaicdispdata):
     minval = None
     maxval = None
 
-    if color_sel == 'relresolution':
-        valsrc = mosaicdata.resolutions
+    if color_sel == 'relradresolution':
+        valsrc = mosaicdata.radial_resolutions
+    elif color_sel == 'relangresolution':
+        valsrc = mosaicdata.angular_resolutions
     elif color_sel == 'relphase':
         valsrc = mosaicdata.phase_angles
     elif color_sel == 'absphase':
@@ -127,7 +137,10 @@ def command_refresh_color(mosaicdata, mosaicdispdata):
 
     for col in range(len(mosaicdata.longitudes)):
         if mosaicdata.longitudes[col] >= 0.:
-            color = colorsys.hsv_to_rgb((1-
+            if minval == maxval:
+                color = 1
+            else:
+                color = colorsys.hsv_to_rgb((1-
                         (float(valsrc[col])-minval)/(maxval-minval))*.66, 1, 1)
             color_data[col,:] = color
 
@@ -213,11 +226,18 @@ def setup_mosaic_window(mosaicdata, mosaicdispdata):
                                        sticky=W)
     gridrow += 1
 
-    label = Label(addon_control_frame, text='Resolution:')
+    label = Label(addon_control_frame, text='Radial Res:')
     label.grid(row=gridrow, column=gridcolumn, sticky=W)
-    mosaicdispdata.label_resolution = Label(addon_control_frame, text='')
-    mosaicdispdata.label_resolution.grid(row=gridrow, column=gridcolumn+1,
-                                         sticky=W)
+    mosaicdispdata.label_rad_resolution = Label(addon_control_frame, text='')
+    mosaicdispdata.label_rad_resolution.grid(row=gridrow, column=gridcolumn+1,
+                                             sticky=W)
+    gridrow += 1
+
+    label = Label(addon_control_frame, text='Angular Res:')
+    label.grid(row=gridrow, column=gridcolumn, sticky=W)
+    mosaicdispdata.label_ang_resolution = Label(addon_control_frame, text='')
+    mosaicdispdata.label_ang_resolution.grid(row=gridrow, column=gridcolumn+1,
+                                             sticky=W)
     gridrow += 1
 
     label = Label(addon_control_frame, text='Image:')
@@ -287,9 +307,16 @@ def setup_mosaic_window(mosaicdata, mosaicdispdata):
                                                           column=gridcolumn,
                                                           sticky=W)
     gridrow += 1
-    Radiobutton(addon_control_frame, text='Rel Resolution',
+    Radiobutton(addon_control_frame, text='Rel Radius Resolution',
                 variable=mosaicdispdata.var_color_by,
-                value='relresolution',
+                value='relradresolution',
+                command=refresh_color).grid(row=gridrow,
+                                            column=gridcolumn,
+                                            sticky=W)
+    gridrow += 1
+    Radiobutton(addon_control_frame, text='Rel Angular Resolution',
+                variable=mosaicdispdata.var_color_by,
+                value='relangresolution',
                 command=refresh_color).grid(row=gridrow,
                                             column=gridcolumn,
                                             sticky=W)
@@ -349,12 +376,14 @@ def callback_b1press_mosaic(x, y, mosaicdata):
     global ew_limit_phase, ew_range_lower, ew_range_upper
     if x < 0:
         return
-    if ew_limit_phase == 0:
+    if not arguments.ew_single_radius and ew_limit_phase == 0:
         ew_limit_phase = 1
         ew_range_lower = int(y)
         return
     ew_limit_phase = 0
-    ew_range_upper = int(y)
+    ew_range_lower = int(y)
+    if arguments.ew_single_radius:
+        ew_range_upper = ew_range_lower
     ew_range_lower, ew_range_upper = (min(ew_range_lower, ew_range_upper),
                                       max(ew_range_lower, ew_range_upper))
     ew_data = (np.sum(mosaicdata.img[ew_range_lower:ew_range_upper+1], axis=0) *
@@ -368,9 +397,13 @@ def callback_b1press_mosaic(x, y, mosaicdata):
     plt.plot(mosaicdata.longitudes, ew_data,
              label=f'{radius_lower:d}-{radius_upper:d}={ew_mean:.2f}\u00b1{ew_std:.2f}')
     plt.xlabel('Longitude (degrees)')
-    plt.ylabel('I/F')
     plt.xlim(0, 360)
-    plt.title('Limited range I/F')
+    if arguments.ew_single_radius:
+        plt.ylabel('I/F')
+        plt.title('Single radius I/F')
+    else:
+        plt.ylabel('EW (km)')
+        plt.title('Limited range EW')
     plt.legend()
     plt.tight_layout()
     plt.show()
@@ -395,7 +428,8 @@ def callback_move_mosaic(x, y, mosaicdata):
         mosaicdispdata.label_phase.config(text='')
         mosaicdispdata.label_incidence.config(text='')
         mosaicdispdata.label_emission.config(text='')
-        mosaicdispdata.label_resolution.config(text='')
+        mosaicdispdata.label_rad_resolution.config(text='')
+        mosaicdispdata.label_ang_resolution.config(text='')
         mosaicdispdata.label_image.config(text='')
         mosaicdispdata.label_obsid.config(text='')
         mosaicdispdata.label_date.config(text='')
@@ -414,8 +448,10 @@ def callback_move_mosaic(x, y, mosaicdata):
                     ('%7.3f'%(mosaicdata.incidence_angle)))
         mosaicdispdata.label_emission.config(text=
                     ('%7.3f'%(mosaicdata.emission_angles[x])))
-        mosaicdispdata.label_resolution.config(text=
-                    ('%7.3f'%mosaicdata.resolutions[x]))
+        mosaicdispdata.label_rad_resolution.config(text=
+                    ('%7.3f'%mosaicdata.radial_resolutions[x]))
+        mosaicdispdata.label_ang_resolution.config(text=
+                    ('%7.3f'%np.degrees(mosaicdata.angular_resolutions[x])))
         mosaicdispdata.label_image.config(text=
                     mosaicdata.image_name_list[mosaicdata.image_numbers[x]] +
                     ' ('+str(mosaicdata.image_numbers[x])+')')
@@ -459,6 +495,13 @@ for obs_id in f_ring.enumerate_obsids(arguments):
         metadata = msgpack.unpackb(metadata_fp.read(),
                                    max_str_len=40*1024*1024,
                                    object_hook=msgpack_numpy.decode)
+        if 'mean_resolution' in metadata: # Old format
+            metadata['mean_radial_resolution'] = res = metadata['mean_resolution']
+            del metadata['mean_resolution']
+            metadata['mean_angular_resolution'] = np.zeros(res.shape)
+        if 'long_mask' in metadata: # Old format
+            metadata['long_antimask'] = metadata['long_mask']
+            del metadata['long_mask']
     update_mosaicdata(mosaicdata, metadata)
     display_mosaic(mosaicdata, mosaicdispdata)
     if PROFILE_AVAILABLE:

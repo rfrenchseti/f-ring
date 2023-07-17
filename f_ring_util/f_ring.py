@@ -7,7 +7,6 @@
 
 import mplcursors
 import os
-import pickle
 import sys
 
 import numpy as np
@@ -78,6 +77,37 @@ import julian
 # GENERAL UTILITIES
 #
 ################################################################################
+
+RING_TYPE = None
+FRING_DATA_ROOT = None
+DATA_ROOT = None
+MOSAIC_DIR = None
+BKGND_DIR = None
+BKGND_SUB_MOSAIC_DIR = None
+REPRO_DIR = None
+POLAR_PNG_DIR = None
+
+def init(arguments):
+    global RING_TYPE
+    global FRING_DATA_ROOT
+    global DATA_ROOT
+    global MOSAIC_DIR
+    global BKGND_DIR
+    global BKGND_SUB_MOSAIC_DIR
+    global REPRO_DIR
+    global POLAR_PNG_DIR
+    RING_TYPE = arguments.ring_type
+    FRING_DATA_ROOT = os.environ.get('FRING_DATA_ROOT')
+    if FRING_DATA_ROOT is None:
+        print('Please set the environment variable FRING_DATA_ROOT')
+        sys.exit(-1)
+    DATA_ROOT = os.path.abspath(FRING_DATA_ROOT)
+    MOSAIC_DIR = file_clean_join(DATA_ROOT, f'mosaic_{RING_TYPE}')
+    BKGND_DIR = file_clean_join(DATA_ROOT, f'bkgnd_{RING_TYPE}')
+    BKGND_SUB_MOSAIC_DIR = file_clean_join(DATA_ROOT, f'bkgnd_sub_mosaic_{RING_TYPE}')
+    REPRO_DIR = file_clean_join(DATA_ROOT, 'ring_repro')
+    POLAR_PNG_DIR = file_clean_join(DATA_ROOT, f'png_polar_{RING_TYPE}')
+
 
 def utc2et(s):
     """Convert a date/time in UTC format to SPICE Ephemeris Time."""
@@ -725,8 +755,8 @@ CISSCAL_RATIO_DF = pd.DataFrame({'CISSCAL Ratio': _cr_ratio}, index=_cr_obsname)
 
 def add_cisscal_ratios(obsdata):
     """Add CISSCAL ratios to obsdata."""
-    obsdata =  obsdata.join(CISSCAL_RATIO_DF, on='Observation', how='inner',
-                            rsuffix='_old')
+    obsdata = obsdata.join(CISSCAL_RATIO_DF, on='Observation', how='inner',
+                           rsuffix='_old')
     obsdata['Adjusted Normal EW Mean_2012'] = (obsdata['Normal EW Mean_2012'] *
                                                obsdata['CISSCAL Ratio'])
 
@@ -755,15 +785,3 @@ def limit_by_quant(obsdata, cutoff1, cutoff2=None, col='Normal EW Mean'):
 
 
 ################################################################################
-
-RING_TYPE = 'FMOVIE'
-FRING_DATA_ROOT = os.environ.get('FRING_DATA_ROOT')
-if FRING_DATA_ROOT is None:
-    print('Please set the environment variable FRING_DATA_ROOT')
-    sys.exit(-1)
-DATA_ROOT = os.path.abspath(FRING_DATA_ROOT)
-MOSAIC_DIR = file_clean_join(DATA_ROOT, f'mosaic_{RING_TYPE}')
-BKGND_DIR = file_clean_join(DATA_ROOT, f'bkgnd_{RING_TYPE}')
-BKGND_SUB_MOSAIC_DIR = file_clean_join(DATA_ROOT, f'bkgnd_sub_mosaic_{RING_TYPE}')
-REPRO_DIR = file_clean_join(DATA_ROOT, 'ring_repro')
-POLAR_PNG_DIR = file_clean_join(DATA_ROOT, f'png_polar_{RING_TYPE}')

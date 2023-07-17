@@ -65,7 +65,8 @@ class BkgndDispData:
         self.label_phase = None
         self.label_incidence = None
         self.label_emission = None
-        self.label_resolution = None
+        self.label_radial_resolution = None
+        self.label_angular_resolution = None
         self.label_image = None
         self.label_obsid = None
         self.label_date = None
@@ -105,16 +106,17 @@ def _update_bkgnddata(bkgnddata, metadata):
     bkgnddata.radius_resolution = metadata['radius_resolution']
     bkgnddata.longitude_resolution = metadata['longitude_resolution']
     bkgnddata.mosaic_img = metadata['img']
-    bkgnddata.long_mask = metadata['long_mask']
+    bkgnddata.long_antimask = metadata['long_antimask']
     bkgnddata.image_numbers = metadata['image_number']
     bkgnddata.ETs = metadata['time']
     bkgnddata.emission_angles = metadata['mean_emission']
     bkgnddata.incidence_angle = metadata['mean_incidence']
     bkgnddata.phase_angles = metadata['mean_phase']
-    bkgnddata.resolutions = metadata['mean_resolution']
+    bkgnddata.radial_resolutions = metadata['mean_radial_resolution']
+    bkgnddata.angular_resolutions = metadata['mean_angular_resolution']
     full_longitudes = rings_generate_longitudes(
                 longitude_resolution=bkgnddata.longitude_resolution)
-    full_longitudes[np.logical_not(bkgnddata.long_mask)] = -999
+    full_longitudes[np.logical_not(bkgnddata.long_antimask)] = -999
     bkgnddata.longitudes = full_longitudes
     bkgnddata.obsid_list = metadata['obsid_list']
     bkgnddata.image_name_list = metadata['image_name_list']
@@ -125,16 +127,17 @@ def _update_metadata(bkgnddata, metadata):
     metadata['radius_resolution'] = bkgnddata.radius_resolution
     metadata['longitude_resolution'] = bkgnddata.longitude_resolution
     metadata['img'] = bkgnddata.mosaic_img
-    metadata['long_mask'] = bkgnddata.long_mask
+    metadata['long_antimask'] = bkgnddata.long_antimask
     metadata['image_number'] = bkgnddata.image_numbers
     metadata['time'] = bkgnddata.ETs
     metadata['mean_emission'] = bkgnddata.emission_angles
     metadata['mean_incidence'] = bkgnddata.incidence_angle
     metadata['mean_phase'] = bkgnddata.phase_angles
-    metadata['mean_resolution'] = bkgnddata.resolutions
+    metadata['mean_radial_resolution'] = bkgnddata.radial_resolutions
+    metadata['mean_angular_resolution'] = bkgnddata.angular_resolutions
     full_longitudes = rings_generate_longitudes(
                 longitude_resolution=np.radians(arguments.longitude_resolution))
-    full_longitudes[np.logical_not(bkgnddata.long_mask)] = -999
+    full_longitudes[np.logical_not(bkgnddata.long_antimask)] = -999
     bkgnddata.longitudes = full_longitudes
     metadata['obsid_list'] = bkgnddata.obsid_list
     metadata['image_name_list'] = bkgnddata.image_name_list
@@ -146,10 +149,10 @@ def _update_corrected_mosaic_img(bkgnddata):
     bkgnddata.corrected_mosaic_img[bkgnddata.mosaic_img == -999] = -999
     bad_long = np.all(bkgnddata.bkgnd_model_mask, axis=0)
     bkgnddata.corrected_mosaic_img[:, bad_long] = -999
-    bkgnddata.long_mask = bkgnddata.orig_long_mask & ~bad_long
+    bkgnddata.long_antimask = bkgnddata.orig_long_antimask & ~bad_long
     full_longitudes = rings_generate_longitudes(
                 longitude_resolution=np.radians(arguments.longitude_resolution))
-    full_longitudes[np.logical_not(bkgnddata.long_mask)] = -999
+    full_longitudes[np.logical_not(bkgnddata.long_antimask)] = -999
     bkgnddata.longitudes = full_longitudes
 
 
@@ -171,7 +174,7 @@ def read_bkgnd_mosaic(bkgnddata):
         metadata = read_mosaic(data_filename, metadata_filename)
 
         _update_bkgnddata(bkgnddata, metadata)
-        bkgnddata.orig_long_mask = bkgnddata.long_mask
+        bkgnddata.orig_long_antimask = bkgnddata.long_antimask
 
     bkgnddata.bkgnd_model_mask = None # Start with an empty mask
     return True
@@ -368,7 +371,7 @@ def radial_profile_update(bkgnddata, bkgnddispdata, mosaic_img):
     radial_profile = mosaic_img[:,longitude_num] - mosaic_img_min
     radial_profile_mask = bkgnddata.bkgnd_model_mask[:,longitude_num]
     bkgnd_profile = bkgnddata.bkgnd_model.data[:,longitude_num] - mosaic_img_min
-    long_good = bkgnddata.long_mask[longitude_num]
+    long_good = bkgnddata.long_antimask[longitude_num]
     bkgnddispdata.radial_profile_canvas.delete('line')
     xsize = float(bkgnddispdata.radial_profile_canvas.cget('width'))
     ysize = float(bkgnddispdata.radial_profile_canvas.cget('height'))
@@ -453,7 +456,8 @@ def radial_profile_update(bkgnddata, bkgnddispdata, mosaic_img):
         bkgnddispdata.label_phase.config(text='')
         bkgnddispdata.label_incidence.config(text='')
         bkgnddispdata.label_emission.config(text='')
-        bkgnddispdata.label_resolution.config(text='')
+        bkgnddispdata.label_radial_resolution.config(text='')
+        bkgnddispdata.label_angular_resolution.config(text='')
         bkgnddispdata.label_image.config(text='')
         bkgnddispdata.label_obsid.config(text='')
         bkgnddispdata.label_date.config(text='')
@@ -473,8 +477,10 @@ def radial_profile_update(bkgnddata, bkgnddispdata, mosaic_img):
             ('%7.3f'%np.degrees(bkgnddata.incidence_angle)))
         bkgnddispdata.label_emission.config(text=('%7.3f'%(
                                 np.degrees(bkgnddata.emission_angles[longitude_num]))))
-        bkgnddispdata.label_resolution.config(text=
-            ('%7.3f'%bkgnddata.resolutions[longitude_num]))
+        bkgnddispdata.label_radial_resolution.config(text=
+            ('%7.3f'%bkgnddata.radial_resolutions[longitude_num]))
+        bkgnddispdata.label_angular_resolution.config(text=
+            ('%7.4f'%np.degrees(bkgnddata.angular_resolutions[longitude_num])))
         bkgnddispdata.label_image.config(text=
             bkgnddata.image_name_list[bkgnddata.image_numbers[longitude_num]])
         bkgnddispdata.label_obsid.config(text=
@@ -504,10 +510,10 @@ def update_ew_stats(bkgnddata):
     subimg = bkgnddata.corrected_mosaic_img[
             int(bkgnddispdata.var_ring_lower_limit.get() * radial_res_scale):
             int(bkgnddispdata.var_ring_upper_limit.get() * radial_res_scale)+1,
-            bkgnddata.long_mask]
+            bkgnddata.long_antimask]
     subimg[subimg == -999] = 0
     ews = np.sum(subimg, axis=0) * bkgnddata.radius_resolution
-    ewsmu = ews*np.abs(np.cos(bkgnddata.emission_angles[bkgnddata.long_mask]))
+    ewsmu = ews*np.abs(np.cos(bkgnddata.emission_angles[bkgnddata.long_antimask]))
 
     bkgnddata.ew_mean = np.mean(ews)
     bkgnddata.ew_std = np.std(ews)
@@ -616,10 +622,18 @@ def setup_bkgnd_window(bkgnddata, bkgnddispdata):
     bkgnddispdata.label_emission.grid(row=gridrow, column=gridcolumn+1, sticky=W)
     gridrow += 1
 
-    label = Label(radial_control_frame, text='Resolution:')
+    label = Label(radial_control_frame, text='Radial Res:')
     label.grid(row=gridrow, column=gridcolumn, sticky=W)
-    bkgnddispdata.label_resolution = Label(radial_control_frame, text='')
-    bkgnddispdata.label_resolution.grid(row=gridrow, column=gridcolumn+1, sticky=W)
+    bkgnddispdata.label_radial_resolution = Label(radial_control_frame, text='')
+    bkgnddispdata.label_radial_resolution.grid(row=gridrow, column=gridcolumn+1,
+                                               sticky=W)
+    gridrow += 1
+
+    label = Label(radial_control_frame, text='Angular Res:')
+    label.grid(row=gridrow, column=gridcolumn, sticky=W)
+    bkgnddispdata.label_angular_resolution = Label(radial_control_frame, text='')
+    bkgnddispdata.label_angular_resolution.grid(row=gridrow, column=gridcolumn+1,
+                                                sticky=W)
     gridrow += 1
 
     label = Label(radial_control_frame, text='Image:')

@@ -3,21 +3,23 @@
 #
 # CSV fields:
 #
-#   Observation             The Cassini observation name, including potentially the _N
+# *  Prefix                 Column is included when --simple-columns is specified.
+#
+#   *Observation            The Cassini observation name, including potentially the _N
 #                           suffix for multiple mosaics for a single observation.
 #
-#   Slice#                  The slice number, ranging from 0 to 360/slice_size. If a
+#   *Slice#                 The slice number, ranging from 0 to 360/slice_size. If a
 #                           slice has no valid data, or doesn't meet other inclusive
 #                           criteria, it is omitted.
 #
-#   Num Data                The number of radial slices that went into computing the
+#   *Num Data               The number of radial slices that went into computing the
 #                           results for this slice. This can range from 1 to
 #                           slice_size / longitude_resolution.
 #
-#   Date                    The date/time (ISO 8601 format) of the minimum ET for the
+#   *Date                   The date/time (ISO 8601 format) of the minimum ET for the
 #                           slice.
 #
-#   Min/Max/Mean Long       The minimum/maximum/mean co-rotating longitude (degrees)
+#   *Min/*Max/Mean Long      The minimum/maximum/mean co-rotating longitude (degrees)
 #                           of valid data in the slice, relative to the epoch
 #                           2007-01-01T00:00:00.
 #
@@ -33,16 +35,21 @@
 #                           The minimum/maximum/mean true anomaly (degrees) for the
 #                           longitudes with valid data in the slice.
 #
-#   Min/Max/Mean Res        The minimum/maximum/mean radial resolution (km/pixel) for
+#   Min/Max/*Mean Radial Res
+#                           The minimum/maximum/mean radial resolution (km/pixel) for
 #                           the valid data in the slice.
 #
-#   Min/Max/Mean Phase      The minimum/maximum/mean phase angles (degrees) for the
+#   Min/Max/*Mean Angular Res
+#                           The minimum/maximum/mean angular resolution (deg/pixel) for
+#                           the valid data in the slice.
+#
+#   Min/Max/*Mean Phase     The minimum/maximum/mean phase angles (degrees) for the
 #                           valid data in the slice.
 #
-#   Min/Max/Mean Emission   The minimum/maximum/mean emission angles (degrees) for the
+#   Min/Max/*Mean Emission  The minimum/maximum/mean emission angles (degrees) for the
 #                           valid data in the slice.
 #
-#   Incidence               The incidence angle for the valid data in the slice.
+#   *Incidence              The incidence angle for the valid data in the slice.
 #                           We assume this does not change over the course of a single
 #                           observation.
 #
@@ -57,53 +64,57 @@
 #                           measurements with no adjustment for viewing geometry.
 #
 #   Normal EW Median/
-#   Normal EW Mean/
-#   Normal EW Std           The median, mean, and standard deviation of normal
+#   *Normal EW Mean/
+#   *Normal EW Std          The median, mean, and standard deviation of normal
 #                           (mu-adjusted) EW measurements for the valid data in this
 #                           slice.
 #
 # If --include-quantiles is specified, we also include:
 #
-#   EW Mean 15/EW Std 15/Normal EW Mean 15/Normal EW Std 15
-#   EW Mean 25/EW Std 25/Normal EW Mean 25/Normal EW Std 25
-#   EW Mean 50/EW Std 50/Normal EW Mean 50/Normal EW Std 50
-#   EW Mean 75/EW Std 75/Normal EW Mean 75/Normal EW Std 75
-#   EW Mean 85/EW Std 85/Normal EW Mean 85/Normal EW Std 85
+#   *EW Mean 15/EW Std 15/*Normal EW Mean 15/*Normal EW Std 15
+#   *EW Mean 25/EW Std 25/*Normal EW Mean 25/*Normal EW Std 25
+#   *EW Mean 50/EW Std 50/*Normal EW Mean 50/*Normal EW Std 50
+#   *EW Mean 75/EW Std 75/*Normal EW Mean 75/*Normal EW Std 75
+#   *EW Mean 85/EW Std 85/*Normal EW Mean 85/*Normal EW Std 85
 #                           The mean and standard deviation of the EW/Normal EW
 #                           for the given quantile for the valid data in this slice.
 #
 # If --ew-core-inner-radius and --ew-core-outer-radius are specified, we also create:
 #
-#   EWI Mean/EWI Std/Normal EWI Mean/Normal EWI Std
-#   EWC Mean/EWC Std/Normal EWC Mean/Normal EWC Std
-#   EWO Mean/EWO Std/Normal EWO Mean/Normal EWO Std
+#   *EWI Mean/EWI Std/*Normal EWI Mean/*Normal EWI Std
+#   *EWC Mean/EWC Std/*Normal EWC Mean/*Normal EWC Std
+#   *EWO Mean/EWO Std/*Normal EWO Mean/*Normal EWO Std
 #                           The mean and standard deviation of the EW/Normal EW
 #                           for the inner/core/outer regions for the valid data
 #                           in this slice.
 #
 # If --tau and --phase-curve-params are also specified, we also create:
 #
-#   Normal EW3Z Mean/Normal EW3Z Std/
-#   Normal EW3ZPNMean /Normal EW3ZPN Std
+#   *Normal EW3Z Mean/*Normal EW3Z Std/
+#   *Normal EW3ZPN Mean/*Normal EW3ZPN Std
 #                           The mean and standard deviation of the Normal EW
 #                           adjusted for tau and phase-normalized for the valid
 #                           data in this slice.
 #
-# If --radial-step is specified, we also create:
+# If --radial-step-size is specified, we also create:
 #
 #   EW<radius> Mean/EW<radius> Std/
-#   Normal EW<radius> Mean/Normal EW<radius> Std
+#   *Normal EW<radius> Mean/Normal EW<radius> Std
 #                           The mean and standard deviation of the EW/Normal EW
 #                           for the given radial slice for the valid data in this
 #                           slice.
-#
+#                           If specified, the radial slices run from
+#                               --radial-step-inner-radius to
+#                               --radial-step-outer-radius
+#                           Otherwise, the values from --ew-inner-radius and
+#                           --ew-outer-radius are used.
 #
 # If --compute-widths is specified, we also create:
 #   <TBD>
 #
 # If --compute-core-center is specified, we also create:
 #
-#   Core Offset Median/Core Offset Mean/Core Offset Std
+#   *Core Offset Median/*Core Offset Mean/*Core Offset Std
 #                           The median, mean, and standard deviation of the radial
 #                           positions of the core (defined as the brightest pixel
 #                           along the radial slice) for the valid data in this
@@ -111,8 +122,8 @@
 #
 # If --compute-moon-info is specified, we also create:
 #
-#   Pandora Distance/Pandora Long
-#   Prometheus Distance/Prometheus Long
+#   *Pandora Distance/*Pandora Long
+#   *Prometheus Distance/*Prometheus Long
 #                           The distance (km) and co-rotating longitude (degrees)
 #                           for Pandora/Prometheus at the mean time of valid data
 #                           in this slice.
@@ -167,16 +178,23 @@ parser.add_argument('--slice-size', type=float, default=0,
                     help='Slice size in degrees longitude; 0 means 360')
 parser.add_argument('--minimum-slice-coverage', type=float, default=0,
                     help='Minimum coverage (in degrees) allowed for a good slice')
-parser.add_argument('--maximum-slice-resolution', type=float, default=1e38,
-                    help='Maximum resolution allowed for a good slice')
+parser.add_argument('--maximum-slice-radial-resolution', type=float, default=1e38,
+                    help='Maximum radial resolution allowed for a good slice')
 
 parser.add_argument('--output-csv-filename', type=str,
                     help='Name of output CSV file')
 parser.add_argument('--agg-csv-filename', type=str,
                     help='Name of aggregate (mean) output CSV file')
+parser.add_argument('--simple-columns', action='store_true', default=False,
+                    help='Only output a restricted set of the more useful columns')
 
 parser.add_argument('--downsample', type=int, default=1,
                     help='Amount to downsample the mosaic in longitude')
+
+parser.add_argument('--longitude-start', type=float, default=0.,
+                    help='The starting longitude for all operations')
+parser.add_argument('--longitude-end', type=float, default=360.,
+                    help='The ending longitude for all operations')
 
 parser.add_argument('--ew-inner-radius', type=int, default=140220-750,
                     help='The inner radius of the range for EW computation; '
@@ -199,8 +217,12 @@ parser.add_argument('--phase-curve-params', type=str, default=None,
 parser.add_argument('--include-quantiles', action='store_true', default=False,
                     help='Include (Normal) EW Mean/Std for quantiles at 15/25/50/75/85%')
 
-parser.add_argument('--radial-step', type=int, default=None,
+parser.add_argument('--radial-step-size', type=int, default=None,
                     help='Radial step size for multiple small radial steps')
+parser.add_argument('--radial-step-inner-radius', type=int, default=None,
+                    help='Radial step inner radius for multiple small radial steps')
+parser.add_argument('--radial-step-outer-radius', type=int, default=None,
+                    help='Radial step outer radius for multiple small radial steps')
 
 parser.add_argument('--compute-widths', action='store_true', default=False,
                     help='Compute the widths for each slice')
@@ -226,6 +248,8 @@ parser.add_argument('--compute-moon-info', action='store_true', default=False,
 f_ring.add_parser_arguments(parser)
 
 arguments = parser.parse_args(cmd_line)
+
+f_ring.init(arguments)
 
 if arguments.phase_curve_params is None:
     HG_PARAMS = None
@@ -379,10 +403,16 @@ else:
 
 # HANDLE MULTIPLE RADIAL STEPS
 
-if arguments.radial_step is not None:
-    num_radial_steps = int((arguments.ew_outer_radius - arguments.ew_inner_radius) /
-                           arguments.radial_step)+1
-    radial_step_pix = int(arguments.radial_step / arguments.radius_resolution)
+if arguments.radial_step_size is not None:
+    radial_step_inner_radius = arguments.radial_step_inner_radius
+    if radial_step_inner_radius is None:
+        radial_step_inner_radius = arguments.ew_inner_radius
+    radial_step_outer_radius = arguments.radial_step_outer_radius
+    if radial_step_outer_radius is None:
+        radial_step_outer_radius = arguments.ew_outer_radius
+    num_radial_steps = int((radial_step_outer_radius - radial_step_inner_radius) /
+                           arguments.radial_step_size)+1
+    radial_step_pix = int(arguments.radial_step_size / arguments.radius_resolution)
     print(f'Num radial steps: {num_radial_steps}')
 else:
     num_radial_steps = None
@@ -398,17 +428,28 @@ if arguments.output_csv_filename:
     csv_fp = open(arguments.output_csv_filename, 'w', newline='')
     writer = csv.writer(csv_fp)
     hdr = ['Observation', 'Slice#', 'Num Data', 'Date',
-           'Min Long', 'Max Long', 'Mean Long',
-           'Min Inertial Long', 'Max Inertial Long', 'Mean Inertial Long',
-           'Min Long of Pericenter', 'Max Long of Pericenter', 'Mean Long of Pericenter',
-           'Min True Anomaly', 'Max True Anomaly', 'Mean True Anomaly',
-           'Min Res', 'Max Res', 'Mean Res',
-           'Min Phase', 'Max Phase', 'Mean Phase',
-           'Min Emission', 'Max Emission', 'Mean Emission',
-           'Incidence',
-           '% Coverage',
-           'EW Median', 'EW Mean', 'EW Std',
-           'Normal EW Median', 'Normal EW Mean', 'Normal EW Std']
+           'Min Long', 'Max Long']
+    if not arguments.simple_columns:
+        hdr += ['Mean Long',
+                'Min Inertial Long', 'Max Inertial Long', 'Mean Inertial Long',
+                'Min Long of Pericenter', 'Max Long of Pericenter', 'Mean Long of Pericenter',
+                'Min True Anomaly', 'Max True Anomaly', 'Mean True Anomaly',
+                'Min Radial Res', 'Max Radial Res']
+    hdr += ['Mean Radial Res']
+    if not arguments.simple_columns:
+        hdr += ['Min Angular Res', 'Max Angular Res']
+    hdr += ['Mean Angular Res']
+    if not arguments.simple_columns:
+        hdr += ['Min Phase', 'Max Phase']
+    hdr += ['Mean Phase']
+    if not arguments.simple_columns:
+        hdr += ['Min Emission', 'Max Emission']
+    hdr += ['Mean Emission', 'Incidence']
+    if not arguments.simple_columns:
+        hdr += ['% Coverage',
+                'EW Median', 'EW Mean', 'EW Std',
+                'Normal EW Median']
+    hdr += ['Normal EW Mean', 'Normal EW Std']
     if arguments.include_quantiles:
         hdr += ['EW Mean 15', 'EW Std 15', 'Normal EW Mean 15', 'Normal EW Std 15',
                 'EW Mean 25', 'EW Std 25', 'Normal EW Mean 25', 'Normal EW Std 25',
@@ -425,9 +466,12 @@ if arguments.output_csv_filename:
 
     if num_radial_steps is not None:
         for radial_step in range(num_radial_steps):
-            start_ew = arguments.ew_inner_radius + radial_step * arguments.radial_step
-            hdr += [f'EW{start_ew} Mean', f'EW{start_ew} Std',
-                    f'Normal EW{start_ew} Mean', f'Normal EW{start_ew} Std']
+            start_ew = radial_step_inner_radius + radial_step * arguments.radial_step_size
+            if not arguments.simple_columns:
+                hdr += [f'EW{start_ew} Mean', f'EW{start_ew} Std']
+            hdr += [f'Normal EW{start_ew} Mean']
+            if not arguments.simple_columns:
+                hdr += [f'Normal EW{start_ew} Std']
 
     if arguments.compute_widths:
         hdr += ['Width1',  'Width1 Std',
@@ -487,6 +531,13 @@ for obs_id in f_ring.enumerate_obsids(arguments):
         metadata = msgpack.unpackb(bkgnd_metadata_fp.read(),
                                    max_str_len=40*1024*1024,
                                    object_hook=msgpack_numpy.decode)
+        if 'mean_resolution' in metadata: # Old format
+            metadata['mean_radial_resolution'] = res = metadata['mean_resolution']
+            del metadata['mean_resolution']
+            metadata['mean_angular_resolution'] = np.zeros(res.shape)
+        if 'long_mask' in metadata: # Old format
+            metadata['long_antimask'] = metadata['long_mask']
+            del metadata['long_mask']
     with np.load(bkgnd_sub_mosaic_filename) as npz:
         bsm_img = ma.MaskedArray(**npz)
         bsm_img = ma.masked_equal(bsm_img, -999)
@@ -495,7 +546,8 @@ for obs_id in f_ring.enumerate_obsids(arguments):
 
     longitudes = np.degrees(metadata['longitudes'][::ds]).view(ma.MaskedArray)
     orig_longitudes = longitudes.copy()
-    resolutions = metadata['mean_resolution'][::ds]
+    radial_resolutions = metadata['mean_radial_resolution'][::ds]
+    angular_resolutions = metadata['mean_angular_resolution'][::ds]
     image_numbers = metadata['image_number'][::ds]
     ETs = metadata['time'][::ds]
     emission_angles = metadata['mean_emission'][::ds]
@@ -513,6 +565,10 @@ for obs_id in f_ring.enumerate_obsids(arguments):
     else:
         restr_bsm_img = bsm_img[ring_lower_limit:ring_upper_limit1,:]
     bad_long = longitudes.data < 0
+    if arguments.longitude_start is not None and arguments.longitude_start != 0.:
+        bad_long[:int(arguments.longitude_start/arguments.longitude_resolution)] = True
+    if arguments.longitude_end is not None and arguments.longitude_end != 360.:
+        bad_long[int(arguments.longitude_end/arguments.longitude_resolution)+1:] = True
     percentage_long_ok = float(np.sum(~bad_long)) / len(longitudes) * 100
     # Choose bad longitudes based only on the full radial range desired
     bad_long |= (np.sum(ma.getmaskarray(restr_bsm_img), axis=0) >
@@ -609,7 +665,7 @@ for obs_id in f_ring.enumerate_obsids(arguments):
         # print()
         ew_profile_steps = []
         for radial_step in range(num_radial_steps):
-            start_ew = arguments.ew_inner_radius + radial_step * arguments.radial_step
+            start_ew = radial_step_inner_radius + radial_step * arguments.radial_step_size
             start_rad_pix = radial_step * radial_step_pix
             end_rad_pix = (radial_step+1) * radial_step_pix
             step_brightness = np.sum(restr_bsm_img[start_rad_pix:end_rad_pix, :], axis=0)
@@ -697,7 +753,8 @@ for obs_id in f_ring.enumerate_obsids(arguments):
             slice_ETs = ETs[slice_start:slice_end][slice_good_long]
             slice_emission_angles = emission_angles[slice_start:slice_end][slice_good_long]
             slice_phase_angles = phase_angles[slice_start:slice_end][slice_good_long]
-            slice_resolutions = resolutions[slice_start:slice_end][slice_good_long]
+            slice_radial_resolutions = radial_resolutions[slice_start:slice_end][slice_good_long]
+            slice_angular_resolutions = angular_resolutions[slice_start:slice_end][slice_good_long]
             slice_longitudes = longitudes[slice_start:slice_end][slice_good_long]
             slice_inertial_longs = inertial_longitudes[slice_start:slice_end][slice_good_long]
             slice_longitude_of_pericenters = longitude_of_pericenters[slice_start:slice_end][slice_good_long]
@@ -743,11 +800,15 @@ for obs_id in f_ring.enumerate_obsids(arguments):
             slice_max_ph = ma.max(slice_phase_angles)
             slice_mean_ph = ma.mean(slice_phase_angles)
 
-            slice_min_res = ma.min(slice_resolutions)
-            slice_max_res = ma.max(slice_resolutions)
-            slice_mean_res = ma.mean(slice_resolutions)
+            slice_min_rad_res = ma.min(slice_radial_resolutions)
+            slice_max_rad_res = ma.max(slice_radial_resolutions)
+            slice_mean_rad_res = ma.mean(slice_radial_resolutions)
 
-            if slice_min_res > arguments.maximum_slice_resolution:
+            slice_min_ang_res = ma.min(slice_angular_resolutions)
+            slice_max_ang_res = ma.max(slice_angular_resolutions)
+            slice_mean_ang_res = ma.mean(slice_angular_resolutions)
+
+            if slice_min_rad_res > arguments.maximum_slice_radial_resolution:
                 continue
 
             slice_ew_profile = ew_profile[slice_start:slice_end][slice_good_long]
@@ -795,34 +856,42 @@ for obs_id in f_ring.enumerate_obsids(arguments):
 
             row = [obs_id, slice_num, np.sum(~slice_bad_long), slice_et_date,
                    np.round(slice_min_long, 2),
-                   np.round(slice_max_long, 2),
-                   np.round(slice_mean_long, 2),
-                   np.round(slice_min_inertial_long, 3),
-                   np.round(slice_max_inertial_long, 3),
-                   np.round(slice_mean_inertial_long, 3),
-                   np.round(slice_min_long_of_peri, 3),
-                   np.round(slice_max_long_of_peri, 3),
-                   np.round(slice_mean_long_of_peri, 3),
-                   np.round(slice_min_true_anomaly, 3),
-                   np.round(slice_max_true_anomaly, 3),
-                   np.round(slice_mean_true_anomaly, 3),
-                   np.round(slice_min_res, 8),
-                   np.round(slice_max_res, 8),
-                   np.round(slice_mean_res, 8),
-                   np.round(np.degrees(slice_min_ph), 8),
-                   np.round(np.degrees(slice_max_ph), 8),
-                   np.round(np.degrees(slice_mean_ph), 8),
-                   np.round(np.degrees(slice_min_em), 8),
-                   np.round(np.degrees(slice_max_em), 8),
-                   np.round(np.degrees(slice_mean_em), 8),
-                   np.round(np.degrees(incidence_angle), 8),
-                   np.round(percentage_ew_ok, 2),
-                   np.round(slice_ew_median, 8),
-                   np.round(slice_ew_mean, 8),
-                   np.round(slice_ew_std, 8),
-                   np.round(slice_ew_median_mu, 8),
-                   np.round(slice_ew_mean_mu, 8),
-                   np.round(slice_ew_std_mu, 8)]
+                   np.round(slice_max_long, 2)]
+            if not arguments.simple_columns:
+                row += [np.round(slice_mean_long, 2),
+                        np.round(slice_min_inertial_long, 3),
+                        np.round(slice_max_inertial_long, 3),
+                        np.round(slice_mean_inertial_long, 3),
+                        np.round(slice_min_long_of_peri, 3),
+                        np.round(slice_max_long_of_peri, 3),
+                        np.round(slice_mean_long_of_peri, 3),
+                        np.round(slice_min_true_anomaly, 3),
+                        np.round(slice_max_true_anomaly, 3),
+                        np.round(slice_mean_true_anomaly, 3),
+                        np.round(slice_min_rad_res, 8),
+                        np.round(slice_max_rad_res, 8)]
+            row += [np.round(slice_mean_rad_res, 8)]
+            if not arguments.simple_columns:
+                row += [np.round(slice_min_ang_res, 8),
+                        np.round(slice_max_ang_res, 8)]
+            row += [np.round(slice_mean_ang_res, 8)]
+            if not arguments.simple_columns:
+                row += [np.round(np.degrees(slice_min_ph), 8),
+                        np.round(np.degrees(slice_max_ph), 8)]
+            row += [np.round(np.degrees(slice_mean_ph), 8)]
+            if not arguments.simple_columns:
+                row += [np.round(np.degrees(slice_min_em), 8),
+                        np.round(np.degrees(slice_max_em), 8)]
+            row += [np.round(np.degrees(slice_mean_em), 8),
+                    np.round(np.degrees(incidence_angle), 8)]
+            if not arguments.simple_columns:
+                row += [np.round(percentage_ew_ok, 2),
+                        np.round(slice_ew_median, 8),
+                        np.round(slice_ew_mean, 8),
+                        np.round(slice_ew_std, 8),
+                        np.round(slice_ew_median_mu, 8)]
+            row += [np.round(slice_ew_mean_mu, 8),
+                    np.round(slice_ew_std_mu, 8)]
 
             if arguments.include_quantiles:
                 row += [np.round(slice_ew_mean_15, 8),
@@ -906,6 +975,7 @@ for obs_id in f_ring.enumerate_obsids(arguments):
             if num_radial_steps is not None:
                 total_step_ew_mean = 0
                 for radial_step in range(num_radial_steps):
+                    print(radial_step)
                     slice_step_ew_profile = (ew_profile_steps[radial_step]
                                                              [slice_start:slice_end]
                                                              [slice_good_long])
@@ -916,13 +986,12 @@ for obs_id in f_ring.enumerate_obsids(arguments):
                     slice_step_ew_mean_mu = ma.mean(slice_step_ew_profile_mu)
                     slice_step_ew_std_mu = ma.std(slice_step_ew_profile_mu)
                     total_step_ew_mean += slice_step_ew_mean
-                    row += [np.round(slice_step_ew_mean, 8),
-                            np.round(slice_step_ew_std, 8),
-                            np.round(slice_step_ew_mean_mu, 8),
-                            np.round(slice_step_ew_std_mu, 8)]
-
-                # Sanity check the math
-                assert abs(total_step_ew_mean - slice_ew_mean) < 0.00001
+                    if not arguments.simple_columns:
+                        row += [np.round(slice_step_ew_mean, 8),
+                                np.round(slice_step_ew_std, 8)]
+                    row += [np.round(slice_step_ew_mean_mu, 8)]
+                    if not arguments.simple_columns:
+                        row += [np.round(slice_step_ew_std_mu, 8)]
 
             if arguments.compute_widths:
                 row += [np.round(ma.mean(slice_w1), 3),

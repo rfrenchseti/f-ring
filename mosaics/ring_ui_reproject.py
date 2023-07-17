@@ -348,7 +348,7 @@ def adjust_voyager_calibration(obs, filepath):
 
 def _update_offrepdata_repro(offrepdata, metadata):
     if metadata is None:
-        offrepdata.repro_long_mask = None
+        offrepdata.repro_long_antimask = None
         offrepdata.repro_img = None
         offrepdata.repro_longitudes = None
         offrepdata.repro_radial_resolutions = None
@@ -358,7 +358,7 @@ def _update_offrepdata_repro(offrepdata, metadata):
         offrepdata.repro_incidence_angle = None
         offrepdata.repro_time = None
     else:
-        offrepdata.repro_long_mask = metadata['long_mask']
+        offrepdata.repro_long_antimask = metadata['long_antimask']
         offrepdata.repro_img = metadata['img']
         offrepdata.repro_radial_resolutions = metadata['mean_radial_resolution']
         offrepdata.repro_angular_resolutions = metadata['mean_angular_resolution']
@@ -372,13 +372,13 @@ def _update_offrepdata_repro(offrepdata, metadata):
         full_longitudes = rings_generate_longitudes(
                 longitude_resolution=np.radians(arguments.longitude_resolution))
         offrepdata.repro_longitudes = full_longitudes[
-                                        offrepdata.repro_long_mask]
+                                        offrepdata.repro_long_antimask]
 
 def _write_repro_data(offrepdata):
     metadata = {}
     metadata['bad_pixel_map'] = offrepdata.bad_pixel_map
     metadata['img'] = offrepdata.repro_img
-    metadata['long_mask'] = offrepdata.repro_long_mask
+    metadata['long_antimask'] = offrepdata.repro_long_antimask
     metadata['mean_radial_resolution'] = offrepdata.repro_radial_resolutions
     metadata['mean_angular_resolution'] = offrepdata.repro_angular_resolutions
     metadata['mean_phase'] = offrepdata.repro_phase_angles

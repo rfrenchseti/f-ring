@@ -102,16 +102,17 @@ def _update_mosaicdata(mosaicdata, metadata):
     mosaicdata.radius_resolution = metadata['radius_resolution']
     mosaicdata.longitude_resolution = metadata['longitude_resolution']
     mosaicdata.img = metadata['img']
-    mosaicdata.long_mask = metadata['long_mask']
+    mosaicdata.long_antimask = metadata['long_antimask']
     mosaicdata.image_numbers = metadata['image_number']
     mosaicdata.ETs = metadata['time']
     mosaicdata.emission_angles = metadata['mean_emission']
     mosaicdata.incidence_angle = metadata['mean_incidence']
     mosaicdata.phase_angles = metadata['mean_phase']
-    mosaicdata.resolutions = metadata['mean_resolution']
+    mosaicdata.radial_resolutions = metadata['mean_radial_resolution']
+    mosaicdata.angular_resolutions = metadata['mean_angular_resolution']
     full_longitudes = rings_generate_longitudes(
                 longitude_resolution=np.radians(arguments.longitude_resolution))
-    full_longitudes[np.logical_not(mosaicdata.long_mask)] = -999
+    full_longitudes[np.logical_not(mosaicdata.long_antimask)] = -999
     mosaicdata.longitudes = full_longitudes
     mosaicdata.obsid_list = metadata['obsid_list']
     mosaicdata.image_name_list = metadata['image_name_list']
@@ -186,8 +187,8 @@ def make_mosaic(mosaicdata):
             # invalid pixel value
             repro_metadata['img'] = repro_metadata['img'].copy()
             repro_metadata['img'][repro_metadata['img'] == 0] = -999
-        # repro_good_long_mask = repro_metadata['long_mask']
-        # repro_num_good_long = np.sum(repro_good_long_mask)
+        # repro_good_long_antimask = repro_metadata['long_antimask']
+        # repro_num_good_long = np.sum(repro_good_long_antimask)
         # XXX Always use at least 10% of the reprojected image if we use any of it
         resolution_block = 1 # int(repro_num_good_long * 0.1)
 
@@ -230,8 +231,10 @@ def command_refresh_color(mosaicdata, mosaicdispdata):
     minval = None
     maxval = None
 
-    if color_sel == 'relresolution':
-        valsrc = mosaicdata.resolutions
+    if color_sel == 'relradresolution':
+        valsrc = mosaicdata.radial_resolutions
+    if color_sel == 'relangresolution':
+        valsrc = mosaicdata.angular_resolutions
     elif color_sel == 'relphase':
         valsrc = mosaicdata.phase_angles
     elif color_sel == 'absphase':
@@ -344,11 +347,18 @@ def setup_mosaic_window(mosaicdata, mosaicdispdata):
                                        sticky=W)
     gridrow += 1
 
-    label = Label(addon_control_frame, text='Resolution:')
+    label = Label(addon_control_frame, text='Radial Res:')
     label.grid(row=gridrow, column=gridcolumn, sticky=W)
-    mosaicdispdata.label_resolution = Label(addon_control_frame, text='')
-    mosaicdispdata.label_resolution.grid(row=gridrow, column=gridcolumn+1,
-                                         sticky=W)
+    mosaicdispdata.label_radial_resolution = Label(addon_control_frame, text='')
+    mosaicdispdata.label_radial_resolution.grid(row=gridrow, column=gridcolumn+1,
+                                                sticky=W)
+    gridrow += 1
+
+    label = Label(addon_control_frame, text='Angular Res:')
+    label.grid(row=gridrow, column=gridcolumn, sticky=W)
+    mosaicdispdata.label_angular_resolution = Label(addon_control_frame, text='')
+    mosaicdispdata.label_angular_resolution.grid(row=gridrow, column=gridcolumn+1,
+                                                 sticky=W)
     gridrow += 1
 
     label = Label(addon_control_frame, text='Image:')
@@ -384,9 +394,16 @@ def setup_mosaic_window(mosaicdata, mosaicdispdata):
                                                           column=gridcolumn,
                                                           sticky=W)
     gridrow += 1
-    Radiobutton(addon_control_frame, text='Rel Resolution',
+    Radiobutton(addon_control_frame, text='Rel Radial Res',
                 variable=mosaicdispdata.var_color_by,
-                value='relresolution',
+                value='relradresolution',
+                command=refresh_color).grid(row=gridrow,
+                                            column=gridcolumn,
+                                            sticky=W)
+    gridrow += 1
+    Radiobutton(addon_control_frame, text='Rel Angular Res',
+                variable=mosaicdispdata.var_color_by,
+                value='relangresolution',
                 command=refresh_color).grid(row=gridrow,
                                             column=gridcolumn,
                                             sticky=W)
@@ -509,7 +526,8 @@ def callback_move_mosaic(x, y, mosaicdata):
         mosaicdispdata.label_phase.config(text='')
         mosaicdispdata.label_incidence.config(text='')
         mosaicdispdata.label_emission.config(text='')
-        mosaicdispdata.label_resolution.config(text='')
+        mosaicdispdata.label_radial_resolution.config(text='')
+        mosaicdispdata.label_angular_resolution.config(text='')
         mosaicdispdata.label_image.config(text='')
         mosaicdispdata.label_obsid.config(text='')
         mosaicdispdata.label_date.config(text='')
@@ -526,8 +544,10 @@ def callback_move_mosaic(x, y, mosaicdata):
                     ('%7.3f'%(np.degrees(mosaicdata.incidence_angle))))
         mosaicdispdata.label_emission.config(text=
                     ('%7.3f'%(np.degrees(mosaicdata.emission_angles[x]))))
-        mosaicdispdata.label_resolution.config(text=
-                    ('%7.3f'%mosaicdata.resolutions[x]))
+        mosaicdispdata.label_radial_resolution.config(text=
+                    ('%7.3f'%mosaicdata.radial_resolutions[x]))
+        mosaicdispdata.label_angular_resolution.config(text=
+                    ('%7.4f'%np.degrees(mosaicdata.angular_resolutions[x])))
         mosaicdispdata.label_image.config(text=
                     mosaicdata.image_name_list[mosaicdata.image_numbers[x]] +
                     ' ('+str(mosaicdata.image_numbers[x])+')')
@@ -564,10 +584,10 @@ def command_show_longitudes(mosicdata, mosaicdispdata):
     plt.figure()
     for i, repro_path in enumerate(mosaicdata.repro_path_list):
         repro_metadata = read_repro(repro_path)
-        repro_good_long_mask = repro_metadata['long_mask']
-        scale = int(len(repro_good_long_mask) / 360)
-        for x in range(len(repro_good_long_mask)):
-            if np.any(repro_good_long_mask[x*scale:(x+1)*scale-1]):
+        repro_good_long_antimask = repro_metadata['long_antimask']
+        scale = int(len(repro_good_long_antimask) / 360)
+        for x in range(len(repro_good_long_antimask)):
+            if np.any(repro_good_long_antimask[x*scale:(x+1)*scale-1]):
                 plt.plot(x, i, '.', color='black', mec='black')
     plt.show()
 

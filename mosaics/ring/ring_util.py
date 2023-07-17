@@ -386,6 +386,9 @@ def read_repro(repro_path):
         repro_data['mean_radial_resolution'] = res = repro_data['mean_resolution']
         del repro_data['mean_resolution']
         repro_data['mean_angular_resolution'] = np.zeros(res.shape)
+    if 'long_mask' in repro_data: # Old format
+        repro_data['long_antimask'] = repro_data['long_mask']
+        del repro_data['long_mask']
 
     return repro_data
 
@@ -438,6 +441,14 @@ def read_mosaic(data_path, metadata_path):
             metadata = fixup_byte_to_str(metadata)
 
     metadata['img'] = img
+
+    if 'mean_resolution' in metadata: # Old format
+        metadata['mean_radial_resolution'] = res = metadata['mean_resolution']
+        del metadata['mean_resolution']
+        metadata['mean_angular_resolution'] = np.zeros(res.shape)
+    if 'long_mask' in metadata: # Old format
+        metadata['long_antimask'] = metadata['long_mask']
+        del metadata['long_mask']
 
     return metadata
 
@@ -618,7 +629,8 @@ def write_bkgnd_sub_mosaic(mosaic_filename, img, metadata_filename, bkgnddata):
     metadata['mean_emission'] = bkgnddata.emission_angles
     metadata['mean_incidence'] = bkgnddata.incidence_angle
     metadata['mean_phase'] = bkgnddata.phase_angles
-    metadata['mean_resolution'] = bkgnddata.resolutions
+    metadata['mean_radial_resolution'] = bkgnddata.radial_resolutions
+    metadata['mean_angular_resolution'] = bkgnddata.angular_resolutions
     metadata['longitudes'] = bkgnddata.longitudes
     metadata['obsid_list'] = bkgnddata.obsid_list
     metadata['image_name_list'] = bkgnddata.image_name_list
