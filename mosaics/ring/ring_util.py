@@ -723,6 +723,10 @@ def write_ew(ew_filename, ew, ew_metadata_filename, ew_metadata):
 
 ROTATING_ET = julian.tdb_from_tai(julian.tai_from_iso("2007-01-01"))
 FRING_MEAN_MOTION = 581.964
+FRING_A = 140221.3
+FRING_E = 0.00235
+FRING_W0_DEG = 24.2
+FRING_DW_DEGDAY = 2.70025
 
 def f_ring_longitude_shift(img_ET):
     return - (FRING_MEAN_MOTION * ((img_ET - ROTATING_ET) / 86400.)) % 360.
@@ -734,4 +738,5 @@ def f_ring_corotating_to_inertial(co_long, ET):
     return (co_long - f_ring_longitude_shift(ET)) % 360.
 
 def f_ring_corotating_to_true_anomaly(co_long, ET):
-    return (co_long - f_ring_longitude_shift(ET) - 2.7007*(ET/86400.)) % 360.
+    curly_w = FRING_W0_DEG + FRING_DW_DEGDAY*et/86400.
+    return (co_long - f_ring_longitude_shift(ET) - curly_w) % 360.

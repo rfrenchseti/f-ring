@@ -274,7 +274,12 @@ def command_refresh_color(mosaicdata, mosaicdispdata):
 
 def setup_mosaic_window(mosaicdata, mosaicdispdata):
     mosaicdispdata.toplevel = Tk()
-    mosaicdispdata.toplevel.title(mosaicdata.obsid)
+    mosaicdispdata.toplevel.title(
+        f'{mosaicdata.obsid} (RR {arguments.radius_resolution:.2f}, '
+        f'LR {arguments.longitude_resolution:.2f}, '
+        f'RZ {arguments.radial_zoom_amount:d}, '
+        f'LZ {arguments.longitude_zoom_amount:d})')
+
     frame_toplevel = Frame(mosaicdispdata.toplevel)
 
     # In the mosaic, -999 means bad or missing pixel. It will be masked, but we

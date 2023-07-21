@@ -558,7 +558,8 @@ def read_ew_stats(filename, obslist_filename=None, obslist_column=None,
                   verbose=True):
     """Read an EW stats file with an optional restriction column."""
     obsdata = pd.read_csv(filename, parse_dates=['Date'],
-                          index_col='Observation')
+                          index_col='Observation',
+                          na_values='--')
     if obslist_filename is not None and obslist_column is not None:
         read_obs_list(obslist_filename)
         obsdata = obsdata.join(OBS_LISTS[obslist_filename], rsuffix='_obslist')

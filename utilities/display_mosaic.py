@@ -148,7 +148,11 @@ def command_refresh_color(mosaicdata, mosaicdispdata):
 
 def setup_mosaic_window(mosaicdata, mosaicdispdata):
     mosaicdispdata.toplevel = Tk()
-    mosaicdispdata.toplevel.title(mosaicdata.obsid)
+    mosaicdispdata.toplevel.title(
+        f'{mosaicdata.obsid} (RR {arguments.radius_resolution:.2f}, '
+        f'LR {arguments.longitude_resolution:.2f}, '
+        f'RZ {arguments.radial_zoom_amount:d}, '
+        f'LZ {arguments.longitude_zoom_amount:d})')
     frame_toplevel = Frame(mosaicdispdata.toplevel)
 
     mask_overlay = np.zeros((mosaicdata.img.shape[0], mosaicdata.img.shape[1], 3))
@@ -381,16 +385,16 @@ def callback_b1press_mosaic(x, y, mosaicdata):
         ew_range_lower = int(y)
         return
     ew_limit_phase = 0
-    ew_range_lower = int(y)
+    ew_range_upper = int(y)
     if arguments.ew_single_radius:
         ew_range_upper = ew_range_lower
-    ew_range_lower, ew_range_upper = (min(ew_range_lower, ew_range_upper),
-                                      max(ew_range_lower, ew_range_upper))
-    ew_data = (np.sum(mosaicdata.img[ew_range_lower:ew_range_upper+1], axis=0) *
+    ew_range_lower2, ew_range_upper2 = (min(ew_range_lower, ew_range_upper),
+                                        max(ew_range_lower, ew_range_upper))
+    ew_data = (np.sum(mosaicdata.img[ew_range_lower2:ew_range_upper2+1], axis=0) *
                arguments.radius_resolution)
-    radius_lower = int(ew_range_lower*arguments.radius_resolution+
+    radius_lower = int(ew_range_lower2*arguments.radius_resolution+
                        arguments.ring_radius+arguments.radius_inner_delta)
-    radius_upper = int(ew_range_upper*arguments.radius_resolution+
+    radius_upper = int(ew_range_upper2*arguments.radius_resolution+
                        arguments.ring_radius+arguments.radius_inner_delta)
     ew_mean = np.mean(ew_data)
     ew_std = np.std(ew_data)
@@ -504,11 +508,10 @@ for obs_id in f_ring.enumerate_obsids(arguments):
             del metadata['long_mask']
     update_mosaicdata(mosaicdata, metadata)
     display_mosaic(mosaicdata, mosaicdispdata)
-    if PROFILE_AVAILABLE:
-        if arguments.profile:
+    if PROFILE_AVAILABLE and arguments.profile:
             break
 
-if PROFILE_AVAILABLE:
+if PROFILE_AVAILABLE and arguments.profile:
     profile.disable()
     s = io.StringIO()
     ps = pstats.Stats(profile, stream=s).sort_stats('cumulative')

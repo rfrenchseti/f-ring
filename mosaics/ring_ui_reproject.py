@@ -785,7 +785,13 @@ def setup_offset_reproject_window(offrepdata, offrepdispdata):
                            offrepdata.obs.midtime)
 
     offrepdispdata.toplevel = Tk()
-    offrepdispdata.toplevel.title(offrepdata.obsid+' / '+offrepdata.image_name)
+    offrepdispdata.toplevel.title(
+        f'{offrepdata.obsid} / {offrepdata.image_name} ('
+        f'RR {arguments.radius_resolution:.2f}, '
+        f'LR {arguments.longitude_resolution:.2f}, '
+        f'RZ {arguments.radial_zoom_amount:d}, '
+        f'LZ {arguments.longitude_zoom_amount:d})')
+
     frame_toplevel = Frame(offrepdispdata.toplevel)
 
     # The original image and overlaid ring curves

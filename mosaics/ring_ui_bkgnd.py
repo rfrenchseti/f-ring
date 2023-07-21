@@ -528,7 +528,11 @@ bkgnddispdata = BkgndDispData()
 
 def setup_bkgnd_window(bkgnddata, bkgnddispdata):
     bkgnddispdata.toplevel = Tk()
-    bkgnddispdata.toplevel.title(bkgnddata.obsid)
+    bkgnddispdata.toplevel.title(
+        f'{bkgnddata.obsid} (RR {arguments.radius_resolution:.2f}, '
+        f'LR {arguments.longitude_resolution:.2f}, '
+        f'RZ {arguments.radial_zoom_amount:d}, '
+        f'LZ {arguments.longitude_zoom_amount:d})')
     frame_toplevel = Frame(bkgnddispdata.toplevel)  # Master frame
 
     # Background canvas

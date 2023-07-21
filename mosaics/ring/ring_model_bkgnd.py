@@ -1,7 +1,5 @@
 import numpy as np
 import numpy.ma as ma
-import pickle
-import pylab
 import scipy.ndimage.filters as filter
 import gc
 

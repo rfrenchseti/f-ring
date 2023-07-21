@@ -413,7 +413,12 @@ if arguments.radial_step_size is not None:
     num_radial_steps = int((radial_step_outer_radius - radial_step_inner_radius) /
                            arguments.radial_step_size)+1
     radial_step_pix = int(arguments.radial_step_size / arguments.radius_resolution)
-    print(f'Num radial steps: {num_radial_steps}')
+    radial_step_inner_radius_pix = int((radial_step_inner_radius -
+                                        arguments.radius_inner_delta -
+                                        arguments.ring_radius) /
+                                       arguments.radius_resolution) - ring_lower_limit
+    print(f'Num radial steps: {num_radial_steps} by {radial_step_pix} '
+          f'starting at {radial_step_inner_radius_pix}')
 else:
     num_radial_steps = None
 
@@ -666,8 +671,8 @@ for obs_id in f_ring.enumerate_obsids(arguments):
         ew_profile_steps = []
         for radial_step in range(num_radial_steps):
             start_ew = radial_step_inner_radius + radial_step * arguments.radial_step_size
-            start_rad_pix = radial_step * radial_step_pix
-            end_rad_pix = (radial_step+1) * radial_step_pix
+            start_rad_pix = radial_step * radial_step_pix + radial_step_inner_radius_pix
+            end_rad_pix = (radial_step+1) * radial_step_pix + radial_step_inner_radius_pix
             step_brightness = np.sum(restr_bsm_img[start_rad_pix:end_rad_pix, :], axis=0)
             step_ew_profile = step_brightness * arguments.radius_resolution
             step_ew_profile[bad_long] = ma.masked
@@ -975,7 +980,6 @@ for obs_id in f_ring.enumerate_obsids(arguments):
             if num_radial_steps is not None:
                 total_step_ew_mean = 0
                 for radial_step in range(num_radial_steps):
-                    print(radial_step)
                     slice_step_ew_profile = (ew_profile_steps[radial_step]
                                                              [slice_start:slice_end]
                                                              [slice_good_long])
@@ -1056,8 +1060,8 @@ for obs_id in f_ring.enumerate_obsids(arguments):
                         pandora_dist = np.round(pandora_dist - fring_r, 3)
                         break
                 else:
-                    pandora_dist = 'NaN'
-                    pandora_long = 'NaN'
+                    pandora_dist = '--'
+                    pandora_long = '--'
                 for unique_et in sorted(unique_ets):
                     prometheus_dist, prometheus_long = moons.saturn_to_prometheus(unique_et)
                     prometheus_long = f_ring.fring_inertial_to_corotating(prometheus_long,
@@ -1079,8 +1083,8 @@ for obs_id in f_ring.enumerate_obsids(arguments):
                         prometheus_dist = np.round(fring_r - prometheus_dist, 3)
                         break
                 else:
-                    prometheus_dist = 'NaN'
-                    prometheus_long = 'NaN'
+                    prometheus_dist = '--'
+                    prometheus_long = '--'
                 row += [np.round(pandora_closest_dist, 3),
                         np.round(pandora_closest_long, 3),
                         pandora_dist,
