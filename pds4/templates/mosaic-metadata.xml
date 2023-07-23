@@ -23,7 +23,7 @@
         <logical_identifier>$MOSAIC_METADATA_LID$</logical_identifier>
         <version_id>1.0</version_id>
         <title>
-$MOSAIC_METADATA_TITLE$
+            $WRAP(12,91,MOSAIC_METADATA_TITLE, preserve_single_newlines=False)$
         </title>
         <information_model_version>1.19.0.0</information_model_version>
         <product_class>Product_Ancillary</product_class>
@@ -33,12 +33,12 @@ $MOSAIC_METADATA_TITLE$
             <publication_year>$PUBLICATION_YEAR$</publication_year>
             <keyword>$KEYWORD$</keyword>
             <description>
-$MOSAIC_METADATA_DESCRIPTION$
+                $WRAP(16,95,MOSAIC_METADATA_DESCRIPTION, preserve_single_newlines=False)$
             </description>
         </Citation_Information>
         <Modification_History>
             <Modification_Detail>
-                <modification_date>$MODIFICATION_DATE$</modification_date>
+                <modification_date>$CURRENT_ZULU(date_only=True)$</modification_date>
                 <version_id>1.0</version_id>
                 <description>Initial PDS4 Version.</description>
             </Modification_Detail>
@@ -46,7 +46,7 @@ $MOSAIC_METADATA_DESCRIPTION$
     </Identification_Area>
     <Context_Area>
         <comment>
-$MOSAIC_METADATA_COMMENT$
+            $WRAP(12,91,MOSAIC_METADATA_COMMENT, preserve_single_newlines=False)$
     	</comment>
         <Time_Coordinates>
             <start_date_time>$START_DATE_TIME$</start_date_time>
@@ -127,7 +127,7 @@ $MOSAIC_METADATA_COMMENT$
                     <rings:Reprojection_Geometry>
                         <local_identifier>reproj_geom</local_identifier>
                         <rings:description>
-$MOSAIC_METADATA_RINGS:DESCRIPTION$
+                            $WRAP(28,107,MOSAIC_METADATA_RINGS_DESCRIPTION, preserve_single_newlines=False)$
 			            </rings:description>
                         <rings:epoch_reprojection_basis_utc unit="s">2007-01-01T00:00:00.000Z</rings:epoch_reprojection_basis_utc>
                         <rings:reprojection_plane>Equator</rings:reprojection_plane>
@@ -165,7 +165,7 @@ $MOSAIC_METADATA_RINGS:DESCRIPTION$
             <lid_reference>$USERGUIDE_LID$</lid_reference>
             <reference_type>data_to_document</reference_type>
             <comment>
-$USERGUIDE_COMMENT$
+                $WRAP(16,95,USERGUIDE_COMMENT, preserve_single_newlines=False)$
             </comment>
         </Internal_Reference>
         <Internal_Reference>
@@ -178,7 +178,7 @@ $USERGUIDE_COMMENT$
             <lid_reference>$MOSAIC_LID$</lid_reference>
             <reference_type>ancillary_to_data</reference_type>
             <comment>
-$MOSAIC_REFERENCE_COMMENT$
+                $WRAP(16,95,MOSAIC_REFERENCE_COMMENT, preserve_single_newlines=False)$
 	        </comment>
         </Internal_Reference>
     </Reference_List>
@@ -187,8 +187,8 @@ $MOSAIC_REFERENCE_COMMENT$
         <File>
             <!-- Source images, LIDs metadata -->
             <file_name>$IMAGE_TABLE_FILENAME$</file_name>
-            <creation_date_time>$NOW$</creation_date_time>
-            <md5_checksum>$IMAGE_TABLE_HASH$</md5_checksum>
+            <creation_date_time>$CURRENT_ZULU()$</creation_date_time>
+            <md5_checksum>$FILE_MD5(IMAGE_TABLE_PATH)$</md5_checksum>
         </File>
         <!-- Index for Source images (2 columns: Rob's index number for the image, LID) -->
         <!-- This file contains identifiers for the source images of this mosaic (to map longitudes back to source image) -->
@@ -214,8 +214,10 @@ $MOSAIC_REFERENCE_COMMENT$
                     <field_location unit="byte">1</field_location>
                     <data_type>ASCII_NonNegative_Integer</data_type>
                     <field_length unit="byte">4</field_length>
-                    <description>The index number specific to this mosaic for the source image.
-		              A source image can appear in multiple mosaics and therefore will be referenced by different index numbers.
+                    <description>
+                        The index number specific to this mosaic for the source image. A source
+                        image can appear in multiple mosaics and therefore will be referenced by
+                        different index numbers.
 	                </description>
                 </Field_Character>
                 <Field_Character>
@@ -235,8 +237,8 @@ $MOSAIC_REFERENCE_COMMENT$
         <File>
             <!-- Metadata parameters per longitude value -->
             <file_name>$METADATA_PARAMS_TABLE_FILENAME$</file_name>
-            <creation_date_time>$NOW$</creation_date_time>
-            <md5_checksum>$METADATA_PARAMS_TABLE_HASH$</md5_checksum>
+            <creation_date_time>$CURRENT_ZULU()$</creation_date_time>
+            <md5_checksum>$FILE_MD5(METADATA_PARAMS_TABLE_PATH)$</md5_checksum>
         </File>
         <Header>
             <!-- Optional to have column names -->

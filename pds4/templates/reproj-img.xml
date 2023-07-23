@@ -25,7 +25,7 @@ schematypens="http://purl.oclc.org/dsdl/schematron"?>
         <logical_identifier>$REPROJ_LID$</logical_identifier>
         <version_id>1.0</version_id>
         <title>
-$REPROJ_TITLE$
+            $WRAP(12,91,REPROJ_TITLE, preserve_single_newlines=False)$
         </title>
         <information_model_version>1.19.0.0</information_model_version>
         <product_class>Product_Observational</product_class>
@@ -35,7 +35,7 @@ $REPROJ_TITLE$
             <publication_year>$PUBLICATION_YEAR$</publication_year>
             <keyword>$KEYWORD$</keyword>
             <description>
-$REPROJ_DESCRIPTION$
+                $WRAP(16,95,REPROJ_DESCRIPTION, preserve_single_newlines=False)$
             </description>
         </Citation_Information>
         <Modification_History>
@@ -48,7 +48,7 @@ $REPROJ_DESCRIPTION$
     </Identification_Area>
     <Observation_Area>
         <comment>
-$REPROJ_COMMENT$
+            $WRAP(12,91,REPROJ_COMMENT, preserve_single_newlines=False)$
         </comment>
         <Time_Coordinates>
             <start_date_time>$START_DATE_TIME$</start_date_time>
@@ -144,7 +144,7 @@ $REPROJ_COMMENT$
                     <rings:Reprojection_Geometry>
                         <local_identifier>reproj_geom</local_identifier>
                         <rings:description>
-$REPROJ_RINGS:DESCRIPTION$
+                            $WRAP(28,107,REPROJ_RINGS_DESCRIPTION, preserve_single_newlines=False)$
 			            </rings:description>
                         <rings:epoch_reprojection_basis_utc unit="s">2007-01-01T00:00:00.000Z</rings:epoch_reprojection_basis_utc>
                         <rings:reprojection_plane>Equator</rings:reprojection_plane>
@@ -182,7 +182,7 @@ $REPROJ_RINGS:DESCRIPTION$
             <lid_reference>$USERGUIDE_LID$</lid_reference>
             <reference_type>data_to_document</reference_type>
             <comment>
-$USERGUIDE_COMMENT$
+                $WRAP(16,95,USERGUIDE_COMMENT, preserve_single_newlines=False)$
             </comment>
         </Internal_Reference>
         <Internal_Reference>
@@ -195,29 +195,29 @@ $USERGUIDE_COMMENT$
             <lid_reference>$REPROJ_METADATA_LID$</lid_reference>
             <reference_type>data_to_ancillary_data</reference_type>
             <comment>
-The reprojected image metadata consisting of one file with metadata parameters
-indexed by co-rotating longitude.
+                The reprojected image metadata consisting of one file with metadata parameters
+                indexed by co-rotating longitude.
     	    </comment>
         </Internal_Reference>
         <Internal_Reference>
             <lid_reference>$MOSAIC_LID$</lid_reference>
             <reference_type>data_to_derived_product</reference_type>
             <comment>
-$MOSAIC_REFERENCE_COMMENT$
+                $WRAP(16,95,MOSAIC_REFERENCE_COMMENT, preserve_single_newlines=False)$
     	    </comment>
         </Internal_Reference>
         <Internal_Reference>
             <lid_reference>$MOSAIC_OTHER_LID$</lid_reference>
             <reference_type>data_to_derived_product</reference_type>
             <comment>
-$MOSAIC_OTHER_REFERENCE_COMMENT$
+                $WRAP(16,95,MOSAIC_OTHER_REFERENCE_COMMENT, preserve_single_newlines=False)$
     	    </comment>
         </Internal_Reference>
         <Internal_Reference>
             <lid_reference>$REPROJ_BROWSE_LID$</lid_reference>
             <reference_type>data_to_browse</reference_type>
             <comment>
-The browse images of the reprojected image in multiple sizes in PNG format.
+                The browse images of the reprojected image in multiple sizes in PNG format.
             </comment>
         </Internal_Reference>
     </Reference_List>
@@ -225,8 +225,8 @@ The browse images of the reprojected image in multiple sizes in PNG format.
         <File>
             <file_name>$REPROJ_IMG_FILENAME$</file_name> <!--MJTM: update. Check Standards Reference for file extension for binary files. Table 6C-1, section 6C.1.6 https://pds.nasa.gov/datastandards/documents/sr/v1/StdRef_1.19.0.pdf -->
             <!-- .img is a reserved file name extension for “raster formatted image data (may contain headers)”. ".IMG" is typically used for VICAR, but doesn't have to be VICAR.  ".dat" is not used for images, effectively it is for binary tables. -->
-            <creation_date_time>$NOW$</creation_date_time>
-            <md5_checksum>$IMG_HASH$</md5_checksum>
+            <creation_date_time>$CURRENT_ZULU()$</creation_date_time>
+            <md5_checksum>$FILE_MD5(IMG_PATH)$</md5_checksum>
         </File>
 
         <!-- The calibrated, reprojected single image -->

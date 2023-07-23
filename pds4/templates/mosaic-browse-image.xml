@@ -10,7 +10,7 @@ schematypens="http://purl.oclc.org/dsdl/schematron"?>
         <logical_identifier>$MOSAIC_BROWSE_LID$</logical_identifier>
         <version_id>1.0</version_id>
         <title>
-$MOSAIC_BROWSE_TITLE$
+            $WRAP(12,91,MOSAIC_BROWSE_TITLE, preserve_single_newlines=False)$
         </title>
         <information_model_version>1.19.0.0</information_model_version>
         <product_class>Product_Browse</product_class>
@@ -20,12 +20,12 @@ $MOSAIC_BROWSE_TITLE$
             <publication_year>$PUBLICATION_YEAR$</publication_year>
             <keyword>$KEYWORD$</keyword>
             <description>
-$MOSAIC_BROWSE_DESCRIPTION$
+                $WRAP(16,95,MOSAIC_BROWSE_DESCRIPTION, preserve_single_newlines=False)$
             </description>
         </Citation_Information>
         <Modification_History>
             <Modification_Detail>
-                <modification_date>$MODIFICATION_DATE$</modification_date>
+                <modification_date>$CURRENT_ZULU(date_only=True)$</modification_date>
                 <version_id>1.0</version_id>
                 <description>Initial PDS4 Version.</description>
             </Modification_Detail>
@@ -36,7 +36,7 @@ $MOSAIC_BROWSE_DESCRIPTION$
             <lid_reference>$USERGUIDE_LID$</lid_reference>
             <reference_type>data_to_document</reference_type>
             <comment>
-$USERGUIDE_COMMENT$
+                $WRAP(16,95,USERGUIDE_COMMENT, preserve_single_newlines=False)$
             </comment>
         </Internal_Reference>
         <Internal_Reference>
@@ -49,15 +49,15 @@ $USERGUIDE_COMMENT$
             <lid_reference>$MOSAIC_LID$</lid_reference>
             <reference_type>browse_to_data</reference_type>
             <comment>
-$MOSAIC_REFERENCE_COMMENT$
+                $WRAP(16,95,MOSAIC_REFERENCE_COMMENT, preserve_single_newlines=False)$
 	        </comment>
         </Internal_Reference>
     </Reference_List>
     <File_Area_Browse>
         <File>
             <file_name>$BROWSE_THUMB_FILENAME$</file_name>
-            <creation_date_time>$NOW$</creation_date_time>
-            <md5_checksum>$BROWSE_THUMB_HASH$</md5_checksum>
+            <creation_date_time>$CURRENT_ZULU()$</creation_date_time>
+            <md5_checksum>$FILE_MD5(BROWSE_THUMB_PATH)$</md5_checksum>
         </File>
         <Encoded_Image>
             <offset unit="byte">0</offset>
@@ -67,8 +67,8 @@ $MOSAIC_REFERENCE_COMMENT$
     <File_Area_Browse>
         <File>
             <file_name>$BROWSE_SMALL_FILENAME$</file_name>
-            <creation_date_time>$NOW$</creation_date_time>
-            <md5_checksum>$BROWSE_SMALL_HASH$</md5_checksum>
+            <creation_date_time>$CURRENT_ZULU()$</creation_date_time>
+            <md5_checksum>$FILE_MD5(BROWSE_SMALL_PATH)$</md5_checksum>
         </File>
         <Encoded_Image>
             <offset unit="byte">0</offset>
@@ -78,8 +78,8 @@ $MOSAIC_REFERENCE_COMMENT$
     <File_Area_Browse>
         <File>
             <file_name>$BROWSE_MED_FILENAME$</file_name>
-            <creation_date_time>$NOW$</creation_date_time>
-            <md5_checksum>$BROWSE_MED_HASH$</md5_checksum>
+            <creation_date_time>$CURRENT_ZULU()$</creation_date_time>
+            <md5_checksum>$FILE_MD5(BROWSE_MED_PATH)$</md5_checksum>
         </File>
         <Encoded_Image>
             <offset unit="byte">0</offset>
@@ -89,8 +89,8 @@ $MOSAIC_REFERENCE_COMMENT$
     <File_Area_Browse>
         <File>
             <file_name>$BROWSE_FULL_FILENAME$</file_name>
-            <creation_date_time>$NOW$</creation_date_time>
-            <md5_checksum>$BROWSE_FULL_HASH$</md5_checksum>
+            <creation_date_time>$CURRENT_ZULU()$</creation_date_time>
+            <md5_checksum>$FILE_MD5(BROWSE_FULL_PATH)$</md5_checksum>
         </File>
         <Encoded_Image>
             <offset unit="byte">0</offset>

@@ -24,7 +24,7 @@ schematypens="http://purl.oclc.org/dsdl/schematron"?>
         <logical_identifier>$REPROJ_METADATA_LID$</logical_identifier>
         <version_id>1.0</version_id>
         <title>
-$REPROJ_METADATA_TITLE$
+            $WRAP(12,91,REPROJ_METADATA_TITLE, preserve_single_newlines=False)$
         </title>
         <information_model_version>1.19.0.0</information_model_version>
         <product_class>Product_Ancillary</product_class>
@@ -34,7 +34,7 @@ $REPROJ_METADATA_TITLE$
             <publication_year>$PUBLICATION_YEAR$</publication_year>
             <keyword>$KEYWORD$</keyword>
             <description>
-$REPROJ_METADATA_DESCRIPTION$
+                $WRAP(16,95,REPROJ_METADATA_DESCRIPTION, preserve_single_newlines=False)$
             </description>
         </Citation_Information>
         <Modification_History>
@@ -47,7 +47,7 @@ $REPROJ_METADATA_DESCRIPTION$
     </Identification_Area>
     <Context_Area>
         <comment>
-$REPROJ_METADATA_COMMENT$
+            $WRAP(12,91,REPROJ_METADATA_COMMENT, preserve_single_newlines=False)$
     	</comment>
         <Time_Coordinates>
             <start_date_time>$START_DATE_TIME$</start_date_time>
@@ -128,7 +128,7 @@ $REPROJ_METADATA_COMMENT$
                     <rings:Reprojection_Geometry>
                         <local_identifier>reproj_geom</local_identifier>
                         <rings:description>
-$REPROJ_METADATA_RINGS:DESCRIPTION$
+                            $WRAP(28,107,REPROJ_METADATA_RINGS_DESCRIPTION, preserve_single_newlines=False)$
 			            </rings:description>
                         <rings:epoch_reprojection_basis_utc unit="s">2007-01-01T00:00:00.000Z</rings:epoch_reprojection_basis_utc>
                         <rings:reprojection_plane>Equator</rings:reprojection_plane>
@@ -166,7 +166,7 @@ $REPROJ_METADATA_RINGS:DESCRIPTION$
             <lid_reference>$USERGUIDE_LID$</lid_reference>
             <reference_type>data_to_document</reference_type>
             <comment>
-$USERGUIDE_COMMENT$
+                $WRAP(16,95,USERGUIDE_COMMENT, preserve_single_newlines=False)$
             </comment>
         </Internal_Reference>
         <Internal_Reference>
@@ -179,7 +179,7 @@ $USERGUIDE_COMMENT$
             <lid_reference>$REPROJ_LID$</lid_reference>
             <reference_type>ancillary_to_data</reference_type>
             <comment>
-The reprojected image.
+                The reprojected image.
 	        </comment>
         </Internal_Reference>
     </Reference_List>
@@ -189,8 +189,8 @@ The reprojected image.
         <File>
             <!-- Metadata parameters per longitude value -->
             <file_name>$METADATA_PARAMS_TABLE_FILENAME$</file_name>
-            <creation_date_time>$NOW$</creation_date_time>
-            <md5_checksum>$METADATA_PARAMS_TABLE_HASH$</md5_checksum>
+            <creation_date_time>$CURRENT_ZULU()$</creation_date_time>
+            <md5_checksum>$FILE_MD5(METADATA_PARAMS_TABLE_PATH)$</md5_checksum>
         </File>
         <Header>
             <!-- Optional to have column names -->
@@ -204,7 +204,7 @@ The reprojected image.
             <offset unit="byte">81</offset>
             <records>$NUM_VALID_LONGITUDES$</records>
             <description>
-Description here. XXX
+                Description here. XXX
             </description>
             <record_delimiter>Line-Feed</record_delimiter>
             <Record_Character>
