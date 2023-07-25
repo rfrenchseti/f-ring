@@ -10,7 +10,7 @@ schematypens="http://purl.oclc.org/dsdl/schematron"?>
         <logical_identifier>$REPROJ_BROWSE_LID$</logical_identifier>
         <version_id>1.0</version_id>
         <title>
-            $WRAP(12,91,REPROJ_BROWSE_TITLE, preserve_single_newlines=False)$
+            $WRAP(12,91,REPROJ_BROWSE_TITLE,preserve_single_newlines=False)$
         </title>
         <information_model_version>1.19.0.0</information_model_version>
         <product_class>Product_Browse</product_class>
@@ -20,14 +20,14 @@ schematypens="http://purl.oclc.org/dsdl/schematron"?>
             <publication_year>$PUBLICATION_YEAR$</publication_year>
             <keyword>$KEYWORD$</keyword>
             <description>
-                $WRAP(16,95,REPROJ_BROWSE_DESCRIPTION, preserve_single_newlines=False)$
+                $WRAP(16,95,REPROJ_BROWSE_DESCRIPTION,preserve_single_newlines=False)$
             </description>
         </Citation_Information>
         <Modification_History>
             <Modification_Detail>
-                <modification_date>$MODIFICATION_DATE$</modification_date>
+                <modification_date>$CURRENT_ZULU(date_only=True)$</modification_date>
                 <version_id>1.0</version_id>
-                <description>Initial PDS4 Version.</description>
+                <description>Initial version.</description>
             </Modification_Detail>
         </Modification_History>
     </Identification_Area>
@@ -36,14 +36,13 @@ schematypens="http://purl.oclc.org/dsdl/schematron"?>
             <lid_reference>$USERGUIDE_LID$</lid_reference>
             <reference_type>data_to_document</reference_type>
             <comment>
-                $WRAP(16,95,USERGUIDE_COMMENT, preserve_single_newlines=False)$
+                $WRAP(16,95,USERGUIDE_COMMENT,preserve_single_newlines=False)$
             </comment>
         </Internal_Reference>
         <Internal_Reference>
             <lid_reference>urn:nasa:pds:cassini_iss_saturn:document:iss-data-user-guide</lid_reference>
             <reference_type>data_to_document</reference_type>
-            <comment>The ISS Data User's Guide</comment>
-            <!-- Put DOI in -->
+            <comment>The Cassini ISS Data User's Guide (PDS3); DOI: 10.17189/1504135</comment>
         </Internal_Reference>
         <Internal_Reference>
             <lid_reference>$REPROJ_LID$</lid_reference>
@@ -56,7 +55,7 @@ schematypens="http://purl.oclc.org/dsdl/schematron"?>
     <File_Area_Browse>
         <File>
             <file_name>$BROWSE_THUMB_FILENAME$</file_name>
-            <creation_date_time>$CURRENT_ZULU()$</creation_date_time>
+            <creation_date_time>$FILE_ZULU(BROWSE_THUMB_PATH)$</creation_date_time>
             <md5_checksum>$FILE_MD5(BROWSE_THUMB_PATH)$</md5_checksum>
         </File>
         <Encoded_Image>
@@ -67,7 +66,7 @@ schematypens="http://purl.oclc.org/dsdl/schematron"?>
     <File_Area_Browse>
         <File>
             <file_name>$BROWSE_FULL_FILENAME$</file_name>
-            <creation_date_time>$CURRENT_ZULU()$</creation_date_time>
+            <creation_date_time>$FILE_ZULU(BROWSE_FULL_PATH)$</creation_date_time>
             <md5_checksum>$FILE_MD5(BROWSE_FULL_PATH)$</md5_checksum>
         </File>
         <Encoded_Image>

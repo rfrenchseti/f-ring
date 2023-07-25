@@ -6,7 +6,7 @@
 <?xml-model href="https://pds.nasa.gov/pds4/disp/v1/PDS4_DISP_1J00_1510.sch"
     schematypens="http://purl.oclc.org/dsdl/schematron"?>
 <?xml-model href="https://pds.nasa.gov/pds4/mission/cassini/v1/PDS4_CASSINI_1J00_1600.sch"
-schematypens="http://purl.oclc.org/dsdl/schematron"?>
+    schematypens="http://purl.oclc.org/dsdl/schematron"?>
 
 <Product_Ancillary
     xmlns="http://pds.nasa.gov/pds4/pds/v1"
@@ -24,7 +24,7 @@ schematypens="http://purl.oclc.org/dsdl/schematron"?>
         <logical_identifier>$REPROJ_METADATA_LID$</logical_identifier>
         <version_id>1.0</version_id>
         <title>
-            $WRAP(12,91,REPROJ_METADATA_TITLE, preserve_single_newlines=False)$
+            $WRAP(12,91,REPROJ_METADATA_TITLE,preserve_single_newlines=False)$
         </title>
         <information_model_version>1.19.0.0</information_model_version>
         <product_class>Product_Ancillary</product_class>
@@ -34,20 +34,20 @@ schematypens="http://purl.oclc.org/dsdl/schematron"?>
             <publication_year>$PUBLICATION_YEAR$</publication_year>
             <keyword>$KEYWORD$</keyword>
             <description>
-                $WRAP(16,95,REPROJ_METADATA_DESCRIPTION, preserve_single_newlines=False)$
+                $WRAP(16,95,REPROJ_METADATA_DESCRIPTION,preserve_single_newlines=False)$
             </description>
         </Citation_Information>
         <Modification_History>
             <Modification_Detail>
-                <modification_date>$MODIFICATION_DATE$</modification_date>
+                <modification_date>$CURRENT_ZULU(date_only=True)$</modification_date>
                 <version_id>1.0</version_id>
-                <description>Initial PDS4 Version.</description>
+                <description>Initial version.</description>
             </Modification_Detail>
         </Modification_History>
     </Identification_Area>
     <Context_Area>
         <comment>
-            $WRAP(12,91,REPROJ_METADATA_COMMENT, preserve_single_newlines=False)$
+            $WRAP(12,91,REPROJ_METADATA_COMMENT,preserve_single_newlines=False)$
     	</comment>
         <Time_Coordinates>
             <start_date_time>$START_DATE_TIME$</start_date_time>
@@ -112,9 +112,58 @@ schematypens="http://purl.oclc.org/dsdl/schematron"?>
                     <cassini:spacecraft_clock_count_partition>1</cassini:spacecraft_clock_count_partition>
                     <cassini:spacecraft_clock_start_count>$SPACECRAFT_CLOCK_START_COUNT$</cassini:spacecraft_clock_start_count>
                     <cassini:spacecraft_clock_stop_count>$SPACECRAFT_CLOCK_STOP_COUNT$</cassini:spacecraft_clock_stop_count>
+                    <cassini:antiblooming_state_flag>$ANTIBLOOMING_STATE_FLAG$</cassini:antiblooming_state_flag>
+                    <cassini:bias_strip_mean>$BIAS_STRIP_MEAN$</cassini:bias_strip_mean>
+                    <cassini:calibration_lamp_state_flag>$CALIBRATION_LAMP_STATE_FLAG$</cassini:calibration_lamp_state_flag>
+                    <cassini:command_file_name>$COMMAND_FILE_NAME$</cassini:command_file_name>
+                    <cassini:command_sequence_number>$COMMAND_SEQUENCE_NUMBER$</cassini:command_sequence_number>
+                    <cassini:dark_strip_mean>$DARK_STRIP_MEAN$</cassini:dark_strip_mean>
+                    <cassini:data_conversion_type>$DATA_CONVERSION_TYPE$</cassini:data_conversion_type>
+                    <cassini:delayed_readout_flag>$DELAYED_READOUT_FLAG$</cassini:delayed_readout_flag>
+                    <cassini:detector_temperature unit="degC">$DETECTOR_TEMPERATURE$</cassini:detector_temperature>
+                    <cassini:electronics_bias>$ELECTRONICS_BIAS$</cassini:electronics_bias>
+                    <cassini:earth_received_start_time>$EARTH_RECEIVED_START_TIME$</cassini:earth_received_start_time>
+                    <cassini:earth_received_stop_time>$EARTH_RECEIVED_STOP_TIME$</cassini:earth_received_stop_time>
+                    <cassini:expected_maximum_full_well>$EXPECTED_MAXIMUM[0]$</cassini:expected_maximum_full_well>
+                    <cassini:expected_maximum_DN_sat>$EXPECTED_MAXIMUM[1]$</cassini:expected_maximum_DN_sat>
+                    <cassini:expected_packets>$EXPECTED_PACKETS$</cassini:expected_packets>
+                    <cassini:exposure_duration unit="ms">$EXPOSURE_DURATION$</cassini:exposure_duration>
                     <cassini:filter_name_1>$FILTER1$</cassini:filter_name_1>
                     <cassini:filter_name_2>$FILTER2$</cassini:filter_name_2>
+                    <cassini:filter_temperature unit="degC">$FILTER_TEMPERATURE$</cassini:filter_temperature>
+                    <cassini:flight_software_version_id>$FLIGHT_SOFTWARE_VERSION_ID$</cassini:flight_software_version_id>
+                    <cassini:gain_mode_id unit="electron/DN">$GAIN_MODE_ID$</cassini:gain_mode_id>
+                    <cassini:image_mid_time>$IMAGE_MID_TIME$</cassini:image_mid_time>
+                    <cassini:image_number>$IMAGE_NUMBER$</cassini:image_number>
+                    <cassini:image_time>$IMAGE_TIME$</cassini:image_time>
+                    <cassini:image_observation_type>$IMAGE_OBSERVATION_TYPE$</cassini:image_observation_type>
+                    <cassini:instrument_data_rate>$INSTRUMENT_DATA_RATE$</cassini:instrument_data_rate>
+                    <cassini:instrument_mode_id>$INSTRUMENT_MODE_ID$</cassini:instrument_mode_id>
+                    <cassini:inst_cmprs_type>$INST_CMPRS_TYPE$</cassini:inst_cmprs_type>
+                    <cassini:inst_cmprs_rate_expected_bits>$INST_CMPRS_RATE[0]$</cassini:inst_cmprs_rate_expected_bits>
+                    <cassini:inst_cmprs_rate_actual_bits>$INST_CMPRS_RATE[1]$</cassini:inst_cmprs_rate_actual_bits>
+                    <cassini:inst_cmprs_ratio>$INST_CMPRS_RATIO$</cassini:inst_cmprs_ratio>
+                    <cassini:light_flood_state_flag>$LIGHT_FLOOD_STATE_FLAG$</cassini:light_flood_state_flag>
+                    <cassini:method_description>$METHOD_DESC$</cassini:method_description>
+                    <cassini:missing_lines>$MISSING_LINES$</cassini:missing_lines>
+                    <cassini:missing_packet_flag>$MISSING_PACKET_FLAG$</cassini:missing_packet_flag>
                     <cassini:observation_id>$OBSERVATION_ID$</cassini:observation_id>
+                    <cassini:optics_temperature_front unit="degC">$OPTICS_TEMPERATURE[0]$</cassini:optics_temperature_front>
+                    <cassini:optics_temperature_back unit="degC">$OPTICS_TEMPERATURE[1]$</cassini:optics_temperature_back>
+                    <cassini:order_number>$ORDER_NUMBER$</cassini:order_number>
+                    <cassini:parallel_clock_voltage_index>$PARALLEL_CLOCK_VOLTAGE_INDEX$</cassini:parallel_clock_voltage_index>
+                    <cassini:prepare_cycle_index>$PREPARE_CYCLE_INDEX$</cassini:prepare_cycle_index>
+                    <cassini:readout_cycle_index>$READOUT_CYCLE_INDEX$</cassini:readout_cycle_index>
+                    <cassini:received_packets>$RECEIVED_PACKETS$</cassini:received_packets>
+                    <cassini:sensor_head_electronics_temperature unit="degC">$SENSOR_HEAD_ELEC_TEMPERATURE$</cassini:sensor_head_electronics_temperature>
+                    <cassini:sequence_id>$SEQUENCE_ID$</cassini:sequence_id>
+                    <cassini:sequence_number>$SEQUENCE_NUMBER$</cassini:sequence_number>
+                    <cassini:sequence_title>$SEQUENCE_TITLE$</cassini:sequence_title>
+                    <cassini:shutter_mode_id>$SHUTTER_MODE_ID$</cassini:shutter_mode_id>
+                    <cassini:shutter_state_id>$SHUTTER_STATE_ID$</cassini:shutter_state_id>
+                    <cassini:start_time_doy>$START_TIME_DOY$</cassini:start_time_doy>
+                    <cassini:stop_time_doy>$STOP_TIME_DOY$</cassini:stop_time_doy>
+                    <cassini:telemetry_format_id>$TELEMETRY_FORMAT_ID$</cassini:telemetry_format_id>
                 </cassini:ISS_Specific_Attributes>
             </cassini:Cassini>
         </Mission_Area>
@@ -128,7 +177,7 @@ schematypens="http://purl.oclc.org/dsdl/schematron"?>
                     <rings:Reprojection_Geometry>
                         <local_identifier>reproj_geom</local_identifier>
                         <rings:description>
-                            $WRAP(28,107,REPROJ_METADATA_RINGS_DESCRIPTION, preserve_single_newlines=False)$
+                            $WRAP(28,107,REPROJ_METADATA_RINGS_DESCRIPTION,preserve_single_newlines=False)$
 			            </rings:description>
                         <rings:epoch_reprojection_basis_utc unit="s">2007-01-01T00:00:00.000Z</rings:epoch_reprojection_basis_utc>
                         <rings:reprojection_plane>Equator</rings:reprojection_plane>
@@ -160,20 +209,18 @@ schematypens="http://purl.oclc.org/dsdl/schematron"?>
             </rings:Ring_Moon_Systems>
         </Discipline_Area>
     </Context_Area>
-    <!--Reference_List: don’t worry about referencing the data raw files, etc, but do reference User Guides -->
     <Reference_List>
         <Internal_Reference>
             <lid_reference>$USERGUIDE_LID$</lid_reference>
             <reference_type>data_to_document</reference_type>
             <comment>
-                $WRAP(16,95,USERGUIDE_COMMENT, preserve_single_newlines=False)$
+                $WRAP(16,95,USERGUIDE_COMMENT,preserve_single_newlines=False)$
             </comment>
         </Internal_Reference>
         <Internal_Reference>
             <lid_reference>urn:nasa:pds:cassini_iss_saturn:document:iss-data-user-guide</lid_reference>
             <reference_type>data_to_document</reference_type>
-            <comment>The ISS Data User's Guide</comment>
-            <!-- Put DOI in -->
+            <comment>The Cassini ISS Data User's Guide (PDS3); DOI: 10.17189/1504135</comment>
         </Internal_Reference>
         <Internal_Reference>
             <lid_reference>$REPROJ_LID$</lid_reference>
@@ -184,78 +231,99 @@ schematypens="http://purl.oclc.org/dsdl/schematron"?>
         </Internal_Reference>
     </Reference_List>
     <File_Area_Ancillary>
-        <!--Metadata, six columns:
-	     Co-rotating longitude, Mid-time SPICE ET, Inertial longitude, Resolution, Phase angle, Emission angle -->
         <File>
-            <!-- Metadata parameters per longitude value -->
             <file_name>$METADATA_PARAMS_TABLE_FILENAME$</file_name>
-            <creation_date_time>$CURRENT_ZULU()$</creation_date_time>
+            <creation_date_time>$FILE_ZULU(METADATA_PARAMS_TABLE_PATH)$</creation_date_time>
             <md5_checksum>$FILE_MD5(METADATA_PARAMS_TABLE_PATH)$</md5_checksum>
         </File>
         <Header>
-            <!-- Optional to have column names -->
             <offset unit="byte">0</offset>
-            <object_length unit="byte">81</object_length> <!-- MJTM update: "Co-rotating longitude, Image Index, ..." -->
+            <object_length unit="byte">109</object_length>
             <parsing_standard_id>UTF-8 Text</parsing_standard_id>
-            <description>Corotating Longitude, Inertial Longitude, Resolution, Phase Angle, Emission Angle</description>
+            <description>Corotating Longitude, Inertial Longitude, Radial Resolution, Angular Resolution, Phase Angle, Emission Angle</description>
         </Header>
-        <!-- Metadata table. Fixed width, with <comma><whitespace> field separators -->
         <Table_Character>
-            <offset unit="byte">81</offset>
+            <offset unit="byte">109</offset>
             <records>$NUM_VALID_LONGITUDES$</records>
             <description>
-                Description here. XXX
+                The metadata for each longitude in the reprojected image that contains valid data.
             </description>
             <record_delimiter>Line-Feed</record_delimiter>
             <Record_Character>
-                <fields>5</fields>
+                <fields>6</fields>
                 <groups>0</groups>
-                <record_length unit="byte">51</record_length>
-                <!-- Including <comma><whitespace>s -->
+                <record_length unit="byte">64</record_length>
                 <Field_Character>
-                    <name>Corotating Longitude</name> <!-- Incrementing by 0.02 deg as read column top to bottom -->
+                    <name>Corotating Longitude</name>
                     <field_number>1</field_number>
                     <field_location unit="byte">1</field_location>
                     <data_type>ASCII_Real</data_type>
                     <field_length unit="byte">6</field_length>
                     <unit>deg</unit>
-                    <description>Description of coord sys and corotating longitude XXX</description>
+                    <description>
+                        The corotating longitude, defined so that zero corotating longitude is equal to
+                        zero inertial longitude at the epoch 2007-01-01T00:00:00Z.
+                        COROT = (INERTIAL - 581.964 [deg/day] * (TIME [sec] - EPOCH)/86400) % 360
+                    </description>
                 </Field_Character>
                 <Field_Character>
                     <name>Inertial Longitude</name>
                     <field_number>2</field_number>
-                    <field_location unit="byte">9</field_location> <!-- add 2 bytes for <comma><whitespace> -->
+                    <field_location unit="byte">9</field_location>
                     <data_type>ASCII_Real</data_type>
                     <field_length unit="byte">7</field_length>
                     <unit>deg</unit>
-                    <description>Description of Longitude as measured in inertial frame XXX</description>
+                    <description>
+                        The inertial longitude that provided data for this corotating longitude. This is
+                        equivalent to
+                        INERTIAL = (COROT + 581.964 [deg/day] * (TIME [sec] - EPOCH)/86400) % 360
+                    </description>
                 </Field_Character>
                 <Field_Character>
-                    <name>Resolution</name>
+                    <name>Radial Resolution</name>
                     <field_number>3</field_number>
-                    <field_location unit="byte">18</field_location> <!-- add 2 bytes for <comma><whitespace> -->
+                    <field_location unit="byte">18</field_location>
                     <data_type>ASCII_Real</data_type>
                     <field_length unit="byte">10</field_length>
                     <unit>km/pixel</unit>
-                    <description>Radial resolution? XXX</description>
+                    <description>
+                        The mean resolution in the radial direction for image data at this
+                        corotating longitude.
+                    </description>
+                </Field_Character>
+                <Field_Character>
+                    <name>Angular Resolution</name>
+                    <field_number>4</field_number>
+                    <field_location unit="byte">30</field_location>
+                    <data_type>ASCII_Real</data_type>
+                    <field_length unit="byte">10</field_length>
+                    <unit>km/pixel</unit>
+                    <description>
+                        The mean resolution in the longitude direction for image data at this
+                        corotating longitude.
+                    </description>
                 </Field_Character>
                 <Field_Character>
                     <name>Phase Angle</name>
-                    <field_number>4</field_number>
-                    <field_location unit="byte">30</field_location> <!-- add 2 bytes for <comma><whitespace> -->
+                    <field_number>5</field_number>
+                    <field_location unit="byte">42</field_location>
                     <data_type>ASCII_Real</data_type>
                     <field_length unit="byte">10</field_length>
                     <unit>deg</unit>
-                    <description>Description of phase angle XXX</description>
+                    <description>
+                        The mean phase angle for image data at this corotating longitude.
+                    </description>
                 </Field_Character>
                 <Field_Character>
                     <name>Emission Angle</name>
-                    <field_number>5</field_number>
-                    <field_location unit="byte">42</field_location> <!-- add 2 bytes for <comma><whitespace> -->
+                    <field_number>6</field_number>
+                    <field_location unit="byte">54</field_location>
                     <data_type>ASCII_Real</data_type>
                     <field_length unit="byte">10</field_length>
                     <unit>deg</unit>
-                    <description>Description of emission angle XXX</description>
+                    <description>
+                        The mean emission angle for image data at this corotating longitude.
+                    </description>
                 </Field_Character>
             </Record_Character>
         </Table_Character>

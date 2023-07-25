@@ -152,13 +152,12 @@ parser.add_argument('--generate-reproj-browse-labels',
 parser.add_argument('--generate-reproj-browse-images',
                     action='store_true', default=False,
                     help='Generate reproj browse image files')
-parser.add_argument('--generate-reproj-browse-collections',
-                    action='store_true', default=False,
-                    help='Generate reproj browse image '
-                         'collections files')
 parser.add_argument('--generate-reproj-browse',
                     action='store_true', default=False,
-                    help='Generate reproj browse image files and labels')
+                    help='Generate reproj browse images and labels')
+parser.add_argument('--generate-reproj-browse-collections',
+                    action='store_true', default=False,
+                    help='Generate reproj browse image collections files')
 
 parser.add_argument('--generate-all-reproj',
                     action='store_true', default=False,
@@ -209,6 +208,13 @@ parser.add_argument('--generate-all-mosaics',
                     help='Generate all mosaic image, metadata, and browse files with '
                          'labels as well as associated collections files')
 
+parser.add_argument('--generate-all-images',
+                    action='store_true', default=False,
+                    help='Generate all images (mosaics, reproj, browse)')
+parser.add_argument('--generate-all-labels',
+                    action='store_true', default=False,
+                    help='Generate all labels')
+
 parser.add_argument('--generate-all',
                     action='store_true', default=False,
                     help='Generate all files and labels')
@@ -223,99 +229,81 @@ f_ring.init(arguments)
 CALIBRATED_DIR = '/data/pdsdata/holdings/calibrated' # XXX
 REPROJ_DIR = '/data/cb-results/fring/ring_mosaic/ring_repro' # XXX
 
-GENERATE_REPROJ_IMAGES = False
-GENERATE_REPROJ_IMAGE_LABELS = False
-GENERATE_REPROJ_METADATA_TABLES = False
-GENERATE_REPROJ_METADATA_LABELS = False
-GENERATE_REPROJ_COLLECTIONS = False
-GENERATE_REPROJ_BROWSE_IMAGES = False
-GENERATE_REPROJ_BROWSE_LABELS = False
-GENERATE_REPROJ_BROWSE_COLLECTIONS = False
+GENERATE_REPROJ_IMAGE_LABELS = (arguments.generate_reproj_labels or
+                                arguments.generate_reproj or
+                                arguments.generate_all_reproj or
+                                arguments.generate_all_labels or
+                                arguments.generate_all)
+GENERATE_REPROJ_IMAGES = (arguments.generate_reproj_images or
+                          arguments.generate_reproj or
+                          arguments.generate_all_reproj or
+                          arguments.generate_all_images or
+                          arguments.generate_all)
 
-GENERATE_MOSAIC_IMAGES = False
-GENERATE_MOSAIC_IMAGE_LABELS = False
-GENERATE_MOSAIC_METADATA_TABLES = False
-GENERATE_MOSAIC_METADATA_LABELS = False
-GENERATE_MOSAIC_COLLECTIONS = False
-GENERATE_MOSAIC_BROWSE_IMAGES = False
-GENERATE_MOSAIC_BROWSE_LABELS = False
-GENERATE_MOSAIC_BROWSE_COLLECTIONS = False
+GENERATE_REPROJ_METADATA_LABELS = (arguments.generate_reproj_metadata_labels or
+                                   arguments.generate_reproj_metadata or
+                                   arguments.generate_all_reproj or
+                                   arguments.generate_all)
+GENERATE_REPROJ_METADATA_TABLES = (arguments.generate_reproj_metadata_tables or
+                                   arguments.generate_reproj_metadata or
+                                   arguments.generate_all_reproj or
+                                   arguments.generate_all)
 
-if arguments.generate_reproj_labels:
-    GENERATE_REPROJ_IMAGE_LABELS = True
-if arguments.generate_reproj_images:
-    GENERATE_REPROJ_IMAGES = True
-if (arguments.generate_reproj_collections or
-    arguments.generate_all_reproj or
-    arguments.generate_all):
-    GENERATE_REPROJ_COLLECTIONS = True
-if (arguments.generate_reproj or
-    arguments.generate_all_reproj or
-    arguments.generate_all):
-    GENERATE_REPROJ_IMAGE_LABELS = True
-    GENERATE_REPROJ_IMAGES = True
+GENERATE_REPROJ_COLLECTIONS = (arguments.generate_reproj_collections or
+                               arguments.generate_all_reproj or
+                               arguments.generate_all)
 
-if arguments.generate_reproj_metadata_labels:
-    GENERATE_REPROJ_METADATA_LABELS = True
-if arguments.generate_reproj_metadata_tables:
-    GENERATE_REPROJ_METADATA_TABLES = True
-if (arguments.generate_reproj_metadata or
-    arguments.generate_all_reproj or
-    arguments.generate_all):
-    GENERATE_REPROJ_METADATA_LABELS = True
-    GENERATE_REPROJ_METADATA_TABLES = True
+GENERATE_REPROJ_BROWSE_LABELS = (arguments.generate_reproj_browse_labels or
+                                 arguments.generate_reproj_browse or
+                                 arguments.generate_all_reproj or
+                                 arguments.generate_all_labels or
+                                 arguments.generate_all)
+GENERATE_REPROJ_BROWSE_IMAGES = (arguments.generate_reproj_browse_images or
+                                 arguments.generate_reproj_browse or
+                                 arguments.generate_all_reproj or
+                                 arguments.generate_all_images or
+                                 arguments.generate_all)
+GENERATE_REPROJ_BROWSE_COLLECTIONS = (arguments.generate_reproj_browse_collections or
+                                      arguments.generate_all_reproj or
+                                      arguments.generate_all)
 
-if arguments.generate_reproj_browse_labels:
-    GENERATE_REPROJ_BROWSE_LABELS = True
-if arguments.generate_reproj_browse_images:
-    GENERATE_REPROJ_BROWSE_IMAGES = True
-if (arguments.generate_reproj_browse_collections or
-    arguments.generate_all_reproj or
-    arguments.generate_all):
-    GENERATE_REPROJ_BROWSE_COLLECTIONS = True
-if (arguments.generate_reproj_browse or
-    arguments.generate_all_reproj or
-    arguments.generate_all):
-    GENERATE_REPROJ_BROWSE_LABELS = True
-    GENERATE_REPROJ_BROWSE_IMAGES = True
+GENERATE_MOSAIC_IMAGE_LABELS = (arguments.generate_mosaic_labels or
+                                arguments.generate_mosaics or
+                                arguments.generate_all_mosaics or
+                                arguments.generate_all_labels or
+                                arguments.generate_all)
+GENERATE_MOSAIC_IMAGES = (arguments.generate_mosaic_images or
+                          arguments.generate_mosaics or
+                          arguments.generate_all_mosaics or
+                          arguments.generate_all_images or
+                          arguments.generate_all)
+GENERATE_MOSAIC_COLLECTIONS = (arguments.generate_mosaic_collections or
+                               arguments.generate_all_mosaics or
+                               arguments.generate_all)
 
-if arguments.generate_mosaic_labels:
-    GENERATE_MOSAIC_IMAGE_LABELS = True
-if arguments.generate_mosaic_images:
-    GENERATE_MOSAIC_IMAGES = True
-if (arguments.generate_mosaic_collections or
-    arguments.generate_all_mosaics or
-    arguments.generate_all):
-    GENERATE_MOSAIC_COLLECTIONS = True
-if (arguments.generate_mosaics or
-    arguments.generate_all_mosaics or
-    arguments.generate_all):
-    GENERATE_MOSAIC_IMAGE_LABELS = True
-    GENERATE_MOSAIC_IMAGES = True
+GENERATE_MOSAIC_METADATA_LABELS = (arguments.generate_mosaic_metadata_labels or
+                                   arguments.generate_mosaic_metadata or
+                                   arguments.generate_all_mosaics or
+                                   arguments.generate_all_labels or
+                                   arguments.generate_all)
+GENERATE_MOSAIC_METADATA_TABLES = (arguments.generate_mosaic_metadata_tables or
+                                   arguments.generate_mosaic_metadata or
+                                   arguments.generate_all_mosaics or
+                                   arguments.generate_all)
 
-if arguments.generate_mosaic_metadata_labels:
-    GENERATE_MOSAIC_METADATA_LABELS = True
-if arguments.generate_mosaic_metadata_tables:
-    GENERATE_MOSAIC_METADATA_TABLES = True
-if (arguments.generate_mosaic_metadata or
-    arguments.generate_all_mosaics or
-    arguments.generate_all):
-    GENERATE_MOSAIC_METADATA_LABELS = True
-    GENERATE_MOSAIC_METADATA_TABLES = True
-
-if arguments.generate_mosaic_browse_labels:
-    GENERATE_MOSAIC_BROWSE_LABELS = True
-if arguments.generate_mosaic_browse_images:
-    GENERATE_MOSAIC_BROWSE_IMAGES = True
-if (arguments.generate_mosaic_browse_collections or
-    arguments.generate_all_mosaics or
-    arguments.generate_all):
-    GENERATE_MOSAIC_BROWSE_COLLECTIONS = True
-if (arguments.generate_mosaic_browse or
-    arguments.generate_all_mosaics or
-    arguments.generate_all):
-    GENERATE_MOSAIC_BROWSE_LABELS = True
-    GENERATE_MOSAIC_BROWSE_IMAGES = True
+GENERATE_MOSAIC_BROWSE_LABELS = (arguments.generate_mosaic_browse_labels or
+                                 arguments.generate_mosaic_browse or
+                                 arguments.generate_all_mosaics or
+                                 arguments.generate_all_labels or
+                                 arguments.generate_all)
+GENERATE_MOSAIC_BROWSE_IMAGES = (arguments.generate_mosaic_browse_images or
+                                 arguments.generate_mosaic_browse or
+                                 arguments.generate_all_mosaics or
+                                 arguments.generate_all_images or
+                                 arguments.generate_all)
+GENERATE_MOSAIC_BROWSE_COLLECTIONS = (arguments.generate_mosaic_browse_collections or
+                                      arguments.generate_all_mosaics or
+                                      arguments.generate_all)
 
 
 ##########################################################################################
@@ -498,6 +486,14 @@ def read_mosaic(data_path, metadata_path, *, bkg_sub=False, read_img=True):
                                        raw=True)
             metadata = fixup_byte_to_str(metadata)
 
+    if 'mean_resolution' in metadata: # Old format
+        metadata['mean_radial_resolution'] = res = metadata['mean_resolution']
+        del metadata['mean_resolution']
+        metadata['mean_angular_resolution'] = np.zeros(res.shape)
+    if 'long_mask' in metadata: # Old format
+        metadata['long_antimask'] = metadata['long_mask']
+        del metadata['long_mask']
+
     if read_img:
         if bkg_sub:
             with np.load(data_path) as npz:
@@ -507,11 +503,11 @@ def read_mosaic(data_path, metadata_path, *, bkg_sub=False, read_img=True):
         else:
             metadata['img'] = ma.MaskedArray(np.load(data_path))
 
-    metadata['longitudes'] = (np.arange(len(metadata['long_mask'])) *
+    metadata['longitudes'] = (np.arange(len(metadata['long_antimask'])) *
                               arguments.longitude_resolution)
-    metadata['inertial_longitudes'] = np.degrees(f_ring.fring_corotating_to_inertial(
-                                np.radians(metadata['longitudes']),
-                                metadata['time']))
+    metadata['inertial_longitudes'] = f_ring.fring_corotating_to_inertial(
+                                            metadata['longitudes'],
+                                            metadata['time'])
 
     return metadata
 
@@ -535,7 +531,7 @@ def read_bkgnd_metadata(model_path, metadata_path):
 
 
 def read_reproj(metadata_path):
-    """Read a reproject image metadata."""
+    """Read reprojected image metadata."""
     try:
         with open(metadata_path, 'rb') as metadata_fp:
             metadata = msgpack.unpackb(metadata_fp.read(),
@@ -547,23 +543,31 @@ def read_reproj(metadata_path):
                                        raw=True)
             metadata = fixup_byte_to_str(metadata)
 
-    metadata['longitudes'] = (np.arange(len(metadata['long_mask'])) *
+    if 'mean_resolution' in metadata: # Old format
+        metadata['mean_radial_resolution'] = res = metadata['mean_resolution']
+        del metadata['mean_resolution']
+        metadata['mean_angular_resolution'] = np.zeros(res.shape)
+    if 'long_mask' in metadata: # Old format
+        metadata['long_antimask'] = metadata['long_mask']
+        del metadata['long_mask']
+
+    metadata['longitudes'] = (np.arange(len(metadata['long_antimask'])) *
                               arguments.longitude_resolution)
-    metadata['inertial_longitudes'] = np.degrees(f_ring.fring_corotating_to_inertial(
-                                np.radians(metadata['longitudes']),
-                                metadata['time']))
+    metadata['inertial_longitudes'] = f_ring.fring_corotating_to_inertial(
+                                            metadata['longitudes'],
+                                            metadata['time'])
 
     return metadata
 
 
 def mosaic_has_prometheus(metadata):
     """Return True if Prometheus is present in the mosaic."""
-    return False # XXX
+    return True # XXX
 
 
 def mosaic_has_pandora(metadata):
     """Return True if Pandora is present in the mosaic."""
-    return False # XXX
+    return True # XXX
 
 
 def remap_image_indexes(metadata):
@@ -593,14 +597,14 @@ def remap_image_indexes(metadata):
     metadata['image_path_list'] = new_image_path_list
 
 
-def image_name_to_lidvid(name): ### Convert to LIDVID ??? XXX
-    """Convert Cassini ISS image name to a LIDVID.
+def image_name_to_lidvid(name):
+    """Convert Cassini ISS image name to a calibrated LIDVID.
 
-    urn:nasa:pds:cassini_iss_saturn:data_raw:1454725799n
+    urn:nasa:pds:cassini_iss_saturn:data_calibrated:1455008633n_calib
     """
     name = name.lower()
     return ( 'urn:nasa:pds:cassini_iss_saturn:data_calibrated:'
-            f'{name[1:11]}{name[0]}::1.0')
+            f'{name[1:11]}{name[0]}_calib::1.0')
 
 
 def image_name_to_reproj_lid(name):
@@ -752,19 +756,19 @@ def et_to_tour(et):
     """
     datetime = et_to_datetime(et)
     if datetime <= '2004-12-24':
-        return 'Tour Pre-Huygens'
+        return 'TOUR PRE-HUYGENS'
     if datetime <= '2008-06-30':
-        return 'Tour'
+        return 'TOUR'
     if datetime <= '2010-09-29':
-        return 'Extended Mission'
-    return 'Extended-Extended Mission'
+        return 'EXTENDED MISSION'
+    return 'EXTENDED-EXTENDED MISSION'
 
 
 def read_label(image_name):
     """Return the PDS3 label for the given image name.
 
-    This is needed to lookup the spacecraft clock counts, which aren't
-    stored in the mosaic metadata.
+    This is needed to lookup various image metadata which isn't stored in the
+    mosaic metadata.
     """
     components = image_name.split('/')[-5:]
     image_path = os.path.join(CALIBRATED_DIR, *components)
@@ -785,7 +789,7 @@ def xml_metadata_for_image(obsid, metadata, img_type):
     """
     ret = BASIC_XML_METADATA.copy()
 
-    long_mask = metadata['long_mask']
+    long_antimask = metadata['long_antimask']
 
     match = re.search(r'^(.*)_(\d+)$', obsid)
     partial_obsid = bool(match)
@@ -793,6 +797,9 @@ def xml_metadata_for_image(obsid, metadata, img_type):
     if partial_obsid:
         root_obsid = match[1]
         obsid_chunk = match[2]
+
+    ret['FULL_OBSERVATION_ID'] = obsid
+    ret['OBSERVATION_ID'] = root_obsid
 
     sfx = None
     cap_bkg = None
@@ -805,30 +812,30 @@ def xml_metadata_for_image(obsid, metadata, img_type):
         cap_bkg = 'Background-subtracted ' if img_type == 'b' else ''
         num_images = len(metadata['image_path_list'])
 
-        ETs = metadata['time'][long_mask]
+        ETs = metadata['time'][long_antimask]
         min_et = np.min(ETs)
         max_et = np.max(ETs)
 
     ret['START_DATE_TIME'] = start_date = et_to_datetime(min_et)
     ret['STOP_DATE_TIME'] = stop_date = et_to_datetime(max_et)
-    total_hours = (max_et - min_et) / 3600
+    total_secs = max_et - min_et
+    total_hours = total_secs / 3600
 
     ret['TOUR'] = et_to_tour(min_et)
 
-    num_good_long = np.sum(long_mask)
-    min_corot_long = np.where(long_mask)[0][0] / len(long_mask) * 360
-    max_corot_long = np.where(long_mask)[0][-1] / len(long_mask) * 360
-    diff_corot = max_corot_long - min_corot_long + 1 / len(long_mask) * 360
-    deg_good_long = num_good_long / len(long_mask) * 360
-    inertial_longitudes = metadata['inertial_longitudes'][long_mask]
+    num_good_long = np.sum(long_antimask)
+    min_corot_long = np.where(long_antimask)[0][0] / len(long_antimask) * 360
+    max_corot_long = np.where(long_antimask)[0][-1] / len(long_antimask) * 360
+    diff_corot = max_corot_long - min_corot_long + 360. / len(long_antimask)
+    deg_good_long = num_good_long / len(long_antimask) * 360
+    inertial_longitudes = metadata['inertial_longitudes'][long_antimask]
     min_inertial = np.min(inertial_longitudes)
     max_inertial = np.max(inertial_longitudes)
     diff_inertial = max_inertial - min_inertial
 
-    ret['OBSERVATION_ID'] = obsid
     ret['FILTER1'] = 'CL1'
     ret['FILTER2'] = 'CL2'
-    ret['NUM_VALID_LONGITUDES'] = str(np.sum(long_mask))
+    ret['NUM_VALID_LONGITUDES'] = str(np.sum(long_antimask))
     ret['MOSAIC_LID'] = obsid_to_mosaic_lid(obsid, img_type == 'b')
     ret['MOSAIC_ORIGINAL_LID'] = obsid_to_mosaic_lid(obsid, False)
     ret['MOSAIC_BKG_SUB_LID'] = obsid_to_mosaic_lid(obsid, True)
@@ -838,15 +845,16 @@ def xml_metadata_for_image(obsid, metadata, img_type):
     if img_type == 'b':
         ret['MOSAIC_OTHER_LID'] = ret['MOSAIC_ORIGINAL_LID']
         ret['MOSAIC_OTHER_REFERENCE_COMMENT'] = """
-            The original mosaic without the background subtracted."""
-        ret['MOSAIC_REFERENCE_COMMENT'] = 'The mosaic with the background subtracted.'
+            The mosaic without the background subtracted."""
+        ret['MOSAIC_REFERENCE_COMMENT'] = """
+            The mosaic with the background subtracted."""
         ret['MOSAIC_BROWSE_COMMENT'] = """
             Browse images of the background-subtracted mosaic in multiple sizes
             in PNG format."""
     else:
         ret['MOSAIC_OTHER_LID'] = ret['MOSAIC_BKG_SUB_LID']
         ret['MOSAIC_REFERENCE_COMMENT'] = """
-            The original mosaic without the background subtracted."""
+            The mosaic without the background subtracted."""
         ret['MOSAIC_OTHER_REFERENCE_COMMENT'] = """
             The mosaic with the background subtracted."""
         ret['MOSAIC_BROWSE_COMMENT'] = """
@@ -858,11 +866,11 @@ def xml_metadata_for_image(obsid, metadata, img_type):
         ret['REPROJ_METADATA_LID'] = image_name_to_reproj_lid(image_name)
         ret['REPROJ_TITLE'] = f"""
 Reprojected version of Cassini ISS calibrated image {image_name} from
-observation {root_obsid} taken at {start_date}
+observation {root_obsid}
 """
         ret['REPROJ_METADATA_TITLE'] = f"""
 Metadata for the reprojected version of Cassini ISS calibrated image
-{image_name} from observation {root_obsid} taken at {start_date}
+{image_name} from observation {root_obsid}
 """
         ret['REPROJ_LID'] = image_name_to_reproj_lid(image_name)
         ret['REPROJ_BROWSE_LID'] = image_name_to_reproj_browse_lid(image_name)
@@ -873,8 +881,8 @@ Metadata for the reprojected version of Cassini ISS calibrated image
         ret['REPROJ_COMMENT'] = f"""
 This data file is an individual reprojected image of Saturn's F ring from
 Cassini ISS image {image_name} taken at {start_date}. In this image, Cassini
-observed an area of space covering {diff_inertial:.2f} degrees of inertial
-longitude from {min_inertial:.2f} to {max_inertial:.2f}. The source image was
+observed an area of space covering {diff_inertial:.3f} degrees of inertial
+longitude from {min_inertial:.3f} to {max_inertial:.3f}. The source image was
 calibrated using CISSCAL 4.0 and the data values are in units of I/F. The
 mosaics, in the data_mosaic and data_mosaic_bkg_sub collections, were generated
 by stitching together reprojected, calibrated images such as this.
@@ -918,7 +926,7 @@ reprojected version of the Cassini ISS calibrated image {image_name} from
 
     else:
         # Find the image names at the starting and ending ETs
-        image_indexes = metadata['image_number'][long_mask]
+        image_indexes = metadata['image_number'][long_antimask]
         image_path_list = metadata['image_path_list']
         image_name_list = metadata['image_name_list']
         idx_min = np.argmin(ETs)
@@ -929,14 +937,14 @@ reprojected version of the Cassini ISS calibrated image {image_name} from
         max_image_name = image_name_list[image_indexes[idx_max]]
 
         ret['MOSAIC_TITLE'] = f"""
-{cap_bkg}F Ring mosaic created from reprojected Cassini ISS calibrated images
+{cap_bkg}F Ring mosaic created from reprojected, calibrated Cassini ISS images
 from observation {root_obsid} spanning {start_date} ({min_image_name}) to
 {stop_date} ({max_image_name})
 """
         ret['MOSAIC_METADATA_TITLE'] = f"""
-Metadata for the {cap_bkg.lower()}F Ring mosaic created from reprojected Cassini
-ISS calibrated images from observation {root_obsid} spanning {start_date}
-({min_image_name}) to {stop_date} ({max_image_name})
+Metadata for the {cap_bkg.lower()}F Ring mosaic created from reprojected,
+calibrated Cassini ISS images from observation {root_obsid} spanning
+{start_date} ({min_image_name}) to {stop_date} ({max_image_name})
 """
 
         ret['MOSAIC_DESCRIPTION'] = ret['MOSAIC_TITLE']
@@ -967,10 +975,11 @@ This data file is a {cap_bkg.lower()}mosaic of Saturn's F ring, stitched
 together from reprojections of {num_images} source images from Cassini
 Observation Name {root_obsid} spanning {start_date} ({min_image_name}) to
 {stop_date} ({max_image_name}). During this time, Cassini repeatedly observed an
-area of space covering {diff_inertial:.2f} degrees of inertial longitude from
-{min_inertial:.2f} to {max_inertial:.2f} while the ring rotated under it for
-{total_hours:.2f} hours. The source images were calibrated using CISSCAL 4.0 and
-the data values are in units of I/F.{partial_comment}
+area of space covering {diff_inertial:.3f} degrees of inertial longitude from
+{min_inertial:.3f} to {max_inertial:.3f} while the ring rotated under it for
+{total_secs:.0f} seconds ({total_hours:.5f} hours). The source images were
+calibrated using CISSCAL 4.0 and the data values are in units of
+I/F.{partial_comment}
 
 
 The reprojection takes the image space and reprojects it onto a regular
@@ -1002,7 +1011,7 @@ longitude,...etc XXX
         ret['MOSAIC_METADATA_DESCRIPTION'] = ret['MOSAIC_METADATA_TITLE']
         ret['MOSAIC_METADATA_COMMENT'] = f"""
 Two files containing metadata for the {cap_bkg.lower()}mosaics created from
-reprojected Cassini ISS calibrated images from {root_obsid}, {start_date} to
+reprojected, calibrated Cassini ISS images from {root_obsid}, {start_date} to
 {stop_date}:
 
     1) Indices and LIDs of source images
@@ -1030,6 +1039,66 @@ reprojected Cassini ISS calibrated images from {root_obsid}, {start_date} to
         ret['SPACECRAFT_CLOCK_STOP_COUNT'] = str(max_label['SPACECRAFT_CLOCK_STOP_COUNT'])
 
     if img_type == 'r':
+        ret['ANTIBLOOMING_STATE_FLAG'] = min_label['ANTIBLOOMING_STATE_FLAG']
+        ret['BIAS_STRIP_MEAN'] = min_label['BIAS_STRIP_MEAN']
+        ret['CALIBRATION_LAMP_STATE_FLAG'] = min_label['CALIBRATION_LAMP_STATE_FLAG']
+        ret['COMMAND_FILE_NAME'] = min_label['COMMAND_FILE_NAME']
+        ret['COMMAND_SEQUENCE_NUMBER'] = min_label['COMMAND_SEQUENCE_NUMBER']
+        ret['DARK_STRIP_MEAN'] = min_label['DARK_STRIP_MEAN']
+        ret['DATA_CONVERSION_TYPE'] = min_label['DATA_CONVERSION_TYPE']
+        ret['DELAYED_READOUT_FLAG'] = min_label['DELAYED_READOUT_FLAG']
+        ret['DETECTOR_TEMPERATURE'] = str(min_label['DETECTOR_TEMPERATURE']).split(' ')[0]
+        ret['EARTH_RECEIVED_START_TIME'] = min_label['EARTH_RECEIVED_START_TIME']
+        ret['EARTH_RECEIVED_STOP_TIME'] = min_label['EARTH_RECEIVED_STOP_TIME']
+        ret['ELECTRONICS_BIAS'] = min_label['ELECTRONICS_BIAS']
+        ret['EXPECTED_MAXIMUM'] = min_label['EXPECTED_MAXIMUM']
+        ret['EXPECTED_PACKETS'] = min_label['EXPECTED_PACKETS']
+        ret['EXPOSURE_DURATION'] = min_label['EXPOSURE_DURATION']
+        # ret['FILTER_NAME'] = min_label['FILTER_NAME']
+        ret['FILTER_TEMPERATURE'] = min_label['FILTER_TEMPERATURE']
+        ret['FLIGHT_SOFTWARE_VERSION_ID'] = min_label['FLIGHT_SOFTWARE_VERSION_ID']
+        ret['GAIN_MODE_ID'] = str(min_label['GAIN_MODE_ID']).split(' ')[0]
+        ret['IMAGE_MID_TIME'] = min_label['IMAGE_MID_TIME']
+        ret['IMAGE_NUMBER'] = min_label['IMAGE_NUMBER']
+        ret['IMAGE_OBSERVATION_TYPE'] = str(min_label['IMAGE_OBSERVATION_TYPE']).strip('{}')
+        ret['IMAGE_TIME'] = min_label['IMAGE_TIME']
+        ret['INSTRUMENT_DATA_RATE'] = min_label['INSTRUMENT_DATA_RATE']
+        ret['INSTRUMENT_HOST_NAME'] = min_label['INSTRUMENT_HOST_NAME']
+        ret['INSTRUMENT_ID'] = min_label['INSTRUMENT_ID']
+        ret['INSTRUMENT_MODE_ID'] = min_label['INSTRUMENT_MODE_ID']
+        ret['INST_CMPRS_PARAM'] = min_label['INST_CMPRS_PARAM']
+        ret['INST_CMPRS_RATE'] = min_label['INST_CMPRS_RATE']
+        ret['INST_CMPRS_RATIO'] = min_label['INST_CMPRS_RATIO']
+        ret['INST_CMPRS_TYPE'] = min_label['INST_CMPRS_TYPE']
+        ret['LIGHT_FLOOD_STATE_FLAG'] = min_label['LIGHT_FLOOD_STATE_FLAG']
+        ret['METHOD_DESC'] = min_label['METHOD_DESC']
+        ret['MISSING_LINES'] = min_label['MISSING_LINES']
+        ret['MISSING_PACKET_FLAG'] = min_label['MISSING_PACKET_FLAG']
+        ret['MISSION_NAME'] = min_label['MISSION_NAME']
+        ret['MISSION_PHASE_NAME'] = min_label['MISSION_PHASE_NAME']
+        ret['OBSERVATION_ID'] = min_label['OBSERVATION_ID']
+        ret['OPTICS_TEMPERATURE'] = min_label['OPTICS_TEMPERATURE']
+        ret['ORDER_NUMBER'] = min_label['ORDER_NUMBER']
+        ret['PARALLEL_CLOCK_VOLTAGE_INDEX'] = min_label['PARALLEL_CLOCK_VOLTAGE_INDEX']
+        ret['PREPARE_CYCLE_INDEX'] = min_label['PREPARE_CYCLE_INDEX']
+        ret['PRODUCT_CREATION_TIME'] = min_label['PRODUCT_CREATION_TIME']
+        ret['PRODUCT_ID'] = min_label['PRODUCT_ID']
+        ret['PRODUCT_VERSION_TYPE'] = min_label['PRODUCT_VERSION_TYPE']
+        ret['READOUT_CYCLE_INDEX'] = min_label['READOUT_CYCLE_INDEX']
+        ret['RECEIVED_PACKETS'] = min_label['RECEIVED_PACKETS']
+        ret['SENSOR_HEAD_ELEC_TEMPERATURE'] = min_label['SENSOR_HEAD_ELEC_TEMPERATURE']
+        ret['SEQUENCE_ID'] = min_label['SEQUENCE_ID']
+        ret['SEQUENCE_NUMBER'] = min_label['SEQUENCE_NUMBER']
+        ret['SEQUENCE_TITLE'] = min_label['SEQUENCE_TITLE']
+        ret['SHUTTER_MODE_ID'] = min_label['SHUTTER_MODE_ID']
+        ret['SHUTTER_STATE_ID'] = min_label['SHUTTER_STATE_ID']
+        ret['SOFTWARE_VERSION_ID'] = min_label['SOFTWARE_VERSION_ID']
+        ret['SPACECRAFT_CLOCK_CNT_PARTITION'] = min_label['SPACECRAFT_CLOCK_CNT_PARTITION']
+        ret['START_TIME_DOY'] = min_label['START_TIME']
+        ret['STOP_TIME_DOY'] = min_label['STOP_TIME']
+        ret['TELEMETRY_FORMAT_ID'] = min_label['TELEMETRY_FORMAT_ID']
+
+    if img_type == 'r':
         incidence_angle = np.degrees(metadata['incidence'])
     else:
         incidence_angle = np.degrees(metadata['mean_incidence'])
@@ -1039,13 +1108,15 @@ reprojected Cassini ISS calibrated images from {root_obsid}, {start_date} to
     if img_type == 'r':
         emission_angles = np.degrees(metadata['mean_emission'])
         phase_angles = np.degrees(metadata['mean_phase'])
-        resolutions = metadata['mean_resolution']
+        rad_resolutions = metadata['mean_radial_resolution']
+        ang_resolutions = metadata['mean_angular_resolution']
     else:
-        emission_angles = np.degrees(metadata['mean_emission'][long_mask])
-        phase_angles = np.degrees(metadata['mean_phase'][long_mask])
-        resolutions = metadata['mean_resolution'][long_mask]
+        emission_angles = np.degrees(metadata['mean_emission'][long_antimask])
+        phase_angles = np.degrees(metadata['mean_phase'][long_antimask])
+        rad_resolutions = metadata['mean_radial_resolution'][long_antimask]
+        ang_resolutions = metadata['mean_angular_resolution'][long_antimask]
 
-    # XXX Implement difference between emission angle and observation ring elevation
+    # XXX Implement difference between emission angle and observed ring elevation
     ret['MEAN_OBS_RING_ELEV'] = f'{np.mean(emission_angles):.6f}'
     ret['MIN_OBS_RING_ELEV'] = f'{np.min(emission_angles):.6f}'
     ret['MAX_OBS_RING_ELEV'] = f'{np.max(emission_angles):.6f}'
@@ -1054,9 +1125,13 @@ reprojected Cassini ISS calibrated images from {root_obsid}, {start_date} to
     ret['MIN_PHASE_ANGLE'] = f'{np.min(phase_angles):.6f}'
     ret['MAX_PHASE_ANGLE'] = f'{np.max(phase_angles):.6f}'
 
-    ret['MEAN_REPROJ_GRID_RAD_RES'] = f'{np.mean(resolutions):.6f}'
-    ret['MIN_REPROJ_GRID_RAD_RES'] = f'{np.min(resolutions):.6f}'
-    ret['MAX_REPROJ_GRID_RAD_RES'] = f'{np.max(resolutions):.6f}'
+    ret['MEAN_REPROJ_GRID_RAD_RES'] = f'{np.mean(rad_resolutions):.6f}'
+    ret['MIN_REPROJ_GRID_RAD_RES'] = f'{np.min(rad_resolutions):.6f}'
+    ret['MAX_REPROJ_GRID_RAD_RES'] = f'{np.max(rad_resolutions):.6f}'
+
+    ret['MEAN_REPROJ_GRID_ANG_RES'] = f'{np.mean(ang_resolutions):.6f}'
+    ret['MIN_REPROJ_GRID_ANG_RES'] = f'{np.min(ang_resolutions):.6f}'
+    ret['MAX_REPROJ_GRID_ANG_RES'] = f'{np.max(ang_resolutions):.6f}'
 
     if img_type != 'r':
         image_name_list = metadata['image_name_list']
@@ -1091,8 +1166,8 @@ reprojected Cassini ISS calibrated images from {root_obsid}, {start_date} to
         # longitudes are populated.
         ret['MIN_RING_COROTATING_LONG'] = '0.00'
         ret['MAX_RING_COROTATING_LONG'] = '360.00'
-    ret['MIN_RING_INERTIAL_LONG'] = f'{min_inertial:.2f}'
-    ret['MAX_RING_INERTIAL_LONG'] = f'{max_inertial:.2f}'
+    ret['MIN_RING_INERTIAL_LONG'] = f'{min_inertial:.3f}'
+    ret['MAX_RING_INERTIAL_LONG'] = f'{max_inertial:.3f}'
 
     return ret
 
@@ -1149,23 +1224,25 @@ def generate_image(obsid, output_dir, metadata, xml_metadata, img_type):
     else:
         sfx = '_bkg_sub' if img_type == 'b' else ''
 
-    long_mask = metadata['long_mask']
-    longitudes = metadata['longitudes'][long_mask]
+    long_antimask = metadata['long_antimask']
+    longitudes = metadata['longitudes'][long_antimask]
     if img_type == 'r':
         emission_angles = np.degrees(metadata['mean_emission'])
         phase_angles = np.degrees(metadata['mean_phase'])
-        resolutions = metadata['mean_resolution']
+        rad_resolutions = metadata['mean_radial_resolution']
+        ang_resolutions = metadata['mean_angular_resolution']
     else:
-        emission_angles = np.degrees(metadata['mean_emission'][long_mask])
-        phase_angles = np.degrees(metadata['mean_phase'][long_mask])
-        resolutions = metadata['mean_resolution'][long_mask]
+        emission_angles = np.degrees(metadata['mean_emission'][long_antimask])
+        phase_angles = np.degrees(metadata['mean_phase'][long_antimask])
+        rad_resolutions = metadata['mean_radial_resolution'][long_antimask]
+        ang_resolutions = metadata['mean_angular_resolution'][long_antimask]
     inertial_longitudes = metadata['inertial_longitudes']
 
     if img_type == 'r':
         pass
     else:
-        ETs = metadata['time'][long_mask]
-        image_indexes = metadata['image_number'][long_mask]
+        ETs = metadata['time'][long_antimask]
+        image_indexes = metadata['image_number'][long_antimask]
         image_name_list = metadata['image_name_list']
 
     target_id = ''
@@ -1212,27 +1289,30 @@ def generate_image(obsid, output_dir, metadata, xml_metadata, img_type):
         with open(metadata_params_table_path, 'w') as fp:
             if img_type == 'r':
                 fp.write('Corotating Longitude, '
-                         'Inertial Longitude, Resolution, Phase Angle, '
-                         'Emission Angle\n')
+                         'Inertial Longitude, Radial Resolution, Angular Resolution, '
+                         'Phase Angle, Emission Angle\n')
             else:
                 fp.write('Corotating Longitude, Image Index, Mid-time SPICE ET, '
-                         'Inertial Longitude, Resolution, Phase Angle, '
-                         'Emission Angle\n')
+                         'Inertial Longitude, Radial Resolution, Angular Resolution, '
+                         'Phase Angle, Emission Angle\n')
             for idx in range(len(longitudes)):
                 longitude = longitudes[idx]
                 inertial = inertial_longitudes[idx]
-                resolution = resolutions[idx]
+                rad_resolution = rad_resolutions[idx]
+                ang_resolution = ang_resolutions[idx]
                 phase = phase_angles[idx]
                 emission = emission_angles[idx]
                 if img_type == 'r':
                     row = (f'{longitude:6.2f}, '
-                           f'{inertial:7.3f}, {resolution:10.5f}, '
+                           f'{inertial:7.3f}, {rad_resolution:10.5f}, '
+                           f'{ang_resolution:10.5f}, '
                            f'{phase:10.6f}, {emission:10.6f}')
                 else:
                     et = ETs[idx]
                     image_idx = image_indexes[idx]
                     row = (f'{longitude:6.2f}, {image_idx:4d}, {et:13.3f}, '
-                           f'{inertial:7.3f}, {resolution:10.5f}, '
+                           f'{inertial:7.3f}, {rad_resolution:10.5f}, '
+                           f'{ang_resolution:10.5f}, '
                            f'{phase:10.6f}, {emission:10.6f}')
                 fp.write(row+'\n')
 
@@ -1436,27 +1516,27 @@ def generate_browse(obsid, browse_dir, metadata, xml_metadata, img_type):
     if img_type == 'r':
         xml_metadata['REPROJ_BROWSE_LID'] = image_name_to_reproj_browse_lid(image_name)
         xml_metadata['REPROJ_BROWSE_TITLE'] = f"""
-Browse images for the reprojected Cassini ISS calibrated image {image_name}
-taken at {start_date}
+Browse images for the reprojected, calibrated Cassini ISS image {image_name}
+from observation {root_obsid}
 """
         xml_metadata['REPROJ_BROWSE_DESCRIPTION'] = f"""
-These browse images correspond to the reprojected image of Cassini ISS
-calibrated image {image_name}. The reprojected image is in units of I/F. The
-browse images map I/F to 8-bit greyscale and are contrast-stretched for easier
-viewing, using a blackpoint at the minimum image value, a whitepoint at the
-99.5% maximum image value, and a gamma of 0.5. Browse images are available in
-two sizes: full (equal in size to the reprojected image) and thumb (100x100,
-padded as necessary). The browse images omit longitudes that have no data
-available; if the available longitudes are discontinuous, the browse image will
-show the longitudes as being adjacent. Pixels with no data available are shown
-as black.
+These browse images correspond to the reprojected, calibrated Cassini ISS image
+{image_name} from observation {root_obsid} taken at {start_date}. The
+reprojected image is in units of I/F. The browse images map I/F to 8-bit
+greyscale and are contrast-stretched for easier viewing, using a blackpoint at
+the minimum image value, a whitepoint at the 99.5% maximum image value, and a
+gamma of 0.5. Browse images are available in two sizes: full (equal in size to
+the reprojected image) and thumb (100x100, padded as necessary). The browse
+images omit longitudes that have no data available; if the available longitudes
+are discontinuous, the browse image will show the longitudes as being adjacent.
+Pixels with no data available are shown as black.
 """
     else:
         # Find the image names at the starting and ending ETs
-        long_mask = metadata['long_mask']
-        image_indexes = metadata['image_number'][long_mask]
+        long_antimask = metadata['long_antimask']
+        image_indexes = metadata['image_number'][long_antimask]
         image_name_list = metadata['image_name_list']
-        ETs = metadata['time'][long_mask]
+        ETs = metadata['time'][long_antimask]
         idx_min = np.argmin(ETs)
         idx_max = np.argmax(ETs)
         min_image_name = image_name_list[image_indexes[idx_min]]
@@ -1465,20 +1545,20 @@ as black.
         xml_metadata['MOSAIC_BROWSE_LID'] = obsid_to_mosaic_browse_lid(obsid,
                                                                        img_type == 'b')
         xml_metadata['MOSAIC_BROWSE_TITLE'] = f"""
-Browse images for the {cap_bkg.lower()}F Ring mosaic created from reprojected
-Cassini ISS calibrated images from observation {root_obsid} spanning
-{start_date} ({min_image_name}) to {stop_date} ({max_image_name})
+Browse images for the {cap_bkg.lower()}F Ring mosaic created from Cassini
+observation {root_obsid} ({min_image_name} to {max_image_name})
 """
         xml_metadata['MOSAIC_BROWSE_DESCRIPTION'] = f"""
 These browse images correspond to the {cap_bkg.lower()}F Ring mosaic created
-from reprojected Cassini ISS calibrated images from observation {root_obsid}.
-The mosaic is in units of I/F. The browse images map I/F to 8-bit greyscale and
-are contrast-stretched for easier viewing, using a blackpoint at the minimum
-mosaic value, a whitepoint at the 99.5% maximum mosaic value, and a gamma of
-0.5. Browse images are available in four sizes: full (18000x401), med
-(1800x400), small (400x400), and thumb (100x100). The full longitude range is
-shown even when no images cover that area. Pixels with no data available are
-shown as black.
+from reprojected, calibrated Cassini ISS images from observation {root_obsid}.
+The images used range from {min_image_name} ({start_date}) to {max_image_name}
+({stop_date}). The mosaic data are in units of I/F. The browse images map I/F to
+8-bit greyscale and are contrast-stretched for easier viewing, using a
+blackpoint at the minimum mosaic value, a whitepoint at the 99.5% maximum mosaic
+value, and a gamma of 0.5. Browse images are available in four sizes: full
+(18000x401), med (1800x400), small (400x400), and thumb (100x100). The full
+longitude range is shown even when no images cover that area. Pixels with no
+data available are shown as black.
 """
 
     if ((img_type != 'r' and GENERATE_REPROJ_BROWSE_LABELS) or
@@ -1668,11 +1748,9 @@ SENTINEL = -999
 BASIC_XML_METADATA = {
     'KEYWORD': 'saturn rings, f ring',
     'PUBLICATION_YEAR': '2023',
-    'MODIFICATION_DATE': NOW[:10], # UTC
-    'NOW': NOW, # UTC
     'MIN_RING_RADIUS': f'{arguments.ring_radius+arguments.radius_inner_delta:.0f}',
     'MAX_RING_RADIUS': f'{arguments.ring_radius+arguments.radius_outer_delta:.0f}',
-    'USERGUIDE_LID': 'urn:nasa:pds:cdap2020_hedman_saturn_dusty_rings:document:rob-detailed-users-guide', # XXX
+    'USERGUIDE_LID': 'urn:nasa:pds:cdap2020_hedman_saturn_dusty_rings:document:users-guide', # XXX
     'USERGUIDE_COMMENT': """Detailed User's Guide for the F Ring Mosaics and
 Reprojected Images in this bundle.""",
     'SENTINEL': str(SENTINEL)
@@ -1770,39 +1848,15 @@ if GENERATE_REPROJ_BROWSE_COLLECTIONS:
 
 
 """
+REMAINING ISSUES:
+
+- Update schema to 1K00?
+
 - How do we include SPICE kernel information with the reprojected images?
 - How do we include pointing navigation information with the reprojected images?
 
     I'm not sure of the answer to these - there's ongoing discussion with Boris about how
     to include SPICE information (and I see you've been cc'ed on that)
-
-- What LID should I use for the Cassini original images, since I want to reference the
-  calibrated images?
-
-   I'd contacted @Mitch Gordon about this and we need to discuss this with @Matt Tiscareno
-   (he/him). I could also initiate a wider discussion in Slack, but as we're planning to
-   meet this week about something else that may be a good time.
-
-- How does indenting of text work? You didn't like having the text left-justified, so I
-  assume it has to be indented at the appropriate XML level. But then how do you want it
-  wrapped? I've been wrapping to 80 characters left-justified, like this:
-        <title>
-F Ring mosaic created from reprojected Cassini ISS calibrated images from observation
-ISS_079RI_FMONITOR002_PRIME spanning 2008-08-02T01:25:19Z (W1596333808_1) to
-2008-08-02T01:54:07Z (W1596335548_1)
-        </title>
-so this is what you'll see in the latest sample. Do you want it indented, but then still
-wrapped at 80 characters? Or something else?
-        <title>
-            F Ring mosaic created from reprojected Cassini ISS calibrated images from
-            observation ISS_079RI_FMONITOR002_PRIME spanning 2008-08-02T01:25:19Z
-            (W1596333808_1) to 2008-08-02T01:54:07Z (W1596335548_1)
-        </title>
-
-    As far as I know, there are no hard and fast rules about indenting, so don't worry too
-    much about it. I prefer when the contents of the xml element are indented to the same
-    amount as the tags. Wrapping at 80 characters looks good, i.e. as in your second
-    example:
 
 - Why did you remove the mean incidence angle and mean ring opening angle, but not the
   mean phase angle? I actually think all of the means are useful, because they aren't just
@@ -1881,5 +1935,49 @@ Is IEEE754LSBSingle the correct data type?
 <!--mjtm: the data_type above is single precision float, so the missing_constant needs to
 have appropriate number of decimal places --> What is the number of decimal places for a
 float?
+
+
+
+DONE:
+
+- What LID should I use for the Cassini original images, since I want to reference the
+  calibrated images?
+
+   I'd contacted @Mitch Gordon about this and we need to discuss this with @Matt Tiscareno
+   (he/him). I could also initiate a wider discussion in Slack, but as we're planning to
+   meet this week about something else that may be a good time.
+
+   We decided to go with collections (rather than bundles) for calibrated ISS, for example:
+   urn:nasa:pds:cassini_iss_saturn:data_calibrated:1455008633n_calib
+   urn:nasa:pds:cassini_iss_cruise:data_calibrated:1455008633w_calib
+
+- How does indenting of text work? You didn't like having the text left-justified, so I
+  assume it has to be indented at the appropriate XML level. But then how do you want it
+  wrapped? I've been wrapping to 80 characters left-justified, like this:
+        <title>
+F Ring mosaic created from reprojected Cassini ISS calibrated images from observation
+ISS_079RI_FMONITOR002_PRIME spanning 2008-08-02T01:25:19Z (W1596333808_1) to
+2008-08-02T01:54:07Z (W1596335548_1)
+        </title>
+so this is what you'll see in the latest sample. Do you want it indented, but then still
+wrapped at 80 characters? Or something else?
+        <title>
+            F Ring mosaic created from reprojected Cassini ISS calibrated images from
+            observation ISS_079RI_FMONITOR002_PRIME spanning 2008-08-02T01:25:19Z
+            (W1596333808_1) to 2008-08-02T01:54:07Z (W1596335548_1)
+        </title>
+
+    As far as I know, there are no hard and fast rules about indenting, so don't worry too
+    much about it. I prefer when the contents of the xml element are indented to the same
+    amount as the tags. Wrapping at 80 characters looks good, i.e. as in your second
+    example:
+
+
+
+
+                    <cassini:limitations>N/A</cassini:limitations>
+                    <cassini:inst_cmprs_param_malgo>$INST_CMPRS_PARAM_MALGO$</cassini:inst_cmprs_param_malgo>
+                    <cassini:ground_software_version_id>$GROUND_SOFTWARE_VERSION_ID$</cassini:ground_software_version_id>
+
 
 """

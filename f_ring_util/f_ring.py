@@ -319,9 +319,7 @@ FRING_DW = 2.70025
 
 
 def _compute_fring_longitude_shift(et):
-    return - (FRING_MEAN_MOTION *
-              ((et - FRING_ROTATING_ET) / 86400.)) % 360.
-
+    return - FRING_MEAN_MOTION * (((et - FRING_ROTATING_ET) / 86400.) % 360)
 
 def fring_inertial_to_corotating(longitude, et):
     """Convert inertial longitude to corotating."""
