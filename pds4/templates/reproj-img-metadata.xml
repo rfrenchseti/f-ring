@@ -104,7 +104,7 @@
                 <lid_reference>urn:nasa:pds:context:target:ring.saturn.rings</lid_reference>
                 <reference_type>ancillary_to_target</reference_type>
             </Internal_Reference>
-        </Target_Identification>$TARGET_IDENTIFICATION$
+        </Target_Identification>$NOESCAPE(TARGET_IDENTIFICATION)$
         <Mission_Area>
             <cassini:Cassini>
                 <cassini:ISS_Specific_Attributes>
@@ -140,6 +140,10 @@
                     <cassini:instrument_data_rate>$INSTRUMENT_DATA_RATE$</cassini:instrument_data_rate>
                     <cassini:instrument_mode_id>$INSTRUMENT_MODE_ID$</cassini:instrument_mode_id>
                     <cassini:inst_cmprs_type>$INST_CMPRS_TYPE$</cassini:inst_cmprs_type>
+                    <cassini:inst_cmprs_param_malgo>$INST_CMPRS_PARAM[0]$</cassini:inst_cmprs_param_malgo>
+                    <cassini:inst_cmprs_param_tb>$INST_CMPRS_PARAM[1]$</cassini:inst_cmprs_param_tb>
+                    <cassini:inst_cmprs_param_blocks>$INST_CMPRS_PARAM[2]$</cassini:inst_cmprs_param_blocks>
+                    <cassini:inst_cmprs_param_quant>$INST_CMPRS_PARAM[3]$</cassini:inst_cmprs_param_quant>
                     <cassini:inst_cmprs_rate_expected_bits>$INST_CMPRS_RATE[0]$</cassini:inst_cmprs_rate_expected_bits>
                     <cassini:inst_cmprs_rate_actual_bits>$INST_CMPRS_RATE[1]$</cassini:inst_cmprs_rate_actual_bits>
                     <cassini:inst_cmprs_ratio>$INST_CMPRS_RATIO$</cassini:inst_cmprs_ratio>

@@ -1,6 +1,7 @@
 import math
 import os
 
+import matplotlib.pyplot as plt
 import numpy as np
 
 import cspyce
@@ -27,19 +28,33 @@ J2000_TO_SATURN = cspyce.twovec(saturn_z_axis_in_j2000, 3,
                                 saturn_x_axis_in_j2000, 1)
 
 def saturn_to_prometheus(et):
-    (prometheus_j2000, lt) = cspyce.spkez(PROMETHEUS_ID, et, 'J2000', 'LT+S', SATURN_ID)
+    (prometheus_j2000, lt) = cspyce.spkez(PROMETHEUS_ID, et, 'J2000', 'NONE', SATURN_ID)
     prometheus_sat = np.dot(J2000_TO_SATURN, prometheus_j2000[0:3])
     dist = np.sqrt(prometheus_sat[0]**2.+prometheus_sat[1]**2.+prometheus_sat[2]**2.)
     longitude = np.degrees(math.atan2(prometheus_sat[1], prometheus_sat[0]))
     return (dist, longitude)
 
 
+def saturn_to_prometheus_corot(et):
+    dist, longitude = saturn_to_prometheus(et)
+    dist = f_ring.fring_radius_at_longitude(longitude, et) - dist
+    longitude = f_ring.fring_inertial_to_corotating(longitude, et)
+    return dist, longitude
+
+
 def saturn_to_pandora(et):
-    (pandora_j2000, lt) = cspyce.spkez(PANDORA_ID, et, 'J2000', 'LT+S', SATURN_ID)
+    (pandora_j2000, lt) = cspyce.spkez(PANDORA_ID, et, 'J2000', 'NONE', SATURN_ID)
     pandora_sat = np.dot(J2000_TO_SATURN, pandora_j2000[0:3])
     dist = np.sqrt(pandora_sat[0]**2.+pandora_sat[1]**2.+pandora_sat[2]**2.)
     longitude = np.degrees(math.atan2(pandora_sat[1], pandora_sat[0]))
     return (dist, longitude)
+
+
+def saturn_to_pandora_corot(et):
+    dist, longitude = saturn_to_pandora(et)
+    dist = dist - f_ring.fring_radius_at_longitude(longitude, et)
+    longitude = f_ring.fring_inertial_to_corotating(longitude, et)
+    return dist, longitude
 
 
 def _close_approach(min_et, max_et, dist_func):

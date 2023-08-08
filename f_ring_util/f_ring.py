@@ -319,7 +319,7 @@ FRING_DW = 2.70025
 
 
 def _compute_fring_longitude_shift(et):
-    return - FRING_MEAN_MOTION * (((et - FRING_ROTATING_ET) / 86400.) % 360)
+    return - (FRING_MEAN_MOTION * (et - FRING_ROTATING_ET) / 86400.) % 360
 
 def fring_inertial_to_corotating(longitude, et):
     """Convert inertial longitude to corotating."""
@@ -779,7 +779,7 @@ def limit_by_quant(obsdata, cutoff1, cutoff2=None, col='Normal EW Mean'):
         quant2 = group.quantile(cutoff2/100, numeric_only=True)[col]
     xform = group[col].transform(xform_func)
     obsdata['_control'] = xform
-    obsdata.dropna(inplace=True)
+    obsdata.dropna(inplace=True, subset='_control')
     return obsdata
 
 

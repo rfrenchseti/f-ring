@@ -104,7 +104,7 @@
                 <lid_reference>urn:nasa:pds:context:target:ring.saturn.rings</lid_reference>
                 <reference_type>ancillary_to_target</reference_type>
             </Internal_Reference>
-        </Target_Identification>$TARGET_IDENTIFICATION$
+        </Target_Identification>$NOESCAPE(TARGET_IDENTIFICATION)$
         <Mission_Area>
             <cassini:Cassini>
                 <cassini:ISS_Specific_Attributes>

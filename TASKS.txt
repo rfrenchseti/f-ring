@@ -54,3 +54,4 @@
 
 - Add ISS_029RI_AZSCNLOPH001_PRIME
 - FRSTRCHAN observations (full inertial longitudes)
+- Look at ISS_134RI_SPKMVDFHP001_PRIME, which has multiple full co-rot passes

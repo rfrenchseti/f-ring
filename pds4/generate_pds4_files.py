@@ -7,6 +7,7 @@ from datetime import datetime
 import logging
 import os
 import pickle
+import pyparsing
 import re
 import sys
 import traceback
@@ -345,7 +346,6 @@ pdstemplate.PdsTemplate.set_logger(LOGGER)
 
 TARGET_PROMETHEUS = """
         <Target_Identification>
-            <!-- Use when appropriate -->
             <name>Prometheus</name>
             <alternate_designation>Saturn XVI (Prometheus)</alternate_designation>
             <alternate_designation>S/1980 S 27</alternate_designation>
@@ -361,12 +361,10 @@ TARGET_PROMETHEUS = """
                 <lid_reference>urn:nasa:pds:context:target:satellite.saturn.prometheus</lid_reference>
                 <reference_type>ancillary_to_target</reference_type>
             </Internal_Reference>
-        </Target_Identification>
-"""
+        </Target_Identification>"""
 
 TARGET_PANDORA = """
         <Target_Identification>
-            <!-- Use when appropriate -->
             <name>Pandora</name>
             <alternate_designation>Saturn XVII (Pandora)</alternate_designation>
             <alternate_designation>S/1980 S 26</alternate_designation>
@@ -382,8 +380,7 @@ TARGET_PANDORA = """
                 <lid_reference>urn:nasa:pds:context:target:satellite.saturn.pandora</lid_reference>
                 <reference_type>ancillary_to_target</reference_type>
             </Internal_Reference>
-        </Target_Identification>
-"""
+        </Target_Identification>"""
 
 
 ##########################################################################################
@@ -903,7 +900,6 @@ of co-rotating longitude spanning the {diff_corot:.2f} degrees from
 """
         ret['REPROJ_RINGS_DESCRIPTION'] = ret['REPROJ_COMMENT'] + f"""
 
-
 The following parameters in this class use the Albers 2009 model:
 epoch_reprojection_basis_utc is the date and time of zero longitude of the
 rotating frame corotation_rate is the mean corotation rate
@@ -1023,9 +1019,13 @@ reprojected, calibrated Cassini ISS images from {root_obsid}, {start_date} to
         ret['MOSAIC_IMG_FILENAME'] = f'{obsid.lower()}_mosaic{sfx}.img'
 
     try:
+        # min_image_path = '/data/pdsdata/holdings/calibrated/COISS_2xxx/COISS_2076/data/1719817887_1720730045/W1720573566_3_CALIB.LBL'
         min_label = read_label(min_image_path)
     except FileNotFoundError:
         LOGGER.error(f'{obsid}: Failed to open label file {min_image_path}')
+        raise ObsIdFailedException
+    except pyparsing.exceptions.ParseException:
+        LOGGER.error(f'{obsid}: Failed to parse label file {min_image_path}')
         raise ObsIdFailedException
     ret['SPACECRAFT_CLOCK_START_COUNT'] = str(min_label['SPACECRAFT_CLOCK_START_COUNT'])
     if min_image_path == max_image_path:
@@ -1054,7 +1054,8 @@ reprojected, calibrated Cassini ISS images from {root_obsid}, {start_date} to
         ret['EXPECTED_MAXIMUM'] = min_label['EXPECTED_MAXIMUM']
         ret['EXPECTED_PACKETS'] = min_label['EXPECTED_PACKETS']
         ret['EXPOSURE_DURATION'] = min_label['EXPOSURE_DURATION']
-        # ret['FILTER_NAME'] = min_label['FILTER_NAME']
+        assert str(min_label['FILTER_NAME'][0]) == 'CL1'
+        assert str(min_label['FILTER_NAME'][1]) == 'CL2'
         ret['FILTER_TEMPERATURE'] = min_label['FILTER_TEMPERATURE']
         ret['FLIGHT_SOFTWARE_VERSION_ID'] = min_label['FLIGHT_SOFTWARE_VERSION_ID']
         ret['GAIN_MODE_ID'] = str(min_label['GAIN_MODE_ID']).split(' ')[0]
@@ -1066,7 +1067,8 @@ reprojected, calibrated Cassini ISS images from {root_obsid}, {start_date} to
         ret['INSTRUMENT_HOST_NAME'] = min_label['INSTRUMENT_HOST_NAME']
         ret['INSTRUMENT_ID'] = min_label['INSTRUMENT_ID']
         ret['INSTRUMENT_MODE_ID'] = min_label['INSTRUMENT_MODE_ID']
-        ret['INST_CMPRS_PARAM'] = min_label['INST_CMPRS_PARAM']
+        ret['INST_CMPRS_PARAM'] = ['999' if str(x) == 'N/A' else str(x) for x in
+                                   min_label['INST_CMPRS_PARAM']]
         ret['INST_CMPRS_RATE'] = min_label['INST_CMPRS_RATE']
         ret['INST_CMPRS_RATIO'] = min_label['INST_CMPRS_RATIO']
         ret['INST_CMPRS_TYPE'] = min_label['INST_CMPRS_TYPE']
@@ -1850,6 +1852,8 @@ if GENERATE_REPROJ_BROWSE_COLLECTIONS:
 """
 REMAINING ISSUES:
 
+- What unit do we use for I/F? Technically it's unit-less, so do we just delete the <unit> line?
+
 - Update schema to 1K00?
 
 - How do we include SPICE kernel information with the reprojected images?
@@ -1867,22 +1871,6 @@ REMAINING ISSUES:
     because thought that wouldn't vary much. However, if you think they would be useful
     then we should talk about including them.
 
-- You commented that you now have the Cassini ISS User's Guide DOI, but I don't know how
-  to actually include it in the XML.
-
-    <Internal_Reference>s don’t have a <doi> element like <External_Reference>s do, so to
-    include a DOI please use the <comment>: <comment>The Cassini ISS Data User's Guide
-    (PDS3); DOI: 10.17189/1504135</comment>
-
-- When providing the <offset> field for metadata, should the offset include the newline?
-  Your comment says "<!--mjtm: This should match <Header>.<object_length> -->". However,
-  the header object length is currently just the length of the text, right? Not including
-  the newline. So shouldn't the offset include the newline so that if you seek to that
-  byte in the file you actually start at the proper location?
-
-    I thought  <Header>.<offset> included the newline, so that <Table_Character>.<offset>
-    is the same number of bytes. Requesting 2nd opinion from @Mitch Gordon!
-
 - You comment "<!--mjtm: the data_type above is single precision float, so the
   missing_constant needs to have appropriate number of decimal places -->". But I don't
   know what that means. What is the "appropriate number of decimal places" for a
@@ -1892,15 +1880,6 @@ REMAINING ISSUES:
 
     Good question, I thought that maybe you were outputting values like 123.456, 789.012,
     ... etc in which case you would use -999.000. I think that -999.0 should be OK
-
-- Should we include all of the Cassini ISS metadata fields for the reprojected images?
-  (edited)
-
-    I think it makes sense to include whatever metadata fields you think would be useful
-
-
-
-Full Cassini image info for reproj image metadata?
 
 SPICE kernel and navigation info for reproj image?
 
@@ -1924,11 +1903,6 @@ But mean phase angle is?
             opted to remove mean_observed_ring_elevation as not useful, also not present
             in Rings dictionary-->
 And why isn't mean incidence angle?
-
-Add Cassini ISS User's Manual DOI <!--mjtm DOI: 10.17189/1504135 -->
-
-Should this offset include the NEWLINE? <offset unit="byte">26</offset> <!--mjtm: This
-should match <Header>.<object_length> -->
 
 Is IEEE754LSBSingle the correct data type?
 
@@ -1973,10 +1947,41 @@ wrapped at 80 characters? Or something else?
     example:
 
 
+- Should we include all of the Cassini ISS metadata fields for the reprojected images?
+  (edited)
+
+    I think it makes sense to include whatever metadata fields you think would be useful
+
+- You commented that you now have the Cassini ISS User's Guide DOI, but I don't know how
+  to actually include it in the XML.
+
+    <Internal_Reference>s don’t have a <doi> element like <External_Reference>s do, so to
+    include a DOI please use the <comment>: <comment>The Cassini ISS Data User's Guide
+    (PDS3); DOI: 10.17189/1504135</comment>
+
+- When providing the <offset> field for metadata, should the offset include the newline?
+  Your comment says "<!--mjtm: This should match <Header>.<object_length> -->". However,
+  the header object length is currently just the length of the text, right? Not including
+  the newline. So shouldn't the offset include the newline so that if you seek to that
+  byte in the file you actually start at the proper location?
+
+    I thought  <Header>.<offset> included the newline, so that <Table_Character>.<offset>
+    is the same number of bytes. Requesting 2nd opinion from @Mitch Gordon!
+
+
+
+
+Full Cassini image info for reproj image metadata?
+
+
+
 
 
                     <cassini:limitations>N/A</cassini:limitations>
-                    <cassini:inst_cmprs_param_malgo>$INST_CMPRS_PARAM_MALGO$</cassini:inst_cmprs_param_malgo>
+                        This is hard to get from the current labels because the labels
+                        are improperly formatted. See
+                        '/data/pdsdata/holdings/calibrated/COISS_2xxx/COISS_2076/data/1719817887_1720730045/W1720573566_3_CALIB.LBL'
+
                     <cassini:ground_software_version_id>$GROUND_SOFTWARE_VERSION_ID$</cassini:ground_software_version_id>
 
 

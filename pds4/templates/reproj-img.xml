@@ -105,7 +105,7 @@ schematypens="http://purl.oclc.org/dsdl/schematron"?>
                 <lid_reference>urn:nasa:pds:context:target:ring.saturn.rings</lid_reference>
                 <reference_type>data_to_target</reference_type>
             </Internal_Reference>
-        </Target_Identification>$TARGET_IDENTIFICATION$
+        </Target_Identification>$NOESCAPE(TARGET_IDENTIFICATION)$
         <Mission_Area>
             <!-- Not a mosaic so could include all the ISS_Specific_Attributes? -->
             <cassini:Cassini>
@@ -201,24 +201,26 @@ schematypens="http://purl.oclc.org/dsdl/schematron"?>
                         <rings:mean_phase_angle unit="deg">$MEAN_PHASE_ANGLE$</rings:mean_phase_angle>
                         <rings:minimum_phase_angle unit="deg">$MIN_PHASE_ANGLE$</rings:minimum_phase_angle>
                         <rings:maximum_phase_angle unit="deg">$MAX_PHASE_ANGLE$</rings:maximum_phase_angle>
-                        <rings:minimum_incidence_angle>$INCIDENCE_ANGLE$</rings:minimum_incidence_angle>
-                        <rings:maximum_incidence_angle>$INCIDENCE_ANGLE$</rings:maximum_incidence_angle>
                         <rings:minimum_observed_ring_elevation unit="deg">$MIN_OBS_RING_ELEV$</rings:minimum_observed_ring_elevation>
                         <rings:maximum_observed_ring_elevation unit="deg">$MAX_OBS_RING_ELEV$</rings:maximum_observed_ring_elevation>
-                        <rings:minimum_ring_radius unit="km">$MIN_RING_RADIUS$</rings:minimum_ring_radius>
-                        <rings:maximum_ring_radius unit="km">$MAX_RING_RADIUS$</rings:maximum_ring_radius>
                         <rings:minimum_inertial_ring_longitude unit="deg">$MIN_RING_INERTIAL_LONG$</rings:minimum_inertial_ring_longitude> <!-- mjtm: "inertial" comes before "ring_longitude" in rings dictionary defn -->
                         <rings:maximum_inertial_ring_longitude unit="deg">$MAX_RING_INERTIAL_LONG$</rings:maximum_inertial_ring_longitude> <!-- mjtm: "inertial" comes before "ring_longitude" in rings dictionary defn -->
             			<rings:minimum_corotating_ring_longitude unit="deg">$MIN_RING_COROTATING_LONG$</rings:minimum_corotating_ring_longitude> <!-- mjtm: include this? -->
                         <rings:maximum_corotating_ring_longitude unit="deg">$MAX_RING_COROTATING_LONG$</rings:maximum_corotating_ring_longitude> <!-- mjtm: include this? -->
-                        <!-- The following are additional attributes that need to included in the updated rings dictionary -->
-                        <!-- <rings:reprojection_grid_parameters> -->
-                        <!-- Check Cart, may already exist? -->
-                        <!-- <rings:reprojection_grid_radial_resolution_mean>$MEAN_REPROJ_GRID_RAD_RES$</rings:reprojection_grid_radial_resolution_mean>--><!-- MJTM: update -->
-                        <!-- <rings:reprojection_grid_radial_resolution_min>$MIN_REPROJ_GRID_RAD_RES$</rings:reprojection_grid_radial_resolution_min>--><!-- MJTM: update  -->
-                        <!-- <rings:reprojection_grid_radial_resolution_max>$MAX_REPROJ_GRID_RAD_RES$</rings:reprojection_grid_radial_resolution_max>--> <!-- MJTM: update-->
-                        <!-- Likewise for longitudinal grid res values  -->
-                        <!-- </rings:reprojection_grid_parameters> -->
+                        <rings:minimum_ring_radius unit="km">$MIN_RING_RADIUS$</rings:minimum_ring_radius>
+                        <rings:maximum_ring_radius unit="km">$MAX_RING_RADIUS$</rings:maximum_ring_radius>
+                        <!-- The following are additional attributes that need to included in the updated rings dictionary
+                        <rings:reprojection_grid_parameters>
+                            <rings:minimum_incidence_angle>$INCIDENCE_ANGLE$</rings:minimum_incidence_angle>
+                            <rings:maximum_incidence_angle>$INCIDENCE_ANGLE$</rings:maximum_incidence_angle>
+                            Are these from the source images or the final grid resolution? If the latter, why is it variable?
+                            <rings:reprojection_grid_radial_resolution_mean>$MEAN_REPROJ_GRID_RAD_RES$</rings:reprojection_grid_radial_resolution_mean>
+                            <rings:reprojection_grid_radial_resolution_min>$MIN_REPROJ_GRID_RAD_RES$</rings:reprojection_grid_radial_resolution_min>
+                            <rings:reprojection_grid_radial_resolution_max>$MAX_REPROJ_GRID_RAD_RES$</rings:reprojection_grid_radial_resolution_max>
+                            <rings:reprojection_grid_angular_resolution_mean>$MEAN_REPROJ_GRID_ANG_RES$</rings:reprojection_grid_radial_resolution_mean>
+                            <rings:reprojection_grid_angular_resolution_min>$MIN_REPROJ_GRID_ANG_RES$</rings:reprojection_grid_radial_resolution_min>
+                            <rings:reprojection_grid_angular_resolution_max>$MAX_REPROJ_GRID_ANG_RES$</rings:reprojection_grid_radial_resolution_max>
+                        </rings:reprojection_grid_parameters> -->
                     </rings:Reprojection_Geometry>
                 </rings:Ring_Reprojection>
             </rings:Ring_Moon_Systems>
@@ -283,7 +285,7 @@ schematypens="http://purl.oclc.org/dsdl/schematron"?>
             <axis_index_order>Last Index Fastest</axis_index_order>
             <description>Some description  </description>
             <Element_Array>
-                <data_type>IEEE754LSBSingle</data_type> <!-- MJTM update: 32 bit float. e.g. IEEE754MSBSingle, IEEE754LSBSingle -->
+                <data_type>IEEE754LSBSingle</data_type>
                 <unit>unknown</unit>
                 <!-- I/F. If unitless, delete this line. Check https://pds.nasa.gov/datastandards/documents/im/v1/index_1J00.html#class_pds_units_of_energy Units_of_None/ Units_of_Misc -->
             </Element_Array>

@@ -103,7 +103,7 @@ schematypens="http://purl.oclc.org/dsdl/schematron"?>
                 <lid_reference>urn:nasa:pds:context:target:ring.saturn.rings</lid_reference>
                 <reference_type>data_to_target</reference_type>
             </Internal_Reference>
-        </Target_Identification>$TARGET_IDENTIFICATION$
+        </Target_Identification>$NOESCAPE(TARGET_IDENTIFICATION)$
         <Mission_Area>
             <cassini:Cassini>
                 <cassini:ISS_Specific_Attributes>
@@ -225,7 +225,7 @@ schematypens="http://purl.oclc.org/dsdl/schematron"?>
             <axes>2</axes>
             <axis_index_order>Last Index Fastest</axis_index_order>
             <Element_Array>
-                <data_type>IEEE754LSBSingle</data_type> <!-- MJTM update: 32 bit float. e.g. IEEE754MSBSingle, IEEE754LSBSingle -->
+                <data_type>IEEE754LSBSingle</data_type>
                 <unit>unknown</unit> <!-- I/F. If unitless, delete this line. Check https://pds.nasa.gov/datastandards/documents/im/v1/index_1J00.html#class_pds_units_of_energy Units_of_None/ Units_of_Misc -->
             </Element_Array>
             <Axis_Array>

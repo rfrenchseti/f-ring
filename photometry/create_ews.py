@@ -499,10 +499,18 @@ if arguments.output_csv_filename:
                 'Pandora Closest Long',
                 'Pandora Distance',
                 'Pandora Long',
+                'Pandora Earliest Distance',
+                'Pandora Earliest Long',
+                'Pandora Latest Distance',
+                'Pandora Latest Long',
                 'Prometheus Closest Distance',
                 'Prometheus Closest Long',
                 'Prometheus Distance',
-                'Prometheus Long']
+                'Prometheus Long',
+                'Prometheus Earliest Distance',
+                'Prometheus Earliest Long',
+                'Prometheus Latest Distance',
+                'Prometheus Latest Long']
 
     writer.writerow(hdr)
 
@@ -1039,33 +1047,36 @@ for obs_id in f_ring.enumerate_obsids(arguments):
                 (prometheus_closest_dist,
                  prometheus_closest_long) = moons.prometheus_close_approach(slice_min_et)
 
+                (pandora_earliest_dist,
+                 pandora_earliest_long) = moons.saturn_to_pandora_corot(slice_min_et)
+                (pandora_latest_dist,
+                 pandora_latest_long) = moons.saturn_to_pandora_corot(slice_max_et)
+                (prometheus_earliest_dist,
+                 prometheus_earliest_long) = moons.saturn_to_prometheus_corot(slice_min_et)
+                (prometheus_latest_dist,
+                 prometheus_latest_long) = moons.saturn_to_prometheus_corot(slice_max_et)
+
                 # Find the position of the moon in this slice, if it's there at all
                 unique_ets = set(slice_ETs)
                 for unique_et in unique_ets:
-                    pandora_dist, pandora_long = moons.saturn_to_pandora(unique_et)
-                    pandora_long = f_ring.fring_inertial_to_corotating(pandora_long,
-                                                                       unique_et)
+                    pandora_dist, pandora_long = moons.saturn_to_pandora_corot(unique_et)
                     longs_for_et = [slice_orig_longitudes[i]
                                         for i in range(len(slice_longitudes))
                                             if slice_ETs[i] == unique_et]
-                    # Round to the nearest longitude incrementfmovie106
+                    # Round to the nearest longitude increment
                     pandora_long = (int(pandora_long / arguments.longitude_resolution) *
                                     arguments.longitude_resolution)
                     if _is_in_close(pandora_long, longs_for_et):
                         inertial_long = f_ring.fring_corotating_to_inertial(
                             pandora_long, unique_et)
-                        fring_r = f_ring.fring_radius_at_longitude(
-                            inertial_long, unique_et)
                         pandora_long = np.round(pandora_long, 3)
-                        pandora_dist = np.round(pandora_dist - fring_r, 3)
+                        pandora_dist = np.round(pandora_dist, 3)
                         break
                 else:
                     pandora_dist = '--'
                     pandora_long = '--'
                 for unique_et in sorted(unique_ets):
-                    prometheus_dist, prometheus_long = moons.saturn_to_prometheus(unique_et)
-                    prometheus_long = f_ring.fring_inertial_to_corotating(prometheus_long,
-                                                                          unique_et)
+                    prometheus_dist, prometheus_long = moons.saturn_to_prometheus_corot(unique_et)
                     longs_for_et = [slice_orig_longitudes[i]
                                         for i in range(len(slice_longitudes))
                                             if slice_ETs[i] == unique_et]
@@ -1077,10 +1088,8 @@ for obs_id in f_ring.enumerate_obsids(arguments):
                     if _is_in_close(prometheus_long, longs_for_et):
                         inertial_long = f_ring.fring_corotating_to_inertial(
                             prometheus_long, unique_et)
-                        fring_r = f_ring.fring_radius_at_longitude(
-                            inertial_long, unique_et)
                         prometheus_long = np.round(prometheus_long, 3)
-                        prometheus_dist = np.round(fring_r - prometheus_dist, 3)
+                        prometheus_dist = np.round(prometheus_dist, 3)
                         break
                 else:
                     prometheus_dist = '--'
@@ -1089,10 +1098,18 @@ for obs_id in f_ring.enumerate_obsids(arguments):
                         np.round(pandora_closest_long, 3),
                         pandora_dist,
                         pandora_long,
+                        np.round(pandora_earliest_dist, 3),
+                        np.round(pandora_earliest_long, 3),
+                        np.round(pandora_latest_dist, 3),
+                        np.round(pandora_latest_long, 3),
                         np.round(prometheus_closest_dist, 3),
                         np.round(prometheus_closest_long, 3),
                         prometheus_dist,
-                        prometheus_long]
+                        prometheus_long,
+                        np.round(prometheus_earliest_dist, 3),
+                        np.round(prometheus_earliest_long, 3),
+                        np.round(prometheus_latest_dist, 3),
+                        np.round(prometheus_latest_long, 3)]
 
             writer.writerow(row)
 
