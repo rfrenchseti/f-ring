@@ -44,6 +44,9 @@ parser.add_argument(
     '--ew-single-radius', action='store_true', default=False,
     help='Single left click displays EW profile of current radius, otherwise '
          'double click to specify a range')
+parser.add_argument(
+    '--compute-slope', action='store_true', default=False,
+    help='Single left click print radius and longitude, second click includes slope')
 
 if PROFILE_AVAILABLE:
     parser.add_argument(
@@ -375,11 +378,29 @@ def setup_mosaic_window(mosaicdata, mosaicdispdata):
 ew_limit_phase = 0
 ew_range_lower = 0
 ew_range_upper = 0
+ew_last_radius = 0
+ew_last_longitude = 0
 
 def callback_b1press_mosaic(x, y, mosaicdata):
     global ew_limit_phase, ew_range_lower, ew_range_upper
+    global ew_last_radius, ew_last_longitude
     if x < 0:
         return
+    if arguments.compute_slope:
+        longitude = x * arguments.longitude_resolution
+        radius = (y * arguments.radius_resolution +
+                  arguments.ring_radius + arguments.radius_inner_delta)
+        print(f'{longitude:7.3f} {radius:10.3f}')
+        if ew_limit_phase == 0:
+            ew_last_longitude = longitude
+            ew_last_radius = radius
+            ew_limit_phase = 1
+        else:
+            slope = abs((longitude-ew_last_longitude) / (radius-ew_last_radius))
+            print(f'{slope:.8f}')
+            ew_limit_phase = 0
+        return
+
     if not arguments.ew_single_radius and ew_limit_phase == 0:
         ew_limit_phase = 1
         ew_range_lower = int(y)

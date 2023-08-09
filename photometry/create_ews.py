@@ -497,6 +497,8 @@ if arguments.output_csv_filename:
     if arguments.compute_moon_info:
         hdr += ['Pandora Closest Distance',
                 'Pandora Closest Long',
+                'Pandora Closest Inertial Long',
+                'Pandora Closest True Anomaly',
                 'Pandora Distance',
                 'Pandora Long',
                 'Pandora Earliest Distance',
@@ -505,6 +507,8 @@ if arguments.output_csv_filename:
                 'Pandora Latest Long',
                 'Prometheus Closest Distance',
                 'Prometheus Closest Long',
+                'Prometheus Closest Inertial Long',
+                'Prometheus Closest True Anomaly',
                 'Prometheus Distance',
                 'Prometheus Long',
                 'Prometheus Earliest Distance',
@@ -1043,9 +1047,13 @@ for obs_id in f_ring.enumerate_obsids(arguments):
 
                 # Closest the moon gets to the ring during the upcoming orbit
                 (pandora_closest_dist,
-                 pandora_closest_long) = moons.pandora_close_approach(slice_min_et)
+                 pandora_closest_long_inertial,
+                 pandora_closest_long,
+                 pandora_closest_true_anomaly) = moons.pandora_close_approach(slice_min_et)
                 (prometheus_closest_dist,
-                 prometheus_closest_long) = moons.prometheus_close_approach(slice_min_et)
+                 prometheus_closest_long_inertial,
+                 prometheus_closest_long,
+                 prometheus_closest_true_anomaly) = moons.prometheus_close_approach(slice_min_et)
 
                 (pandora_earliest_dist,
                  pandora_earliest_long) = moons.saturn_to_pandora_corot(slice_min_et)
@@ -1096,6 +1104,8 @@ for obs_id in f_ring.enumerate_obsids(arguments):
                     prometheus_long = '--'
                 row += [np.round(pandora_closest_dist, 3),
                         np.round(pandora_closest_long, 3),
+                        np.round(pandora_closest_long_inertial, 3),
+                        np.round(pandora_closest_true_anomaly, 3),
                         pandora_dist,
                         pandora_long,
                         np.round(pandora_earliest_dist, 3),
@@ -1104,6 +1114,8 @@ for obs_id in f_ring.enumerate_obsids(arguments):
                         np.round(pandora_latest_long, 3),
                         np.round(prometheus_closest_dist, 3),
                         np.round(prometheus_closest_long, 3),
+                        np.round(prometheus_closest_long_inertial, 3),
+                        np.round(prometheus_closest_true_anomaly, 3),
                         prometheus_dist,
                         prometheus_long,
                         np.round(prometheus_earliest_dist, 3),
