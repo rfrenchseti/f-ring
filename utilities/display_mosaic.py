@@ -390,14 +390,14 @@ def callback_b1press_mosaic(x, y, mosaicdata):
         longitude = x * arguments.longitude_resolution
         radius = (y * arguments.radius_resolution +
                   arguments.ring_radius + arguments.radius_inner_delta)
-        print(f'{longitude:7.3f} {radius:10.3f}')
         if ew_limit_phase == 0:
             ew_last_longitude = longitude
             ew_last_radius = radius
             ew_limit_phase = 1
         else:
             slope = abs((longitude-ew_last_longitude) / (radius-ew_last_radius))
-            print(f'{slope:.8f}')
+            print(f'{ew_last_longitude:7.3f}, {ew_last_radius:10.3f}, '
+                  f'{longitude:7.3f}, {radius:10.3f}, {slope:.8f}')
             ew_limit_phase = 0
         return
 

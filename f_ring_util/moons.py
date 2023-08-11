@@ -69,8 +69,9 @@ def _close_approach(min_et, max_et, dist_func):
             min_dist = abs(fring_r - saturn_dist)
             min_dist_long = longitude
             min_dist_et = et
-    min_dist_long = f_ring.fring_inertial_to_corotating(min_dist_long, min_dist_et)
-    return min_dist, min_dist_long
+    min_dist_long_corot = f_ring.fring_inertial_to_corotating(min_dist_long, min_dist_et)
+    min_dist_true_anomaly = f_ring.fring_true_anomaly(min_dist_long, min_dist_et)
+    return min_dist, min_dist_long, min_dist_long_corot, min_dist_true_anomaly
 
 
 def pandora_close_approach(min_et, max_et=None):
