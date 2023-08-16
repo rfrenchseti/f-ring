@@ -18,7 +18,9 @@ schematypens="http://purl.oclc.org/dsdl/schematron"?>
             <author_list>Robert S. French, Matthew M. Hedman</author_list>
             <editor_list>Mia J.T. Mace, Mitchell K. Gordon, Matthew S. Tiscareno</editor_list>
             <publication_year>$PUBLICATION_YEAR$</publication_year>
+            $FOR(KEYWORD=KEYWORDS)
             <keyword>$KEYWORD$</keyword>
+            $END_FOR
             <description>
                 $WRAP(16,95,REPROJ_BROWSE_DESCRIPTION,preserve_single_newlines=False)$
             </description>
@@ -34,14 +36,14 @@ schematypens="http://purl.oclc.org/dsdl/schematron"?>
     <Reference_List>
         <Internal_Reference>
             <lid_reference>$USERGUIDE_LID$</lid_reference>
-            <reference_type>data_to_document</reference_type>
+            <reference_type>browse_to_document</reference_type>
             <comment>
                 $WRAP(16,95,USERGUIDE_COMMENT,preserve_single_newlines=False)$
             </comment>
         </Internal_Reference>
         <Internal_Reference>
             <lid_reference>urn:nasa:pds:cassini_iss_saturn:document:iss-data-user-guide</lid_reference>
-            <reference_type>data_to_document</reference_type>
+            <reference_type>browse_to_document</reference_type>
             <comment>The Cassini ISS Data User's Guide (PDS3); DOI: 10.17189/1504135</comment>
         </Internal_Reference>
         <Internal_Reference>

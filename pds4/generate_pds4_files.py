@@ -359,7 +359,7 @@ TARGET_PROMETHEUS = """
             </description>
             <Internal_Reference>
                 <lid_reference>urn:nasa:pds:context:target:satellite.saturn.prometheus</lid_reference>
-                <reference_type>ancillary_to_target</reference_type>
+                <reference_type>data_to_target</reference_type>
             </Internal_Reference>
         </Target_Identification>"""
 
@@ -378,7 +378,7 @@ TARGET_PANDORA = """
             </description>
             <Internal_Reference>
                 <lid_reference>urn:nasa:pds:context:target:satellite.saturn.pandora</lid_reference>
-                <reference_type>ancillary_to_target</reference_type>
+                <reference_type>data_to_target</reference_type>
             </Internal_Reference>
         </Target_Identification>"""
 
@@ -895,8 +895,8 @@ We use the F ring orbit from Albers et al. (2009), fit #2. The co-rotating
 longitude is calculated using the epoch 2007-01-01T00:00:00Z, meaning this was
 the instant when co-rotating and inertial longitudes were the same. This
 reprojected image contains valid data for a total of {deg_good_long:.2f} degrees
-of co-rotating longitude spanning the {diff_corot:.2f} degrees from
-{min_corot_long:.2f} to {max_corot_long:.2f}.
+of co-rotating longitude spanning the (possibly discontinuous) {diff_corot:.2f}
+degrees from {min_corot_long:.2f} to {max_corot_long:.2f}.
 """
         ret['REPROJ_RINGS_DESCRIPTION'] = ret['REPROJ_COMMENT'] + f"""
 
@@ -958,6 +958,7 @@ representing the other available observation chunks.
         if img_type == 'b':
             bkg_comment = """
 
+
 Background subtraction was performed by creating, for each longitude, a linear
 model based on the available data from 750 to 1000 km on either side of the F
 ring core. Obviously bad pixels (such as stars or moons) were ignored. If
@@ -988,8 +989,8 @@ We use the F ring orbit from Albers et al. (2009), fit #2. The co-rotating
 longitude is calculated using the epoch 2007-01-01T00:00:00Z, meaning this was
 the instant when co-rotating and inertial longitudes were the same. This mosaic
 image contains valid data for a total of {deg_good_long:.2f} degrees of
-co-rotating longitude spanning the {diff_corot:.2f} degrees from
-{min_corot_long:.2f} to {max_corot_long:.2f}.{bkg_comment}
+co-rotating longitude spanning the (possibly discontinuous) {diff_corot:.2f}
+degrees from {min_corot_long:.2f} to {max_corot_long:.2f}.{bkg_comment}
 """
         ret['MOSAIC_RINGS_DESCRIPTION'] = ret['MOSAIC_COMMENT'] + f"""
 
@@ -1359,7 +1360,7 @@ def generate_image(obsid, output_dir, metadata, xml_metadata, img_type):
     if img_type == 'r':
         image_output_path = os.path.join(output_dir, xml_metadata['REPROJ_IMG_FILENAME'])
         label_output_path = os.path.join(output_dir,
-                                         f'{image_name}_reproj_img.xml')
+                                         f'{image_name.lower()}_reproj_img.xml')
     else:
         image_output_path = os.path.join(output_dir, xml_metadata['MOSAIC_IMG_FILENAME'])
         label_output_path = os.path.join(output_dir,
@@ -1748,7 +1749,7 @@ NOW = datetime.utcnow().strftime('%Y-%m-%dT%H:%M:%SZ')
 SENTINEL = -999
 
 BASIC_XML_METADATA = {
-    'KEYWORD': 'saturn rings, f ring',
+    'KEYWORDS': ['saturn rings', 'f ring', 'cassini iss'],
     'PUBLICATION_YEAR': '2023',
     'MIN_RING_RADIUS': f'{arguments.ring_radius+arguments.radius_inner_delta:.0f}',
     'MAX_RING_RADIUS': f'{arguments.ring_radius+arguments.radius_outer_delta:.0f}',
