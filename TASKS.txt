@@ -1,4 +1,150 @@
-- Voyager: Correlate brightness with resolution - are low res observations bad?
+- Mosaic production
+  - Add ISS_029RI_AZSCNLOPH001_PRIME
+  - FRSTRCHAN observations (full inertial longitudes)
+  - Look at ISS_134RI_SPKMVDFHP001_PRIME, which has multiple full co-rot passes
+  - Categorize all mosaics on quality and decide which will be archived
+  - Fix navigation in easy mosaics
+  - Fix navigation in hard mosaics
+  - Re-run reprojection for all mosaics to provide longitude resolution
+  - PDS4 generation
+    - Finish collection XML files
+
+- Check our reprojection code
+  - Look for sensitivity to zoom size (long/rad) and resolution (long/rad).
+  - Compare to EW when not reprojecting at all.
+
+- Check Cassini calibration
+  - Identify all observations that are common between 2012 paper and current
+    mosaics.
+  - Compare EWs and look for patterns.
+  - Pick additional 3.6/4.0 CALIB files to compare and try to figure out why the
+    calibrations are different and if there's any pattern.
+  - Adjust old mosaics with conversion factors to see if they equal the current
+    mosaics.
+  - Look for other reasons the EWs may be different
+
+- Compute Cassini phase curve
+  - Once we understand phase curves, do we need to use the formalism from
+    Appendix A to get good results?
+    - If we need to use Appendix A, then implement Appendix A
+      - Is the tau_equiv similar to what was found in the paper?
+  - Repeat the above by looking only at the 15% percentile and 85% percentile
+    values of the EW profile, as per the 2014 paper Section 2.3
+    - Is there a difference in the phase curve, or its behavior over time,
+      between the calm parts of the ring and the clumpy parts of the ring?
+
+  - Look at phase curves using restricted radial ranges
+    - Core only
+    - Skirt only
+    - Dust only
+
+- Calculate phase-normalized EWs
+  - Plot the ring brightness over time
+    - To compute the brightness, divide each data point by the mean phase curve
+      to get the divergence from the mean phase curve
+    - Is there a pattern? Does the pattern correlate with Prometheus distance?
+      (right side of Fig. 12)
+
+- Voyager
+  - Check Voyager calibration
+    - Last time we used the A ring - do it again more carefully?
+  - Correlate brightness with resolution - are low res observations bad?
+  - How do these results compare against Voyager 1 and 2?
+
+- Compare the the _1 and _2 versions
+  - Find the overlapping co-rotating longitudes and restrict both mosaics to
+    that subset
+  - Recompute the EW+/-STD for each and compare
+  - Visually compare the two versions and categorize differences
+  - Look for clumps that cross the core and correlate with large clumps or dust jets
+
+- Equinox
+  - Look for shadows around the equinox that indicate tall clumps or
+    differences in inclination
+    - Correlate with large clumps or dust jets
+
+- Color slope using reprojection
+  - Identify sequences of images that were taken with different filters and
+    make colored mosaics.
+  - Compare the EWs of different filters to find color slopes.
+
+- Width
+  - Co-add groups of mosaics to look for changes in the width over time.
+  - Find a way to quantify these changes.
+  - Find a way to quantify the average width of individual mosaics.
+  - Figure out why the width is changing.
+
+- Clumps
+  - Measure of "clumpiness"
+    - Self-correlation of 1-, 2-, 4-, 8- degree sections of the ring with itself
+    - Correlation of ring sections with same section at different times - over
+      what time scale does the ring change?
+  - Collect a database of major and minor EC events.
+  - Plot the events on the observation timeline and compute statistical
+    rate of occurrence.
+  - Look for triggering moonlets in the mosaics leading up to those events.
+  - Look at the true anomalies of the mosaics to see if they account for
+    changes in clump shape, and see whether it's possible to get an orbit for
+    any part of the clump (especially the triggering moonlet).
+  - Look at the ansa-pair mosaics for events that cross the core, and see if
+    it's possible to get an orbit.
+  - Run simulations to see if it's possible to reproduce any clump events,
+    especially those with really odd shapes.
+
+- Strands
+  - What causes the formation of strands? Are they collisional debris? Read
+    the Kinematic Spiral paper.
+  - Why would eccentricity gradients change and/or be discontinuous at strand
+    boundaries?
+
+- Eccentricity gradient - using manual slope measurement
+  - Validate measurement of CS slopes determining gradient using a series of
+    simulations that place Prometheus at different points of closest approach
+    and measure the CS at different true anomalies.
+  - Determine which part of the CS is best for measuring slopes - leading edge,
+    trailing edge, something else?
+  - Examine the effect of various non-linear gradients on CS shape and gradient
+    prediction.
+  - Examine the effect of pericenter gradients instead of eccentricity
+    gradients.
+  - Repeat the above using Pandora instead of Prometheus.
+  - Perform simulations that include both Pandora and Prometheus.
+  - Examine mosaics to determine if the different times and maybe different true
+    anomalies of different generations of CS affect the gradient prediction
+    results.
+  - Carefully measure slopes of all CS in all mosaics and create a database.
+  - Convert slopes to gradients and create a database.
+  - Look for trends in the gradients:
+    - Change of inner or outer over time
+    - Correlation of change of inner vs outer
+
+- Eccentricity gradient - using automated slope detection
+  - Calculate whether a sufficiently high resolution (in longitude) mosaic can
+    provide the granularity necessary for automatic slope detection using
+    shift/stretch.
+  - Create a high-resolution of one mosaic using only those images providing
+    CS data.
+  - Using the shift/stretch algorithm to plot the slope of the CSs.
+  - Check to see if the resulting slopes and gradients agree with those computed
+    from manual measurements.
+  - Find the ranges for CS in each mosaic.
+  - Create high-resolution reprojected images and mosaics of each range/mosaic.
+  - Run the shift/stretch algorithm on all high-resolution mosaics and create
+    a database of results.
+
+- Eccentricity gradient - analysis
+  - Look for trends in the gradients:
+    - Change of inner or outer over time
+    - Correlation of change of inner vs outer
+  - Create more simulations to try to derive an origin for the gradients.
+  - Why would the gradients change at the dense core or at strands?
+
+
+
+
+
+ARCHIVE
+
 - For a limited period of time that has good longitude and phase coverage:
   - Fit a phase curve to the parameters:
     - HG parameters
@@ -7,51 +153,3 @@
     - The scale factors are the ring's brightness profile with the phase
       function removed.
     - How do the scale factors depend on relative brightness of that slice?
-- Measure of "clumpiness"
-  - Self-correlation of 1-, 2-, 4-, 8- degree sections of the ring with itself
-  - Correlation of ring sections with same section at different times - over
-    what time scale does the ring change?
-
-- Check our reprojection code
-  - Look for sensitivity to zoom size
-  - Compare to EW when not reprojecting at all
-- Check Cassini calibration
-  - For all observations that are common between 2012 paper and current mosaics
-  - Pick additional 3.6/4.0 CALIB files to compare and try to figure out why the
-    calibrations are different and if there's any pattern.
-  - Look for other reasons the EWs may be different
-- Check Voyager calibration
-  - Last time we used the A ring - do it again more carefully?
-- Compare the the _1 and _2 versions
-  - Find the overlapping co-rotating longitudes and restrict both mosaics to
-    that subset
-  - Recompute the EW+/-STD for each and compare
-  - Visually compare the two versions and categorize differences
-  - Look for clumps that cross the core and correlate with large clumps or dust jets
-- Look for shadows around the equinox that indicate tall clumps or differences in
-  inclination
-  - Correlate with large clumps or dust jets
-- Look at phase curves using restricted radial ranges
-  - Core only
-  - Skirt only
-  - Dust only
-- Once we understand phase curves, do we need to use the formalism from Appendix A to
-  get good results?
-  - If we need to use Appendix A, then implement Appendix A
-    - Is the tau_equiv similar to what was found in the paper?
-- How do these results compare against Voyager 1 and 2?
-- Plot the ring brightness over time
-  - To compute the brightness, divide each data point by the mean phase curve
-    to get the divergence from the mean phase curve
-  - Is there a pattern? Does the pattern correlate with Prometheus distance?
-    (right side of Fig. 12)
-- Repeat the above by looking only at the 15% percentile and 85% percentile
-  values of the EW profile, as per the 2014 paper Section 2.3
-  - Is there a difference in the phase curve, or its behavior over time,
-    between the calm parts of the ring and the clumpy parts of the ring?
-- Clumps!
-- Color slope using reprojection
-
-- Add ISS_029RI_AZSCNLOPH001_PRIME
-- FRSTRCHAN observations (full inertial longitudes)
-- Look at ISS_134RI_SPKMVDFHP001_PRIME, which has multiple full co-rot passes

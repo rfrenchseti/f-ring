@@ -19,7 +19,6 @@
 	http://pds.nasa.gov/pds4/rings/v1 https://pds.nasa.gov/pds4/rings/v1/PDS4_RINGS_1K00_1C00.xsd
 	http://pds.nasa.gov/pds4/disp/v1 https://pds.nasa.gov/pds4/disp/v1/PDS4_DISP_1J00_1510.xsd
 	http://pds.nasa.gov/pds4/mission/cassini/v1 https://pds.nasa.gov/pds4/mission/cassini/v1/PDS4_CASSINI_1J00_1600.xsd">
-
     <Identification_Area>
         <logical_identifier>$MOSAIC_METADATA_LID$</logical_identifier>
         <version_id>1.0</version_id>
@@ -29,8 +28,8 @@
         <information_model_version>1.19.0.0</information_model_version>
         <product_class>Product_Ancillary</product_class>
         <Citation_Information>
-            <author_list>Robert S. French, Matthew M. Hedman</author_list>
-            <editor_list>Mia J.T. Mace, Mitchell K. Gordon, Matthew S. Tiscareno, Emilie R. Simpson</editor_list>
+            <author_list>$AUTHORS$</author_list>
+            <editor_list>$EDITORS$</editor_list>
             <publication_year>$PUBLICATION_YEAR$</publication_year>
             $FOR(KEYWORD=KEYWORDS)
             <keyword>$KEYWORD$</keyword>
@@ -171,9 +170,9 @@
             </comment>
         </Internal_Reference>
         <Internal_Reference>
-            <lid_reference>urn:nasa:pds:cassini_iss_saturn:document:iss-data-user-guide</lid_reference>
+            <lid_reference>$CASSINI_USER_GUIDE_LID$</lid_reference>
             <reference_type>ancillary_to_document</reference_type>
-            <comment>The Cassini ISS Data User's Guide (PDS3); DOI: 10.17189/1504135</comment>
+            <comment>$CASSINI_USER_GUIDE_DESC$</comment>
         </Internal_Reference>
         <Internal_Reference>
             <lid_reference>$MOSAIC_LID$</lid_reference>
@@ -198,7 +197,7 @@
         <Table_Character>
             <local_identifier>image</local_identifier>
             <offset unit="byte">27</offset>
-            <records>$NUM_IMAGES$</records>
+            <records>$FILE_RECORDS(IMAGE_TABLE_PATH)-1$</records>
             <description>Source image indices and associated LIDVIDs</description>
             <record_delimiter>Line-Feed</record_delimiter>
             <Record_Character>
@@ -242,7 +241,7 @@
         </Header>
         <Table_Character>
             <offset unit="byte">141</offset>
-            <records>$NUM_VALID_LONGITUDES$</records>
+            <records>$FILE_RECORDS(METADATA_PARAMS_TABLE_PATH)-1$</records>
             <description>
                 The metadata for each longitude in the mosaic that contains valid data.
             </description>
@@ -272,7 +271,8 @@
                     <field_length unit="byte">4</field_length>
                     <unit>none</unit>
                     <description>
-                        The index of the source image, as listed in $IMAGE_TABLE_FILENAME$, that
+                        The index of the source image, as listed in
+                        $IMAGE_TABLE_FILENAME$, that
                         provided data for this corotating longitude.
                     </description>
                 </Field_Character>

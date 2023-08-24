@@ -1,0 +1,62 @@
+- Detect which stars are visible in reproj images and mosaics (probably only for
+  occultations) and add them as targets in the labels and collections.
+
+- Limit camera and targets in labels and collections to only those present in
+  the respective data products or groups of products.
+
+- Cassini-specific diffs:
+
+    HARD TO GET FROM LABEL BECAUSE TEXT FIELD IS NOT LEGALLY FORMATTED
+    < <cassini:limitations>N/A</cassini:limitations>
+
+    < <cassini:ground_software_version_id>ISS 11.00 05-24-2006</cassini:ground_software_version_id>  <<=== FROM WHERE?
+
+    < <cassini:image_mid_time>2017-146T21:28:05.816</cassini:image_mid_time>  <<=== WRONG IN ORIG BUNDLE
+    > <cassini:image_mid_time>2017-146T21:28:05.804</cassini:image_mid_time>
+
+    DO WE NEED THESE COMMENTS FOR 999 FIELDS?
+    < <!-- Not applicable -->
+    < <!-- Not applicable -->
+    < <!-- Not applicable -->
+    < <!-- Not applicable -->
+
+    MORE SIGNIFICANT DIGITS?
+    < <cassini:exposure_duration unit="ms">25.</cassini:exposure_duration>
+    > <cassini:exposure_duration unit="ms">25.000000</cassini:exposure_duration>
+
+    < <cassini:inst_cmprs_rate_expected_bits>2.67303</cassini:inst_cmprs_rate_expected_bits>
+    > <cassini:inst_cmprs_rate_expected_bits>2.673030</cassini:inst_cmprs_rate_expected_bits>
+
+    < <cassini:optics_temperature_back unit="degC">-999.</cassini:optics_temperature_back>
+    > <cassini:optics_temperature_back unit="degC">-999.000000</cassini:optics_temperature_back>
+
+    IGNORE THESE
+    < <cassini:pds3_product_creation_time>2017-147T17:26:33.000</cassini:pds3_product_creation_time>
+    < <cassini:pds3_product_version_type>FINAL</cassini:pds3_product_version_type>
+    < <cassini:pds3_target_desc>Saturn-Rings</cassini:pds3_target_desc>
+    < <cassini:pds3_target_list>N/A</cassini:pds3_target_list>
+    < <cassini:pds3_target_name>SATURN</cassini:pds3_target_name>
+    < <cassini:pre-pds_version_number>1</cassini:pre-pds_version_number>
+
+    < <cassini:telemetry_format_id>S&ER3</cassini:telemetry_format_id>  <<=== WRONG IN ORIG BUNDLE
+    > <cassini:telemetry_format_id>S&amp;ER3</cassini:telemetry_format_id>
+
+    < <cassini:valid_maximum_full_well>4095</cassini:valid_maximum_full_well>  <<=== FROM WHERE?
+    < <cassini:valid_maximum_DN_sat>4095</cassini:valid_maximum_DN_sat>        <<=== FROM WHERE?
+
+
+- Need to review all rings-dictionary lighting geometry and
+  reprojection-dictionary parameters for correctness.
+
+- Once the rings dictionary is cleaned up, update the description for
+  <rings:description>
+
+- Consider using wrap-around longitude limits.
+
+- Add offset data for reprojected images. How?
+
+- Add offset data for mosaics? How?
+
+- Add SPICE kernels? How?
+
+- Should the reprojected images be called reproj_img or just reproj?

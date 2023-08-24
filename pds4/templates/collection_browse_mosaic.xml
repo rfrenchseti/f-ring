@@ -1,0 +1,71 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<?xml-model href="https://pds.nasa.gov/pds4/pds/v1/PDS4_PDS_1J00.sch"
+    schematypens="http://purl.oclc.org/dsdl/schematron"?>
+
+<Product_Collection
+    xmlns="http://pds.nasa.gov/pds4/pds/v1"
+    xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+    xsi:schemaLocation="http://pds.nasa.gov/pds4/pds/v1 https://pds.nasa.gov/pds4/pds/v1/PDS4_PDS_1J00.xsd">
+    <Identification_Area>
+        <logical_identifier>$BROWSE_MOSAIC_COLLECTION_LID$</logical_identifier>
+        <version_id>1.0</version_id>
+        <title>
+            $WRAP(12,91,BROWSE_MOSAIC_COLLECTION_TITLE,preserve_single_newlines=False)$
+        </title>
+        <information_model_version>1.19.0.0</information_model_version>
+        <product_class>Product_Collection</product_class>
+        <Citation_Information>
+            <author_list>$AUTHORS$</author_list>
+            <editor_list>$EDITORS$</editor_list>
+            <publication_year>$PUBLICATION_YEAR$</publication_year>
+            $FOR(KEYWORD=KEYWORDS)
+            <keyword>$KEYWORD$</keyword>
+            $END_FOR
+            <keyword>browse products</keyword>
+            <description>
+                $WRAP(16,95,BROWSE_MOSAIC_COLLECTION_DESCRIPTION,preserve_single_newlines=False)$
+            </description>
+        </Citation_Information>
+        <Modification_History>
+            <Modification_Detail>
+                <modification_date>$CURRENT_ZULU(date_only=True)$</modification_date>
+                <version_id>1.0</version_id>
+                <description>Initial version.</description>
+            </Modification_Detail>
+        </Modification_History>
+    </Identification_Area>
+    <Collection>
+        <collection_type>Browse</collection_type>
+    </Collection>
+    <File_Area_Inventory>
+        <File>
+            <file_name>$BROWSE_MOSAIC_COLLECTION_CSV_NAME$</file_name>
+            <creation_date_time>$FILE_ZULU(BROWSE_MOSAIC_COLLECTION_CSV_PATH)$</creation_date_time>
+            <md5_checksum>$FILE_MD5(BROWSE_MOSAIC_COLLECTION_CSV_PATH)$</md5_checksum>
+        </File>
+        <Inventory>
+            <offset unit="byte">0</offset>
+            <parsing_standard_id>PDS DSV 1</parsing_standard_id>
+            <records>$FILE_RECORDS(BROWSE_MOSAIC_COLLECTION_CSV_PATH)$</records>
+            <record_delimiter>Line-Feed</record_delimiter>
+            <field_delimiter>Comma</field_delimiter>
+            <Record_Delimited>
+                <fields>2</fields>
+                <groups>0</groups>
+                <Field_Delimited>
+                    <name>Member Status</name>
+                    <field_number>1</field_number>
+                    <data_type>ASCII_String</data_type>
+                    <maximum_field_length unit="byte">1</maximum_field_length>
+                </Field_Delimited>
+                <Field_Delimited>
+                    <name>LIDVID_LID</name>
+                    <field_number>2</field_number>
+                    <data_type>ASCII_LIDVID_LID</data_type>
+                    <maximum_field_length unit="byte">255</maximum_field_length>
+                </Field_Delimited>
+            </Record_Delimited>
+            <reference_type>inventory_has_member_product</reference_type>
+        </Inventory>
+    </File_Area_Inventory>
+</Product_Collection>

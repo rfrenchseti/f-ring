@@ -1,28 +1,28 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <?xml-model href="https://pds.nasa.gov/pds4/pds/v1/PDS4_PDS_1J00.sch"
-schematypens="http://purl.oclc.org/dsdl/schematron"?>
+    schematypens="http://purl.oclc.org/dsdl/schematron"?>
 
 <Product_Browse xmlns="http://pds.nasa.gov/pds4/pds/v1"
     xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="
     http://pds.nasa.gov/pds4/pds/v1 https://pds.nasa.gov/pds4/pds/v1/PDS4_PDS_1J00.xsd">
-
     <Identification_Area>
-        <logical_identifier>$REPROJ_BROWSE_LID$</logical_identifier>
+        <logical_identifier>$BROWSE_REPROJ_LID$</logical_identifier>
         <version_id>1.0</version_id>
         <title>
-            $WRAP(12,91,REPROJ_BROWSE_TITLE,preserve_single_newlines=False)$
+            $WRAP(12,91,BROWSE_REPROJ_TITLE,preserve_single_newlines=False)$
         </title>
         <information_model_version>1.19.0.0</information_model_version>
         <product_class>Product_Browse</product_class>
         <Citation_Information>
-            <author_list>Robert S. French, Matthew M. Hedman</author_list>
-            <editor_list>Mia J.T. Mace, Mitchell K. Gordon, Matthew S. Tiscareno</editor_list>
+            <author_list>$AUTHORS$</author_list>
+            <editor_list>$EDITORS$</editor_list>
             <publication_year>$PUBLICATION_YEAR$</publication_year>
             $FOR(KEYWORD=KEYWORDS)
             <keyword>$KEYWORD$</keyword>
             $END_FOR
+            <keyword>browse products</keyword>
             <description>
-                $WRAP(16,95,REPROJ_BROWSE_DESCRIPTION,preserve_single_newlines=False)$
+                $WRAP(16,95,BROWSE_REPROJ_DESCRIPTION,preserve_single_newlines=False)$
             </description>
         </Citation_Information>
         <Modification_History>
@@ -42,9 +42,9 @@ schematypens="http://purl.oclc.org/dsdl/schematron"?>
             </comment>
         </Internal_Reference>
         <Internal_Reference>
-            <lid_reference>urn:nasa:pds:cassini_iss_saturn:document:iss-data-user-guide</lid_reference>
+            <lid_reference>$CASSINI_USER_GUIDE_LID$</lid_reference>
             <reference_type>browse_to_document</reference_type>
-            <comment>The Cassini ISS Data User's Guide (PDS3); DOI: 10.17189/1504135</comment>
+            <comment>$CASSINI_USER_GUIDE_DESC$</comment>
         </Internal_Reference>
         <Internal_Reference>
             <lid_reference>$REPROJ_LID$</lid_reference>

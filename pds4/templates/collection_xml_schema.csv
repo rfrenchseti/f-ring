@@ -1,0 +1,4 @@
+S,urn:nasa:pds:system_bundle:xml_schema:pds-xml_schema::1.25
+S,urn:nasa:pds:system_bundle:xml_schema:disp-xml_schema::1.25
+S,urn:nasa:pds:system_bundle:xml_schema:rings-xml_schema::1.26
+S,urn:nasa:pds:system_bundle:xml_schema:cassini-xml_schema::1.14 #will need to update once https://pds.nasa.gov/datastandards/dictionaries/index-missions.shtml#cassini is updated

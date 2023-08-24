@@ -6,7 +6,7 @@
 <?xml-model href="https://pds.nasa.gov/pds4/disp/v1/PDS4_DISP_1J00_1510.sch"
     schematypens="http://purl.oclc.org/dsdl/schematron"?>
 <?xml-model href="https://pds.nasa.gov/pds4/mission/cassini/v1/PDS4_CASSINI_1J00_1600.sch"
-schematypens="http://purl.oclc.org/dsdl/schematron"?>
+    schematypens="http://purl.oclc.org/dsdl/schematron"?>
 
 <Product_Observational
     xmlns="http://pds.nasa.gov/pds4/pds/v1"
@@ -19,25 +19,23 @@ schematypens="http://purl.oclc.org/dsdl/schematron"?>
 	http://pds.nasa.gov/pds4/rings/v1 https://pds.nasa.gov/pds4/rings/v1/PDS4_RINGS_1K00_1C00.xsd
 	http://pds.nasa.gov/pds4/disp/v1 https://pds.nasa.gov/pds4/disp/v1/PDS4_DISP_1J00_1510.xsd
 	http://pds.nasa.gov/pds4/mission/cassini/v1 https://pds.nasa.gov/pds4/mission/cassini/v1/PDS4_CASSINI_1J00_1600.xsd">
-
-
     <Identification_Area>
-        <logical_identifier>$REPROJ_LID$</logical_identifier>
+        <logical_identifier>$MOSAIC_LID$</logical_identifier>
         <version_id>1.0</version_id>
         <title>
-            $WRAP(12,91,REPROJ_TITLE,preserve_single_newlines=False)$
+            $WRAP(12,91,MOSAIC_TITLE,preserve_single_newlines=False)$
         </title>
         <information_model_version>1.19.0.0</information_model_version>
         <product_class>Product_Observational</product_class>
         <Citation_Information>
-            <author_list>Robert S. French, Matthew M. Hedman</author_list>
-            <editor_list>Mia J.T. Mace, Mitchell K. Gordon, Matthew S. Tiscareno, Emilie R. Simpson</editor_list>
+            <author_list>$AUTHORS$</author_list>
+            <editor_list>$EDITORS$</editor_list>
             <publication_year>$PUBLICATION_YEAR$</publication_year>
             $FOR(KEYWORD=KEYWORDS)
             <keyword>$KEYWORD$</keyword>
             $END_FOR
             <description>
-                $WRAP(16,95,REPROJ_DESCRIPTION,preserve_single_newlines=False)$
+                $WRAP(16,95,MOSAIC_DESCRIPTION,preserve_single_newlines=False)$
             </description>
         </Citation_Information>
         <Modification_History>
@@ -50,7 +48,7 @@ schematypens="http://purl.oclc.org/dsdl/schematron"?>
     </Identification_Area>
     <Observation_Area>
         <comment>
-            $WRAP(12,91,REPROJ_COMMENT,preserve_single_newlines=False)$
+            $WRAP(12,91,MOSAIC_COMMENT,preserve_single_newlines=False)$
         </comment>
         <Time_Coordinates>
             <start_date_time>$START_DATE_TIME$</start_date_time>
@@ -115,65 +113,16 @@ schematypens="http://purl.oclc.org/dsdl/schematron"?>
                     <cassini:spacecraft_clock_count_partition>1</cassini:spacecraft_clock_count_partition>
                     <cassini:spacecraft_clock_start_count>$SPACECRAFT_CLOCK_START_COUNT$</cassini:spacecraft_clock_start_count>
                     <cassini:spacecraft_clock_stop_count>$SPACECRAFT_CLOCK_STOP_COUNT$</cassini:spacecraft_clock_stop_count>
-                    <cassini:antiblooming_state_flag>$ANTIBLOOMING_STATE_FLAG$</cassini:antiblooming_state_flag>
-                    <cassini:bias_strip_mean>$BIAS_STRIP_MEAN$</cassini:bias_strip_mean>
-                    <cassini:calibration_lamp_state_flag>$CALIBRATION_LAMP_STATE_FLAG$</cassini:calibration_lamp_state_flag>
-                    <cassini:command_file_name>$COMMAND_FILE_NAME$</cassini:command_file_name>
-                    <cassini:command_sequence_number>$COMMAND_SEQUENCE_NUMBER$</cassini:command_sequence_number>
-                    <cassini:dark_strip_mean>$DARK_STRIP_MEAN$</cassini:dark_strip_mean>
-                    <cassini:data_conversion_type>$DATA_CONVERSION_TYPE$</cassini:data_conversion_type>
-                    <cassini:delayed_readout_flag>$DELAYED_READOUT_FLAG$</cassini:delayed_readout_flag>
-                    <cassini:detector_temperature unit="degC">$DETECTOR_TEMPERATURE$</cassini:detector_temperature>
-                    <cassini:electronics_bias>$ELECTRONICS_BIAS$</cassini:electronics_bias>
-                    <cassini:earth_received_start_time>$EARTH_RECEIVED_START_TIME$</cassini:earth_received_start_time>
-                    <cassini:earth_received_stop_time>$EARTH_RECEIVED_STOP_TIME$</cassini:earth_received_stop_time>
-                    <cassini:expected_maximum_full_well>$EXPECTED_MAXIMUM[0]$</cassini:expected_maximum_full_well>
-                    <cassini:expected_maximum_DN_sat>$EXPECTED_MAXIMUM[1]$</cassini:expected_maximum_DN_sat>
-                    <cassini:expected_packets>$EXPECTED_PACKETS$</cassini:expected_packets>
-                    <cassini:exposure_duration unit="ms">$EXPOSURE_DURATION$</cassini:exposure_duration>
                     <cassini:filter_name_1>$FILTER1$</cassini:filter_name_1>
                     <cassini:filter_name_2>$FILTER2$</cassini:filter_name_2>
-                    <cassini:filter_temperature unit="degC">$FILTER_TEMPERATURE$</cassini:filter_temperature>
-                    <cassini:flight_software_version_id>$FLIGHT_SOFTWARE_VERSION_ID$</cassini:flight_software_version_id>
-                    <cassini:gain_mode_id unit="electron/DN">$GAIN_MODE_ID$</cassini:gain_mode_id>
-                    <cassini:image_mid_time>$IMAGE_MID_TIME$</cassini:image_mid_time>
-                    <cassini:image_number>$IMAGE_NUMBER$</cassini:image_number>
-                    <cassini:image_time>$IMAGE_TIME$</cassini:image_time>
-                    <cassini:image_observation_type>$IMAGE_OBSERVATION_TYPE$</cassini:image_observation_type>
-                    <cassini:instrument_data_rate>$INSTRUMENT_DATA_RATE$</cassini:instrument_data_rate>
-                    <cassini:instrument_mode_id>$INSTRUMENT_MODE_ID$</cassini:instrument_mode_id>
-                    <cassini:inst_cmprs_type>$INST_CMPRS_TYPE$</cassini:inst_cmprs_type>
-                    <cassini:inst_cmprs_rate_expected_bits>$INST_CMPRS_RATE[0]$</cassini:inst_cmprs_rate_expected_bits>
-                    <cassini:inst_cmprs_rate_actual_bits>$INST_CMPRS_RATE[1]$</cassini:inst_cmprs_rate_actual_bits>
-                    <cassini:inst_cmprs_ratio>$INST_CMPRS_RATIO$</cassini:inst_cmprs_ratio>
-                    <cassini:light_flood_state_flag>$LIGHT_FLOOD_STATE_FLAG$</cassini:light_flood_state_flag>
-                    <cassini:method_description>$METHOD_DESC$</cassini:method_description>
-                    <cassini:missing_lines>$MISSING_LINES$</cassini:missing_lines>
-                    <cassini:missing_packet_flag>$MISSING_PACKET_FLAG$</cassini:missing_packet_flag>
                     <cassini:observation_id>$OBSERVATION_ID$</cassini:observation_id>
-                    <cassini:optics_temperature_front unit="degC">$OPTICS_TEMPERATURE[0]$</cassini:optics_temperature_front>
-                    <cassini:optics_temperature_back unit="degC">$OPTICS_TEMPERATURE[1]$</cassini:optics_temperature_back>
-                    <cassini:order_number>$ORDER_NUMBER$</cassini:order_number>
-                    <cassini:parallel_clock_voltage_index>$PARALLEL_CLOCK_VOLTAGE_INDEX$</cassini:parallel_clock_voltage_index>
-                    <cassini:prepare_cycle_index>$PREPARE_CYCLE_INDEX$</cassini:prepare_cycle_index>
-                    <cassini:readout_cycle_index>$READOUT_CYCLE_INDEX$</cassini:readout_cycle_index>
-                    <cassini:received_packets>$RECEIVED_PACKETS$</cassini:received_packets>
-                    <cassini:sensor_head_electronics_temperature unit="degC">$SENSOR_HEAD_ELEC_TEMPERATURE$</cassini:sensor_head_electronics_temperature>
-                    <cassini:sequence_id>$SEQUENCE_ID$</cassini:sequence_id>
-                    <cassini:sequence_number>$SEQUENCE_NUMBER$</cassini:sequence_number>
-                    <cassini:sequence_title>$SEQUENCE_TITLE$</cassini:sequence_title>
-                    <cassini:shutter_mode_id>$SHUTTER_MODE_ID$</cassini:shutter_mode_id>
-                    <cassini:shutter_state_id>$SHUTTER_STATE_ID$</cassini:shutter_state_id>
-                    <cassini:start_time_doy>$START_TIME_DOY$</cassini:start_time_doy>
-                    <cassini:stop_time_doy>$STOP_TIME_DOY$</cassini:stop_time_doy>
-                    <cassini:telemetry_format_id>$TELEMETRY_FORMAT_ID$</cassini:telemetry_format_id>
                 </cassini:ISS_Specific_Attributes>
             </cassini:Cassini>
         </Mission_Area>
         <Discipline_Area>
             <disp:Display_Settings>
                 <Local_Internal_Reference>
-                    <local_identifier_reference>image</local_identifier_reference>
+                    <local_identifier_reference>mosaic</local_identifier_reference>
                     <local_reference_type>display_settings_to_array</local_reference_type>
                 </Local_Internal_Reference>
                 <disp:Display_Direction>
@@ -186,13 +135,13 @@ schematypens="http://purl.oclc.org/dsdl/schematron"?>
             <rings:Ring_Moon_Systems>
                 <rings:Ring_Reprojection>
                     <Local_Internal_Reference>
-                        <local_identifier_reference>image</local_identifier_reference>
-			            <local_reference_type>reprojection_to_array</local_reference_type>
+                        <local_identifier_reference>mosaic</local_identifier_reference>
+                        <local_reference_type>reprojection_to_array</local_reference_type>
 			        </Local_Internal_Reference>
                     <rings:Reprojection_Geometry>
                         <local_identifier>reproj_geom</local_identifier>
                         <rings:description>
-                            $WRAP(28,107,REPROJ_RINGS_DESCRIPTION,preserve_single_newlines=False)$
+                            $WRAP(28,107,MOSAIC_RINGS_DESCRIPTION,preserve_single_newlines=False)$
 			            </rings:description>
                         <rings:epoch_reprojection_basis_utc unit="s">2007-01-01T00:00:00.000Z</rings:epoch_reprojection_basis_utc>
                         <rings:reprojection_plane>Equator</rings:reprojection_plane>
@@ -211,16 +160,14 @@ schematypens="http://purl.oclc.org/dsdl/schematron"?>
                         <rings:maximum_corotating_ring_longitude unit="deg">$MAX_RING_COROTATING_LONG$</rings:maximum_corotating_ring_longitude>
                         <rings:minimum_ring_radius unit="km">$MIN_RING_RADIUS$</rings:minimum_ring_radius>
                         <rings:maximum_ring_radius unit="km">$MAX_RING_RADIUS$</rings:maximum_ring_radius>
-                        <!-- The following are additional attributes that need to included in the updated rings dictionary
-                        <rings:reprojection_grid_parameters>
-                            Are these from the source images or the final grid resolution? If the latter, why is it variable?
-                            <rings:reprojection_grid_radial_resolution_mean>$MEAN_REPROJ_GRID_RAD_RES$</rings:reprojection_grid_radial_resolution_mean>
-                            <rings:reprojection_grid_radial_resolution_min>$MIN_REPROJ_GRID_RAD_RES$</rings:reprojection_grid_radial_resolution_min>
-                            <rings:reprojection_grid_radial_resolution_max>$MAX_REPROJ_GRID_RAD_RES$</rings:reprojection_grid_radial_resolution_max>
-                            <rings:reprojection_grid_angular_resolution_mean>$MEAN_REPROJ_GRID_ANG_RES$</rings:reprojection_grid_radial_resolution_mean>
-                            <rings:reprojection_grid_angular_resolution_min>$MIN_REPROJ_GRID_ANG_RES$</rings:reprojection_grid_radial_resolution_min>
-                            <rings:reprojection_grid_angular_resolution_max>$MAX_REPROJ_GRID_ANG_RES$</rings:reprojection_grid_radial_resolution_max>
-                        </rings:reprojection_grid_parameters> -->
+                        <!-- The following are additional attributes that need to included in the updated rings dictionary -->
+                        <!-- <rings:reprojection_grid_parameters> -->
+                        <!-- Check Cart, may already exist? -->
+                        <!-- <rings:reprojection_grid_radial_resolution_mean>$MEAN_REPROJ_GRID_RAD_RES$</rings:reprojection_grid_radial_resolution_mean>--><!-- MJTM: update -->
+                        <!-- <rings:reprojection_grid_radial_resolution_min>$MIN_REPROJ_GRID_RAD_RES$</rings:reprojection_grid_radial_resolution_min>--><!-- MJTM: update  -->
+                        <!-- <rings:reprojection_grid_radial_resolution_max>$MAX_REPROJ_GRID_RAD_RES$</rings:reprojection_grid_radial_resolution_max>--> <!-- MJTM: update-->
+                        <!-- Likewise for longitudinal grid res values  -->
+                        <!-- </rings:reprojection_grid_parameters> -->
                     </rings:Reprojection_Geometry>
                 </rings:Ring_Reprojection>
             </rings:Ring_Moon_Systems>
@@ -235,23 +182,17 @@ schematypens="http://purl.oclc.org/dsdl/schematron"?>
             </comment>
         </Internal_Reference>
         <Internal_Reference>
-            <lid_reference>urn:nasa:pds:cassini_iss_saturn:document:iss-data-user-guide</lid_reference>
+            <lid_reference>$CASSINI_USER_GUIDE_LID$</lid_reference>
             <reference_type>data_to_document</reference_type>
-            <comment>The Cassini ISS Data User's Guide (PDS3); DOI: 10.17189/1504135</comment>
+            <comment>$CASSINI_USER_GUIDE_DESC$</comment>
         </Internal_Reference>
         <Internal_Reference>
-            <lid_reference>$REPROJ_METADATA_LID$</lid_reference>
+            <lid_reference>$MOSAIC_METADATA_LID$</lid_reference>
             <reference_type>data_to_ancillary_data</reference_type>
             <comment>
-                The reprojected image metadata consisting of one file with metadata parameters
-                indexed by co-rotating longitude.
-    	    </comment>
-        </Internal_Reference>
-        <Internal_Reference>
-            <lid_reference>$MOSAIC_LID$</lid_reference>
-            <reference_type>data_to_derived_product</reference_type>
-            <comment>
-                $WRAP(16,95,MOSAIC_REFERENCE_COMMENT,preserve_single_newlines=False)$
+                The mosaic metadata consists of two files, one containing a mapping of image index
+                numbers to LIDs, the other containing metadata parameters indexed by co-rotating
+                longitude.
     	    </comment>
         </Internal_Reference>
         <Internal_Reference>
@@ -262,31 +203,28 @@ schematypens="http://purl.oclc.org/dsdl/schematron"?>
     	    </comment>
         </Internal_Reference>
         <Internal_Reference>
-            <lid_reference>$REPROJ_BROWSE_LID$</lid_reference>
+            <lid_reference>$BROWSE_MOSAIC_LID$</lid_reference>
             <reference_type>data_to_browse</reference_type>
             <comment>
-                The browse images of the reprojected image in multiple sizes in PNG format.
+                $WRAP(16,95,BROWSE_MOSAIC_COMMENT,preserve_single_newlines=False)$
             </comment>
         </Internal_Reference>
     </Reference_List>
     <File_Area_Observational>
         <File>
-            <file_name>$REPROJ_IMG_FILENAME$</file_name>
+            <file_name>$MOSAIC_IMG_FILENAME$</file_name>
             <creation_date_time>$CURRENT_ZULU()$</creation_date_time>
             <md5_checksum>$FILE_MD5(IMG_PATH)$</md5_checksum>
         </File>
-
-        <!-- The calibrated, reprojected single image -->
+        <!-- The mosaic -->
         <Array_2D_Image>
-            <local_identifier>image</local_identifier>
+            <local_identifier>mosaic</local_identifier>
             <offset unit="byte">0</offset>
             <axes>2</axes>
             <axis_index_order>Last Index Fastest</axis_index_order>
-            <description>Some description  </description>
             <Element_Array>
                 <data_type>IEEE754LSBSingle</data_type>
-                <unit>unknown</unit>
-                <!-- I/F. If unitless, delete this line. Check https://pds.nasa.gov/datastandards/documents/im/v1/index_1J00.html#class_pds_units_of_energy Units_of_None/ Units_of_Misc -->
+                <unit>I/F</unit>
             </Element_Array>
             <Axis_Array>
                 <axis_name>Line</axis_name> <!-- vertical (radial) -->

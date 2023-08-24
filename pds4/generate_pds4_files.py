@@ -94,7 +94,8 @@ import f_ring_util.f_ring as f_ring
 #     document-01.pdf                               [RF writes]
 #     document-01.xml                               [RMS]
 #   xml_schema/
-#     [writted by RMS]                              [RMS]
+#     collection_xml_schema.csv                     [RMS]
+#     collection_xml_schema.xml                     [RMS]
 #
 # Internal_Reference:
 #   Mosaic: Mosaic Metadata, Mosaic Browse, BSMosaic
@@ -216,6 +217,10 @@ parser.add_argument('--generate-all-labels',
                     action='store_true', default=False,
                     help='Generate all labels')
 
+parser.add_argument('--generate-xml-schema',
+                    action='store_true', default=False,
+                    help='General the xml_schema directory and its contents')
+
 parser.add_argument('--generate-all',
                     action='store_true', default=False,
                     help='Generate all files and labels')
@@ -254,17 +259,17 @@ GENERATE_REPROJ_COLLECTIONS = (arguments.generate_reproj_collections or
                                arguments.generate_all_reproj or
                                arguments.generate_all)
 
-GENERATE_REPROJ_BROWSE_LABELS = (arguments.generate_reproj_browse_labels or
+GENERATE_BROWSE_REPROJ_LABELS = (arguments.generate_reproj_browse_labels or
                                  arguments.generate_reproj_browse or
                                  arguments.generate_all_reproj or
                                  arguments.generate_all_labels or
                                  arguments.generate_all)
-GENERATE_REPROJ_BROWSE_IMAGES = (arguments.generate_reproj_browse_images or
+GENERATE_BROWSE_REPROJ_IMAGES = (arguments.generate_reproj_browse_images or
                                  arguments.generate_reproj_browse or
                                  arguments.generate_all_reproj or
                                  arguments.generate_all_images or
                                  arguments.generate_all)
-GENERATE_REPROJ_BROWSE_COLLECTIONS = (arguments.generate_reproj_browse_collections or
+GENERATE_BROWSE_REPROJ_COLLECTIONS = (arguments.generate_reproj_browse_collections or
                                       arguments.generate_all_reproj or
                                       arguments.generate_all)
 
@@ -292,19 +297,22 @@ GENERATE_MOSAIC_METADATA_TABLES = (arguments.generate_mosaic_metadata_tables or
                                    arguments.generate_all_mosaics or
                                    arguments.generate_all)
 
-GENERATE_MOSAIC_BROWSE_LABELS = (arguments.generate_mosaic_browse_labels or
+GENERATE_BROWSE_MOSAIC_LABELS = (arguments.generate_mosaic_browse_labels or
                                  arguments.generate_mosaic_browse or
                                  arguments.generate_all_mosaics or
                                  arguments.generate_all_labels or
                                  arguments.generate_all)
-GENERATE_MOSAIC_BROWSE_IMAGES = (arguments.generate_mosaic_browse_images or
+GENERATE_BROWSE_MOSAIC_IMAGES = (arguments.generate_mosaic_browse_images or
                                  arguments.generate_mosaic_browse or
                                  arguments.generate_all_mosaics or
                                  arguments.generate_all_images or
                                  arguments.generate_all)
-GENERATE_MOSAIC_BROWSE_COLLECTIONS = (arguments.generate_mosaic_browse_collections or
+GENERATE_BROWSE_MOSAIC_COLLECTIONS = (arguments.generate_mosaic_browse_collections or
                                       arguments.generate_all_mosaics or
                                       arguments.generate_all)
+
+GENERATE_XML_SCHEMA = (arguments.generate_xml_schema or
+                       arguments.generate_all)
 
 
 ##########################################################################################
@@ -434,15 +442,7 @@ def img_to_repro_path(image_path):
 def populate_template(obsid, template_name, output_path, xml_metadata):
     """Copy a template to an output file after making substitutions."""
     template = pdstemplate.PdsTemplate(os.path.join('templates', template_name))
-    xml = template.generate(xml_metadata)#, terminator='\n')
-    remaining = re.findall(r'\$([^$]+)\$', xml)
-    if remaining:
-        for remain in remaining:
-            LOGGER.error(f'{obsid}: Template {template_name} - Missed metadata '
-                         f'field "{remain}"')
-
-    with open(output_path, 'w') as output_fp:
-        output_fp.write(xml)
+    template.write(xml_metadata, output_path, terminator='\n')
 
 
 def fixup_byte_to_str(data):
@@ -567,6 +567,12 @@ def mosaic_has_pandora(metadata):
     return True # XXX
 
 
+def reformat_iss_name(name):
+    """Reformat W1234567890_1 as 1234567890w"""
+    name = name.lower()
+    return f'{name[1:11]}{name[0]}'
+
+
 def remap_image_indexes(metadata):
     """Remap the image indexes to be contiguous starting at 0.
 
@@ -586,7 +592,7 @@ def remap_image_indexes(metadata):
     metadata['image_number'] = np.array(new_image_indexes)
 
     # Only include images that we actually used in the name list
-    new_image_name_list = [image_name_list[number_map[x]]
+    new_image_name_list = [reformat_iss_name(image_name_list[number_map[x]])
                                for x in number_map.keys() if x != SENTINEL]
     metadata['image_name_list'] = new_image_name_list
     new_image_path_list = [image_path_list[number_map[x]]
@@ -601,7 +607,7 @@ def image_name_to_lidvid(name):
     """
     name = name.lower()
     return ( 'urn:nasa:pds:cassini_iss_saturn:data_calibrated:'
-            f'{name[1:11]}{name[0]}_calib::1.0')
+            f'{name}_calib::1.0')
 
 
 def image_name_to_reproj_lid(name):
@@ -612,7 +618,7 @@ def image_name_to_reproj_lid(name):
     """
     name = name.lower()
     return ( 'urn:nasa:pds:cdap2020_hedman_saturn_dusty_rings:data_reproj_img:'
-            f'{name[1:11]}{name[0]}_reproj_img')
+            f'{name}_reproj_img')
 
 
 def image_name_to_reproj_lidvid(name):
@@ -632,7 +638,7 @@ def image_name_to_reproj_metadata_lid(name):
     """
     name = name.lower()
     return ( 'urn:nasa:pds:cdap2020_hedman_saturn_dusty_rings:data_reproj_img:'
-            f'{name[1:11]}{name[0]}_reproj_img_metadata')
+            f'{name}_reproj_img_metadata')
 
 
 def image_name_to_reproj_metadata_lidvid(name):
@@ -652,7 +658,7 @@ def image_name_to_reproj_browse_lid(name):
     """
     name = name.lower()
     return ( 'urn:nasa:pds:cdap2020_hedman_saturn_dusty_rings:browse_reproj_img:'
-            f'{name[1:11]}{name[0]}_browse_reproj_img')
+            f'{name}_browse_reproj_img')
 
 
 def image_name_to_reproj_browse_lidvid(name):
@@ -815,6 +821,11 @@ def xml_metadata_for_image(obsid, metadata, img_type):
 
     ret['START_DATE_TIME'] = start_date = et_to_datetime(min_et)
     ret['STOP_DATE_TIME'] = stop_date = et_to_datetime(max_et)
+
+    global EARLIEST_START_DATE_TIME, LATEST_STOP_DATE_TIME
+    EARLIEST_START_DATE_TIME = min(EARLIEST_START_DATE_TIME, min_et)
+    LATEST_STOP_DATE_TIME = max(LATEST_STOP_DATE_TIME, max_et)
+
     total_secs = max_et - min_et
     total_hours = total_secs / 3600
 
@@ -838,14 +849,14 @@ def xml_metadata_for_image(obsid, metadata, img_type):
     ret['MOSAIC_BKG_SUB_LID'] = obsid_to_mosaic_lid(obsid, True)
     ret['MOSAIC_METADATA_LID'] = obsid_to_mosaic_metadata_lid(obsid,
                                                               img_type == 'b')
-    ret['MOSAIC_BROWSE_LID'] = obsid_to_mosaic_browse_lid(obsid, img_type == 'b')
+    ret['BROWSE_MOSAIC_LID'] = obsid_to_mosaic_browse_lid(obsid, img_type == 'b')
     if img_type == 'b':
         ret['MOSAIC_OTHER_LID'] = ret['MOSAIC_ORIGINAL_LID']
         ret['MOSAIC_OTHER_REFERENCE_COMMENT'] = """
             The mosaic without the background subtracted."""
         ret['MOSAIC_REFERENCE_COMMENT'] = """
             The mosaic with the background subtracted."""
-        ret['MOSAIC_BROWSE_COMMENT'] = """
+        ret['BROWSE_MOSAIC_COMMENT'] = """
             Browse images of the background-subtracted mosaic in multiple sizes
             in PNG format."""
     else:
@@ -854,7 +865,7 @@ def xml_metadata_for_image(obsid, metadata, img_type):
             The mosaic without the background subtracted."""
         ret['MOSAIC_OTHER_REFERENCE_COMMENT'] = """
             The mosaic with the background subtracted."""
-        ret['MOSAIC_BROWSE_COMMENT'] = """
+        ret['BROWSE_MOSAIC_COMMENT'] = """
             Browse images of the mosaic in multiple sizes in PNG format."""
 
     if img_type == 'r':
@@ -870,7 +881,7 @@ Metadata for the reprojected version of Cassini ISS calibrated image
 {image_name} from observation {root_obsid}
 """
         ret['REPROJ_LID'] = image_name_to_reproj_lid(image_name)
-        ret['REPROJ_BROWSE_LID'] = image_name_to_reproj_browse_lid(image_name)
+        ret['BROWSE_REPROJ_LID'] = image_name_to_reproj_browse_lid(image_name)
         ret['REPROJ_METADATA_LID'] = image_name_to_reproj_metadata_lid(image_name)
 
         ret['REPROJ_DESCRIPTION'] = ret['REPROJ_TITLE']
@@ -993,7 +1004,6 @@ co-rotating longitude spanning the (possibly discontinuous) {diff_corot:.2f}
 degrees from {min_corot_long:.2f} to {max_corot_long:.2f}.{bkg_comment}
 """
         ret['MOSAIC_RINGS_DESCRIPTION'] = ret['MOSAIC_COMMENT'] + f"""
-
 
 The following parameters in this class use the Albers 2009 model:
 epoch_reprojection_basis_utc is the date and time of zero longitude of the
@@ -1142,17 +1152,18 @@ reprojected, calibrated Cassini ISS images from {root_obsid}, {start_date} to
         image_name0 = metadata['image_name_list'][0]
     else:
         _, image_name0 = os.path.split(metadata['image_path'])
-    camera = image_name0[0]
-    if camera not in ('N', 'W'):
+        image_name0 = reformat_iss_name(image_name0)
+    camera = image_name0[-1]
+    if camera not in ('n', 'w'):
         LOGGER.fatal(f'Unknown camera for image {image_name0}')
         sys.exit(-1)
     if img_type != 'r':
         for image_name in image_name_list:
-            if image_name[0] != camera:
+            if image_name[-1] != camera:
                 LOGGER.error(f'{obsid}: Inconsistent cameras for images '
                             f'{image_name0} and {image_name}')
                 break
-    if image_name0[0] == 'N':
+    if image_name0[0] == 'n':
         ret['CAMERA_WIDTH'] = 'Narrow'
         ret['CAMERA_WN_UC'] = 'N'
         ret['CAMERA_WN_LC'] = 'n'
@@ -1341,12 +1352,12 @@ def generate_image(obsid, output_dir, metadata, xml_metadata, img_type):
         if img_type == 'r':
             metadata_label_output_path = os.path.join(output_dir,
                                    f'{image_name.lower()}_reproj_img_metadata.xml')
-            populate_template(obsid, 'reproj-img-metadata.xml',
+            populate_template(obsid, 'data_reproj_img_metadata.xml',
                               metadata_label_output_path, xml_metadata)
         else:
             metadata_label_output_path = os.path.join(output_dir,
                                    f'{obsid.lower()}_mosaic{sfx}_metadata.xml')
-            populate_template(obsid, 'mosaic-metadata.xml',
+            populate_template(obsid, 'data_mosaic_metadata.xml',
                               metadata_label_output_path, xml_metadata)
 
 
@@ -1382,9 +1393,9 @@ def generate_image(obsid, output_dir, metadata, xml_metadata, img_type):
         except FileNotFoundError:
             pass
         if img_type == 'r':
-            populate_template(obsid, 'reproj-img.xml', label_output_path, xml_metadata)
+            populate_template(obsid, 'data_reproj_img.xml', label_output_path, xml_metadata)
         else:
-            populate_template(obsid, 'mosaic.xml', label_output_path, xml_metadata)
+            populate_template(obsid, 'data_mosaic.xml', label_output_path, xml_metadata)
 
 
 def generate_browse(obsid, browse_dir, metadata, xml_metadata, img_type):
@@ -1400,7 +1411,7 @@ def generate_browse(obsid, browse_dir, metadata, xml_metadata, img_type):
                             'b' = Background-subtracted mosaic
                             'r' = Reprojected image
 
-    The global flags like GENERATE_MOSAIC_BROWSE_IMAGES are used to determine
+    The global flags like GENERATE_BROWSE_MOSAIC_IMAGES are used to determine
     which output files to create:
 
     img_type == 'm':
@@ -1460,8 +1471,8 @@ def generate_browse(obsid, browse_dir, metadata, xml_metadata, img_type):
             ###      BROWSE_IMAGES      ###
             ###############################
 
-    if ((img_type == 'r' and GENERATE_REPROJ_BROWSE_IMAGES) or
-        (img_type != 'r' and GENERATE_MOSAIC_BROWSE_IMAGES)):
+    if ((img_type == 'r' and GENERATE_BROWSE_REPROJ_IMAGES) or
+        (img_type != 'r' and GENERATE_BROWSE_MOSAIC_IMAGES)):
         img = ma.filled(metadata['img'], 0)
         valid_cols = np.sum(img, axis=0) != 0
         subimg = img[:, valid_cols]
@@ -1517,12 +1528,12 @@ def generate_browse(obsid, browse_dir, metadata, xml_metadata, img_type):
     stop_date = xml_metadata['STOP_DATE_TIME']
 
     if img_type == 'r':
-        xml_metadata['REPROJ_BROWSE_LID'] = image_name_to_reproj_browse_lid(image_name)
-        xml_metadata['REPROJ_BROWSE_TITLE'] = f"""
+        xml_metadata['BROWSE_REPROJ_LID'] = image_name_to_reproj_browse_lid(image_name)
+        xml_metadata['BROWSE_REPROJ_TITLE'] = f"""
 Browse images for the reprojected, calibrated Cassini ISS image {image_name}
 from observation {root_obsid}
 """
-        xml_metadata['REPROJ_BROWSE_DESCRIPTION'] = f"""
+        xml_metadata['BROWSE_REPROJ_DESCRIPTION'] = f"""
 These browse images correspond to the reprojected, calibrated Cassini ISS image
 {image_name} from observation {root_obsid} taken at {start_date}. The
 reprojected image is in units of I/F. The browse images map I/F to 8-bit
@@ -1545,13 +1556,13 @@ Pixels with no data available are shown as black.
         min_image_name = image_name_list[image_indexes[idx_min]]
         max_image_name = image_name_list[image_indexes[idx_max]]
 
-        xml_metadata['MOSAIC_BROWSE_LID'] = obsid_to_mosaic_browse_lid(obsid,
+        xml_metadata['BROWSE_MOSAIC_LID'] = obsid_to_mosaic_browse_lid(obsid,
                                                                        img_type == 'b')
-        xml_metadata['MOSAIC_BROWSE_TITLE'] = f"""
+        xml_metadata['BROWSE_MOSAIC_TITLE'] = f"""
 Browse images for the {cap_bkg.lower()}F Ring mosaic created from Cassini
 observation {root_obsid} ({min_image_name} to {max_image_name})
 """
-        xml_metadata['MOSAIC_BROWSE_DESCRIPTION'] = f"""
+        xml_metadata['BROWSE_MOSAIC_DESCRIPTION'] = f"""
 These browse images correspond to the {cap_bkg.lower()}F Ring mosaic created
 from reprojected, calibrated Cassini ISS images from observation {root_obsid}.
 The images used range from {min_image_name} ({start_date}) to {max_image_name}
@@ -1564,8 +1575,8 @@ longitude range is shown even when no images cover that area. Pixels with no
 data available are shown as black.
 """
 
-    if ((img_type != 'r' and GENERATE_REPROJ_BROWSE_LABELS) or
-        (img_type == 'r' and GENERATE_MOSAIC_BROWSE_LABELS)):
+    if ((img_type != 'r' and GENERATE_BROWSE_REPROJ_LABELS) or
+        (img_type == 'r' and GENERATE_BROWSE_MOSAIC_LABELS)):
         for size, sub0, sub1, crop0, crop1 in (('full',  1,   1, 401, 18000),
                                                ('med',   1,  10, 401,  1800),
                                                ('small', 1,  45, 400,   400),
@@ -1588,9 +1599,9 @@ data available are shown as black.
             output_path = os.path.join(browse_dir,
                                        f'{obsid.lower()}_browse_mosaic{sfx}.xml')
         if img_type == 'r':
-            populate_template(obsid, 'reproj-browse-image.xml', output_path, xml_metadata)
+            populate_template(obsid, 'browse_reproj_img.xml', output_path, xml_metadata)
         else:
-            populate_template(obsid, 'mosaic-browse-image.xml', output_path, xml_metadata)
+            populate_template(obsid, 'browse_mosaic.xml', output_path, xml_metadata)
 
 
 def generate_mosaic(obsid,
@@ -1614,7 +1625,7 @@ def generate_mosaic(obsid,
     if (GENERATE_MOSAIC_METADATA_TABLES or GENERATE_MOSAIC_METADATA_LABELS or
         GENERATE_MOSAIC_IMAGES or GENERATE_MOSAIC_IMAGE_LABELS):
         generate_image(obsid, mosaic_dir, mosaic_metadata, xml_metadata, 'm')
-    if GENERATE_MOSAIC_BROWSE_IMAGES or GENERATE_MOSAIC_BROWSE_LABELS:
+    if GENERATE_BROWSE_MOSAIC_IMAGES or GENERATE_BROWSE_MOSAIC_LABELS:
         generate_browse(obsid, mosaic_browse_dir, mosaic_metadata,
                         xml_metadata, 'm')
 
@@ -1623,7 +1634,7 @@ def generate_mosaic(obsid,
     if (GENERATE_MOSAIC_METADATA_TABLES or GENERATE_MOSAIC_METADATA_LABELS or
         GENERATE_MOSAIC_IMAGES or GENERATE_MOSAIC_IMAGE_LABELS):
         generate_image(obsid, bsm_dir, bsm_metadata, xml_metadata, 'b')
-    if GENERATE_MOSAIC_BROWSE_IMAGES or GENERATE_MOSAIC_BROWSE_LABELS:
+    if GENERATE_BROWSE_MOSAIC_IMAGES or GENERATE_BROWSE_MOSAIC_LABELS:
         generate_browse(obsid, bsm_browse_dir, bsm_metadata, xml_metadata, 'b')
 
 
@@ -1641,7 +1652,7 @@ def generate_reproj(obsid, reproj_dir, reproj_browse_dir, reproj_metadata):
     if (GENERATE_REPROJ_METADATA_TABLES or GENERATE_REPROJ_METADATA_LABELS or
         GENERATE_REPROJ_IMAGES or GENERATE_REPROJ_IMAGE_LABELS):
         generate_image(obsid, reproj_dir, reproj_metadata, xml_metadata, 'r')
-    if GENERATE_REPROJ_BROWSE_IMAGES or GENERATE_REPROJ_BROWSE_LABELS:
+    if GENERATE_BROWSE_REPROJ_IMAGES or GENERATE_BROWSE_REPROJ_LABELS:
         generate_browse(obsid, reproj_browse_dir, reproj_metadata,
                         xml_metadata, 'r')
 
@@ -1681,7 +1692,7 @@ def handle_one_obsid(obsid, reproj_collection_fp, browse_reproj_collection_fp):
 
     if (GENERATE_MOSAIC_IMAGES or GENERATE_MOSAIC_IMAGE_LABELS or
         GENERATE_MOSAIC_METADATA_TABLES or GENERATE_MOSAIC_METADATA_LABELS or
-        GENERATE_MOSAIC_BROWSE_IMAGES or GENERATE_MOSAIC_BROWSE_LABELS):
+        GENERATE_BROWSE_MOSAIC_IMAGES or GENERATE_BROWSE_MOSAIC_LABELS):
         mosaic_browse_dir = os.path.join(arguments.output_dir, 'browse_mosaic',
                                          obsid.lower())
         bsm_browse_dir = os.path.join(arguments.output_dir,
@@ -1717,7 +1728,7 @@ def handle_one_obsid(obsid, reproj_collection_fp, browse_reproj_collection_fp):
 
     if (GENERATE_REPROJ_IMAGES or GENERATE_REPROJ_IMAGE_LABELS or
         GENERATE_REPROJ_METADATA_TABLES or GENERATE_REPROJ_METADATA_LABELS or
-        GENERATE_REPROJ_BROWSE_IMAGES or GENERATE_REPROJ_BROWSE_LABELS):
+        GENERATE_BROWSE_REPROJ_IMAGES or GENERATE_BROWSE_REPROJ_LABELS):
         if mosaic_metadata is None:
             mosaic_metadata = read_mosaic(mosaic_path, mosaic_metadata_path,
                                           bkg_sub=False, read_img=False)
@@ -1731,77 +1742,258 @@ def handle_one_obsid(obsid, reproj_collection_fp, browse_reproj_collection_fp):
             reproj_metadata = read_reproj(reproj_path)
             reproj_metadata['image_path'] = image_path
             reproj_metadata['image_name'] = image_name = \
-                image_path.split('/')[-1].replace('_CALIB.IMG', '')
+                reformat_iss_name(image_path.split('/')[-1].replace('_CALIB.IMG', ''))
 
             if GENERATE_REPROJ_COLLECTIONS:
                 reproj_lidvid = image_name_to_reproj_lidvid(image_name)
                 reproj_metadata_lidvid = image_name_to_reproj_metadata_lidvid(image_name)
                 reproj_collection_fp.write(f'P,{reproj_lidvid}\n')
                 reproj_collection_fp.write(f'P,{reproj_metadata_lidvid}\n')
-            if GENERATE_REPROJ_BROWSE_COLLECTIONS:
+            if GENERATE_BROWSE_REPROJ_COLLECTIONS:
                 browse_reproj_lidvid = image_name_to_reproj_browse_lidvid(image_name)
                 browse_reproj_collection_fp.write(f'P,{browse_reproj_lidvid}\n')
 
             generate_reproj(obsid, reproj_dir, reproj_browse_dir, reproj_metadata)
 
 
+##########################################################################################
+#
+# GENERATE COLLECTION XMLs
+#
+##########################################################################################
+
+def generate_mosaic_collection_xml(coll_data_mosaic_csv_path,
+                                   coll_bsm_data_mosaic_csv_path):
+    """Generate the data_mosaic and data_mosaic_bkg_sub collection xml files."""
+    metadata = BASIC_XML_METADATA.copy()
+
+    metadata['EARLIEST_START_DATE_TIME'] = et_to_datetime(EARLIEST_START_DATE_TIME)
+    metadata['LATEST_STOP_DATE_TIME'] = et_to_datetime(LATEST_STOP_DATE_TIME)
+
+    coll_data_mosaic_xml_path = coll_data_mosaic_csv_path.replace('csv', 'xml')
+    coll_bsm_data_mosaic_xml_path = coll_bsm_data_mosaic_csv_path.replace('csv', 'xml')
+
+    metadata['DATA_MOSAIC_COLLECTION_LID'] = 'urn:nasa:pds:cdap2020_hedman_saturn_dusty_rings:data_mosaic'
+    metadata['DATA_MOSAIC_COLLECTION_CSV_PATH'] = coll_data_mosaic_csv_path
+    metadata['DATA_MOSAIC_COLLECTION_TITLE'] = """
+Collection for the (non background-subtracted) F Ring mosaics
+created from reprojected, calibrated Cassini ISS images
+    """
+    metadata['DATA_MOSAIC_COLLECTION_DESCRIPTION'] = """
+This is the collection of (non background-subtracted) F Ring mosaics
+created from reprojected, calibrated Cassini ISS images, and
+associated metadata.
+    """
+    metadata['DATA_MOSAIC_COLLECTION_CSV_NAME'] = 'collection_data_mosaic.csv'
+    populate_template(None, 'collection_data_mosaic.xml',
+                      coll_data_mosaic_xml_path, metadata)
+    metadata['DATA_MOSAIC_COLLECTION_LID'] = 'urn:nasa:pds:cdap2020_hedman_saturn_dusty_rings:data_mosaic_bkg_sub'
+    metadata['DATA_MOSAIC_COLLECTION_CSV_PATH'] = coll_bsm_data_mosaic_csv_path
+    metadata['DATA_MOSAIC_COLLECTION_TITLE'] = """
+Collection for the background-subtracted F Ring mosaics created from
+reprojected, calibrated Cassini ISS images
+    """
+    metadata['DATA_MOSAIC_COLLECTION_DESCRIPTION'] = """
+This is the collection of background-subtracted F Ring mosaics created from
+reprojected, calibrated Cassini ISS images, and associated metadata.
+    """
+    metadata['DATA_MOSAIC_COLLECTION_CSV_NAME'] = 'collection_data_mosaic_bkg_sub.csv'
+    populate_template(None, 'collection_data_mosaic.xml',
+                      coll_bsm_data_mosaic_xml_path, metadata)
+
+
+def generate_mosaic_browse_collection_xml(coll_browse_mosaic_csv_path,
+                                          coll_bsm_browse_mosaic_csv_path):
+    """Generate the browse_mosaic and browse_mosaic_bkg_sub collection xml files."""
+    metadata = BASIC_XML_METADATA.copy()
+
+    coll_browse_mosaic_xml_path = coll_browse_mosaic_csv_path.replace('csv', 'xml')
+    coll_bsm_browse_mosaic_xml_path = coll_bsm_browse_mosaic_csv_path.replace('csv', 'xml')
+
+    metadata['BROWSE_MOSAIC_COLLECTION_LID'] = 'urn:nasa:pds:cdap2020_hedman_saturn_dusty_rings:browse_mosaic'
+    metadata['BROWSE_MOSAIC_COLLECTION_CSV_PATH'] = coll_browse_mosaic_csv_path
+    metadata['BROWSE_MOSAIC_COLLECTION_TITLE'] = """
+Collection for the browse products for the (non background-subtracted) F Ring
+mosaics created from reprojected, calibrated Cassini ISS images
+    """
+    metadata['BROWSE_MOSAIC_COLLECTION_DESCRIPTION'] = """
+This is the collection of browse products for the (non background-subtracted) F
+Ring mosaics created from reprojected, calibrated Cassini ISS images
+    """
+    metadata['BROWSE_MOSAIC_COLLECTION_CSV_NAME'] = 'collection_browse_mosaic.csv'
+    populate_template(None, 'collection_browse_mosaic.xml',
+                      coll_browse_mosaic_xml_path, metadata)
+    metadata['BROWSE_MOSAIC_COLLECTION_LID'] = 'urn:nasa:pds:cdap2020_hedman_saturn_dusty_rings:browse_mosaic_bkg_sub'
+    metadata['BROWSE_MOSAIC_COLLECTION_CSV_PATH'] = coll_bsm_browse_mosaic_csv_path
+    metadata['BROWSE_MOSAIC_COLLECTION_TITLE'] = """
+Collection for the browse products for the background-subtracted F Ring
+mosaics created from reprojected, calibrated Cassini ISS images
+    """
+    metadata['BROWSE_MOSAIC_COLLECTION_DESCRIPTION'] = """
+This is the collection of browse products for the background-subtracted F
+Ring mosaics created from reprojected, calibrated Cassini ISS images
+    """
+    metadata['BROWSE_MOSAIC_COLLECTION_CSV_NAME'] = 'collection_browse_mosaic_bkg_sub.csv'
+    populate_template(None, 'collection_browse_mosaic.xml',
+                      coll_bsm_browse_mosaic_xml_path, metadata)
+
+
+def generate_reproj_collection_xml(coll_data_reproj_csv_path):
+    """Generate the data_reproj collection xml file."""
+    metadata = BASIC_XML_METADATA.copy()
+
+    metadata['EARLIEST_START_DATE_TIME'] = et_to_datetime(EARLIEST_START_DATE_TIME)
+    metadata['LATEST_STOP_DATE_TIME'] = et_to_datetime(LATEST_STOP_DATE_TIME)
+
+    coll_data_reproj_xml_path = coll_data_reproj_csv_path.replace('csv', 'xml')
+
+    metadata['DATA_REPROJ_COLLECTION_LID'] = 'urn:nasa:pds:cdap2020_hedman_saturn_dusty_rings:data_reproj_img'
+    metadata['DATA_REPROJ_COLLECTION_CSV_PATH'] = coll_data_reproj_csv_path
+    metadata['DATA_REPROJ_COLLECTION_TITLE'] = """
+Collection of reprojected, calibrated Cassini ISS images
+    """
+    metadata['DATA_REPROJ_COLLECTION_DESCRIPTION'] = """
+This is the collection of reprojected, calibrated Cassini ISS images
+    """
+    metadata['DATA_REPROJ_COLLECTION_CSV_NAME'] = 'collection_data_reproj_img.csv'
+    populate_template(None, 'collection_data_reproj_img.xml',
+                      coll_data_reproj_xml_path, metadata)
+
+
+def generate_reproj_browse_collection_xml(coll_browse_reproj_csv_path):
+    """Generate the browse_reproj_img collection xml file."""
+    metadata = BASIC_XML_METADATA.copy()
+
+    coll_browse_reproj_xml_path = coll_browse_reproj_csv_path.replace('csv', 'xml')
+
+    metadata['BROWSE_REPROJ_COLLECTION_LID'] = 'urn:nasa:pds:cdap2020_hedman_saturn_dusty_rings:browse_reproj_img'
+    metadata['BROWSE_REPROJ_COLLECTION_CSV_PATH'] = coll_browse_reproj_csv_path
+    metadata['BROWSE_REPROJ_COLLECTION_TITLE'] = """
+Collection for the browse products for the reprojected, calibrated Cassini ISS
+images
+    """
+    metadata['BROWSE_REPROJ_COLLECTION_DESCRIPTION'] = """
+This is the collection of browse products for the reprojected, calibrated Cassini
+ISS images
+    """
+    metadata['BROWSE_REPROJ_COLLECTION_CSV_NAME'] = 'collection_browse_reproj_img.csv'
+    populate_template(None, 'collection_browse_reproj_img.xml',
+                      coll_browse_reproj_xml_path, metadata)
+
+
+##########################################################################################
+#
+# GENERATE XML_SCHEMA
+#
+##########################################################################################
+
+def generate_xml_schema():
+    """Generate the files in xml_schema."""
+    metadata = BASIC_XML_METADATA.copy()
+    schema_dir = os.path.join(arguments.output_dir, 'xml_schema')
+    csv_path = os.path.join(schema_dir, 'collection_xml_schema.csv')
+    metadata['XML_SCHEMA_CSV_PATH'] = csv_path
+    populate_template(None, 'collection_xml_schema.csv',
+                      csv_path, metadata)
+    populate_template(None, 'collection_xml_schema.xml',
+                      os.path.join(schema_dir, 'collection_xml_schema.xml'),
+                      metadata)
+
+
+##########################################################################################
+#
+# TOP LEVEL
+#
+##########################################################################################
+
+EARLIEST_START_DATE_TIME = 1e38
+LATEST_STOP_DATE_TIME = 0
+
 NOW = datetime.utcnow().strftime('%Y-%m-%dT%H:%M:%SZ')
 SENTINEL = -999
 
 BASIC_XML_METADATA = {
+    'AUTHORS': 'Robert S. French, Matthew M. Hedman',
+    'EDITORS': 'Mia J.T. Mace, Mitchell K. Gordon, Matthew S. Tiscareno, Emilie R. Simpson',
     'KEYWORDS': ['saturn rings', 'f ring', 'cassini iss'],
-    'PUBLICATION_YEAR': '2023',
+    'PUBLICATION_YEAR': datetime.utcnow().strftime('%Y'),
     'MIN_RING_RADIUS': f'{arguments.ring_radius+arguments.radius_inner_delta:.0f}',
     'MAX_RING_RADIUS': f'{arguments.ring_radius+arguments.radius_outer_delta:.0f}',
     'USERGUIDE_LID': 'urn:nasa:pds:cdap2020_hedman_saturn_dusty_rings:document:users-guide', # XXX
-    'USERGUIDE_COMMENT': """Detailed User's Guide for the F Ring Mosaics and
-Reprojected Images in this bundle.""",
+    'USERGUIDE_COMMENT': "Detailed User's Guide for the F Ring Mosaics and Reprojected Images in this bundle.",
+    'CASSINI_USER_GUIDE_LID': 'urn:nasa:pds:cassini_iss_saturn:document:iss-data-user-guide',
+    'CASSINI_USER_GUIDE_DESC': "The Cassini ISS Data User's Guide (PDS3); DOI: 10.17189/1504135",
     'SENTINEL': str(SENTINEL)
 }
 
 
-os.makedirs(os.path.join(arguments.output_dir, 'data_mosaic'), exist_ok=True)
-os.makedirs(os.path.join(arguments.output_dir, 'data_mosaic_bkg_sub'), exist_ok=True)
-os.makedirs(os.path.join(arguments.output_dir, 'data_reproj_img'), exist_ok=True)
-os.makedirs(os.path.join(arguments.output_dir, 'browse_mosaic'), exist_ok=True)
-os.makedirs(os.path.join(arguments.output_dir, 'browse_mosaic_bkg_sub'), exist_ok=True)
-os.makedirs(os.path.join(arguments.output_dir, 'browse_reproj_img'), exist_ok=True)
+if (GENERATE_MOSAIC_IMAGE_LABELS or
+    GENERATE_MOSAIC_IMAGES or
+    GENERATE_MOSAIC_METADATA_LABELS or
+    GENERATE_MOSAIC_METADATA_TABLES or
+    GENERATE_MOSAIC_COLLECTIONS):
+    os.makedirs(os.path.join(arguments.output_dir, 'data_mosaic'), exist_ok=True)
+    os.makedirs(os.path.join(arguments.output_dir, 'data_mosaic_bkg_sub'), exist_ok=True)
+
+if (GENERATE_BROWSE_MOSAIC_LABELS or
+    GENERATE_BROWSE_MOSAIC_IMAGES or
+    GENERATE_BROWSE_MOSAIC_COLLECTIONS):
+    os.makedirs(os.path.join(arguments.output_dir, 'browse_mosaic'), exist_ok=True)
+    os.makedirs(os.path.join(arguments.output_dir, 'browse_mosaic_bkg_sub'),
+                exist_ok=True)
+
+if (GENERATE_REPROJ_METADATA_LABELS or
+    GENERATE_REPROJ_METADATA_TABLES or
+    GENERATE_REPROJ_COLLECTIONS):
+    os.makedirs(os.path.join(arguments.output_dir, 'data_reproj_img'), exist_ok=True)
+
+if (GENERATE_BROWSE_REPROJ_LABELS or
+    GENERATE_BROWSE_REPROJ_IMAGES or
+    GENERATE_BROWSE_REPROJ_COLLECTIONS):
+    os.makedirs(os.path.join(arguments.output_dir, 'browse_reproj_img'), exist_ok=True)
+
+if GENERATE_XML_SCHEMA:
+    os.makedirs(os.path.join(arguments.output_dir, 'xml_schema'), exist_ok=True)
 
 mosaic_collection_fp = None
 bsm_collection_fp = None
 if GENERATE_MOSAIC_COLLECTIONS:
-    mosaic_collection_fp = open(os.path.join(arguments.output_dir,
-                                             'data_mosaic',
-                                             'collection_data_mosaic.csv'),
-                                'w')
-    bsm_collection_fp = open(os.path.join(arguments.output_dir,
-                                          'data_mosaic_bkg_sub',
-                                          'collection_data_mosaic_bkg_sub.csv'),
-                             'w')
+    mosaic_collection_csv_path = os.path.join(arguments.output_dir,
+                                              'data_mosaic',
+                                              'collection_data_mosaic.csv')
+    mosaic_collection_fp = open(mosaic_collection_csv_path, 'w')
+    bsm_collection_csv_path = os.path.join(arguments.output_dir,
+                                           'data_mosaic_bkg_sub',
+                                           'collection_data_mosaic_bkg_sub.csv')
+    bsm_collection_fp = open(bsm_collection_csv_path, 'w')
+
 browse_mosaic_collection_fp = None
 browse_bsm_collection_fp = None
-if GENERATE_MOSAIC_BROWSE_COLLECTIONS:
-    browse_mosaic_collection_fp = open(os.path.join(arguments.output_dir,
-                                                    'browse_mosaic',
-                                                    'collection_browse_mosaic.csv'),
-                                       'w')
-    browse_bsm_collection_fp = open(os.path.join(arguments.output_dir,
-                                                 'browse_mosaic_bkg_sub',
-                                                 'collection_browse_mosaic_bkg_sub.csv'),
-                                    'w')
+if GENERATE_BROWSE_MOSAIC_COLLECTIONS:
+    browse_mosaic_collection_csv_path = os.path.join(arguments.output_dir,
+                                                     'browse_mosaic',
+                                                     'collection_browse_mosaic.csv')
+
+    browse_mosaic_collection_fp = open(browse_mosaic_collection_csv_path, 'w')
+    browse_bsm_collection_csv_path = os.path.join(arguments.output_dir,
+                                                  'browse_mosaic_bkg_sub',
+                                                  'collection_browse_mosaic_bkg_sub.csv')
+
+    browse_bsm_collection_fp = open(browse_bsm_collection_csv_path, 'w')
 
 reproj_collection_fp = None
 if GENERATE_REPROJ_COLLECTIONS:
-    reproj_collection_fp = open(os.path.join(arguments.output_dir,
-                                             'data_reproj_img',
-                                             'collection_data_reproj_img.csv'),
-                                'w')
+    reproj_collection_csv_path = os.path.join(arguments.output_dir,
+                                              'data_reproj_img',
+                                              'collection_data_reproj_img.csv')
+    reproj_collection_fp = open(reproj_collection_csv_path, 'w')
+
 browse_reproj_collection_fp = None
-if GENERATE_REPROJ_BROWSE_COLLECTIONS:
-    browse_reproj_collection_fp = open(os.path.join(arguments.output_dir,
-                                                    'browse_reproj_img',
-                                                    'collection_browse_reproj_img.csv'),
-                                    'w')
+if GENERATE_BROWSE_REPROJ_COLLECTIONS:
+    browse_reproj_collection_csv_path = os.path.join(arguments.output_dir,
+                                                     'browse_reproj_img',
+                                                     'collection_browse_reproj_img.csv')
+    browse_reproj_collection_fp = open(browse_reproj_collection_csv_path, 'w')
 
 
 for obsid in f_ring.enumerate_obsids(arguments):
@@ -1830,7 +2022,7 @@ for obsid in f_ring.enumerate_obsids(arguments):
         bsm_metadata_lidvid = obsid_to_mosaic_metadata_lidvid(obsid, True)
         bsm_collection_fp.write(f'P,{bsm_lidvid}\n')
         bsm_collection_fp.write(f'P,{bsm_metadata_lidvid}\n')
-    if GENERATE_MOSAIC_BROWSE_COLLECTIONS:
+    if GENERATE_BROWSE_MOSAIC_COLLECTIONS:
         browse_mosaic_lidvid = obsid_to_mosaic_browse_lidvid(obsid, False)
         browse_mosaic_collection_fp.write(f'P,{browse_mosaic_lidvid}\n')
         browse_bsm_lidvid = obsid_to_mosaic_browse_lidvid(obsid, True)
@@ -1841,149 +2033,19 @@ for obsid in f_ring.enumerate_obsids(arguments):
 if GENERATE_MOSAIC_COLLECTIONS:
     mosaic_collection_fp.close()
     bsm_collection_fp.close()
-if GENERATE_MOSAIC_BROWSE_COLLECTIONS:
+    generate_mosaic_collection_xml(mosaic_collection_csv_path,
+                                   bsm_collection_csv_path)
+if GENERATE_BROWSE_MOSAIC_COLLECTIONS:
     browse_mosaic_collection_fp.close()
     browse_bsm_collection_fp.close()
+    generate_mosaic_browse_collection_xml(browse_mosaic_collection_csv_path,
+                                          browse_bsm_collection_csv_path)
 if GENERATE_REPROJ_COLLECTIONS:
     reproj_collection_fp.close()
-if GENERATE_REPROJ_BROWSE_COLLECTIONS:
+    generate_reproj_collection_xml(reproj_collection_csv_path)
+if GENERATE_BROWSE_REPROJ_COLLECTIONS:
     browse_reproj_collection_fp.close()
+    generate_reproj_browse_collection_xml(browse_reproj_collection_csv_path)
 
-
-"""
-REMAINING ISSUES:
-
-- What unit do we use for I/F? Technically it's unit-less, so do we just delete the <unit> line?
-
-- Update schema to 1K00?
-
-- How do we include SPICE kernel information with the reprojected images?
-- How do we include pointing navigation information with the reprojected images?
-
-    I'm not sure of the answer to these - there's ongoing discussion with Boris about how
-    to include SPICE information (and I see you've been cc'ed on that)
-
-- Why did you remove the mean incidence angle and mean ring opening angle, but not the
-  mean phase angle? I actually think all of the means are useful, because they aren't just
-  (min+max)/2, they are the mean of the metadata available for all the longitudes.
-
-    I removed the mean incidence angle because it doesn't exist in the Rings dictionary
-    (only min/max incidence angles are defined) and I removed the mean ring opening angle
-    because thought that wouldn't vary much. However, if you think they would be useful
-    then we should talk about including them.
-
-- You comment "<!--mjtm: the data_type above is single precision float, so the
-  missing_constant needs to have appropriate number of decimal places -->". But I don't
-  know what that means. What is the "appropriate number of decimal places" for a
-  single-precision float? Since it's a floating point number, by definition the number of
-  decimal places changes based on the magnitude of the number. Would it be OK just to say
-  -999.0?
-
-    Good question, I thought that maybe you were outputting values like 123.456, 789.012,
-    ... etc in which case you would use -999.000. I think that -999.0 should be OK
-
-SPICE kernel and navigation info for reproj image?
-
-Mosaic metadata_src_imgs is using data_calibrated.
-
-Fix up intertial and co-rotating longitude limits
-
-File creation date should really be the creation date of the file, not NOW
-
-corotating or co-rotating?
-
-How do we wrap and indent?
-            <rings:description> <!-- mjtm: indentation and wrapping-->
-Metadata for F Ring mosaics of reprojected Cassini ISS calibrated images from observation
-ISS_039RF_FMOVIE001_VIMS, 2007-02-27T07:18:39Z to 2007-02-27T22:58:23Z
-            </rings:description>
-
-But mean phase angle is?
-            <rings:minimum_observed_ring_elevation
-            unit="deg">143.665878</rings:minimum_observed_ring_elevation> <!--mjtm: I
-            opted to remove mean_observed_ring_elevation as not useful, also not present
-            in Rings dictionary-->
-And why isn't mean incidence angle?
-
-Is IEEE754LSBSingle the correct data type?
-
-<!--mjtm: the data_type above is single precision float, so the missing_constant needs to
-have appropriate number of decimal places --> What is the number of decimal places for a
-float?
-
-
-
-DONE:
-
-- What LID should I use for the Cassini original images, since I want to reference the
-  calibrated images?
-
-   I'd contacted @Mitch Gordon about this and we need to discuss this with @Matt Tiscareno
-   (he/him). I could also initiate a wider discussion in Slack, but as we're planning to
-   meet this week about something else that may be a good time.
-
-   We decided to go with collections (rather than bundles) for calibrated ISS, for example:
-   urn:nasa:pds:cassini_iss_saturn:data_calibrated:1455008633n_calib
-   urn:nasa:pds:cassini_iss_cruise:data_calibrated:1455008633w_calib
-
-- How does indenting of text work? You didn't like having the text left-justified, so I
-  assume it has to be indented at the appropriate XML level. But then how do you want it
-  wrapped? I've been wrapping to 80 characters left-justified, like this:
-        <title>
-F Ring mosaic created from reprojected Cassini ISS calibrated images from observation
-ISS_079RI_FMONITOR002_PRIME spanning 2008-08-02T01:25:19Z (W1596333808_1) to
-2008-08-02T01:54:07Z (W1596335548_1)
-        </title>
-so this is what you'll see in the latest sample. Do you want it indented, but then still
-wrapped at 80 characters? Or something else?
-        <title>
-            F Ring mosaic created from reprojected Cassini ISS calibrated images from
-            observation ISS_079RI_FMONITOR002_PRIME spanning 2008-08-02T01:25:19Z
-            (W1596333808_1) to 2008-08-02T01:54:07Z (W1596335548_1)
-        </title>
-
-    As far as I know, there are no hard and fast rules about indenting, so don't worry too
-    much about it. I prefer when the contents of the xml element are indented to the same
-    amount as the tags. Wrapping at 80 characters looks good, i.e. as in your second
-    example:
-
-
-- Should we include all of the Cassini ISS metadata fields for the reprojected images?
-  (edited)
-
-    I think it makes sense to include whatever metadata fields you think would be useful
-
-- You commented that you now have the Cassini ISS User's Guide DOI, but I don't know how
-  to actually include it in the XML.
-
-    <Internal_Reference>s don’t have a <doi> element like <External_Reference>s do, so to
-    include a DOI please use the <comment>: <comment>The Cassini ISS Data User's Guide
-    (PDS3); DOI: 10.17189/1504135</comment>
-
-- When providing the <offset> field for metadata, should the offset include the newline?
-  Your comment says "<!--mjtm: This should match <Header>.<object_length> -->". However,
-  the header object length is currently just the length of the text, right? Not including
-  the newline. So shouldn't the offset include the newline so that if you seek to that
-  byte in the file you actually start at the proper location?
-
-    I thought  <Header>.<offset> included the newline, so that <Table_Character>.<offset>
-    is the same number of bytes. Requesting 2nd opinion from @Mitch Gordon!
-
-
-
-
-Full Cassini image info for reproj image metadata?
-
-
-
-
-
-                    <cassini:limitations>N/A</cassini:limitations>
-                        This is hard to get from the current labels because the labels
-                        are improperly formatted. See
-                        '/data/pdsdata/holdings/calibrated/COISS_2xxx/COISS_2076/data/1719817887_1720730045/W1720573566_3_CALIB.LBL'
-
-                    <cassini:ground_software_version_id>$GROUND_SOFTWARE_VERSION_ID$</cassini:ground_software_version_id>
-
-
-"""
+if GENERATE_XML_SCHEMA:
+    generate_xml_schema()
