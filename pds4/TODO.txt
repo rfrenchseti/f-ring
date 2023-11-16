@@ -1,3 +1,7 @@
+- Add bundle.xml
+
+- Fix PdsLogger open/close bug
+
 - Detect which stars are visible in reproj images and mosaics (probably only for
   occultations) and add them as targets in the labels and collections.
 

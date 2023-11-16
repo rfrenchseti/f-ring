@@ -6,8 +6,11 @@
   - Fix navigation in easy mosaics
   - Fix navigation in hard mosaics
   - Re-run reprojection for all mosaics to provide longitude resolution
+  - Verify that for every background with non-standard parameters there is an
+    appropriate comment in the OBSERVATION file.
   - PDS4 generation
-    - Finish collection XML files
+    - DONE: Finish collection XML files
+    - Add OBSERVATION file comments to XML descriptions.
 
 - Check our reprojection code
   - Look for sensitivity to zoom size (long/rad) and resolution (long/rad).

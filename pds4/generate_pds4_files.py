@@ -613,18 +613,18 @@ def image_name_to_lidvid(name):
 def image_name_to_reproj_lid(name):
     """Convert Cassini ISS image name to a reprojected image LID.
 
-    urn:nasa:pds:cdap2020_hedman_saturn_dusty_rings:data_reproj_img:
+    urn:nasa:pds:cassini_iss_fring_mosaics_rsfrench2023:data_reproj_img:
     1551253524n_reproj_img
     """
     name = name.lower()
-    return ( 'urn:nasa:pds:cdap2020_hedman_saturn_dusty_rings:data_reproj_img:'
+    return ( 'urn:nasa:pds:cassini_iss_fring_mosaics_rsfrench2023:data_reproj_img:'
             f'{name}_reproj_img')
 
 
 def image_name_to_reproj_lidvid(name):
     """Convert Cassini ISS image name to a reprojected image LIDVID.
 
-    urn:nasa:pds:cdap2020_hedman_saturn_dusty_rings:data_reproj_img:
+    urn:nasa:pds:cassini_iss_fring_mosaics_rsfrench2023:data_reproj_img:
     1551253524n_reproj_img::1.0
     """
     return image_name_to_reproj_lid(name)+'::1.0'
@@ -633,18 +633,18 @@ def image_name_to_reproj_lidvid(name):
 def image_name_to_reproj_metadata_lid(name):
     """Convert Cassini ISS image name to a reprojected image metadata LID.
 
-    urn:nasa:pds:cdap2020_hedman_saturn_dusty_rings:data_reproj_img:
+    urn:nasa:pds:cassini_iss_fring_mosaics_rsfrench2023:data_reproj_img:
     1551253524n_reproj_img_metadata
     """
     name = name.lower()
-    return ( 'urn:nasa:pds:cdap2020_hedman_saturn_dusty_rings:data_reproj_img:'
+    return ( 'urn:nasa:pds:cassini_iss_fring_mosaics_rsfrench2023:data_reproj_img:'
             f'{name}_reproj_img_metadata')
 
 
 def image_name_to_reproj_metadata_lidvid(name):
     """Convert Cassini ISS image name to a reprojected image metadata LIDVID.
 
-    urn:nasa:pds:cdap2020_hedman_saturn_dusty_rings:data_reproj_img:
+    urn:nasa:pds:cassini_iss_fring_mosaics_rsfrench2023:data_reproj_img:
     1551253524n_reproj_img_metadata::1.0
     """
     return image_name_to_reproj_metadata_lid(name)+'::1.0'
@@ -653,18 +653,18 @@ def image_name_to_reproj_metadata_lidvid(name):
 def image_name_to_reproj_browse_lid(name):
     """Convert Cassini ISS image name to a reprojected browse image LID.
 
-    urn:nasa:pds:cdap2020_hedman_saturn_dusty_rings:browse_reproj_img:
+    urn:nasa:pds:cassini_iss_fring_mosaics_rsfrench2023:browse_reproj_img:
     1551253524n_browse_reproj_img
     """
     name = name.lower()
-    return ( 'urn:nasa:pds:cdap2020_hedman_saturn_dusty_rings:browse_reproj_img:'
+    return ( 'urn:nasa:pds:cassini_iss_fring_mosaics_rsfrench2023:browse_reproj_img:'
             f'{name}_browse_reproj_img')
 
 
 def image_name_to_reproj_browse_lidvid(name):
     """Convert Cassini ISS image name to a reprojected browse image LIDVID.
 
-    urn:nasa:pds:cdap2020_hedman_saturn_dusty_rings:browse_reproj_img:
+    urn:nasa:pds:cassini_iss_fring_mosaics_rsfrench2023:browse_reproj_img:
     1551253524n_browse_reproj_img::1.0
     """
     return image_name_to_reproj_browse_lid(name)+'::1.0'
@@ -673,25 +673,25 @@ def image_name_to_reproj_browse_lidvid(name):
 def obsid_to_mosaic_lid(obsid, bkg_sub):
     """Convert OBSID IOSIC_276RB_COMPLITB4001_SI to a mosaic or bsm LID.
 
-    urn:nasa:pds:cdap2020_hedman_saturn_dusty_rings:data_mosaic:
+    urn:nasa:pds:cassini_iss_fring_mosaics_rsfrench2023:data_mosaic:
     iosic_276rb_complitb4001_si_mosaic
         or
-    urn:nasa:pds:cdap2020_hedman_saturn_dusty_rings:data_mosaic_bkg_sub:
+    urn:nasa:pds:cassini_iss_fring_mosaics_rsfrench2023:data_mosaic_bkg_sub:
     iosic_276rb_complitb4001_si_mosaic_bkg_sub
     """
     sfx = '_bkg_sub' if bkg_sub else ''
     obsid = obsid.lower()
-    return ( 'urn:nasa:pds:cdap2020_hedman_saturn_dusty_rings:'
+    return ( 'urn:nasa:pds:cassini_iss_fring_mosaics_rsfrench2023:'
             f'data_mosaic{sfx}:{obsid}_mosaic{sfx}')
 
 
 def obsid_to_mosaic_lidvid(obsid, bkg_sub):
     """Convert OBSID IOSIC_276RB_COMPLITB4001_SI to a mosaic or bsm LIDVID.
 
-    urn:nasa:pds:cdap2020_hedman_saturn_dusty_rings:data_mosaic:
+    urn:nasa:pds:cassini_iss_fring_mosaics_rsfrench2023:data_mosaic:
     iosic_276rb_complitb4001_si_mosaic::1.0
         or
-    urn:nasa:pds:cdap2020_hedman_saturn_dusty_rings:data_mosaic_bkg_sub:
+    urn:nasa:pds:cassini_iss_fring_mosaics_rsfrench2023:data_mosaic_bkg_sub:
     iosic_276rb_complitb4001_si_mosaic_bkg_sub::1.0
     """
     return obsid_to_mosaic_lid(obsid, bkg_sub)+'::1.0'
@@ -700,25 +700,25 @@ def obsid_to_mosaic_lidvid(obsid, bkg_sub):
 def obsid_to_mosaic_metadata_lid(obsid, bkg_sub):
     """Convert OBSID to a mosaic or bsm metadata LID.
 
-    urn:nasa:pds:cdap2020_hedman_saturn_dusty_rings:data_mosaic:
+    urn:nasa:pds:cassini_iss_fring_mosaics_rsfrench2023:data_mosaic:
     iosic_276rb_complitb4001_si_mosaic_metadata
         or
-    urn:nasa:pds:cdap2020_hedman_saturn_dusty_rings:data_mosaic_bkg_sub:
+    urn:nasa:pds:cassini_iss_fring_mosaics_rsfrench2023:data_mosaic_bkg_sub:
     iosic_276rb_complitb4001_si_mosaic_bkg_sub_metadata
     """
     sfx = '_bkg_sub' if bkg_sub else ''
     obsid = obsid.lower()
-    return ( 'urn:nasa:pds:cdap2020_hedman_saturn_dusty_rings:'
+    return ( 'urn:nasa:pds:cassini_iss_fring_mosaics_rsfrench2023:'
             f'data_mosaic{sfx}:{obsid}_mosaic{sfx}_metadata')
 
 
 def obsid_to_mosaic_metadata_lidvid(obsid, bkg_sub):
     """Convert OBSID to a mosaic or bsm metadata LIDVID.
 
-    urn:nasa:pds:cdap2020_hedman_saturn_dusty_rings:data_mosaic:
+    urn:nasa:pds:cassini_iss_fring_mosaics_rsfrench2023:data_mosaic:
     iosic_276rb_complitb4001_si_metadata::1.0
         or
-    urn:nasa:pds:cdap2020_hedman_saturn_dusty_rings:data_mosaic_bkg_sub:
+    urn:nasa:pds:cassini_iss_fring_mosaics_rsfrench2023:data_mosaic_bkg_sub:
     iosic_276rb_complitb4001_si_metadata_bkg_sub::1.0
     """
     return obsid_to_mosaic_metadata_lid(obsid, bkg_sub)+'::1.0'
@@ -727,25 +727,25 @@ def obsid_to_mosaic_metadata_lidvid(obsid, bkg_sub):
 def obsid_to_mosaic_browse_lid(obsid, bkg_sub):
     """Convert OBSID to a mosaic or bsm browse LID.
 
-    urn:nasa:pds:cdap2020_hedman_saturn_dusty_rings:browse_mosaic:
+    urn:nasa:pds:cassini_iss_fring_mosaics_rsfrench2023:browse_mosaic:
     iosic_276rb_complitb4001_si_browse_mosaic
         or
-    urn:nasa:pds:cdap2020_hedman_saturn_dusty_rings:browse_mosaic_bkg_sub:
+    urn:nasa:pds:cassini_iss_fring_mosaics_rsfrench2023:browse_mosaic_bkg_sub:
     iosic_276rb_complitb4001_si_browse_mosaic_bkg_sub
     """
     sfx = '_bkg_sub' if bkg_sub else ''
     obsid = obsid.lower()
-    return ( 'urn:nasa:pds:cdap2020_hedman_saturn_dusty_rings:'
+    return ( 'urn:nasa:pds:cassini_iss_fring_mosaics_rsfrench2023:'
             f'browse_mosaic{sfx}:{obsid}_browse_mosaic{sfx}')
 
 
 def obsid_to_mosaic_browse_lidvid(obsid, bkg_sub):
     """Convert OBSID to a mosaic or bsm browse LIDVID.
 
-    urn:nasa:pds:cdap2020_hedman_saturn_dusty_rings:browse_mosaic:
+    urn:nasa:pds:cassini_iss_fring_mosaics_rsfrench2023:browse_mosaic:
     iosic_276rb_complitb4001_si_browse_mosaic::1.0
         or
-    urn:nasa:pds:cdap2020_hedman_saturn_dusty_rings:browse_mosaic_bkg_sub:
+    urn:nasa:pds:cassini_iss_fring_mosaics_rsfrench2023:browse_mosaic_bkg_sub:
     iosic_276rb_complitb4001_si_browse_mosaic_bkg_sub::1.0
     """
     return obsid_to_mosaic_browse_lid(obsid, bkg_sub)+'::1.0'
@@ -1773,7 +1773,7 @@ def generate_mosaic_collection_xml(coll_data_mosaic_csv_path,
     coll_data_mosaic_xml_path = coll_data_mosaic_csv_path.replace('csv', 'xml')
     coll_bsm_data_mosaic_xml_path = coll_bsm_data_mosaic_csv_path.replace('csv', 'xml')
 
-    metadata['DATA_MOSAIC_COLLECTION_LID'] = 'urn:nasa:pds:cdap2020_hedman_saturn_dusty_rings:data_mosaic'
+    metadata['DATA_MOSAIC_COLLECTION_LID'] = 'urn:nasa:pds:cassini_iss_fring_mosaics_rsfrench2023:data_mosaic'
     metadata['DATA_MOSAIC_COLLECTION_CSV_PATH'] = coll_data_mosaic_csv_path
     metadata['DATA_MOSAIC_COLLECTION_TITLE'] = """
 Collection for the (non background-subtracted) F Ring mosaics
@@ -1787,7 +1787,7 @@ associated metadata.
     metadata['DATA_MOSAIC_COLLECTION_CSV_NAME'] = 'collection_data_mosaic.csv'
     populate_template(None, 'collection_data_mosaic.xml',
                       coll_data_mosaic_xml_path, metadata)
-    metadata['DATA_MOSAIC_COLLECTION_LID'] = 'urn:nasa:pds:cdap2020_hedman_saturn_dusty_rings:data_mosaic_bkg_sub'
+    metadata['DATA_MOSAIC_COLLECTION_LID'] = 'urn:nasa:pds:cassini_iss_fring_mosaics_rsfrench2023:data_mosaic_bkg_sub'
     metadata['DATA_MOSAIC_COLLECTION_CSV_PATH'] = coll_bsm_data_mosaic_csv_path
     metadata['DATA_MOSAIC_COLLECTION_TITLE'] = """
 Collection for the background-subtracted F Ring mosaics created from
@@ -1810,7 +1810,7 @@ def generate_mosaic_browse_collection_xml(coll_browse_mosaic_csv_path,
     coll_browse_mosaic_xml_path = coll_browse_mosaic_csv_path.replace('csv', 'xml')
     coll_bsm_browse_mosaic_xml_path = coll_bsm_browse_mosaic_csv_path.replace('csv', 'xml')
 
-    metadata['BROWSE_MOSAIC_COLLECTION_LID'] = 'urn:nasa:pds:cdap2020_hedman_saturn_dusty_rings:browse_mosaic'
+    metadata['BROWSE_MOSAIC_COLLECTION_LID'] = 'urn:nasa:pds:cassini_iss_fring_mosaics_rsfrench2023:browse_mosaic'
     metadata['BROWSE_MOSAIC_COLLECTION_CSV_PATH'] = coll_browse_mosaic_csv_path
     metadata['BROWSE_MOSAIC_COLLECTION_TITLE'] = """
 Collection for the browse products for the (non background-subtracted) F Ring
@@ -1823,7 +1823,7 @@ Ring mosaics created from reprojected, calibrated Cassini ISS images
     metadata['BROWSE_MOSAIC_COLLECTION_CSV_NAME'] = 'collection_browse_mosaic.csv'
     populate_template(None, 'collection_browse_mosaic.xml',
                       coll_browse_mosaic_xml_path, metadata)
-    metadata['BROWSE_MOSAIC_COLLECTION_LID'] = 'urn:nasa:pds:cdap2020_hedman_saturn_dusty_rings:browse_mosaic_bkg_sub'
+    metadata['BROWSE_MOSAIC_COLLECTION_LID'] = 'urn:nasa:pds:cassini_iss_fring_mosaics_rsfrench2023:browse_mosaic_bkg_sub'
     metadata['BROWSE_MOSAIC_COLLECTION_CSV_PATH'] = coll_bsm_browse_mosaic_csv_path
     metadata['BROWSE_MOSAIC_COLLECTION_TITLE'] = """
 Collection for the browse products for the background-subtracted F Ring
@@ -1847,7 +1847,7 @@ def generate_reproj_collection_xml(coll_data_reproj_csv_path):
 
     coll_data_reproj_xml_path = coll_data_reproj_csv_path.replace('csv', 'xml')
 
-    metadata['DATA_REPROJ_COLLECTION_LID'] = 'urn:nasa:pds:cdap2020_hedman_saturn_dusty_rings:data_reproj_img'
+    metadata['DATA_REPROJ_COLLECTION_LID'] = 'urn:nasa:pds:cassini_iss_fring_mosaics_rsfrench2023:data_reproj_img'
     metadata['DATA_REPROJ_COLLECTION_CSV_PATH'] = coll_data_reproj_csv_path
     metadata['DATA_REPROJ_COLLECTION_TITLE'] = """
 Collection of reprojected, calibrated Cassini ISS images
@@ -1866,7 +1866,7 @@ def generate_reproj_browse_collection_xml(coll_browse_reproj_csv_path):
 
     coll_browse_reproj_xml_path = coll_browse_reproj_csv_path.replace('csv', 'xml')
 
-    metadata['BROWSE_REPROJ_COLLECTION_LID'] = 'urn:nasa:pds:cdap2020_hedman_saturn_dusty_rings:browse_reproj_img'
+    metadata['BROWSE_REPROJ_COLLECTION_LID'] = 'urn:nasa:pds:cassini_iss_fring_mosaics_rsfrench2023:browse_reproj_img'
     metadata['BROWSE_REPROJ_COLLECTION_CSV_PATH'] = coll_browse_reproj_csv_path
     metadata['BROWSE_REPROJ_COLLECTION_TITLE'] = """
 Collection for the browse products for the reprojected, calibrated Cassini ISS
@@ -1919,7 +1919,7 @@ BASIC_XML_METADATA = {
     'PUBLICATION_YEAR': datetime.utcnow().strftime('%Y'),
     'MIN_RING_RADIUS': f'{arguments.ring_radius+arguments.radius_inner_delta:.0f}',
     'MAX_RING_RADIUS': f'{arguments.ring_radius+arguments.radius_outer_delta:.0f}',
-    'USERGUIDE_LID': 'urn:nasa:pds:cdap2020_hedman_saturn_dusty_rings:document:users-guide', # XXX
+    'USERGUIDE_LID': 'urn:nasa:pds:cassini_iss_fring_mosaics_rsfrench2023:document:users-guide', # XXX
     'USERGUIDE_COMMENT': "Detailed User's Guide for the F Ring Mosaics and Reprojected Images in this bundle.",
     'CASSINI_USER_GUIDE_LID': 'urn:nasa:pds:cassini_iss_saturn:document:iss-data-user-guide',
     'CASSINI_USER_GUIDE_DESC': "The Cassini ISS Data User's Guide (PDS3); DOI: 10.17189/1504135",
