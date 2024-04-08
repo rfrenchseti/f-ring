@@ -64,3 +64,27 @@
 - Add SPICE kernels? How?
 
 - Should the reprojected images be called reproj_img or just reproj?
+
+====================================================================================================
+
+@Rob French
+ I checked with EN and this is the proposed implementation for the classes and attributes for the <List_Author> class (CCB-356):
+<List_Author>              <!-- 0:1 Choose List_Author or List_Editor or both, but not neither -->
+       <Person>                   <!-- 0:M Choose Person or Organization or both, but not neither; multiple Person is allowed -->
+           <display_full_name/>       <!-- 0:1            -->
+           <given_name/>              <!-- 1:1 (required) -->
+           <family_name/>             <!-- 1:1 (required) -->
+           <person_orcid/>            <!-- 0:1            -->
+           <Affiliation>              <!-- 0:1 -->
+               <organization_name/>       <!-- 1:1 (required) -->
+               <organization_rorid/>      <!-- 0:1            -->
+           </Affiliation>
+       </Person>
+       <Organization>             <!-- 0:M Choose Person or Organization or both, but not neither; multiple Organization is allowed -->
+           <organization_name/>        <!-- 1:1 (required) -->
+           <organization_rorid/>       <!-- 0:1            -->
+           <parent_organization_name/> <!-- 0:1            -->
+           <parent_organization_rorid/> <!-- 0:1            -->
+       </Organization>
+   </List_Author>
+However, this will NOT be included in the upcoming 1.L.0.0 / 1.21.0.0 Build (Dec 2023, for schedule refer to https://pds.nasa.gov/datastandards/about/).  Steve Hughes says that CCB-356 will be implemented in the next build.

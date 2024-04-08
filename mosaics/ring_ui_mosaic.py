@@ -20,6 +20,7 @@ import julian
 
 from nav.config import (CB_RESULTS_ROOT,
                         PYTHON_EXE)
+import nav.logging_setup
 from nav.ring_mosaic import (rings_fring_corotating_to_inertial,
                              rings_generate_longitudes,
                              rings_mosaic_add,
@@ -602,6 +603,8 @@ def command_show_longitudes(mosicdata, mosaicdispdata):
 # THE MAIN LOOP
 #
 ################################################################################
+
+nav.logging_setup.set_main_module_name('ring_ui_mosaic')
 
 # Each entry in the list is a tuple of obsid_list, image_name_list,
 # image_path_list, repro_path_list

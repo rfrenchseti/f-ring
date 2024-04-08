@@ -1,6 +1,8 @@
 # Required for pip-compile to work
 pip-tools
 
+boto3
+
 msgpack
 msgpack_numpy
 numpy
@@ -13,7 +15,18 @@ jupyter
 matplotlib
 mplcursors
 
-cspyce
-rms-fpzip
-
 rebound
+
+cspyce
+rms-oops
+rms-polymath
+rms-fpzip
+rms-imgdisp
+rms-interval
+rms-julian
+rms-pdstable
+rms-pdstemplate
+rms-psfmodel
+rms-starcat
+rms-tabulation
+rms-vicar

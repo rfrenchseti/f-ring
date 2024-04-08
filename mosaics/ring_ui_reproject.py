@@ -28,7 +28,7 @@ from imgdisp import ImageDisp, FloatEntry
 
 import cspyce
 
-import nav.logging
+import nav.logging_setup
 from nav.config import PYTHON_EXE
 from nav.file import (img_to_log_path,
                       img_to_offset_path,
@@ -222,7 +222,7 @@ def setup_image_logging(offrepdata):
     if offrepdata.image_log_filehandler is not None: # Already set up
         return
 
-    if image_logfile_level != nav.logging.LOGGING_SUPERCRITICAL:
+    if image_logfile_level != nav.logging_setup.LOGGING_SUPERCRITICAL:
         image_log_path = img_to_log_path(offrepdata.image_path,
                                          arguments.instrument_host,
                                          'ring_repro')
@@ -230,7 +230,7 @@ def setup_image_logging(offrepdata):
         if os.path.exists(image_log_path):
             os.remove(image_log_path) # XXX Need option to not do this
 
-        offrepdata.image_log_filehandler = nav.logging.add_file_handler(
+        offrepdata.image_log_filehandler = nav.logging_setup.add_file_handler(
                                                 image_log_path, image_logfile_level)
     else:
         offrepdata.image_log_filehandler = None
@@ -290,7 +290,8 @@ def offset_one_image(offrepdata, option_no, option_no_update, option_recompute,
 
     # Recompute the automatic offset
     offrepdata.obs = Navigation(read_img_file(offrepdata.image_path,
-                                              arguments.instrument_host),
+                                              arguments.instrument_host,
+                                              arguments.planet),
                                 arguments.instrument_host)
     adjust_voyager_calibration(offrepdata.obs, offrepdata.image_path)
 
@@ -398,7 +399,8 @@ def _reproject_one_image(offrepdata):
     if offrepdata.obs is None:
         image_logger.debug(f'Reading image file {offrepdata.image_path}')
         offrepdata.obs = Navigation(read_img_file(offrepdata.image_path,
-                                                  arguments.instrument_host),
+                                                  arguments.instrument_host,
+                                                  arguments.planet),
                                     arguments.instrument_host)
         adjust_voyager_calibration(offrepdata.obs, offrepdata.image_path)
 
@@ -475,42 +477,45 @@ def reproject_one_image(offrepdata, option_no, option_no_update,
         time_repro = 0
 
     if not os.path.exists(offrepdata.offset_path):
-        if arguments.verbose:
-            print('NO OFFSET FILE - ABORTING')
-        return
-
-    time_offset = os.stat(offrepdata.offset_path).st_mtime
-    if time_repro >= time_offset and not option_recompute:
-        # The repro file exists and is more recent than the image, and we're
-        # not forcing a recompute
-        if arguments.verbose:
-            print('Ignored because repro file is up to date')
-        return
-
-    offrepdata.off_metadata = read_offset_metadata(offrepdata.image_path,
-                                                   arguments.instrument_host, 'saturn')
-    status = offrepdata.off_metadata['status']
-    if status != 'ok':
-        if arguments.verbose:
-            print('Ignored because offsetting skipped file')
-        return
-    if 'offset' not in offrepdata.off_metadata:
-        if arguments.verbose:
-            print('Skipped because no offset field present')
-        return
-    if offrepdata.off_metadata['offset'] is None:
-        offrepdata.the_offset = None
-    else:
-        offrepdata.the_offset = offrepdata.off_metadata['offset']
-    if not 'manual_offset' in offrepdata.off_metadata:
+        # if arguments.verbose:
+        #     print('NO OFFSET FILE - ABORTING')
+        # return
+        offrepdata.the_offset = (0., 0.)
         offrepdata.manual_offset = None
-    else:
-        offrepdata.manual_offset = offrepdata.off_metadata['manual_offset']
 
-    if offrepdata.the_offset is None and offrepdata.manual_offset is None:
-        if arguments.verbose:
-            print('OFFSET IS INVALID - ABORTING')
-        return
+    else:
+        time_offset = os.stat(offrepdata.offset_path).st_mtime
+        if time_repro >= time_offset and not option_recompute:
+            # The repro file exists and is more recent than the image, and we're
+            # not forcing a recompute
+            if arguments.verbose:
+                print('Ignored because repro file is up to date')
+            return
+
+        offrepdata.off_metadata = read_offset_metadata(offrepdata.image_path,
+                                                    arguments.instrument_host, 'saturn')
+        status = offrepdata.off_metadata['status']
+        if status != 'ok':
+            if arguments.verbose:
+                print('Ignored because offsetting skipped file')
+            return
+        if 'offset' not in offrepdata.off_metadata:
+            if arguments.verbose:
+                print('Skipped because no offset field present')
+            return
+        if offrepdata.off_metadata['offset'] is None:
+            offrepdata.the_offset = None
+        else:
+            offrepdata.the_offset = offrepdata.off_metadata['offset']
+        if not 'manual_offset' in offrepdata.off_metadata:
+            offrepdata.manual_offset = None
+        else:
+            offrepdata.manual_offset = offrepdata.off_metadata['manual_offset']
+
+        if offrepdata.the_offset is None and offrepdata.manual_offset is None:
+            if arguments.verbose:
+                print('OFFSET IS INVALID - ABORTING')
+            return
 
     if arguments.max_subprocesses:
         if arguments.verbose:
@@ -1119,7 +1124,8 @@ def display_offset_reproject(offrepdata, offrepdispdata, option_invalid_offset,
 
     if offrepdata.obs is None:
         offrepdata.obs = Navigation(read_img_file(offrepdata.image_path,
-                                                  arguments.instrument_host),
+                                                  arguments.instrument_host,
+                                                  arguments.planet),
                                     arguments.instrument_host)
         adjust_voyager_calibration(offrepdata.obs, offrepdata.image_path)
 
@@ -1178,19 +1184,21 @@ def callback_repro(x, y, offrepdata, offrepdispdata):
 #
 #####################################################################################
 
+nav.logging_setup.set_main_module_name('ring_ui_reproject')
+
 # Set up per-image logging
 _LOGGING_NAME = 'cb.' + __name__
 image_logger = logging.getLogger(_LOGGING_NAME)
 
-image_logfile_level = nav.logging.decode_level(arguments.image_logfile_level)
-image_log_console_level = nav.logging.decode_level(arguments.image_log_console_level)
+image_logfile_level = nav.logging_setup.decode_level(arguments.image_logfile_level)
+image_log_console_level = nav.logging_setup.decode_level(arguments.image_log_console_level)
 
-nav.logging.set_default_level(nav.logging.min_level(image_logfile_level,
-                                                    image_log_console_level))
-nav.logging.set_util_flux_level(logging.CRITICAL)
+nav.logging_setup.set_default_level(nav.logging_setup.min_level(image_logfile_level,
+                                                                image_log_console_level))
+nav.logging_setup.set_util_flux_level(logging.CRITICAL)
 
-nav.logging.remove_console_handler()
-nav.logging.add_console_handler(image_log_console_level)
+nav.logging_setup.remove_console_handler()
+nav.logging_setup.add_console_handler(image_log_console_level)
 
 subprocess_list = []
 
@@ -1244,7 +1252,7 @@ for obsid, image_name, image_path in ring_enumerate_files(arguments):
                         arguments.no_update_reproject,
                         arguments.recompute_reproject)
 
-    nav.logging.remove_file_handler(offrepdata.image_log_filehandler)
+    nav.logging_setup.remove_file_handler(offrepdata.image_log_filehandler)
 
     if arguments.max_subprocesses and offrepdata.subprocess_run:
         run_and_maybe_wait([PYTHON_EXE,

@@ -15,6 +15,8 @@ from imgdisp import IntegerEntry, FloatEntry, ScrolledList
 
 from nav.file import (img_to_offset_path,
                       read_offset_metadata)
+import nav.logging_setup
+
 import ring.ring_util as ring_util
 
 
@@ -95,8 +97,8 @@ class GUIData:
 # Returns a dictionary of observation IDs, each entry of which is a list of
 # OffRepStatus plus status for the mosaic and background files
 #
-def get_file_status(guidata, obsid=None, do_stat=True):
-    if obsid is None:
+def get_file_status(guidata, force_obsid=None, do_stat=True):
+    if force_obsid is None:
         obsid_db = {}
     else:
         # We're only going to replace one entry
@@ -115,8 +117,8 @@ def get_file_status(guidata, obsid=None, do_stat=True):
     max_repro_mtime = 0
 
     for obsid, image_name, image_path in ring_util.ring_enumerate_files(
-                                                            arguments,
-                                                            force_obsid=obsid):
+                                                        arguments,
+                                                        force_obsid=force_obsid):
         offrepstatus = OffRepStatus()
         offrepstatus.obsid = obsid
         offrepstatus.image_name = image_name
@@ -148,8 +150,6 @@ def get_file_status(guidata, obsid=None, do_stat=True):
             if os.path.exists(offrepstatus.repro_path):
                 offrepstatus.repro_mtime = os.stat(
                                        offrepstatus.repro_path).st_mtime
-                if offrepstatus.repro_mtime < 1676416981:
-                    print(obsid, image_name, offrepstatus.repro_mtime)
                 if offrepstatus.offset_mtime == 1e38:
                     offrepstatus.repro_status = 'r'
                 elif offrepstatus.offset_mtime > offrepstatus.repro_mtime:
@@ -539,11 +539,11 @@ def offrep_update_all_offsets_button_handler(guidata):
 def offrep_force_update_offsets_button_handler(guidata):
     if guidata.obsid_selection is None:
         tkinter.messagebox.showerror('Force Update Offsets',
-                               'No current OBSID selection')
+                                     'No current OBSID selection')
         return
     if not tkinter.messagebox.askyesno('Force Update Offsets',
-                                 'Are you sure you want to do a forced update'+
-                                 ' on ALL offsets in this OBSID?'):
+                                  'Are you sure you want to do a forced update '
+                                 f'on ALL offsets in {guidata.obsid_selection}?'):
         return
     subprocess.Popen([PYTHON_EXE,
                       ring_util.RING_REPROJECT_PY,
@@ -557,7 +557,7 @@ def offrep_force_update_offsets_button_handler(guidata):
 #
 def offrep_force_update_all_offsets_button_handler(guidata):
     if not tkinter.messagebox.askyesno('Force Update All Offsets',
-                                 'Are you sure you want to do a forced update'+
+                                 'Are you sure you want to do a forced update'
                                  ' on ALL offsets?'):
         return
     subprocess.Popen([PYTHON_EXE,
@@ -600,8 +600,8 @@ def offrep_force_update_reprojects_button_handler(guidata):
                                'No current OBSID selection')
         return
     if not tkinter.messagebox.askyesno('Force Update Reprojections',
-                                 'Are you sure you want to do a forced update'+
-                                 ' on ALL reprojections in this OBSID?'):
+                                  'Are you sure you want to do a forced update '
+                                 f'on ALL reprojections in {guidata.obsid_selection}?'):
         return
     subprocess.Popen([PYTHON_EXE,
                       ring_util.RING_REPROJECT_PY,
@@ -615,7 +615,7 @@ def offrep_force_update_reprojects_button_handler(guidata):
 #
 def offrep_force_update_all_reprojects_button_handler(guidata):
     if not tkinter.messagebox.askyesno('Force Update All Reprojections',
-                                 'Are you sure you want to do a forced update'+
+                                 'Are you sure you want to do a forced update'
                                  ' on ALL reprojections?'):
         return
     subprocess.Popen([PYTHON_EXE,
@@ -939,6 +939,8 @@ def offrep_update_obs_lists(guidata):
         update_one_list(guidata.listbox_img, guidata.cur_img_list, 16)
 
 ###############################################
+
+nav.logging_setup.set_main_module_name('ring_ui_toplevel')
 
 guidata = GUIData()
 

@@ -26,6 +26,7 @@ from ring.ring_util import (ring_add_parser_arguments,
                             write_bkgnd_sub_mosaic,
                             write_mosaic_pngs,
                             BkgndData)
+import nav.logging_setup
 from nav.ring_mosaic import (rings_fring_corotating_to_inertial,
                              rings_generate_longitudes)
 # from cb_util_image import *
@@ -853,6 +854,8 @@ def display_bkgnd(bkgnddata, bkgnddispdata):
 # THE MAIN LOOP
 #
 ################################################################################
+
+nav.logging_setup.set_main_module_name('ring_ui_bkgnd')
 
 for obs_id, image_name, full_path in ring_enumerate_files(arguments,
                                                           yield_obsid_only=True):

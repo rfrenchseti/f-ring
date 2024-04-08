@@ -147,6 +147,14 @@ def _validate_instrument_host(instrument_host):
              f"{_VALID_INSTRUMENT_HOSTS}")
     return instrument_host
 
+def _validate_planet(planet):
+    """Routine for argparse to validate a planet."""
+    if not planet in ("jupiter", "saturn", "uranus", "neptune"):
+        raise argparse.ArgumentTypeError(
+             f"{planet} is not a valid planet - must be one of "
+              "jupiter, saturn, uranus, neptune")
+    return planet
+
 def ring_add_parser_arguments(parser):
     parser.add_argument(
         'obsid', action='append', nargs='*',
@@ -194,6 +202,10 @@ def ring_add_parser_arguments(parser):
         type=_validate_instrument_host,
         help=f'''Which spacecraft to process: {_VALID_INSTRUMENT_HOSTS}
                  (cassini is the default)''')
+    parser.add_argument('--planet', default='saturn',
+        type=_validate_planet,
+        help=f'''Which planet to process: jupiter, saturn, uranus, neptune
+                 (saturn is the default)''')
 
 
 ################################################################################
