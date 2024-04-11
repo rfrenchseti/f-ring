@@ -425,7 +425,7 @@ def compute_corrected_ew_col(obsdata, col_tau=('Normal EW Mean', None),
 
 def hg(alpha, g):
     """Compute Henyey-Greenstein phase function."""
-    return (1-g**2) / (1+g**2-2*g*np.cos(np.radians(alpha)))**1.5 / 2
+    return (1-g**2) / (1+g**2-2*g*np.cos(np.radians(180-alpha)))**1.5 / 2
 
 
 def hg_func(params, xpts):
@@ -443,12 +443,13 @@ def hg_func(params, xpts):
 def hg_fit_func(params, xpts, ypts, ystd):
     if ystd is None:
         ystd = 1
-    return (ypts - hg_func(params, xpts)) / ystd
-    # return np.log(ypts) - np.log(hg_func(params, xpts))
+    # return (ypts - hg_func(params, xpts)) / ystd
+    return np.log(ypts) - np.log(hg_func(params, xpts))
 
 
 def hg_fit_func_scale(scale, params, xpts, ypts):
-    ret = ypts - hg_func(params, xpts)*scale
+    # ret = ypts - hg_func(params, xpts)*scale
+    ret = np.log(ypts) - np.log(hg_func(params, xpts)*scale)
     return ret
 
 def fit_hg_phase_function(n_hg, nstd, data, col_tau=('Normal EW Mean', None),
@@ -459,7 +460,7 @@ def fit_hg_phase_function(n_hg, nstd, data, col_tau=('Normal EW Mean', None),
     Do the modeling on a copy of the data so we can remove outliers.
     """
     phasedata = data.copy()
-    normal_ew = compute_corrected_ew_col(phasedata, col_tau=col_tau)
+    normal_ew = compute_corrected_ew_col(phasedata, col_tau=col_tau).to_numpy()
 
     initial_guess = []
     bounds1 = []
@@ -472,9 +473,9 @@ def fit_hg_phase_function(n_hg, nstd, data, col_tau=('Normal EW Mean', None),
         bounds2.append(1.)
         bounds2.append(1000.)
     while True:
-        phase_degrees = phasedata[phase_col]
+        phase_degrees = phasedata[phase_col].to_numpy()
         if std_col is not None:
-            std_col = phasedata[std_col]
+            std_col = phasedata[std_col].to_numpy()
         params = sciopt.least_squares(hg_fit_func, initial_guess,
                                       bounds=(bounds1, bounds2),
                                       args=(phase_degrees, normal_ew, std_col))
@@ -521,12 +522,12 @@ def print_hg_params(params, indent=0):
 def scale_hg_phase_function(params, data, col_tau=('Normal EW Mean', None),
                             phase_col='Mean Phase'):
     """Fit a known phase curve to the data points."""
-    normal_ew = compute_corrected_ew_col(data, col_tau=col_tau)
-
+    normal_ew = compute_corrected_ew_col(data, col_tau=col_tau).to_numpy()
+    normal_ew = np.clip(normal_ew, 0.0001, 100)
     initial_guess = [1.]
-    bounds1 = [0.]
+    bounds1 = [0.001]
     bounds2 = [10.]
-    phase_degrees = data[phase_col]
+    phase_degrees = data[phase_col].to_numpy()
     params = sciopt.least_squares(hg_fit_func_scale, initial_guess,
                                   bounds=(bounds1, bounds2),
                                   args=(params, phase_degrees, normal_ew))
@@ -578,7 +579,7 @@ def read_ew_stats(filename, obslist_filename=None, obslist_column=None,
 
 def read_showalter_voyager_ew_stats(filename, verbose=True):
     """Read Showalter's original Voyager EW stats."""
-    obsdata = pd.read_csv(filename, index_col='FDS', delim_whitespace=True)
+    obsdata = pd.read_csv(filename, index_col='FDS', sep=r'\s+')
     if verbose:
         print(f'** SUMMARY STATISTICS - {filename} **')
         print('Unique FDS:', len(obsdata))

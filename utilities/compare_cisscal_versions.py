@@ -10,7 +10,7 @@ import matplotlib.pyplot as plt
 import numpy as np
 
 import oops
-import hosts.cassini.iss as iss
+import oops.hosts.cassini.iss as iss
 
 image_versions = ( # These are either the first or last images in the movie sequence
     ('N1466448701_1_CALIB-3.3.IMG', 'N1466448701_1_CALIB-4.0.IMG'), # ISS_000RI_SATSRCHAP001_PRIME
