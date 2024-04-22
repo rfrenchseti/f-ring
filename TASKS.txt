@@ -12,47 +12,13 @@
     - DONE: Finish collection XML files
     - Add OBSERVATION file comments to XML descriptions.
 
-- Check our reprojection code
-  - Look for sensitivity to zoom size (long/rad) and resolution (long/rad).
-  - Compare to EW when not reprojecting at all.
-
-- Check Cassini calibration
-  - Identify all observations that are common between 2012 paper and current
-    mosaics.
-  - Compare EWs and look for patterns.
-  - Pick additional 3.6/4.0 CALIB files to compare and try to figure out why the
-    calibrations are different and if there's any pattern.
-  - Adjust old mosaics with conversion factors to see if they equal the current
-    mosaics.
-  - Look for other reasons the EWs may be different
-
 - Compute Cassini phase curve
-  - Once we understand phase curves, do we need to use the formalism from
-    Appendix A to get good results?
-    - If we need to use Appendix A, then implement Appendix A
-      - Is the tau_equiv similar to what was found in the paper?
-  - Repeat the above by looking only at the 15% percentile and 85% percentile
-    values of the EW profile, as per the 2014 paper Section 2.3
-    - Is there a difference in the phase curve, or its behavior over time,
-      between the calm parts of the ring and the clumpy parts of the ring?
-
+  - Is there a difference in the phase curve, or its behavior over time,
+    between the calm parts of the ring and the clumpy parts of the ring?
   - Look at phase curves using restricted radial ranges
     - Core only
     - Skirt only
     - Dust only
-
-- Calculate phase-normalized EWs
-  - Plot the ring brightness over time
-    - To compute the brightness, divide each data point by the mean phase curve
-      to get the divergence from the mean phase curve
-    - Is there a pattern? Does the pattern correlate with Prometheus distance?
-      (right side of Fig. 12)
-
-- Voyager
-  - Check Voyager calibration
-    - Last time we used the A ring - do it again more carefully?
-  - Correlate brightness with resolution - are low res observations bad?
-  - How do these results compare against Voyager 1 and 2?
 
 - Compare the the _1 and _2 versions
   - Find the overlapping co-rotating longitudes and restrict both mosaics to
@@ -143,14 +109,6 @@
   - Why would the gradients change at the dense core or at strands?
 
 - Clumps
-  - 2006-317
-  - 2006-357
-  - 2007-041
-  - 2010-152
-  - 2013-238
-  - 2014-037
-  - 2014-269
-  - 2017-231
   - How did large clumps change? Brightness, size, frequency, # vs voyager
   - CV221 2014 clumps far from Prometheus?
 
@@ -168,3 +126,38 @@ ARCHIVE
     - The scale factors are the ring's brightness profile with the phase
       function removed.
     - How do the scale factors depend on relative brightness of that slice?
+
+- Voyager
+  - Check Voyager calibration
+    - Last time we used the A ring - do it again more carefully?
+  - Correlate brightness with resolution - are low res observations bad?
+  - How do these results compare against Voyager 1 and 2?
+
+- Check our reprojection code
+  - Look for sensitivity to zoom size (long/rad) and resolution (long/rad).
+  - Compare to EW when not reprojecting at all.
+
+- Compute Cassini phase curve
+  - Once we understand phase curves, do we need to use the formalism from
+    Appendix A to get good results?
+    - If we need to use Appendix A, then implement Appendix A
+      - Is the tau_equiv similar to what was found in the paper?
+  - Repeat the above by looking only at the 15% percentile and 85% percentile
+    values of the EW profile, as per the 2014 paper Section 2.3
+
+- Calculate phase-normalized EWs
+  - Plot the ring brightness over time
+    - To compute the brightness, divide each data point by the mean phase curve
+      to get the divergence from the mean phase curve
+    - Is there a pattern? Does the pattern correlate with Prometheus distance?
+      (right side of Fig. 12)
+
+- Check Cassini calibration
+  - Identify all observations that are common between 2012 paper and current
+    mosaics.
+  - Compare EWs and look for patterns.
+  - Pick additional 3.6/4.0 CALIB files to compare and try to figure out why the
+    calibrations are different and if there's any pattern.
+  - Adjust old mosaics with conversion factors to see if they equal the current
+    mosaics.
+  - Look for other reasons the EWs may be different
