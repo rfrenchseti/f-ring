@@ -49,7 +49,7 @@
     <Context_Area>
         <comment>
             $WRAP(12,91,REPROJ_METADATA_COMMENT,preserve_single_newlines=False)$
-    	</comment>
+        </comment>
         <Time_Coordinates>
             <start_date_time>$START_DATE_TIME$</start_date_time>
             <stop_date_time>$STOP_DATE_TIME$</stop_date_time>
@@ -183,7 +183,7 @@
                         <local_identifier>reproj_geom</local_identifier>
                         <rings:description>
                             $WRAP(28,107,REPROJ_METADATA_RINGS_DESCRIPTION,preserve_single_newlines=False)$
-			            </rings:description>
+                        </rings:description>
                         <rings:epoch_reprojection_basis_utc unit="s">2007-01-01T00:00:00.000Z</rings:epoch_reprojection_basis_utc>
                         <rings:reprojection_plane>Equator</rings:reprojection_plane>
                         <rings:corotating_flag>Y</rings:corotating_flag>
@@ -199,7 +199,7 @@
                         <rings:maximum_ring_radius unit="km">$MAX_RING_RADIUS$</rings:maximum_ring_radius>
                         <rings:minimum_inertial_ring_longitude unit="deg">$MIN_RING_INERTIAL_LONG$</rings:minimum_inertial_ring_longitude>
                         <rings:maximum_inertial_ring_longitude unit="deg">$MAX_RING_INERTIAL_LONG$</rings:maximum_inertial_ring_longitude>
-            			<rings:minimum_corotating_ring_longitude unit="deg">$MIN_RING_COROTATING_LONG$</rings:minimum_corotating_ring_longitude>
+                        <rings:minimum_corotating_ring_longitude unit="deg">$MIN_RING_COROTATING_LONG$</rings:minimum_corotating_ring_longitude>
                         <rings:maximum_corotating_ring_longitude unit="deg">$MAX_RING_COROTATING_LONG$</rings:maximum_corotating_ring_longitude>
                         <rings:minimum_ring_radius unit="km">$MIN_RING_RADIUS$</rings:minimum_ring_radius>
                         <rings:maximum_ring_radius unit="km">$MAX_RING_RADIUS$</rings:maximum_ring_radius>
@@ -234,7 +234,7 @@
             <reference_type>ancillary_to_data</reference_type>
             <comment>
                 The reprojected image.
-	        </comment>
+            </comment>
         </Internal_Reference>
     </Reference_List>
     <File_Area_Ancillary>

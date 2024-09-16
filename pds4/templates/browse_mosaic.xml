@@ -51,7 +51,7 @@
             <reference_type>browse_to_data</reference_type>
             <comment>
                 $WRAP(16,95,MOSAIC_REFERENCE_COMMENT,preserve_single_newlines=False)$
-	        </comment>
+            </comment>
         </Internal_Reference>
     </Reference_List>
     <File_Area_Browse>

@@ -137,12 +137,12 @@
                     <Local_Internal_Reference>
                         <local_identifier_reference>mosaic</local_identifier_reference>
                         <local_reference_type>reprojection_to_array</local_reference_type>
-			        </Local_Internal_Reference>
+                    </Local_Internal_Reference>
                     <rings:Reprojection_Geometry>
                         <local_identifier>reproj_geom</local_identifier>
                         <rings:description>
                             $WRAP(28,107,MOSAIC_RINGS_DESCRIPTION,preserve_single_newlines=False)$
-			            </rings:description>
+                        </rings:description>
                         <rings:epoch_reprojection_basis_utc unit="s">2007-01-01T00:00:00.000Z</rings:epoch_reprojection_basis_utc>
                         <rings:reprojection_plane>Equator</rings:reprojection_plane>
                         <rings:corotating_flag>Y</rings:corotating_flag>
@@ -156,7 +156,7 @@
                         <rings:maximum_observed_ring_elevation unit="deg">$MAX_OBS_RING_ELEV$</rings:maximum_observed_ring_elevation>
                         <rings:minimum_inertial_ring_longitude unit="deg">$MIN_RING_INERTIAL_LONG$</rings:minimum_inertial_ring_longitude>
                         <rings:maximum_inertial_ring_longitude unit="deg">$MAX_RING_INERTIAL_LONG$</rings:maximum_inertial_ring_longitude>
-            			<rings:minimum_corotating_ring_longitude unit="deg">$MIN_RING_COROTATING_LONG$</rings:minimum_corotating_ring_longitude>
+                        <rings:minimum_corotating_ring_longitude unit="deg">$MIN_RING_COROTATING_LONG$</rings:minimum_corotating_ring_longitude>
                         <rings:maximum_corotating_ring_longitude unit="deg">$MAX_RING_COROTATING_LONG$</rings:maximum_corotating_ring_longitude>
                         <rings:minimum_ring_radius unit="km">$MIN_RING_RADIUS$</rings:minimum_ring_radius>
                         <rings:maximum_ring_radius unit="km">$MAX_RING_RADIUS$</rings:maximum_ring_radius>
@@ -193,14 +193,14 @@
                 The mosaic metadata consists of two files, one containing a mapping of image index
                 numbers to LIDs, the other containing metadata parameters indexed by co-rotating
                 longitude.
-    	    </comment>
+            </comment>
         </Internal_Reference>
         <Internal_Reference>
             <lid_reference>$MOSAIC_OTHER_LID$</lid_reference>
             <reference_type>data_to_derived_product</reference_type>
             <comment>
                 $WRAP(16,95,MOSAIC_OTHER_REFERENCE_COMMENT,preserve_single_newlines=False)$
-    	    </comment>
+            </comment>
         </Internal_Reference>
         <Internal_Reference>
             <lid_reference>$BROWSE_MOSAIC_LID$</lid_reference>

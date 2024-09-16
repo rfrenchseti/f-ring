@@ -51,7 +51,7 @@
             <reference_type>browse_to_data</reference_type>
             <comment>
                 The reprojected image.
-	        </comment>
+            </comment>
         </Internal_Reference>
     </Reference_List>
     <File_Area_Browse>
