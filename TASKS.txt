@@ -1,3 +1,19 @@
+From meeting with Matt Hedman 4/22/2024:
+
+- 21/mu plots make Y linear instead of log
+- 22 phase plots -> log and scatter (180-phase)
+- Time varying plots linear on Y
+- Find a V2 mosaic near the old phase 160 data point
+- Check Voyager vs Cassini calibration using the mid-C ring and B ring
+- Meteors in 1983 hit the ring? Should be trending down? Is it a one-time event?
+- EW from Britt's 1995 RPX?
+- Are there HST measurements of the F ring?
+- The 1/2 movies actually show that tau is low, because when the dust radially
+  compresses the EW doesn't change very much
+- When talking about change in width, use occultations
+- Conclusion: Moons affect the overall structure, but not the overall brightness
+
+
 - Mosaic production
   - Add ISS_029RI_AZSCNLOPH001_PRIME
   - FRSTRCHAN observations (full inertial longitudes)
