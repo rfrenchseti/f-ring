@@ -255,13 +255,13 @@ def ring_init(arguments):
         obsid = obsid_file[:-5]
         fp = open(file_clean_join(type_dir, obsid_file), 'r')
         filenames = fp.readlines()
-        filenames = [x.strip() for x in filenames if x[0] != '#']
+        filenames = [x.strip() for x in filenames if len(x) > 0 and x[0] != '#']
         fp.close()
         # Accept both Nxxxxxx_x and
         # path/path/path/Nxxxxx_x.IMG
         filenames = [f.split('/')[-1].split('.')[0]
                         for f in filenames
-                        if f[0] != '#']
+                        if len(f) > 0 and f[0] != '#']
         RING_FILENAMES[obsid] = filenames
 
 

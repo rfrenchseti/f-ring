@@ -16,7 +16,8 @@ FRING_DW = 0 #2.70025 * oops.RPD # rad/day
 
 PROM_MASS = 1.5972e17
 PROM_RAD = 85.6/2
-PROM_A = 139380.
+# PROM_A = 139380.
+PROM_A = 139680.
 PROM_E = 0.0022
 PROM_W0 = 0.#180.
 PROM_LON = 180.
@@ -25,10 +26,10 @@ PROM_SNAPSHOT_FUDGE = 20.
 DELTA_A_INNER = 500.
 DELTA_A_OUTER = 500.
 
-STEP_A = 10.
+STEP_A = 20.
 MIN_LONG = 180.
 MAX_LONG = 195.
-STEP_LONG = 0.1
+STEP_LONG = 0.2
 
 MIN_A = FRING_A - DELTA_A_INNER
 MAX_A = FRING_A + DELTA_A_OUTER
@@ -241,7 +242,7 @@ for a in np.arange(MIN_A, MAX_A+EPS, STEP_A):
         sim.add(m=0, a=a, theta=np.radians(long), e=e, omega=np.radians(w0))
 
 T = 360 / 581.964 * 86400
-n_peri = 3
+n_peri = 6
 
 plot(0)
 next_t = 0

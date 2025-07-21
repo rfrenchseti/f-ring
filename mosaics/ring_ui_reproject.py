@@ -125,7 +125,7 @@ parser.add_argument('--no-update-reproject', action='store_true', default=False,
                     help="Don't compute the reprojection unless if we don't have one")
 parser.add_argument('--recompute-reproject', action='store_true', default=False,
                     help='Recompute the reprojection even if we already have one that is current')
-parser.add_argument('--omit-saturns-shadow', action='store_true', default=False,
+parser.add_argument('--omit-saturns-shadow', action='store_true', default=True,
                     help="Omit Saturn's shadow during reprojection")
 
 ring_add_parser_arguments(parser)
