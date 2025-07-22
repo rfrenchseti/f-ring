@@ -1,3 +1,5 @@
+# TODO For obs that follow one co-rot, include all reproj images!
+
 ##########################################################################################
 # Create all files for the PDS4 achive including binary, tabular, and label.
 ##########################################################################################
@@ -24,7 +26,7 @@ import pdstemplate
 
 pdslogger.TIME_FMT = '%Y-%m-%d %H:%M:%S'
 
-from pdsparser import PdsLabel
+from pdsparser import Pds3Label
 
 parent_dir = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 sys.path.append(parent_dir)
@@ -32,70 +34,72 @@ sys.path.append(os.path.join(parent_dir, 'external'))
 
 import f_ring_util.f_ring as f_ring
 
+BUNDLE_NAME = 'fring_mosaic_rsfrench2025'
+
 # XML directory structure:
-#   bundle.xml                                      [RMS]
+#   bundle.lblx                                     [RMS]
 #   readme.txt                                      [RF writes]
 #   browse_mosaic/
 #     collection_browse_mosaic.csv                 +[generated: [P|S], LIDVID]
-#     collection_browse_mosaic.xml                  [RMS]
+#     collection_browse_mosaic.lblx                 [RMS]
 #     OBSID/
 #       OBSID_browse_mosaic_full.png               +[generated]
 #       OBSID_browse_mosaic_med.png                +[generated]
 #       OBSID_browse_mosaic_small.png              +[generated]
 #       OBSID_browse_mosaic_thumb.png              +[generated]
-#       OBSID_browse_mosaic.xml                    +[template mosaic-browse-image.xml]
+#       OBSID_browse_mosaic.lblx                   +[template mosaic-browse-image.xml]
 #   browse_mosaic_bkg_sub/
 #     collection_browse_mosaic_bkg_sub.csv         +[generated: [P|S], LIDVID]
-#     collection_browse_mosaic_bkg_sub.xml          [RMS]
+#     collection_browse_mosaic_bkg_sub.lblx         [RMS]
 #     OBSID/
 #       OBSID_browse_mosaic_bkg_sub_full.png       +[generated]
 #       OBSID_browse_mosaic_bkg_sub_med.png        +[generated]
 #       OBSID_browse_mosaic_bkg_sub_small.png      +[generated]
 #       OBSID_browse_mosaic_bkg_sub_thumb.png      +[generated]
-#       OBSID_browse_mosaic_bkg_sub.xml            +[template mosaic-browse-image.xml]
+#       OBSID_browse_mosaic_bkg_sub.lblx           +[template mosaic-browse-image.xml]
 #   browse_reproj_img/
 #     collection_browse_reproj_img.csv             +[generated: [P|S], LIDVID]
-#     collection_browse_reproj_img.xml              [RMS]
+#     collection_browse_reproj_img.lblx             [RMS]
 #     OBSID/
 #       IMG_browse_reproj_img_full.png             +[generated]
 #       IMG_browse_reproj_img_thumb.png            +[generated]
-#       IMG_browse_reproj_img.xml                  +[template reproj-browse-image.xml]
+#       IMG_browse_reproj_img.lblx                 +[template reproj-browse-image.xml]
 #   context/
 #     [written by RMS]
 #   data_mosaic/
 #     collection_data_mosaic.csv                   +[generated: [P|S], LIDVID]
-#     collection_data_mosaic.xml                    [RMS]
+#     collection_data_mosaic.lblx                   [RMS]
 #     OBSID/
 #       OBSID_mosaic.img                           +[generated]
-#       OBSID_mosaic.xml                           +[template mosaic.xml]
+#       OBSID_mosaic.lblx                          +[template mosaic.xml]
 #       OBSID_mosaic_metadata_src_imgs.tab         +[generated]
 #       OBSID_mosaic_metadata_params.tab           +[generated]
-#       OBSID_mosaic_metadata.xml                  +[template mosaic-metadata.xml]
+#       OBSID_mosaic_metadata.lblx                 +[template mosaic-metadata.xml]
 #   data_mosaic_bkg_sub/
 #     collection_data_mosaic_bkg_sub.csv           +[generated: [P|S], LIDVID]
-#     collection_data_mosaic_bkg_sub.xml            [RMS]
+#     collection_data_mosaic_bkg_sub.lblx           [RMS]
 #     OBSID/
 #       OBSID_mosaic_bkg_sub.img                   +[generated]
-#       OBSID_mosaic_bkg_sub.xml                   +[template mosaic.xml]
+#       OBSID_mosaic_bkg_sub.lblx                  +[template mosaic.xml]
 #       OBSID_mosaic_bkg_sub_metadata_src_imgs.tab +[generated]
 #       OBSID_mosaic_bkg_sub_metadata_params.tab   +[generated]
-#       OBSID_mosaic_bkg_sub_metadata.xml          +[template mosaic-metadata.xml]
+#       OBSID_mosaic_bkg_sub_metadata.lblx         +[template mosaic-metadata.xml]
 #   data_reproj_img/
 #     collection_data_reproj_img.csv               +[generated: [P|S], LIDVID]
-#     collection_data_reproj_img.xml                [RMS]
+#     collection_data_reproj_img.lblx               [RMS]
 #     OBSID/
 #       IMG_reproj_img.img                         +[generated]
-#       IMG_reproj_img.xml                         +[template reproj-img.xml]
+#       IMG_reproj_img.lblx                        +[template reproj-img.xml]
 #       IMG_reproj_img_metadata_params.tab         +[generated]
-#       IMG_reproj_img_metadata.xml                +[template reproj-img-metadata.xml]
+#       IMG_reproj_img_metadata.lblx               +[template reproj-img-metadata.xml]
 #   document/
 #     collection_document.csv                       [RMS]
-#     collection_document.xml                       [RMS]
+#     collection_document.lblx                      [RMS]
 #     document-01.pdf                               [RF writes]
-#     document-01.xml                               [RMS]
+#     document-01.lblx                              [RMS]
 #   xml_schema/
 #     collection_xml_schema.csv                     [RMS]
-#     collection_xml_schema.xml                     [RMS]
+#     collection_xml_schema.lblx                    [RMS]
 #
 # Internal_Reference:
 #   Mosaic: Mosaic Metadata, Mosaic Browse, BSMosaic
@@ -408,7 +412,16 @@ def et_to_datetime(et):
 
 
 def downsample(img, amt0, amt1):
-    """Downsample an image by taking the mean of slices across longitude."""
+    """Downsample an image by taking the mean of slices across longitude and radius.
+
+    Parameters:
+        img (np.ndarray): 2D array of shape (n0, n1)
+        amt0 (int): downsample factor in longitude
+        amt1 (int): downsample factor in radius
+
+    Returns:
+        2D array of size (n0//amt0, n1//amt1)
+    """
     # Crop to an integral multiple of amt
     cropped_size0 = (img.shape[0] // amt0) * amt0
     cropped_size1 = (img.shape[1] // amt1) * amt1
@@ -419,7 +432,15 @@ def downsample(img, amt0, amt1):
 
 
 def pad_image(image, margin):
-    """Pad an image with a zero-filled margin on each edge."""
+    """Pad an image with a zero-filled margin on each edge.
+
+    Parameters:
+        image (np.ndarray): 2D array of shape (n0, n1)
+        margin (tuple): tuple of ints (p0, p1) giving the amount to pad on each edge
+
+    Returns:
+        2D array of size (n0+p0*2, n1+p1*2)
+    """
     if margin[0] == 0 and margin[1] == 0:
         return image
     new_image = np.zeros((image.shape[0]+margin[0]*2,image.shape[1]+margin[1]*2),
@@ -430,6 +451,18 @@ def pad_image(image, margin):
 
 
 def img_to_repro_path(image_path):
+    """Convert a calibrated image path to a reprojected image path.
+
+    Parameters:
+        image_path (str): path to a calibrated image like
+            /data/pdsdata/holdings/calibrated/COISS_2xxx/COISS_2001/data/
+            1454725799_1455008789/N1454725799_1_CALIB.IMG
+
+    Returns:
+        str: path to a reprojected image like
+            /data/cb-results/fring/ring_mosaic/ring_repro/COISS_2001/
+            1454725799_1455008789/N1454725799_1_140220_-01000_001000_05.000_0.020_10_1-REPRO.DAT
+    """
     components = image_path.split('/')
     vol = components[-4]
     sclk_dir = components[-2]
@@ -440,7 +473,14 @@ def img_to_repro_path(image_path):
 
 
 def populate_template(obsid, template_name, output_path, xml_metadata):
-    """Copy a template to an output file after making substitutions."""
+    """Copy a template to an output file after making substitutions.
+
+    Parameters:
+        obsid (str): observation ID
+        template_name (str): name of the template file to find in the templates directory
+        output_path (str): path to the output file
+        xml_metadata (dict): XML metadata
+    """
     template = pdstemplate.PdsTemplate(os.path.join('templates', template_name))
     template.write(xml_metadata, output_path, terminator='\n')
 
@@ -471,7 +511,17 @@ def fixup_byte_to_str(data):
 
 
 def read_mosaic(data_path, metadata_path, *, bkg_sub=False, read_img=True):
-    """Read a main or background-subtracted mosaic and associated metadata."""
+    """Read a main or background-subtracted mosaic and associated metadata.
+
+    Parameters:
+        data_path (str): path to the mosaic data file
+        metadata_path (str): path to the mosaic metadata file
+        bkg_sub (bool): whether to read a background-subtracted mosaic
+        read_img (bool): whether to read the image data
+
+    Returns:
+        dict: metadata
+    """
     try:
         with open(metadata_path, 'rb') as metadata_fp:
             metadata = msgpack.unpackb(metadata_fp.read(),
@@ -510,7 +560,15 @@ def read_mosaic(data_path, metadata_path, *, bkg_sub=False, read_img=True):
 
 
 def read_bkgnd_metadata(model_path, metadata_path):
-    """Read background model metadata."""
+    """Read background model metadata.
+
+    Parameters:
+        model_path (str): path to the background model file
+        metadata_path (str): path to the background model metadata file
+
+    Returns:
+        dict: metadata
+    """
     metadata = {}
     with open(metadata_path, 'rb') as bkgnd_metadata_fp:
         bkgnd_data = pickle.load(bkgnd_metadata_fp)
@@ -528,7 +586,14 @@ def read_bkgnd_metadata(model_path, metadata_path):
 
 
 def read_reproj(metadata_path):
-    """Read reprojected image metadata."""
+    """Read reprojected image metadata.
+
+    Parameters:
+        metadata_path (str): path to the reprojected image metadata file
+
+    Returns:
+        dict: metadata
+    """
     try:
         with open(metadata_path, 'rb') as metadata_fp:
             metadata = msgpack.unpackb(metadata_fp.read(),
@@ -613,19 +678,16 @@ def image_name_to_lidvid(name):
 def image_name_to_reproj_lid(name):
     """Convert Cassini ISS image name to a reprojected image LID.
 
-    urn:nasa:pds:cassini_iss_fring_mosaics_rsfrench2023:data_reproj_img:
-    1551253524n_reproj_img
+    urn:nasa:pds:fring_mosaic_rsfrench2025:data_reproj_img:1551253524n_reproj_img
     """
     name = name.lower()
-    return ( 'urn:nasa:pds:cassini_iss_fring_mosaics_rsfrench2023:data_reproj_img:'
-            f'{name}_reproj_img')
+    return (f'urn:nasa:pds:{BUNDLE_NAME}:data_reproj_img:{name}_reproj_img')
 
 
 def image_name_to_reproj_lidvid(name):
     """Convert Cassini ISS image name to a reprojected image LIDVID.
 
-    urn:nasa:pds:cassini_iss_fring_mosaics_rsfrench2023:data_reproj_img:
-    1551253524n_reproj_img::1.0
+    urn:nasa:pds:fring_mosaic_rsfrench2025:data_reproj_img:1551253524n_reproj_img::1.0
     """
     return image_name_to_reproj_lid(name)+'::1.0'
 
@@ -633,19 +695,16 @@ def image_name_to_reproj_lidvid(name):
 def image_name_to_reproj_metadata_lid(name):
     """Convert Cassini ISS image name to a reprojected image metadata LID.
 
-    urn:nasa:pds:cassini_iss_fring_mosaics_rsfrench2023:data_reproj_img:
-    1551253524n_reproj_img_metadata
+    urn:nasa:pds:fring_mosaic_rsfrench2025:data_reproj_img:1551253524n_reproj_img_metadata
     """
     name = name.lower()
-    return ( 'urn:nasa:pds:cassini_iss_fring_mosaics_rsfrench2023:data_reproj_img:'
-            f'{name}_reproj_img_metadata')
+    return (f'urn:nasa:pds:{BUNDLE_NAME}:data_reproj_img:{name}_reproj_img_metadata')
 
 
 def image_name_to_reproj_metadata_lidvid(name):
     """Convert Cassini ISS image name to a reprojected image metadata LIDVID.
 
-    urn:nasa:pds:cassini_iss_fring_mosaics_rsfrench2023:data_reproj_img:
-    1551253524n_reproj_img_metadata::1.0
+    urn:nasa:pds:fring_mosaic_rsfrench2025:data_reproj_img:1551253524n_reproj_img_metadata::1.0
     """
     return image_name_to_reproj_metadata_lid(name)+'::1.0'
 
@@ -653,19 +712,16 @@ def image_name_to_reproj_metadata_lidvid(name):
 def image_name_to_reproj_browse_lid(name):
     """Convert Cassini ISS image name to a reprojected browse image LID.
 
-    urn:nasa:pds:cassini_iss_fring_mosaics_rsfrench2023:browse_reproj_img:
-    1551253524n_browse_reproj_img
+    urn:nasa:pds:fring_mosaic_rsfrench2025:browse_reproj_img:1551253524n_browse_reproj_img
     """
     name = name.lower()
-    return ( 'urn:nasa:pds:cassini_iss_fring_mosaics_rsfrench2023:browse_reproj_img:'
-            f'{name}_browse_reproj_img')
+    return (f'urn:nasa:pds:{BUNDLE_NAME}:browse_reproj_img:{name}_browse_reproj_img')
 
 
 def image_name_to_reproj_browse_lidvid(name):
     """Convert Cassini ISS image name to a reprojected browse image LIDVID.
 
-    urn:nasa:pds:cassini_iss_fring_mosaics_rsfrench2023:browse_reproj_img:
-    1551253524n_browse_reproj_img::1.0
+    urn:nasa:pds:fring_mosaic_rsfrench2025:browse_reproj_img:1551253524n_browse_reproj_img::1.0
     """
     return image_name_to_reproj_browse_lid(name)+'::1.0'
 
@@ -673,26 +729,22 @@ def image_name_to_reproj_browse_lidvid(name):
 def obsid_to_mosaic_lid(obsid, bkg_sub):
     """Convert OBSID IOSIC_276RB_COMPLITB4001_SI to a mosaic or bsm LID.
 
-    urn:nasa:pds:cassini_iss_fring_mosaics_rsfrench2023:data_mosaic:
+    urn:nasa:pds:fring_mosaic_rsfrench2025:data_mosaic:
     iosic_276rb_complitb4001_si_mosaic
         or
-    urn:nasa:pds:cassini_iss_fring_mosaics_rsfrench2023:data_mosaic_bkg_sub:
-    iosic_276rb_complitb4001_si_mosaic_bkg_sub
+    urn:nasa:pds:fring_mosaic_rsfrench2025:data_mosaic_bkg_sub:iosic_276rb_complitb4001_si_mosaic_bkg_sub
     """
     sfx = '_bkg_sub' if bkg_sub else ''
     obsid = obsid.lower()
-    return ( 'urn:nasa:pds:cassini_iss_fring_mosaics_rsfrench2023:'
-            f'data_mosaic{sfx}:{obsid}_mosaic{sfx}')
+    return (f'urn:nasa:pds:{BUNDLE_NAME}:data_mosaic{sfx}:{obsid}_mosaic{sfx}')
 
 
 def obsid_to_mosaic_lidvid(obsid, bkg_sub):
     """Convert OBSID IOSIC_276RB_COMPLITB4001_SI to a mosaic or bsm LIDVID.
 
-    urn:nasa:pds:cassini_iss_fring_mosaics_rsfrench2023:data_mosaic:
-    iosic_276rb_complitb4001_si_mosaic::1.0
+    urn:nasa:pds:fring_mosaic_rsfrench2025:data_mosaic:iosic_276rb_complitb4001_si_mosaic::1.0
         or
-    urn:nasa:pds:cassini_iss_fring_mosaics_rsfrench2023:data_mosaic_bkg_sub:
-    iosic_276rb_complitb4001_si_mosaic_bkg_sub::1.0
+    urn:nasa:pds:fring_mosaic_rsfrench2025:data_mosaic_bkg_sub:iosic_276rb_complitb4001_si_mosaic_bkg_sub::1.0
     """
     return obsid_to_mosaic_lid(obsid, bkg_sub)+'::1.0'
 
@@ -700,11 +752,9 @@ def obsid_to_mosaic_lidvid(obsid, bkg_sub):
 def obsid_to_mosaic_metadata_lid(obsid, bkg_sub):
     """Convert OBSID to a mosaic or bsm metadata LID.
 
-    urn:nasa:pds:cassini_iss_fring_mosaics_rsfrench2023:data_mosaic:
-    iosic_276rb_complitb4001_si_mosaic_metadata
+    urn:nasa:pds:fring_mosaic_rsfrench2025:data_mosaic:iosic_276rb_complitb4001_si_mosaic_metadata
         or
-    urn:nasa:pds:cassini_iss_fring_mosaics_rsfrench2023:data_mosaic_bkg_sub:
-    iosic_276rb_complitb4001_si_mosaic_bkg_sub_metadata
+    urn:nasa:pds:fring_mosaic_rsfrench2025:data_mosaic_bkg_sub:iosic_276rb_complitb4001_si_mosaic_bkg_sub_metadata
     """
     sfx = '_bkg_sub' if bkg_sub else ''
     obsid = obsid.lower()
@@ -715,11 +765,9 @@ def obsid_to_mosaic_metadata_lid(obsid, bkg_sub):
 def obsid_to_mosaic_metadata_lidvid(obsid, bkg_sub):
     """Convert OBSID to a mosaic or bsm metadata LIDVID.
 
-    urn:nasa:pds:cassini_iss_fring_mosaics_rsfrench2023:data_mosaic:
-    iosic_276rb_complitb4001_si_metadata::1.0
+    urn:nasa:pds:fring_mosaic_rsfrench2025:data_mosaic:iosic_276rb_complitb4001_si_metadata::1.0
         or
-    urn:nasa:pds:cassini_iss_fring_mosaics_rsfrench2023:data_mosaic_bkg_sub:
-    iosic_276rb_complitb4001_si_metadata_bkg_sub::1.0
+    urn:nasa:pds:fring_mosaic_rsfrench2025:data_mosaic_bkg_sub:iosic_276rb_complitb4001_si_metadata_bkg_sub::1.0
     """
     return obsid_to_mosaic_metadata_lid(obsid, bkg_sub)+'::1.0'
 
@@ -727,26 +775,22 @@ def obsid_to_mosaic_metadata_lidvid(obsid, bkg_sub):
 def obsid_to_mosaic_browse_lid(obsid, bkg_sub):
     """Convert OBSID to a mosaic or bsm browse LID.
 
-    urn:nasa:pds:cassini_iss_fring_mosaics_rsfrench2023:browse_mosaic:
-    iosic_276rb_complitb4001_si_browse_mosaic
+    urn:nasa:pds:fring_mosaic_rsfrench2025:browse_mosaic:iosic_276rb_complitb4001_si_browse_mosaic
         or
-    urn:nasa:pds:cassini_iss_fring_mosaics_rsfrench2023:browse_mosaic_bkg_sub:
+    urn:nasa:pds:fring_mosaic_rsfrench2025:browse_mosaic_bkg_sub:
     iosic_276rb_complitb4001_si_browse_mosaic_bkg_sub
     """
     sfx = '_bkg_sub' if bkg_sub else ''
     obsid = obsid.lower()
-    return ( 'urn:nasa:pds:cassini_iss_fring_mosaics_rsfrench2023:'
-            f'browse_mosaic{sfx}:{obsid}_browse_mosaic{sfx}')
+    return (f'urn:nasa:pds:{BUNDLE_NAME}:browse_mosaic{sfx}:{obsid}_browse_mosaic{sfx}')
 
 
 def obsid_to_mosaic_browse_lidvid(obsid, bkg_sub):
     """Convert OBSID to a mosaic or bsm browse LIDVID.
 
-    urn:nasa:pds:cassini_iss_fring_mosaics_rsfrench2023:browse_mosaic:
-    iosic_276rb_complitb4001_si_browse_mosaic::1.0
+    urn:nasa:pds:fring_mosaic_rsfrench2025:browse_mosaic:iosic_276rb_complitb4001_si_browse_mosaic::1.0
         or
-    urn:nasa:pds:cassini_iss_fring_mosaics_rsfrench2023:browse_mosaic_bkg_sub:
-    iosic_276rb_complitb4001_si_browse_mosaic_bkg_sub::1.0
+    urn:nasa:pds:fring_mosaic_rsfrench2025:browse_mosaic_bkg_sub:iosic_276rb_complitb4001_si_browse_mosaic_bkg_sub::1.0
     """
     return obsid_to_mosaic_browse_lid(obsid, bkg_sub)+'::1.0'
 
@@ -776,7 +820,7 @@ def read_label(image_name):
     components = image_name.split('/')[-5:]
     image_path = os.path.join(CALIBRATED_DIR, *components)
     label_path = image_path.replace('.IMG', '.LBL')
-    return PdsLabel.from_file(label_path)
+    return Pds3Label.from_file(label_path, method='fast')
 
 
 ##########################################################################################
@@ -1207,29 +1251,29 @@ def generate_image(obsid, output_dir, metadata, xml_metadata, img_type):
       data_mosaic/
         OBSID/
           OBSID_mosaic.img                            [GENERATE_MOSAIC_IMAGES]
-          OBSID_mosaic.xml                            [GENERATE_MOSAIC_IMAGE_LABELS]
+          OBSID_mosaic.lblx                           [GENERATE_MOSAIC_IMAGE_LABELS]
           OBSID_mosaic_metadata_src_imgs.tab          [GENERATE_MOSAIC_METADATA_TABLES]
           OBSID_mosaic_metadata_params.tab            [GENERATE_MOSAIC_METADATA_TABLES]
-          OBSID_mosaic_metadata.xml                   [GENERATE_MOSAIC_METADATA_LABELS]
+          OBSID_mosaic_metadata.lblx                  [GENERATE_MOSAIC_METADATA_LABELS]
 
     img_type = 'b':
 
       data_mosaic_bkg_sub/
         OBSID/
           OBSID_mosaic_bkg_sub.img                    [GENERATE_MOSAIC_IMAGES]
-          OBSID_mosaic_bkg_sub.xml                    [GENERATE_MOSAIC_IMAGE_LABELS]
+          OBSID_mosaic_bkg_sub.lblx                   [GENERATE_MOSAIC_IMAGE_LABELS]
           OBSID_mosaic_bkg_sub_metadata_src_imgs.tab  [GENERATE_MOSAIC_METADATA_TABLES]
           OBSID_mosaic_bkg_sub_metadata_params.tab    [GENERATE_MOSAIC_METADATA_TABLES]
-          OBSID_mosaic_bkg_sub_metadata.xml           [GENERATE_MOSAIC_METADATA_LABELS]
+          OBSID_mosaic_bkg_sub_metadata.lblx          [GENERATE_MOSAIC_METADATA_LABELS]
 
     img_type = 'r':
 
       data_reproj_img/
         OBSID/
           IMG_reproj_img.img                          [GENERATE_REPROJ_IMAGES]
-          IMG_reproj_img.xml                          [GENERATE_REPROJ_IMAGE_LABELS]
+          IMG_reproj_img.lblx                         [GENERATE_REPROJ_IMAGE_LABELS]
           IMG_reproj_img_metadata_params.tab          [GENERATE_REPROJ_METADATA_TABLES]
-          IMG_reproj_img_metadata.xml                 [GENERATE_REPROJ_METADATA_LABELS]
+          IMG_reproj_img_metadata.lblx                [GENERATE_REPROJ_METADATA_LABELS]
     """
     os.makedirs(output_dir, exist_ok=True)
 
@@ -1351,13 +1395,13 @@ def generate_image(obsid, output_dir, metadata, xml_metadata, img_type):
             xml_metadata['IMAGE_TABLE_PATH'] = image_table_path
         if img_type == 'r':
             metadata_label_output_path = os.path.join(output_dir,
-                                   f'{image_name.lower()}_reproj_img_metadata.xml')
-            populate_template(obsid, 'data_reproj_img_metadata.xml',
+                                   f'{image_name.lower()}_reproj_img_metadata.lblx')
+            populate_template(obsid, 'data_reproj_img_metadata.lblx',
                               metadata_label_output_path, xml_metadata)
         else:
             metadata_label_output_path = os.path.join(output_dir,
-                                   f'{obsid.lower()}_mosaic{sfx}_metadata.xml')
-            populate_template(obsid, 'data_mosaic_metadata.xml',
+                                   f'{obsid.lower()}_mosaic{sfx}_metadata.lblx')
+            populate_template(obsid, 'data_mosaic_metadata.lblx',
                               metadata_label_output_path, xml_metadata)
 
 
@@ -1371,11 +1415,11 @@ def generate_image(obsid, output_dir, metadata, xml_metadata, img_type):
     if img_type == 'r':
         image_output_path = os.path.join(output_dir, xml_metadata['REPROJ_IMG_FILENAME'])
         label_output_path = os.path.join(output_dir,
-                                         f'{image_name.lower()}_reproj_img.xml')
+                                         f'{image_name.lower()}_reproj_img.lblx')
     else:
         image_output_path = os.path.join(output_dir, xml_metadata['MOSAIC_IMG_FILENAME'])
         label_output_path = os.path.join(output_dir,
-                                         f'{obsid.lower()}_mosaic{sfx}.xml')
+                                         f'{obsid.lower()}_mosaic{sfx}.lblx')
 
     if ((img_type == 'r' and GENERATE_REPROJ_IMAGES) or
         (img_type != 'r' and GENERATE_MOSAIC_IMAGES)):
@@ -1393,9 +1437,9 @@ def generate_image(obsid, output_dir, metadata, xml_metadata, img_type):
         except FileNotFoundError:
             pass
         if img_type == 'r':
-            populate_template(obsid, 'data_reproj_img.xml', label_output_path, xml_metadata)
+            populate_template(obsid, 'data_reproj_img.lblx', label_output_path, xml_metadata)
         else:
-            populate_template(obsid, 'data_mosaic.xml', label_output_path, xml_metadata)
+            populate_template(obsid, 'data_mosaic.lblx', label_output_path, xml_metadata)
 
 
 def generate_browse(obsid, browse_dir, metadata, xml_metadata, img_type):
@@ -1594,14 +1638,14 @@ data available are shown as black.
 
         if img_type == 'r':
             output_path = os.path.join(browse_dir,
-                                       f'{image_name.lower()}_browse_reproj_img.xml')
+                                       f'{image_name.lower()}_browse_reproj_img.lblx')
         else:
             output_path = os.path.join(browse_dir,
-                                       f'{obsid.lower()}_browse_mosaic{sfx}.xml')
+                                       f'{obsid.lower()}_browse_mosaic{sfx}.lblx')
         if img_type == 'r':
-            populate_template(obsid, 'browse_reproj_img.xml', output_path, xml_metadata)
+            populate_template(obsid, 'browse_reproj_img.lblx', output_path, xml_metadata)
         else:
-            populate_template(obsid, 'browse_mosaic.xml', output_path, xml_metadata)
+            populate_template(obsid, 'browse_mosaic.lblx', output_path, xml_metadata)
 
 
 def generate_mosaic(obsid,
@@ -1785,7 +1829,7 @@ created from reprojected, calibrated Cassini ISS images, and
 associated metadata.
     """
     metadata['DATA_MOSAIC_COLLECTION_CSV_NAME'] = 'collection_data_mosaic.csv'
-    populate_template(None, 'collection_data_mosaic.xml',
+    populate_template(None, 'collection_data_mosaic.lblx',
                       coll_data_mosaic_xml_path, metadata)
     metadata['DATA_MOSAIC_COLLECTION_LID'] = 'urn:nasa:pds:cassini_iss_fring_mosaics_rsfrench2023:data_mosaic_bkg_sub'
     metadata['DATA_MOSAIC_COLLECTION_CSV_PATH'] = coll_bsm_data_mosaic_csv_path
@@ -1798,7 +1842,7 @@ This is the collection of background-subtracted F Ring mosaics created from
 reprojected, calibrated Cassini ISS images, and associated metadata.
     """
     metadata['DATA_MOSAIC_COLLECTION_CSV_NAME'] = 'collection_data_mosaic_bkg_sub.csv'
-    populate_template(None, 'collection_data_mosaic.xml',
+    populate_template(None, 'collection_data_mosaic.lblx',
                       coll_bsm_data_mosaic_xml_path, metadata)
 
 
@@ -1821,7 +1865,7 @@ This is the collection of browse products for the (non background-subtracted) F
 Ring mosaics created from reprojected, calibrated Cassini ISS images
     """
     metadata['BROWSE_MOSAIC_COLLECTION_CSV_NAME'] = 'collection_browse_mosaic.csv'
-    populate_template(None, 'collection_browse_mosaic.xml',
+    populate_template(None, 'collection_browse_mosaic.lblx',
                       coll_browse_mosaic_xml_path, metadata)
     metadata['BROWSE_MOSAIC_COLLECTION_LID'] = 'urn:nasa:pds:cassini_iss_fring_mosaics_rsfrench2023:browse_mosaic_bkg_sub'
     metadata['BROWSE_MOSAIC_COLLECTION_CSV_PATH'] = coll_bsm_browse_mosaic_csv_path
@@ -1834,7 +1878,7 @@ This is the collection of browse products for the background-subtracted F
 Ring mosaics created from reprojected, calibrated Cassini ISS images
     """
     metadata['BROWSE_MOSAIC_COLLECTION_CSV_NAME'] = 'collection_browse_mosaic_bkg_sub.csv'
-    populate_template(None, 'collection_browse_mosaic.xml',
+    populate_template(None, 'collection_browse_mosaic.lblx',
                       coll_bsm_browse_mosaic_xml_path, metadata)
 
 
@@ -1856,7 +1900,7 @@ Collection of reprojected, calibrated Cassini ISS images
 This is the collection of reprojected, calibrated Cassini ISS images
     """
     metadata['DATA_REPROJ_COLLECTION_CSV_NAME'] = 'collection_data_reproj_img.csv'
-    populate_template(None, 'collection_data_reproj_img.xml',
+    populate_template(None, 'collection_data_reproj_img.lblx',
                       coll_data_reproj_xml_path, metadata)
 
 
@@ -1877,7 +1921,7 @@ This is the collection of browse products for the reprojected, calibrated Cassin
 ISS images
     """
     metadata['BROWSE_REPROJ_COLLECTION_CSV_NAME'] = 'collection_browse_reproj_img.csv'
-    populate_template(None, 'collection_browse_reproj_img.xml',
+    populate_template(None, 'collection_browse_reproj_img.lblx',
                       coll_browse_reproj_xml_path, metadata)
 
 
@@ -1895,8 +1939,8 @@ def generate_xml_schema():
     metadata['XML_SCHEMA_CSV_PATH'] = csv_path
     populate_template(None, 'collection_xml_schema.csv',
                       csv_path, metadata)
-    populate_template(None, 'collection_xml_schema.xml',
-                      os.path.join(schema_dir, 'collection_xml_schema.xml'),
+    populate_template(None, 'collection_xml_schema.lblx',
+                      os.path.join(schema_dir, 'collection_xml_schema.lblx'),
                       metadata)
 
 
