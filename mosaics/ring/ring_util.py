@@ -117,7 +117,7 @@ class BkgndData(object):
         self.radius_resolution = None
         self.longitude_resolution = None
         self.mosaic_img = None
-        self.long_mask = None
+        self.long_antimask = None
         self.image_numbers = None
         self.ETs = None
         self.emission_angles = None
@@ -635,7 +635,7 @@ def write_bkgnd_sub_mosaic(mosaic_filename, img, metadata_filename, bkgnddata):
     metadata['ring_upper_limit'] = bkgnddata.ring_upper_limit
     metadata['radius_resolution'] = bkgnddata.radius_resolution
     metadata['longitude_resolution'] = bkgnddata.longitude_resolution
-    metadata['long_mask'] = bkgnddata.long_mask
+    metadata['long_antimask'] = bkgnddata.long_antimask
     metadata['image_number'] = bkgnddata.image_numbers
     metadata['time'] = bkgnddata.ETs
     metadata['mean_emission'] = bkgnddata.emission_angles

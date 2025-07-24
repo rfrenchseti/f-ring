@@ -27,6 +27,7 @@ from tkinter import *
 from imgdisp import ImageDisp, FloatEntry
 
 import cspyce
+import oops
 
 import nav.logging_setup
 from nav.config import PYTHON_EXE

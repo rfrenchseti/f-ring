@@ -5,7 +5,7 @@
 ##########################################################################################
 
 import argparse
-from datetime import datetime
+import datetime
 import logging
 import os
 import pickle
@@ -34,7 +34,9 @@ sys.path.append(os.path.join(parent_dir, 'external'))
 
 import f_ring_util.f_ring as f_ring
 
-BUNDLE_NAME = 'fring_mosaic_rsfrench2025'
+BUNDLE_NAME = 'cassini_iss_fring_mosaics_rsfrench2025'
+
+OBSERVATION_LIST_PATH = 'observation_list.csv'
 
 # XML directory structure:
 #   bundle.lblx                                     [RMS]
@@ -90,6 +92,7 @@ BUNDLE_NAME = 'fring_mosaic_rsfrench2025'
 #     OBSID/
 #       IMG_reproj_img.img                         +[generated]
 #       IMG_reproj_img.lblx                        +[template reproj-img.xml]
+#       IMG_reproj_img_suppl.txt                   +[generated]
 #       IMG_reproj_img_metadata_params.tab         +[generated]
 #       IMG_reproj_img_metadata.lblx               +[template reproj-img-metadata.xml]
 #   document/
@@ -135,6 +138,9 @@ parser.add_argument('--generate-reproj-labels',
 parser.add_argument('--generate-reproj-images',
                     action='store_true', default=False,
                     help='Generate reproj image files')
+parser.add_argument('--generate-reproj-suppl-files',
+                    action='store_true', default=False,
+                    help='Generate reproj supplemental files')
 parser.add_argument('--generate-reproj-collections',
                     action='store_true', default=False,
                     help='Generate reproj collections files')
@@ -238,6 +244,7 @@ f_ring.init(arguments)
 
 CALIBRATED_DIR = '/data/pdsdata/holdings/calibrated' # XXX
 REPROJ_DIR = '/data/cb-results/fring/ring_mosaic/ring_repro' # XXX
+OFFSETS_DIR = '/data/cb-results/fring/offsets' # XXX
 
 GENERATE_REPROJ_IMAGE_LABELS = (arguments.generate_reproj_labels or
                                 arguments.generate_reproj or
@@ -249,6 +256,10 @@ GENERATE_REPROJ_IMAGES = (arguments.generate_reproj_images or
                           arguments.generate_all_reproj or
                           arguments.generate_all_images or
                           arguments.generate_all)
+GENERATE_REPROJ_SUPPL_FILES = (arguments.generate_reproj_suppl_files or
+                               arguments.generate_reproj or
+                               arguments.generate_all_reproj or
+                               arguments.generate_all)
 
 GENERATE_REPROJ_METADATA_LABELS = (arguments.generate_reproj_metadata_labels or
                                    arguments.generate_reproj_metadata or
@@ -406,9 +417,34 @@ class ObsIdFailedException(Exception):
     pass
 
 
-def et_to_datetime(et):
+def et_to_datetime(et, dec=None):
     """Convert a SPICE ET to a datetime like 2020-01-01T00:00:00Z."""
-    return julian.ymdhms_format_from_tai(julian.tai_from_tdb(et)) + 'Z'
+    return julian.ymdhms_format_from_tai(julian.tai_from_tdb(et), digits=dec) + 'Z'
+
+
+# F ring orbit from Albers 2012
+FRING_ROTATING_ET = utc2et('2007-01-01')
+FRING_ORBIT_EPOCH = utc2et('2000-01-01T12:00:00')  # J2000
+FRING_MEAN_MOTION = 581.964  # deg/day
+FRING_A = 140221.3
+FRING_E = 0.00235
+FRING_W0 = 24.2
+FRING_DW = 2.70025
+
+def fring_true_anomaly(longitude, et):
+    """Return the true anomaly at the given time and inertial longitude."""
+    curly_w = FRING_W0 + FRING_DW*et/86400.
+    return (longitude - curly_w) % 360.
+
+
+def fring_radius_at_longitude(longitude, et):
+    """Return the radius (km) of the F ring core at inertial longitude."""
+    true_anomaly = fring_true_anomaly(longitude, et)
+
+    radius = (FRING_A * (1-FRING_E**2) /
+              (1 + FRING_E * np.cos(np.radians(true_anomaly))))
+
+    return radius
 
 
 def downsample(img, amt0, amt1):
@@ -470,6 +506,76 @@ def img_to_repro_path(image_path):
     image_name = image_name.replace('_CALIB.IMG',
                                     '_140220_-01000_001000_05.000_0.020_10_1-REPRO.DAT')
     return os.path.join(REPROJ_DIR, vol, sclk_dir, image_name)
+
+
+def img_to_offset_path(image_path):
+    """Convert a calibrated image path to an offset path.
+
+    Parameters:
+        image_path (str): path to a calibrated image like
+            /data/pdsdata/holdings/calibrated/COISS_2xxx/COISS_2001/data/
+            1454725799_1455008789/N1454725799_1_CALIB.IMG
+
+    Returns:
+        str: path to a offset like
+            /data/cb-results/fring/offsets/COISS_2001/1454725799_1455008789/N1454725799_1-OFFSET.dat
+    """
+    components = image_path.split('/')
+    vol = components[-4]
+    sclk_dir = components[-2]
+    image_name = components[-1]
+    image_name = image_name.replace('_CALIB.IMG',
+                                    '-OFFSET.dat')
+    return os.path.join(OFFSETS_DIR, vol, sclk_dir, image_name)
+
+
+def fixup_byte_to_str(data):
+    if (isinstance(data, (str, float, int, bool,
+                          np.bool_, np.float32, np.ndarray))
+        or data is None):
+        return data
+    if isinstance(data, bytes):
+        try:
+            return data.decode('utf-8')
+        except UnicodeDecodeError:
+            # This will happen for things like image overlays
+            return data
+    if isinstance(data, list):
+        return [fixup_byte_to_str(x) for x in data]
+    if isinstance(data, tuple):
+        return tuple([fixup_byte_to_str(x) for x in data])
+    if isinstance(data, dict):
+        new_data = {}
+        for key in data:
+            new_data[key.decode('utf-8')] = fixup_byte_to_str(data[key])
+        return new_data
+    print('Unknown type in fixup_byte_to_str', type(data))
+    return data
+
+
+def read_offset_metadata_path(offset_path):
+    """Read and decompress metadata given an offset file path.
+
+    overlay             True to include the overlay in the metadata dict.
+    """
+    try:
+        with open(offset_path, "rb") as offset_fp:
+            metadata = msgpack.unpackb(offset_fp.read(),
+                                       max_str_len=100000000,
+                                       object_hook=msgpack_numpy.decode)
+    except UnicodeDecodeError: # Python2 msgpack file
+        with open(offset_path, "rb") as offset_fp:
+            metadata = msgpack.unpackb(offset_fp.read(),
+                                       max_str_len=100000000,
+                                       object_hook=msgpack_numpy.decode,
+                                       raw=True)
+            metadata = fixup_byte_to_str(metadata)
+    except:
+        LOGGER.error("Failed to read %s:\n%s", offset_path,
+                     traceback.format_exc())
+        raise ObsIdFailedException
+
+    return metadata
 
 
 def populate_template(obsid, template_name, output_path, xml_metadata):
@@ -584,6 +690,8 @@ def read_bkgnd_metadata(model_path, metadata_path):
     with np.load(model_path) as npz:
         metadata['bkgnd_model'] = ma.MaskedArray(**npz)
 
+    return metadata
+
 
 def read_reproj(metadata_path):
     """Read reprojected image metadata.
@@ -622,14 +730,14 @@ def read_reproj(metadata_path):
     return metadata
 
 
-def mosaic_has_prometheus(metadata):
+def mosaic_has_prometheus(obsid):
     """Return True if Prometheus is present in the mosaic."""
-    return True # XXX
+    return OBSERVATION_INFO[obsid]['prometheus'] == 'Y'
 
 
-def mosaic_has_pandora(metadata):
+def mosaic_has_pandora(obsid):
     """Return True if Pandora is present in the mosaic."""
-    return True # XXX
+    return OBSERVATION_INFO[obsid]['pandora'] == 'Y'
 
 
 def reformat_iss_name(name):
@@ -668,7 +776,7 @@ def remap_image_indexes(metadata):
 def image_name_to_lidvid(name):
     """Convert Cassini ISS image name to a calibrated LIDVID.
 
-    urn:nasa:pds:cassini_iss_saturn:data_calibrated:1455008633n_calib
+    urn:nasa:pds:cassini_iss_saturn:data_calibrated:1455008633n_calib::1.0
     """
     name = name.lower()
     return ( 'urn:nasa:pds:cassini_iss_saturn:data_calibrated:'
@@ -758,8 +866,7 @@ def obsid_to_mosaic_metadata_lid(obsid, bkg_sub):
     """
     sfx = '_bkg_sub' if bkg_sub else ''
     obsid = obsid.lower()
-    return ( 'urn:nasa:pds:cassini_iss_fring_mosaics_rsfrench2023:'
-            f'data_mosaic{sfx}:{obsid}_mosaic{sfx}_metadata')
+    return (f'urn:nasa:pds:{BUNDLE_NAME}:data_mosaic{sfx}:{obsid}_mosaic{sfx}_metadata')
 
 
 def obsid_to_mosaic_metadata_lidvid(obsid, bkg_sub):
@@ -807,8 +914,8 @@ def et_to_tour(et):
     if datetime <= '2008-06-30':
         return 'TOUR'
     if datetime <= '2010-09-29':
-        return 'EXTENDED MISSION'
-    return 'EXTENDED-EXTENDED MISSION'
+        return 'EQUINOX MISSION'
+    return 'SOLSTICE MISSION'
 
 
 def read_label(image_name):
@@ -820,7 +927,119 @@ def read_label(image_name):
     components = image_name.split('/')[-5:]
     image_path = os.path.join(CALIBRATED_DIR, *components)
     label_path = image_path.replace('.IMG', '.LBL')
-    return Pds3Label.from_file(label_path, method='fast')
+    return Pds3Label(label_path, method='fast')
+
+
+def compute_mid_sclk(start_sclk, stop_sclk):
+    """Compute the mid-time SCLK from the start and stop SCLKs.
+
+    Cassini SCLKs have an integer part and a fractional part. The fractional
+    part is 3 digits 0-255.
+    """
+    start_sclk_int, start_sclk_frac = start_sclk.split('.')
+    stop_sclk_int, stop_sclk_frac = stop_sclk.split('.')
+    start_sclk = int(start_sclk_int) + int(start_sclk_frac)/256
+    stop_sclk = int(stop_sclk_int) + int(stop_sclk_frac)/256
+    mid_sclk = (start_sclk + stop_sclk)/2
+    mid_sclk_int = int(mid_sclk)
+    mid_sclk_frac = int((mid_sclk - mid_sclk_int)*256)
+    return f'{mid_sclk_int}.{mid_sclk_frac:03d}'
+
+
+def write_suppl_file(output_path, metadata, xml_metadata):
+    """Write the supplemental file for the reprojected image."""
+    offset_path = img_to_offset_path(metadata['image_path'])
+    offset_metadata = read_offset_metadata_path(offset_path)
+
+    if 'manual_offset' in offset_metadata:
+        nav_type = 'Manual'
+    elif offset_metadata['offset_winner'] == 'MODEL':
+        nav_type = 'Ring and/or Satellite Models'
+    else:
+        nav_type = 'Stars'
+
+    image_name = metadata['image_name']
+    start_date = xml_metadata['START_DATE_TIME_3']
+    partition = xml_metadata['SPACECRAFT_CLOCK_CNT_PARTITION']
+    start_sclk = xml_metadata['SPACECRAFT_CLOCK_START_COUNT']
+    mid_date = xml_metadata['MIDTIME_DATE_TIME_3']
+    mid_sclk = xml_metadata['SPACECRAFT_CLOCK_MID_COUNT']
+    stop_date = xml_metadata['STOP_DATE_TIME_3']
+    stop_sclk = xml_metadata['SPACECRAFT_CLOCK_STOP_COUNT']
+    hdr_text = 'This file contains a C-matrix that describes the rotation from the J2000 reference\n'
+    hdr_text += 'frame to the camera pointing based upon analysis of the contents of the image.\n\n'
+    hdr_text = f'Source Data Product ID = {image_name}_calib\n'
+    hdr_text += f'Image Start Time (SCLK) = {partition}/{start_sclk}\n'
+    hdr_text += f'Image Start Time (UTC) = {start_date}\n'
+    hdr_text += f'Image Mid Time (SCLK) = {partition}/{mid_sclk}\n'
+    hdr_text += f'Image Mid Time (UTC) = {mid_date}\n'
+    hdr_text += f'Image Stop Time (SCLK) = {partition}/{stop_sclk}\n'
+    hdr_text += f'Image Stop Time (UTC) = {stop_date}\n'
+    hdr_text += f'Trajectory Kernels Query Time = Observation mid time\n'
+    hdr_text += 'Stellar Aberration Correction = Yes\n'
+    hdr_text += 'Light Travel Time Correction = Yes\n'
+    hdr_text += f'Navigation Type = {nav_type}\n'
+    hdr_text += 'C-Matrix = \n'
+
+    c_matrix = np.zeros((3,3))  # XXX
+    c_matrix[0,0] = -0.085965968
+    c_matrix[0,1] = -0.048688917
+    c_matrix[0,2] = 0.99510765
+    c_matrix[1,0] = 0.57417040
+    c_matrix[1,1] = -0.81868018
+    c_matrix[1,2] = 0.0095451612
+    c_matrix[2,0] = 0.81421017
+    c_matrix[2,1] = 0.57218192
+    c_matrix[2,2] = 0.098334370
+
+    c_matrix_text = ''
+    for i in range(3):
+        for j in range(3):
+            c_matrix_text += f'{c_matrix[i,j]:16.10f}'
+        c_matrix_text += '\n'
+
+    with open(output_path, 'w') as f:
+        f.write(hdr_text)
+        f.write(c_matrix_text)
+
+    return len(hdr_text)
+
+
+def read_observation_list():
+    """Read the observation list from the observation list CSV file.
+
+    The CSV file has the following columns:
+        Observation,Inertial,Nav qual,Bkgnd qual,Prometheus,Pandora,Additional Comments,
+
+    Notes:
+        B: Background-subtracted mosaic is missing data due to insufficient radial extent
+        C: Some source images have corrupted or missing data
+        E: Some areas may be overexposed
+        M1: Multiple contiguous observations of the same inertial longitude range
+        M2: One of a pair of observations taken at inertial longitudes roughly 180 degrees apart
+        M3: Multiple observations of the same co-rotating longitude range but different inertial
+        M4: Observations of different co-rotating and different inertial longitudes
+        N: Non-inertial
+        O: Occultation
+        R: Follows one co-rotating longitude range with different inertial longitudes
+    """
+    global OBSERVATION_INFO
+    OBSERVATION_INFO = {}
+    # Use the csv module to read the observation list CSV file.
+    import csv
+    with open(OBSERVATION_LIST_PATH, 'r') as f:
+        reader = csv.reader(f)
+        next(reader)  # Skip the header row.
+        for row in reader:
+            obsid, inertial, nav_qual, bkgnd_qual, prometheus, pandora, notes, _ = row
+            OBSERVATION_INFO[obsid] = {
+                'inertial': inertial,
+                'nav_qual': nav_qual,
+                'bkgnd_qual': bkgnd_qual,
+                'prometheus': prometheus,
+                'pandora': pandora,
+                'notes': notes,
+            }
 
 
 ##########################################################################################
@@ -829,10 +1048,10 @@ def read_label(image_name):
 #
 ##########################################################################################
 
-def xml_metadata_for_image(obsid, metadata, img_type):
+def xml_metadata_for_image(obsid, metadata, bkgnd_metadata, img_type):
     """Generate the common template substitions for all image types.
 
-        img_type is 'm' (basic mosasic), 'b' (bsm), or 'r' (reprojected image).
+    img_type is 'm' (basic mosasic), 'b' (bsm), or 'r' (reprojected image).
     """
     ret = BASIC_XML_METADATA.copy()
 
@@ -841,141 +1060,20 @@ def xml_metadata_for_image(obsid, metadata, img_type):
     match = re.search(r'^(.*)_(\d+)$', obsid)
     partial_obsid = bool(match)
     root_obsid = obsid
+    obsid_chunk = None
     if partial_obsid:
         root_obsid = match[1]
         obsid_chunk = match[2]
 
     ret['FULL_OBSERVATION_ID'] = obsid
     ret['OBSERVATION_ID'] = root_obsid
-
-    sfx = None
-    cap_bkg = None
-    num_images = None
-
-    if img_type == 'r':
-        max_et = min_et = metadata['time']
-    else:
-        sfx = '_bkg_sub' if img_type == 'b' else ''
-        cap_bkg = 'Background-subtracted ' if img_type == 'b' else ''
-        num_images = len(metadata['image_path_list'])
-
-        ETs = metadata['time'][long_antimask]
-        min_et = np.min(ETs)
-        max_et = np.max(ETs)
-
-    ret['START_DATE_TIME'] = start_date = et_to_datetime(min_et)
-    ret['STOP_DATE_TIME'] = stop_date = et_to_datetime(max_et)
-
-    global EARLIEST_START_DATE_TIME, LATEST_STOP_DATE_TIME
-    EARLIEST_START_DATE_TIME = min(EARLIEST_START_DATE_TIME, min_et)
-    LATEST_STOP_DATE_TIME = max(LATEST_STOP_DATE_TIME, max_et)
-
-    total_secs = max_et - min_et
-    total_hours = total_secs / 3600
-
-    ret['TOUR'] = et_to_tour(min_et)
-
-    num_good_long = np.sum(long_antimask)
-    min_corot_long = np.where(long_antimask)[0][0] / len(long_antimask) * 360
-    max_corot_long = np.where(long_antimask)[0][-1] / len(long_antimask) * 360
-    diff_corot = max_corot_long - min_corot_long + 360. / len(long_antimask)
-    deg_good_long = num_good_long / len(long_antimask) * 360
-    inertial_longitudes = metadata['inertial_longitudes'][long_antimask]
-    min_inertial = np.min(inertial_longitudes)
-    max_inertial = np.max(inertial_longitudes)
-    diff_inertial = max_inertial - min_inertial
-
-    ret['FILTER1'] = 'CL1'
-    ret['FILTER2'] = 'CL2'
-    ret['NUM_VALID_LONGITUDES'] = str(np.sum(long_antimask))
-    ret['MOSAIC_LID'] = obsid_to_mosaic_lid(obsid, img_type == 'b')
-    ret['MOSAIC_ORIGINAL_LID'] = obsid_to_mosaic_lid(obsid, False)
-    ret['MOSAIC_BKG_SUB_LID'] = obsid_to_mosaic_lid(obsid, True)
-    ret['MOSAIC_METADATA_LID'] = obsid_to_mosaic_metadata_lid(obsid,
-                                                              img_type == 'b')
-    ret['BROWSE_MOSAIC_LID'] = obsid_to_mosaic_browse_lid(obsid, img_type == 'b')
-    if img_type == 'b':
-        ret['MOSAIC_OTHER_LID'] = ret['MOSAIC_ORIGINAL_LID']
-        ret['MOSAIC_OTHER_REFERENCE_COMMENT'] = """
-            The mosaic without the background subtracted."""
-        ret['MOSAIC_REFERENCE_COMMENT'] = """
-            The mosaic with the background subtracted."""
-        ret['BROWSE_MOSAIC_COMMENT'] = """
-            Browse images of the background-subtracted mosaic in multiple sizes
-            in PNG format."""
-    else:
-        ret['MOSAIC_OTHER_LID'] = ret['MOSAIC_BKG_SUB_LID']
-        ret['MOSAIC_REFERENCE_COMMENT'] = """
-            The mosaic without the background subtracted."""
-        ret['MOSAIC_OTHER_REFERENCE_COMMENT'] = """
-            The mosaic with the background subtracted."""
-        ret['BROWSE_MOSAIC_COMMENT'] = """
-            Browse images of the mosaic in multiple sizes in PNG format."""
+    ret['OBSERVATION_ID_CHUNK'] = obsid_chunk
 
     if img_type == 'r':
         max_image_path = min_image_path = metadata['image_path']
-        image_name = metadata['image_name']
-        ret['REPROJ_METADATA_LID'] = image_name_to_reproj_lid(image_name)
-        ret['REPROJ_TITLE'] = f"""
-Reprojected version of Cassini ISS calibrated image {image_name} from
-observation {root_obsid}
-"""
-        ret['REPROJ_METADATA_TITLE'] = f"""
-Metadata for the reprojected version of Cassini ISS calibrated image
-{image_name} from observation {root_obsid}
-"""
-        ret['REPROJ_LID'] = image_name_to_reproj_lid(image_name)
-        ret['BROWSE_REPROJ_LID'] = image_name_to_reproj_browse_lid(image_name)
-        ret['REPROJ_METADATA_LID'] = image_name_to_reproj_metadata_lid(image_name)
-
-        ret['REPROJ_DESCRIPTION'] = ret['REPROJ_TITLE']
-
-        ret['REPROJ_COMMENT'] = f"""
-This data file is an individual reprojected image of Saturn's F ring from
-Cassini ISS image {image_name} taken at {start_date}. In this image, Cassini
-observed an area of space covering {diff_inertial:.3f} degrees of inertial
-longitude from {min_inertial:.3f} to {max_inertial:.3f}. The source image was
-calibrated using CISSCAL 4.0 and the data values are in units of I/F. The
-mosaics, in the data_mosaic and data_mosaic_bkg_sub collections, were generated
-by stitching together reprojected, calibrated images such as this.
-
-
-The reprojection takes the image space and reprojects it onto a regular
-radius/longitude grid, where the longitude (sampled at 0.02 degrees) is
-co-rotating with the core of the F ring and the radius (sampled at 5 km) is
-relative to the position of the core at that longitude and time given a
-particular model of the F ring's orbit (in other words, even though the F ring
-is eccentric, in the mosaic it looks like a straight line at constant radius).
-We use the F ring orbit from Albers et al. (2009), fit #2. The co-rotating
-longitude is calculated using the epoch 2007-01-01T00:00:00Z, meaning this was
-the instant when co-rotating and inertial longitudes were the same. This
-reprojected image contains valid data for a total of {deg_good_long:.2f} degrees
-of co-rotating longitude spanning the (possibly discontinuous) {diff_corot:.2f}
-degrees from {min_corot_long:.2f} to {max_corot_long:.2f}.
-"""
-        ret['REPROJ_RINGS_DESCRIPTION'] = ret['REPROJ_COMMENT'] + f"""
-
-The following parameters in this class use the Albers 2009 model:
-epoch_reprojection_basis_utc is the date and time of zero longitude of the
-rotating frame corotation_rate is the mean corotation rate
-
-
-Mean/min/max values are based upon the aggregate of the source images for the
-following parameters: phase angle, observed ring elevation, ring
-longitude,...etc XXX
-"""
-
-        ret['REPROJ_METADATA_DESCRIPTION'] = ret['REPROJ_METADATA_TITLE']
-        ret['REPROJ_METADATA_COMMENT'] = f"""
-One file containing metadata parameters per corotating longitude for the
-reprojected version of the Cassini ISS calibrated image {image_name} from
-{root_obsid} taken at {start_date}.
-"""
-        ret['REPROJ_METADATA_RINGS_DESCRIPTION'] = ret['REPROJ_METADATA_DESCRIPTION']
-
-        ret['REPROJ_IMG_FILENAME'] = f'{image_name.lower()}_reproj_img.img'
-
     else:
+        ETs = metadata['time'][long_antimask]
+
         # Find the image names at the starting and ending ETs
         image_indexes = metadata['image_number'][long_antimask]
         image_path_list = metadata['image_path_list']
@@ -983,177 +1081,21 @@ reprojected version of the Cassini ISS calibrated image {image_name} from
         idx_min = np.argmin(ETs)
         idx_max = np.argmax(ETs)
         min_image_path = image_path_list[image_indexes[idx_min]]
-        min_image_name = image_name_list[image_indexes[idx_min]]
+        ret['MIN_IMAGE_NAME'] = image_name_list[image_indexes[idx_min]]
         max_image_path = image_path_list[image_indexes[idx_max]]
-        max_image_name = image_name_list[image_indexes[idx_max]]
+        ret['MAX_IMAGE_NAME'] = image_name_list[image_indexes[idx_max]]
 
-        ret['MOSAIC_TITLE'] = f"""
-{cap_bkg}F Ring mosaic created from reprojected, calibrated Cassini ISS images
-from observation {root_obsid} spanning {start_date} ({min_image_name}) to
-{stop_date} ({max_image_name})
-"""
-        ret['MOSAIC_METADATA_TITLE'] = f"""
-Metadata for the {cap_bkg.lower()}F Ring mosaic created from reprojected,
-calibrated Cassini ISS images from observation {root_obsid} spanning
-{start_date} ({min_image_name}) to {stop_date} ({max_image_name})
-"""
+    xml_add_pds3_label_info(ret, obsid, min_image_path, max_image_path)
 
-        ret['MOSAIC_DESCRIPTION'] = ret['MOSAIC_TITLE']
+    ret['NUM_VALID_LONGITUDES'] = str(np.sum(long_antimask))
+    ret['MOSAIC_LID'] = obsid_to_mosaic_lid(obsid, img_type == 'b')
+    ret['MOSAIC_ORIGINAL_LID'] = obsid_to_mosaic_lid(obsid, False)
+    ret['MOSAIC_BKG_SUB_LID'] = obsid_to_mosaic_lid(obsid, True)
+    ret['MOSAIC_METADATA_LID'] = obsid_to_mosaic_metadata_lid(obsid,
+                                                              img_type == 'b')
+    ret['BROWSE_MOSAIC_LID'] = obsid_to_mosaic_browse_lid(obsid, img_type == 'b')
 
-        partial_comment = ''
-        if partial_obsid:
-            partial_comment = f"""
-Because Cassini observed multiple distinct inertial longitudes during
-{root_obsid}, each making its own "movie", we have split the observation into
-multiple chunks. This mosaic consists of {root_obsid} chunk {obsid_chunk}. Other
-mosaics are available in this bundle for {root_obsid} with different date ranges
-representing the other available observation chunks.
-"""
-        bkg_comment = ''
-        if img_type == 'b':
-            bkg_comment = """
-
-
-Background subtraction was performed by creating, for each longitude, a linear
-model based on the available data from 750 to 1000 km on either side of the F
-ring core. Obviously bad pixels (such as stars or moons) were ignored. If
-insufficient data was available to generate the model, that longitude was marked
-as invalid and removed from the mosaic. As such, the longitudes available in the
-background-subtracted mosaic may be less than those available in the original
-mosaic.
-"""
-        ret['MOSAIC_COMMENT'] = f"""
-This data file is a {cap_bkg.lower()}mosaic of Saturn's F ring, stitched
-together from reprojections of {num_images} source images from Cassini
-Observation Name {root_obsid} spanning {start_date} ({min_image_name}) to
-{stop_date} ({max_image_name}). During this time, Cassini repeatedly observed an
-area of space covering {diff_inertial:.3f} degrees of inertial longitude from
-{min_inertial:.3f} to {max_inertial:.3f} while the ring rotated under it for
-{total_secs:.0f} seconds ({total_hours:.5f} hours). The source images were
-calibrated using CISSCAL 4.0 and the data values are in units of
-I/F.{partial_comment}
-
-
-The reprojection takes the image space and reprojects it onto a regular
-radius/longitude grid, where the longitude (sampled at 0.02 degrees) is
-co-rotating with the core of the F ring and the radius (sampled at 5 km) is
-relative to the position of the core at that longitude and time given a
-particular model of the F ring's orbit (in other words, even though the F ring
-is eccentric, in the mosaic it looks like a straight line at constant radius).
-We use the F ring orbit from Albers et al. (2009), fit #2. The co-rotating
-longitude is calculated using the epoch 2007-01-01T00:00:00Z, meaning this was
-the instant when co-rotating and inertial longitudes were the same. This mosaic
-image contains valid data for a total of {deg_good_long:.2f} degrees of
-co-rotating longitude spanning the (possibly discontinuous) {diff_corot:.2f}
-degrees from {min_corot_long:.2f} to {max_corot_long:.2f}.{bkg_comment}
-"""
-        ret['MOSAIC_RINGS_DESCRIPTION'] = ret['MOSAIC_COMMENT'] + f"""
-
-The following parameters in this class use the Albers 2009 model:
-epoch_reprojection_basis_utc is the date and time of zero longitude of the
-rotating frame corotation_rate is the mean corotation rate
-
-
-Mean/min/max values are based upon the aggregate of the source images for the
-following parameters: phase angle, observed ring elevation, ring
-longitude,...etc XXX
-"""
-
-        ret['MOSAIC_METADATA_DESCRIPTION'] = ret['MOSAIC_METADATA_TITLE']
-        ret['MOSAIC_METADATA_COMMENT'] = f"""
-Two files containing metadata for the {cap_bkg.lower()}mosaics created from
-reprojected, calibrated Cassini ISS images from {root_obsid}, {start_date} to
-{stop_date}:
-
-    1) Indices and LIDs of source images
-
-    2) Metadata parameters per corotating longitude
-"""
-        ret['MOSAIC_METADATA_RINGS_DESCRIPTION'] = ret['MOSAIC_METADATA_DESCRIPTION']
-
-        ret['MOSAIC_IMG_FILENAME'] = f'{obsid.lower()}_mosaic{sfx}.img'
-
-    try:
-        # min_image_path = '/data/pdsdata/holdings/calibrated/COISS_2xxx/COISS_2076/data/1719817887_1720730045/W1720573566_3_CALIB.LBL'
-        min_label = read_label(min_image_path)
-    except FileNotFoundError:
-        LOGGER.error(f'{obsid}: Failed to open label file {min_image_path}')
-        raise ObsIdFailedException
-    except pyparsing.exceptions.ParseException:
-        LOGGER.error(f'{obsid}: Failed to parse label file {min_image_path}')
-        raise ObsIdFailedException
-    ret['SPACECRAFT_CLOCK_START_COUNT'] = str(min_label['SPACECRAFT_CLOCK_START_COUNT'])
-    if min_image_path == max_image_path:
-        ret['SPACECRAFT_CLOCK_STOP_COUNT'] = str(min_label['SPACECRAFT_CLOCK_STOP_COUNT'])
-    else:
-        try:
-            max_label = read_label(max_image_path)
-        except FileNotFoundError:
-            LOGGER.error(f'{obsid}: Failed to open label file {max_image_path}')
-            raise ObsIdFailedException
-        ret['SPACECRAFT_CLOCK_STOP_COUNT'] = str(max_label['SPACECRAFT_CLOCK_STOP_COUNT'])
-
-    if img_type == 'r':
-        ret['ANTIBLOOMING_STATE_FLAG'] = min_label['ANTIBLOOMING_STATE_FLAG']
-        ret['BIAS_STRIP_MEAN'] = min_label['BIAS_STRIP_MEAN']
-        ret['CALIBRATION_LAMP_STATE_FLAG'] = min_label['CALIBRATION_LAMP_STATE_FLAG']
-        ret['COMMAND_FILE_NAME'] = min_label['COMMAND_FILE_NAME']
-        ret['COMMAND_SEQUENCE_NUMBER'] = min_label['COMMAND_SEQUENCE_NUMBER']
-        ret['DARK_STRIP_MEAN'] = min_label['DARK_STRIP_MEAN']
-        ret['DATA_CONVERSION_TYPE'] = min_label['DATA_CONVERSION_TYPE']
-        ret['DELAYED_READOUT_FLAG'] = min_label['DELAYED_READOUT_FLAG']
-        ret['DETECTOR_TEMPERATURE'] = str(min_label['DETECTOR_TEMPERATURE']).split(' ')[0]
-        ret['EARTH_RECEIVED_START_TIME'] = min_label['EARTH_RECEIVED_START_TIME']
-        ret['EARTH_RECEIVED_STOP_TIME'] = min_label['EARTH_RECEIVED_STOP_TIME']
-        ret['ELECTRONICS_BIAS'] = min_label['ELECTRONICS_BIAS']
-        ret['EXPECTED_MAXIMUM'] = min_label['EXPECTED_MAXIMUM']
-        ret['EXPECTED_PACKETS'] = min_label['EXPECTED_PACKETS']
-        ret['EXPOSURE_DURATION'] = min_label['EXPOSURE_DURATION']
-        assert str(min_label['FILTER_NAME'][0]) == 'CL1'
-        assert str(min_label['FILTER_NAME'][1]) == 'CL2'
-        ret['FILTER_TEMPERATURE'] = min_label['FILTER_TEMPERATURE']
-        ret['FLIGHT_SOFTWARE_VERSION_ID'] = min_label['FLIGHT_SOFTWARE_VERSION_ID']
-        ret['GAIN_MODE_ID'] = str(min_label['GAIN_MODE_ID']).split(' ')[0]
-        ret['IMAGE_MID_TIME'] = min_label['IMAGE_MID_TIME']
-        ret['IMAGE_NUMBER'] = min_label['IMAGE_NUMBER']
-        ret['IMAGE_OBSERVATION_TYPE'] = str(min_label['IMAGE_OBSERVATION_TYPE']).strip('{}')
-        ret['IMAGE_TIME'] = min_label['IMAGE_TIME']
-        ret['INSTRUMENT_DATA_RATE'] = min_label['INSTRUMENT_DATA_RATE']
-        ret['INSTRUMENT_HOST_NAME'] = min_label['INSTRUMENT_HOST_NAME']
-        ret['INSTRUMENT_ID'] = min_label['INSTRUMENT_ID']
-        ret['INSTRUMENT_MODE_ID'] = min_label['INSTRUMENT_MODE_ID']
-        ret['INST_CMPRS_PARAM'] = ['999' if str(x) == 'N/A' else str(x) for x in
-                                   min_label['INST_CMPRS_PARAM']]
-        ret['INST_CMPRS_RATE'] = min_label['INST_CMPRS_RATE']
-        ret['INST_CMPRS_RATIO'] = min_label['INST_CMPRS_RATIO']
-        ret['INST_CMPRS_TYPE'] = min_label['INST_CMPRS_TYPE']
-        ret['LIGHT_FLOOD_STATE_FLAG'] = min_label['LIGHT_FLOOD_STATE_FLAG']
-        ret['METHOD_DESC'] = min_label['METHOD_DESC']
-        ret['MISSING_LINES'] = min_label['MISSING_LINES']
-        ret['MISSING_PACKET_FLAG'] = min_label['MISSING_PACKET_FLAG']
-        ret['MISSION_NAME'] = min_label['MISSION_NAME']
-        ret['MISSION_PHASE_NAME'] = min_label['MISSION_PHASE_NAME']
-        ret['OBSERVATION_ID'] = min_label['OBSERVATION_ID']
-        ret['OPTICS_TEMPERATURE'] = min_label['OPTICS_TEMPERATURE']
-        ret['ORDER_NUMBER'] = min_label['ORDER_NUMBER']
-        ret['PARALLEL_CLOCK_VOLTAGE_INDEX'] = min_label['PARALLEL_CLOCK_VOLTAGE_INDEX']
-        ret['PREPARE_CYCLE_INDEX'] = min_label['PREPARE_CYCLE_INDEX']
-        ret['PRODUCT_CREATION_TIME'] = min_label['PRODUCT_CREATION_TIME']
-        ret['PRODUCT_ID'] = min_label['PRODUCT_ID']
-        ret['PRODUCT_VERSION_TYPE'] = min_label['PRODUCT_VERSION_TYPE']
-        ret['READOUT_CYCLE_INDEX'] = min_label['READOUT_CYCLE_INDEX']
-        ret['RECEIVED_PACKETS'] = min_label['RECEIVED_PACKETS']
-        ret['SENSOR_HEAD_ELEC_TEMPERATURE'] = min_label['SENSOR_HEAD_ELEC_TEMPERATURE']
-        ret['SEQUENCE_ID'] = min_label['SEQUENCE_ID']
-        ret['SEQUENCE_NUMBER'] = min_label['SEQUENCE_NUMBER']
-        ret['SEQUENCE_TITLE'] = min_label['SEQUENCE_TITLE']
-        ret['SHUTTER_MODE_ID'] = min_label['SHUTTER_MODE_ID']
-        ret['SHUTTER_STATE_ID'] = min_label['SHUTTER_STATE_ID']
-        ret['SOFTWARE_VERSION_ID'] = min_label['SOFTWARE_VERSION_ID']
-        ret['SPACECRAFT_CLOCK_CNT_PARTITION'] = min_label['SPACECRAFT_CLOCK_CNT_PARTITION']
-        ret['START_TIME_DOY'] = min_label['START_TIME']
-        ret['STOP_TIME_DOY'] = min_label['STOP_TIME']
-        ret['TELEMETRY_FORMAT_ID'] = min_label['TELEMETRY_FORMAT_ID']
+    xml_add_comments(ret, img_type, obsid, metadata, bkgnd_metadata)
 
     if img_type == 'r':
         incidence_angle = np.degrees(metadata['incidence'])
@@ -1216,6 +1158,138 @@ reprojected, calibrated Cassini ISS images from {root_obsid}, {start_date} to
         ret['CAMERA_WN_UC'] = 'W'
         ret['CAMERA_WN_LC'] = 'w'
 
+    return ret
+
+
+def xml_add_pds3_label_info(ret, obsid, min_image_path, max_image_path):
+    """Add PDS3 label information to the XML metadata."""
+    try:
+        # min_image_path = '/data/pdsdata/holdings/calibrated/COISS_2xxx/COISS_2076/data/1719817887_1720730045/W1720573566_3_CALIB.LBL'
+        min_label = read_label(min_image_path)
+    except FileNotFoundError:
+        LOGGER.error(f'{obsid}: Failed to open label file {min_image_path}')
+        raise ObsIdFailedException
+    except pyparsing.exceptions.ParseException:
+        LOGGER.error(f'{obsid}: Failed to parse label file {min_image_path}')
+        raise ObsIdFailedException
+    ret['SPACECRAFT_CLOCK_START_COUNT'] = str(min_label['SPACECRAFT_CLOCK_START_COUNT'])
+    ret['SPACECRAFT_CLOCK_CNT_PARTITION'] = min_label['SPACECRAFT_CLOCK_CNT_PARTITION']
+    ret['START_TIME_DOY'] = min_label['START_TIME']
+    if min_image_path == max_image_path:
+        ret['SPACECRAFT_CLOCK_STOP_COUNT'] = str(min_label['SPACECRAFT_CLOCK_STOP_COUNT'])
+        ret['STOP_TIME_DOY'] = min_label['STOP_TIME']
+    else:
+        try:
+            max_label = read_label(max_image_path)
+        except FileNotFoundError:
+            LOGGER.error(f'{obsid}: Failed to open label file {max_image_path}')
+            raise ObsIdFailedException
+        ret['SPACECRAFT_CLOCK_STOP_COUNT'] = str(max_label['SPACECRAFT_CLOCK_STOP_COUNT'])
+        ret['STOP_TIME_DOY'] = max_label['STOP_TIME']
+    ret['SPACECRAFT_CLOCK_MID_COUNT'] = compute_mid_sclk(ret['SPACECRAFT_CLOCK_START_COUNT'],
+                                                         ret['SPACECRAFT_CLOCK_STOP_COUNT'])
+
+    et_start_time = julian.tdb_from_iso(ret['START_TIME_DOY'])
+    et_stop_time = julian.tdb_from_iso(ret['STOP_TIME_DOY'])
+    ret['START_DATE_TIME'] = et_to_datetime(et_start_time)
+    ret['START_DATE_TIME_3'] = et_to_datetime(et_start_time, dec=3)
+    ret['STOP_DATE_TIME'] = et_to_datetime(et_stop_time)
+    ret['STOP_DATE_TIME_3'] = et_to_datetime(et_stop_time, dec=3)
+    ret['MIDTIME_DATE_TIME'] = et_to_datetime((et_start_time + et_stop_time)/2)
+    ret['MIDTIME_DATE_TIME_3'] = et_to_datetime((et_start_time + et_stop_time)/2, dec=3)
+
+    ret['ANTIBLOOMING_STATE_FLAG'] = min_label['ANTIBLOOMING_STATE_FLAG']
+    ret['BIAS_STRIP_MEAN'] = min_label['BIAS_STRIP_MEAN']
+    ret['CALIBRATION_LAMP_STATE_FLAG'] = min_label['CALIBRATION_LAMP_STATE_FLAG']
+    ret['COMMAND_FILE_NAME'] = min_label['COMMAND_FILE_NAME']
+    ret['COMMAND_SEQUENCE_NUMBER'] = min_label['COMMAND_SEQUENCE_NUMBER']
+    ret['DARK_STRIP_MEAN'] = min_label['DARK_STRIP_MEAN']
+    ret['DATA_CONVERSION_TYPE'] = min_label['DATA_CONVERSION_TYPE']
+    ret['DELAYED_READOUT_FLAG'] = min_label['DELAYED_READOUT_FLAG']
+    ret['DETECTOR_TEMPERATURE'] = str(min_label['DETECTOR_TEMPERATURE']).split(' ')[0]
+    ret['EARTH_RECEIVED_START_TIME'] = min_label['EARTH_RECEIVED_START_TIME']
+    ret['EARTH_RECEIVED_STOP_TIME'] = min_label['EARTH_RECEIVED_STOP_TIME']
+    ret['ELECTRONICS_BIAS'] = min_label['ELECTRONICS_BIAS']
+    ret['EXPECTED_MAXIMUM'] = min_label['EXPECTED_MAXIMUM']
+    ret['EXPECTED_PACKETS'] = min_label['EXPECTED_PACKETS']
+    ret['EXPOSURE_DURATION'] = min_label['EXPOSURE_DURATION']
+    if str(min_label['FILTER_NAME'][0]) != 'CL1' or str(min_label['FILTER_NAME'][1]) != 'CL2':
+        LOGGER.error(f'{obsid}: Filter name is not CL1 and CL2: {min_label["FILTER_NAME"]}')
+        raise ObsIdFailedException
+    ret['FILTER1'] = 'CL1'
+    ret['FILTER2'] = 'CL2'
+    ret['FILTER_TEMPERATURE'] = min_label['FILTER_TEMPERATURE']
+    ret['FLIGHT_SOFTWARE_VERSION_ID'] = min_label['FLIGHT_SOFTWARE_VERSION_ID']
+    ret['GAIN_MODE_ID'] = str(min_label['GAIN_MODE_ID']).split(' ')[0]
+    ret['IMAGE_MID_TIME'] = min_label['IMAGE_MID_TIME']
+    ret['IMAGE_NUMBER'] = min_label['IMAGE_NUMBER']
+    ret['IMAGE_OBSERVATION_TYPE'] = str(min_label['IMAGE_OBSERVATION_TYPE']).strip('{}')
+    ret['IMAGE_TIME'] = min_label['IMAGE_TIME']
+    ret['INSTRUMENT_DATA_RATE'] = min_label['INSTRUMENT_DATA_RATE']
+    ret['INSTRUMENT_HOST_NAME'] = min_label['INSTRUMENT_HOST_NAME']
+    ret['INSTRUMENT_ID'] = min_label['INSTRUMENT_ID']
+    ret['INSTRUMENT_MODE_ID'] = min_label['INSTRUMENT_MODE_ID']
+    ret['INST_CMPRS_PARAM'] = ['999' if str(x) == 'N/A' else str(x) for x in
+                               min_label['INST_CMPRS_PARAM']]
+    ret['INST_CMPRS_RATE'] = min_label['INST_CMPRS_RATE']
+    ret['INST_CMPRS_RATIO'] = min_label['INST_CMPRS_RATIO']
+    ret['INST_CMPRS_TYPE'] = min_label['INST_CMPRS_TYPE']
+    ret['LIGHT_FLOOD_STATE_FLAG'] = min_label['LIGHT_FLOOD_STATE_FLAG']
+    ret['METHOD_DESC'] = min_label['METHOD_DESC']
+    ret['MISSING_LINES'] = min_label['MISSING_LINES']
+    ret['MISSING_PACKET_FLAG'] = min_label['MISSING_PACKET_FLAG']
+    ret['MISSION_NAME'] = min_label['MISSION_NAME']
+    ret['MISSION_PHASE_NAME'] = min_label['MISSION_PHASE_NAME']
+    ret['OBSERVATION_ID'] = min_label['OBSERVATION_ID']
+    ret['OPTICS_TEMPERATURE'] = min_label['OPTICS_TEMPERATURE']
+    ret['ORDER_NUMBER'] = min_label['ORDER_NUMBER']
+    ret['PARALLEL_CLOCK_VOLTAGE_INDEX'] = min_label['PARALLEL_CLOCK_VOLTAGE_INDEX']
+    ret['PREPARE_CYCLE_INDEX'] = min_label['PREPARE_CYCLE_INDEX']
+    ret['PRODUCT_CREATION_TIME'] = min_label['PRODUCT_CREATION_TIME']
+    ret['PRODUCT_ID'] = min_label['PRODUCT_ID']
+    ret['PRODUCT_VERSION_TYPE'] = min_label['PRODUCT_VERSION_TYPE']
+    ret['READOUT_CYCLE_INDEX'] = min_label['READOUT_CYCLE_INDEX']
+    ret['RECEIVED_PACKETS'] = min_label['RECEIVED_PACKETS']
+    ret['SENSOR_HEAD_ELEC_TEMPERATURE'] = min_label['SENSOR_HEAD_ELEC_TEMPERATURE']
+    ret['SEQUENCE_ID'] = min_label['SEQUENCE_ID']
+    ret['SEQUENCE_NUMBER'] = min_label['SEQUENCE_NUMBER']
+    ret['SEQUENCE_TITLE'] = min_label['SEQUENCE_TITLE']
+    ret['SHUTTER_MODE_ID'] = min_label['SHUTTER_MODE_ID']
+    ret['SHUTTER_STATE_ID'] = min_label['SHUTTER_STATE_ID']
+    ret['SOFTWARE_VERSION_ID'] = min_label['SOFTWARE_VERSION_ID']
+    ret['TELEMETRY_FORMAT_ID'] = min_label['TELEMETRY_FORMAT_ID']
+
+
+def xml_add_comments(ret, img_type, obsid, metadata, bkgnd_metadata):
+    """Add descriptions, comments, and references to the XML metadata."""
+    root_obsid = ret['OBSERVATION_ID']
+    obsid_chunk = ret['OBSERVATION_ID_CHUNK']
+
+    start_date_time = ret['START_DATE_TIME']
+    stop_date_time = ret['STOP_DATE_TIME']
+    et_start_time = julian.tdb_from_iso(start_date_time)
+    et_stop_time = julian.tdb_from_iso(stop_date_time)
+
+    global EARLIEST_START_DATE_TIME, LATEST_STOP_DATE_TIME
+    EARLIEST_START_DATE_TIME = min(EARLIEST_START_DATE_TIME, et_start_time)
+    LATEST_STOP_DATE_TIME = max(LATEST_STOP_DATE_TIME, et_stop_time)
+
+    total_secs = et_stop_time - et_start_time
+
+    ret['TOUR'] = et_to_tour(et_start_time)
+
+    long_antimask = metadata['long_antimask']
+    num_good_long = np.sum(long_antimask)
+    # XXX Consider wraparound
+    min_corot_long = np.where(long_antimask)[0][0] / len(long_antimask) * 360
+    max_corot_long = np.where(long_antimask)[0][-1] / len(long_antimask) * 360
+    diff_corot = max_corot_long - min_corot_long + 360. / len(long_antimask)
+    deg_good_long = num_good_long / len(long_antimask) * 360
+    inertial_longitudes = metadata['inertial_longitudes'][long_antimask]
+    min_inertial = np.min(inertial_longitudes)  # XXX Consider wraparound
+    max_inertial = np.max(inertial_longitudes)
+    diff_inertial = max_inertial - min_inertial
+
     if img_type == 'r':
         ret['MIN_RING_COROTATING_LONG'] = f'{min_corot_long:.2f}'
         ret['MAX_RING_COROTATING_LONG'] = f'{max_corot_long:.2f}'
@@ -1227,14 +1301,345 @@ reprojected, calibrated Cassini ISS images from {root_obsid}, {start_date} to
     ret['MIN_RING_INERTIAL_LONG'] = f'{min_inertial:.3f}'
     ret['MAX_RING_INERTIAL_LONG'] = f'{max_inertial:.3f}'
 
-    return ret
+    # References to browse images and other mosaic variation
+    if img_type == 'b':
+        # Background-subtracted mosaic
+        ret['MOSAIC_OTHER_LID'] = ret['MOSAIC_ORIGINAL_LID']
+        ret['MOSAIC_OTHER_REFERENCE_COMMENT'] = """
+            The mosaic without the background subtracted."""
+        ret['MOSAIC_REFERENCE_COMMENT'] = """
+            The mosaic with the background subtracted."""
+        ret['BROWSE_MOSAIC_COMMENT'] = """
+            Browse images of the background-subtracted mosaic in multiple sizes
+            in PNG format."""
+    else:
+        # Original mosaic or reprojected image
+        ret['MOSAIC_OTHER_LID'] = ret['MOSAIC_BKG_SUB_LID']
+        ret['MOSAIC_REFERENCE_COMMENT'] = """
+            The mosaic without the background subtracted."""
+        ret['MOSAIC_OTHER_REFERENCE_COMMENT'] = """
+            The mosaic with the background subtracted."""
+        ret['BROWSE_MOSAIC_COMMENT'] = """
+            Browse images of the mosaic in multiple sizes in PNG format."""
+
+    if img_type == 'r':
+        xml_add_reproj_comments(ret, metadata, root_obsid, start_date_time,
+                                deg_good_long,
+                                min_inertial, max_inertial, diff_inertial,
+                                min_corot_long, max_corot_long, diff_corot)
+    else:
+        xml_add_mosaic_comments(ret, metadata, bkgnd_metadata, img_type, root_obsid,
+                                start_date_time, stop_date_time, total_secs,
+                                deg_good_long,
+                                min_inertial, max_inertial, diff_inertial,
+                                min_corot_long, max_corot_long, diff_corot)
+
+
+def xml_add_reproj_comments(ret, metadata, root_obsid, start_date_time,
+                            deg_good_long,
+                            min_inertial, max_inertial, diff_inertial,
+                            min_corot_long, max_corot_long, diff_corot):
+    """Add comments to the XML metadata for a reprojected image."""
+    image_name = metadata['image_name']
+    ret['REPROJ_METADATA_LID'] = image_name_to_reproj_lid(image_name)
+    ret['REPROJ_TITLE'] = f"""
+Reprojected version of Cassini ISS calibrated image {image_name} from
+observation {root_obsid}
+"""
+    ret['REPROJ_METADATA_TITLE'] = f"""
+Metadata for the reprojected version of Cassini ISS calibrated image
+{image_name} from observation {root_obsid}
+"""
+    ret['REPROJ_LID'] = image_name_to_reproj_lid(image_name)
+    ret['BROWSE_REPROJ_LID'] = image_name_to_reproj_browse_lid(image_name)
+    ret['REPROJ_METADATA_LID'] = image_name_to_reproj_metadata_lid(image_name)
+
+    ret['REPROJ_DESCRIPTION'] = ret['REPROJ_TITLE']
+
+    ret['REPROJ_COMMENT'] = f"""
+This data file is an individual reprojected image of Saturn's F ring from Cassini ISS
+image {image_name} taken at {start_date_time}. In this image, Cassini observed an area of
+space covering {diff_inertial:.3f} degrees of inertial longitude from {min_inertial:.3f}
+to {max_inertial:.3f}. The source image was calibrated using CISSCAL 4.0 and the data
+values are in units of I/F. The mosaics, in the data_mosaic and data_mosaic_bkg_sub
+collections, were generated by stitching together reprojected, calibrated images such as
+this, and this reprojected image is used in the mosaic named {obsid.lower()}.
+
+
+The reprojection takes the image space and reprojects it onto a regular radius/longitude
+grid, where the longitude (sampled at 0.02 degrees) is co-rotating with the core of the F
+ring and the radius (sampled at 5 km) is relative to the position of the core at that
+longitude and time using the model of the F ring's orbit from Albers et al. (2009), fit #2
+(in other words, even though the F ring is eccentric, in the mosaic it looks like a
+straight line at constant radius). The co-rotating longitude is calculated using the epoch
+2007-01-01T00:00:00Z, meaning this was the instant when co-rotating and inertial
+longitudes were the same. This reprojected image
+contains valid data for a total of {deg_good_long:.2f} degrees of co-rotating longitude
+spanning the (possibly discontinuous) {diff_corot:.2f} degrees from {min_corot_long:.2f}
+to {max_corot_long:.2f}.
+
+
+Before reprojecting, the pointing specified by the available SPICE kernels was refined by
+using known features in the image. In some cases, manual intervention was required. The
+details of the navigation can be found in the supplemental file.
+"""
+    ret['REPROJ_RINGS_DESCRIPTION'] = f"""
+The parameters in this class are derived as follows:
+
+
+epoch_reprojection_basis_utc is the date and time when the inertial longitude and
+co-rotating longitude are the same. It is arbitrarily chosen to be a time near Cassini's
+arrival at Saturn and is the same for all reprojected images.
+
+
+corotation_rate is the mean corotation rate of the F ring core taken from Albers et al.
+(2009), fit #2.
+
+
+The minimum, maximum, and mean values for phase angle and observed_ring_elevation are
+computed by looking at every longitude that contains valid data.
+
+
+The minimum and maximum co-rotating longitude are the limits that contain valid data. If
+the reprojection wraps around then they will be 0 and 359.98.
+
+
+The minimum and maximum ring radius are the actual radii (distance from Saturn) of the F
+ring core -1000km and +1000km at each inertial longitude containing valid data at the time
+of the observation.
+"""
+
+    ret['REPROJ_METADATA_DESCRIPTION'] = ret['REPROJ_METADATA_TITLE']
+    ret['REPROJ_METADATA_COMMENT'] = f"""
+One file containing metadata parameters per valid corotating longitude for the reprojected
+version of the Cassini ISS calibrated image {image_name} from {root_obsid} taken at
+{start_date_time}.
+"""
+    ret['REPROJ_METADATA_RINGS_DESCRIPTION'] = ret['REPROJ_METADATA_DESCRIPTION']
+
+    ret['REPROJ_IMG_FILENAME'] = f'{image_name.lower()}_reproj_img.img'
+    ret['REPROJ_IMG_SUPPL_FILENAME'] = f'{image_name.lower()}_reproj_suppl.txt'
+
+
+def xml_add_mosaic_comments(ret, metadata, bkgnd_metadata, img_type, root_obsid,
+                            start_date_time, stop_date_time, total_secs,
+                            deg_good_long,
+                            min_inertial, max_inertial, diff_inertial,
+                            min_corot_long, max_corot_long, diff_corot):
+    """Add comments to the XML metadata for a mosaic."""
+    full_obsid = ret['FULL_OBSERVATION_ID']
+    obsid_chunk = ret['OBSERVATION_ID_CHUNK']
+    notes = OBSERVATION_INFO[full_obsid]['notes']
+
+    sfx = '_bkg_sub' if img_type == 'b' else ''
+    cap_bkg = 'Background-subtracted ' if img_type == 'b' else ''
+    num_images = len(metadata['image_path_list'])
+    min_image_name = ret['MIN_IMAGE_NAME']
+    max_image_name = ret['MAX_IMAGE_NAME']
+
+    total_hours = total_secs / 3600
+
+    ret['MOSAIC_TITLE'] = f"""
+{cap_bkg}F Ring mosaic created from reprojected, calibrated Cassini ISS images
+from observation {root_obsid} spanning {min_image_name} ({start_date_time}) to
+{max_image_name} ({stop_date_time})
+"""
+    ret['MOSAIC_METADATA_TITLE'] = f"""
+Metadata for the {cap_bkg.lower()}F Ring mosaic created from reprojected,
+calibrated Cassini ISS images from observation {root_obsid} spanning
+{min_image_name} ({start_date_time}) to {max_image_name} ({stop_date_time})
+"""
+
+    ret['MOSAIC_DESCRIPTION'] = ret['MOSAIC_TITLE']
+
+    additional_notes = []
+
+    partial_comment = ''
+    if obsid_chunk is not None:
+        if 'M1' in notes:
+            partial_comment = f"""
+
+Because Cassini observed the same inertial longitudes for more than one orbit of the
+F ring during {root_obsid}, we have split the observation into multiple chunks, each
+corresponding to one complete orbit of the F ring. This mosaic consists of {root_obsid}
+chunk {obsid_chunk}. Other mosaics are available in this bundle for {root_obsid} with
+different date ranges representing the other available observation chunks.
+"""
+        elif 'M2' in notes:
+            partial_comment = f"""
+
+Because observation {root_obsid} consists of two distinct "movies" consisting of
+approximately the same co-rotating longitudes but taken at inertial longitudes roughly 180
+degrees apart, we have split the observation into two chunks. This mosaic consists of
+{root_obsid} chunk {obsid_chunk}. The other mosaic is available as
+{root_obsid.lower()}_{3-int(obsid_chunk)}.
+"""
+        elif 'M3' in notes:
+            partial_comment = f"""
+
+Because observation {root_obsid} consists of multiple "movies" consisting of approximately
+the same co-rotating longitudes but taken at different inertial longitudes (not 180
+degrees apart), we have split the observation into multiple chunks. This mosaic consists
+of {root_obsid} chunk {obsid_chunk}. Other mosaics are available in this bundle for
+{root_obsid} with different date ranges representing the other available observation
+chunks.
+"""
+        elif 'M4' in notes:
+            partial_comment = f"""
+
+Because Cassini observed multiple distinct inertial and co-rotating longitudes during
+{root_obsid}, each making its own "movie", we have split the observation into multiple
+chunks. This mosaic consists of {root_obsid} chunk {obsid_chunk}. Other mosaics are
+available in this bundle for {root_obsid} with different date ranges representing the
+other available observation chunks.
+"""
+        else:
+            LOGGER.error(f'{full_obsid}: Multi-chunk observation is missing "M" note')
+            raise ObsIdFailedException
+
+    bkg_comment = ''
+    if img_type == 'b':
+        lower_limit = 1000-bkgnd_metadata['ring_lower_limit']*5
+        upper_limit = 1000-(400-bkgnd_metadata['ring_upper_limit'])*5
+        bkg_comment = f"""
+
+
+Background subtraction was performed by creating, for each longitude, a linear model based
+on the available data from {lower_limit} to 1000 km closer to Saturn and {upper_limit} to
+1000 km further from Saturn. Statistically bad pixels (such as stars or moons) were
+ignored. If insufficient data was available to generate the model, that longitude was
+marked as invalid and removed from the mosaic. As such, the number of longitudes available
+in the background-subtracted mosaic may be fewer than those available in the original
+mosaic."""
+        if lower_limit != 750 or upper_limit != 750:
+            bkg_comment += f"""
+
+
+Note that the background limits for this mosaic are non-standard and were manually chosen
+because the standard values of 750-1000 km did not work for reasons such as insufficient
+data, bad data, or encroachment of the F ring dust sheet into the background area due to
+low-resolution source images. All efforts were made to preserve the photometric
+consistency of the background-subtracted mosaic with other mosaics using the "standard"
+parameters and we do not expect the use of non-standard parameters to change the resulting
+data values by more than a few percent."""
+
+        if 'B' in notes:
+            additional_notes.append("""This background-subtracted mosaic contains
+substantially fewer valid longitudes than the original mosaic due to insufficient data
+being available to create a background model.""")
+
+    if 'C' in notes:
+        additional_notes.append("""Some source images contained corrupted or missing data
+that could not be repaired during the construction of the mosaic.""")
+    if 'E' in notes:
+        additional_notes.append("""Some source images may have been overexposed and the
+data values clipped; use caution when using this mosaic for photometry.""")
+    if 'O' in notes:
+        additional_notes.append("""The sequence of source images used to create this
+mosaic were designed to observe a stellar occultation of the F ring core. As such, a star
+is present in each source image and may appear in the mosaic multiple times depending on
+how the reprojected images were stitched together. In addition, the source images were
+taken at roughly the same co-rotating longitudes and thus have significant overlap in the
+mosaic. To fully explore the occultation, use the reprojected images.""")
+
+
+    if 'R' in notes:
+        ret['MOSAIC_COMMENT'] = f"""
+This data file is a {cap_bkg.lower()}mosaic of Saturn's F ring, stitched together from
+reprojections of {num_images} source images from Cassini Observation Name {root_obsid}
+spanning {min_image_name} ({start_date_time}) to {max_image_name} ({stop_date_time}).
+During this time, Cassini followed one co-rotating longitude for {total_secs:,.0f} seconds
+({total_hours:.5f} hours) by observing multiple inertial longitudes covering the (possibly
+discontinuous) {diff_inertial:.3f} degrees from {min_inertial:.3f} to {max_inertial:.3f}.
+The source images were calibrated using CISSCAL 4.0 and the data values are in units of
+I/F.
+"""
+    elif 'N' in notes:
+        ret['MOSAIC_COMMENT'] = f"""
+This data file is a {cap_bkg.lower()}mosaic of Saturn's F ring, stitched together from
+reprojections of {num_images} source images from Cassini Observation Name {root_obsid}
+spanning {min_image_name} ({start_date_time}) to {max_image_name} ({stop_date_time}).
+During this time, Cassini observed multiple co-rotating longitudes at multiple inertial
+longitudes for {total_secs:,.0f} seconds ({total_hours:.5f} hours). The inertial
+longitudes covered the (possibly discontinuous) {diff_inertial:.3f} degrees from
+{min_inertial:.3f} to {max_inertial:.3f}. The source images were calibrated using CISSCAL
+4.0 and the data values are in units of I/F.
+"""
+    else:
+        ret['MOSAIC_COMMENT'] = f"""
+This data file is a {cap_bkg.lower()}mosaic of Saturn's F ring, stitched
+together from reprojections of {num_images} source images from Cassini
+Observation Name {root_obsid} spanning {min_image_name} ({start_date_time}) to
+{max_image_name} ({stop_date_time}). During this time, Cassini repeatedly observed an
+area of space covering {diff_inertial:.3f} degrees of inertial longitude from
+{min_inertial:.3f} to {max_inertial:.3f} while the ring rotated under it for
+{total_secs:,.0f} seconds ({total_hours:.5f} hours).
+"""
+
+    ret['MOSAIC_COMMENT'] += partial_comment
+
+    ret['MOSAIC_COMMENT'] += f"""
+
+The reprojection takes the image space and reprojects it onto a regular radius/longitude
+grid, where the longitude (sampled at 0.02 degrees) is co-rotating with the core of the F
+ring and the radius (sampled at 5 km) is relative to the position of the core at that
+longitude and time using the model of the F ring's orbit from Albers et al. (2009), fit #2
+(in other words, even though the F ring is eccentric, in the mosaic it looks like a
+straight line at constant radius). The co-rotating longitude is calculated using the epoch
+2007-01-01T00:00:00Z, meaning this was the instant when co-rotating and inertial
+longitudes were the same. This mosaic image contains valid data for a total of
+{deg_good_long:.2f} degrees of co-rotating longitude spanning the (possibly discontinuous)
+{diff_corot:.2f} degrees from {min_corot_long:.2f} to {max_corot_long:.2f}. The source
+images were calibrated using CISSCAL 4.0 and the data values are in units of
+I/F.{bkg_comment}
+"""
+
+    if additional_notes:
+        ret['MOSAIC_COMMENT'] += '\n\nNotes:'
+        for additional_note in additional_notes:
+            ret['MOSAIC_COMMENT'] += f'\n\n- {additional_note}'
+
+    ret['MOSAIC_RINGS_DESCRIPTION'] = f"""
+The parameters in this class are derived as follows:
+
+- epoch_reprojection_basis_utc is the date and time when the inertial longitude and
+co-rotating longitude are the same. It is arbitrarily chosen to be a time near Cassini's
+arrival at Saturn and is the same for all reprojected images.
+
+- corotation_rate is the mean corotation rate of the F ring core taken from Albers et al.
+(2009), fit #2.
+
+- The minimum, maximum, and mean values for phase angle and observed_ring_elevation are
+computed by looking at every longitude that contains valid data.
+
+- The minimum and maximum co-rotating longitude are the limits that contain valid data. If
+the reprojection wraps around then they will be 0 and 359.98.
+
+- The minimum and maximum ring radius are the actual radii (distance from Saturn) of the F
+ring core -1000km and +1000km at each inertial longitude containing valid data at the time
+of the observation.
+"""
+
+    ret['MOSAIC_METADATA_DESCRIPTION'] = ret['MOSAIC_METADATA_TITLE']
+    ret['MOSAIC_METADATA_COMMENT'] = f"""
+Two files containing metadata for the {cap_bkg.lower()}mosaics created from
+reprojected, calibrated Cassini ISS images from {root_obsid}, {start_date_time} to
+{stop_date_time}:
+
+1) Indices and LIDs of source images
+
+2) Metadata parameters per corotating longitude
+"""
+    ret['MOSAIC_METADATA_RINGS_DESCRIPTION'] = ret['MOSAIC_METADATA_DESCRIPTION']
+
+    ret['MOSAIC_IMG_FILENAME'] = f'{obsid.lower()}_mosaic{sfx}.img'
 
 
 def generate_image(obsid, output_dir, metadata, xml_metadata, img_type):
     """Create mosaic images and labels and mosaic metadata tables and labels.
 
     Inputs:
-        obsid          The observation name.
+        obsid           The observation name.
         output_dir      The directory in which to put all output files.
         metadata        The metadata for a mosaic, background-subtracted
                         mosaic, or reprojected image.
@@ -1274,6 +1679,7 @@ def generate_image(obsid, output_dir, metadata, xml_metadata, img_type):
           IMG_reproj_img.lblx                         [GENERATE_REPROJ_IMAGE_LABELS]
           IMG_reproj_img_metadata_params.tab          [GENERATE_REPROJ_METADATA_TABLES]
           IMG_reproj_img_metadata.lblx                [GENERATE_REPROJ_METADATA_LABELS]
+          IMG_reproj_img_suppl.txt                    [GENERATE_REPROJ_SUPPL_FILES]
     """
     os.makedirs(output_dir, exist_ok=True)
 
@@ -1304,9 +1710,9 @@ def generate_image(obsid, output_dir, metadata, xml_metadata, img_type):
         image_name_list = metadata['image_name_list']
 
     target_id = ''
-    if mosaic_has_prometheus(metadata):
+    if mosaic_has_prometheus(obsid):
         target_id += TARGET_PROMETHEUS
-    if mosaic_has_pandora(metadata):
+    if mosaic_has_pandora(obsid):
         target_id += TARGET_PANDORA
     xml_metadata['TARGET_IDENTIFICATION'] = target_id
 
@@ -1379,7 +1785,7 @@ def generate_image(obsid, output_dir, metadata, xml_metadata, img_type):
             with open(image_table_path, 'w') as fp:
                 fp.write('Source Image Index, LIDVID\n')
                 for idx in range(len(image_name_list)):
-                    lidvid = image_name_to_lidvid(image_name_list[idx])
+                    lidvid = image_name_to_reproj_lidvid(image_name_list[idx])
                     row = f'{idx:4d}, {lidvid}'
                     fp.write(row+'\n')
 
@@ -1420,10 +1826,22 @@ def generate_image(obsid, output_dir, metadata, xml_metadata, img_type):
         image_output_path = os.path.join(output_dir, xml_metadata['MOSAIC_IMG_FILENAME'])
         label_output_path = os.path.join(output_dir,
                                          f'{obsid.lower()}_mosaic{sfx}.lblx')
+    xml_metadata['IMG_PATH'] = image_output_path
 
     if ((img_type == 'r' and GENERATE_REPROJ_IMAGES) or
         (img_type != 'r' and GENERATE_MOSAIC_IMAGES)):
         img.tofile(image_output_path)
+
+
+            #############################
+            ###  REPROJ IMG SUPPL FILE ###
+            #############################
+
+    if img_type == 'r' and GENERATE_REPROJ_SUPPL_FILES:
+        suppl_output_path = os.path.join(output_dir, xml_metadata['REPROJ_IMG_SUPPL_FILENAME'])
+        xml_metadata['SUPPL_PATH'] = suppl_output_path
+        hdr_length = write_suppl_file(suppl_output_path, metadata, xml_metadata)
+        xml_metadata['SUPPL_HEADER_LENGTH'] = hdr_length
 
 
             ###############################
@@ -1432,10 +1850,6 @@ def generate_image(obsid, output_dir, metadata, xml_metadata, img_type):
 
     if ((img_type == 'r' and GENERATE_REPROJ_IMAGE_LABELS) or
         (img_type != 'r' and GENERATE_MOSAIC_IMAGE_LABELS)):
-        try:
-            xml_metadata['IMG_PATH'] = image_output_path
-        except FileNotFoundError:
-            pass
         if img_type == 'r':
             populate_template(obsid, 'data_reproj_img.lblx', label_output_path, xml_metadata)
         else:
@@ -1446,7 +1860,7 @@ def generate_browse(obsid, browse_dir, metadata, xml_metadata, img_type):
     """Create mosaic browse images. These are only from bkg-sub mosaics.
 
     Inputs:
-        obsid          The observation name.
+        obsid           The observation name.
         browse_dir      The directory in which to put all browse files.
         metadata        The metadata for a background-subtracted mosaic.
         xml_metadata    The XML substitutions.
@@ -1665,7 +2079,7 @@ def generate_mosaic(obsid,
         bkgnd_metadata      The metadata for the background subtraction model.
     """
     # Do plain mosaics first
-    xml_metadata = xml_metadata_for_image(obsid, mosaic_metadata, 'm')
+    xml_metadata = xml_metadata_for_image(obsid, mosaic_metadata, bkgnd_metadata, 'm')
     if (GENERATE_MOSAIC_METADATA_TABLES or GENERATE_MOSAIC_METADATA_LABELS or
         GENERATE_MOSAIC_IMAGES or GENERATE_MOSAIC_IMAGE_LABELS):
         generate_image(obsid, mosaic_dir, mosaic_metadata, xml_metadata, 'm')
@@ -1674,7 +2088,7 @@ def generate_mosaic(obsid,
                         xml_metadata, 'm')
 
     # Now do BSM
-    xml_metadata = xml_metadata_for_image(obsid, bsm_metadata, 'b')
+    xml_metadata = xml_metadata_for_image(obsid, bsm_metadata, bkgnd_metadata, 'b')
     if (GENERATE_MOSAIC_METADATA_TABLES or GENERATE_MOSAIC_METADATA_LABELS or
         GENERATE_MOSAIC_IMAGES or GENERATE_MOSAIC_IMAGE_LABELS):
         generate_image(obsid, bsm_dir, bsm_metadata, xml_metadata, 'b')
@@ -1683,18 +2097,19 @@ def generate_mosaic(obsid,
 
 
 def generate_reproj(obsid, reproj_dir, reproj_browse_dir, reproj_metadata):
-    """Create all files related to mosaics.
+    """Create all files related to reprojected images.
 
     Inputs:
-        obsid              The observation name.
+        obsid               The observation name.
         reproj_dir          The directory in which to put all reproj files.
         reproj_browse_dir   The directory in which to put all reproj browse
                             files.
         reproj_metadata     The metadata for the reprojected images.
     """
-    xml_metadata = xml_metadata_for_image(obsid, reproj_metadata, 'r')
+    xml_metadata = xml_metadata_for_image(obsid, reproj_metadata, None, 'r')
     if (GENERATE_REPROJ_METADATA_TABLES or GENERATE_REPROJ_METADATA_LABELS or
-        GENERATE_REPROJ_IMAGES or GENERATE_REPROJ_IMAGE_LABELS):
+        GENERATE_REPROJ_IMAGES or GENERATE_REPROJ_IMAGE_LABELS or
+        GENERATE_REPROJ_SUPPL_FILES):
         generate_image(obsid, reproj_dir, reproj_metadata, xml_metadata, 'r')
     if GENERATE_BROWSE_REPROJ_IMAGES or GENERATE_BROWSE_REPROJ_LABELS:
         generate_browse(obsid, reproj_browse_dir, reproj_metadata,
@@ -1772,7 +2187,8 @@ def handle_one_obsid(obsid, reproj_collection_fp, browse_reproj_collection_fp):
 
     if (GENERATE_REPROJ_IMAGES or GENERATE_REPROJ_IMAGE_LABELS or
         GENERATE_REPROJ_METADATA_TABLES or GENERATE_REPROJ_METADATA_LABELS or
-        GENERATE_BROWSE_REPROJ_IMAGES or GENERATE_BROWSE_REPROJ_LABELS):
+        GENERATE_BROWSE_REPROJ_IMAGES or GENERATE_BROWSE_REPROJ_LABELS or
+        GENERATE_REPROJ_SUPPL_FILES):
         if mosaic_metadata is None:
             mosaic_metadata = read_mosaic(mosaic_path, mosaic_metadata_path,
                                           bkg_sub=False, read_img=False)
@@ -1817,7 +2233,7 @@ def generate_mosaic_collection_xml(coll_data_mosaic_csv_path,
     coll_data_mosaic_xml_path = coll_data_mosaic_csv_path.replace('csv', 'xml')
     coll_bsm_data_mosaic_xml_path = coll_bsm_data_mosaic_csv_path.replace('csv', 'xml')
 
-    metadata['DATA_MOSAIC_COLLECTION_LID'] = 'urn:nasa:pds:cassini_iss_fring_mosaics_rsfrench2023:data_mosaic'
+    metadata['DATA_MOSAIC_COLLECTION_LID'] = f'urn:nasa:pds:{BUNDLE_NAME}:data_mosaic'
     metadata['DATA_MOSAIC_COLLECTION_CSV_PATH'] = coll_data_mosaic_csv_path
     metadata['DATA_MOSAIC_COLLECTION_TITLE'] = """
 Collection for the (non background-subtracted) F Ring mosaics
@@ -1831,7 +2247,7 @@ associated metadata.
     metadata['DATA_MOSAIC_COLLECTION_CSV_NAME'] = 'collection_data_mosaic.csv'
     populate_template(None, 'collection_data_mosaic.lblx',
                       coll_data_mosaic_xml_path, metadata)
-    metadata['DATA_MOSAIC_COLLECTION_LID'] = 'urn:nasa:pds:cassini_iss_fring_mosaics_rsfrench2023:data_mosaic_bkg_sub'
+    metadata['DATA_MOSAIC_COLLECTION_LID'] = f'urn:nasa:pds:{BUNDLE_NAME}:data_mosaic_bkg_sub'
     metadata['DATA_MOSAIC_COLLECTION_CSV_PATH'] = coll_bsm_data_mosaic_csv_path
     metadata['DATA_MOSAIC_COLLECTION_TITLE'] = """
 Collection for the background-subtracted F Ring mosaics created from
@@ -1854,7 +2270,7 @@ def generate_mosaic_browse_collection_xml(coll_browse_mosaic_csv_path,
     coll_browse_mosaic_xml_path = coll_browse_mosaic_csv_path.replace('csv', 'xml')
     coll_bsm_browse_mosaic_xml_path = coll_bsm_browse_mosaic_csv_path.replace('csv', 'xml')
 
-    metadata['BROWSE_MOSAIC_COLLECTION_LID'] = 'urn:nasa:pds:cassini_iss_fring_mosaics_rsfrench2023:browse_mosaic'
+    metadata['BROWSE_MOSAIC_COLLECTION_LID'] = f'urn:nasa:pds:{BUNDLE_NAME}:browse_mosaic'
     metadata['BROWSE_MOSAIC_COLLECTION_CSV_PATH'] = coll_browse_mosaic_csv_path
     metadata['BROWSE_MOSAIC_COLLECTION_TITLE'] = """
 Collection for the browse products for the (non background-subtracted) F Ring
@@ -1867,7 +2283,7 @@ Ring mosaics created from reprojected, calibrated Cassini ISS images
     metadata['BROWSE_MOSAIC_COLLECTION_CSV_NAME'] = 'collection_browse_mosaic.csv'
     populate_template(None, 'collection_browse_mosaic.lblx',
                       coll_browse_mosaic_xml_path, metadata)
-    metadata['BROWSE_MOSAIC_COLLECTION_LID'] = 'urn:nasa:pds:cassini_iss_fring_mosaics_rsfrench2023:browse_mosaic_bkg_sub'
+    metadata['BROWSE_MOSAIC_COLLECTION_LID'] = f'urn:nasa:pds:{BUNDLE_NAME}:browse_mosaic_bkg_sub'
     metadata['BROWSE_MOSAIC_COLLECTION_CSV_PATH'] = coll_bsm_browse_mosaic_csv_path
     metadata['BROWSE_MOSAIC_COLLECTION_TITLE'] = """
 Collection for the browse products for the background-subtracted F Ring
@@ -1891,7 +2307,7 @@ def generate_reproj_collection_xml(coll_data_reproj_csv_path):
 
     coll_data_reproj_xml_path = coll_data_reproj_csv_path.replace('csv', 'xml')
 
-    metadata['DATA_REPROJ_COLLECTION_LID'] = 'urn:nasa:pds:cassini_iss_fring_mosaics_rsfrench2023:data_reproj_img'
+    metadata['DATA_REPROJ_COLLECTION_LID'] = f'urn:nasa:pds:{BUNDLE_NAME}:data_reproj_img'
     metadata['DATA_REPROJ_COLLECTION_CSV_PATH'] = coll_data_reproj_csv_path
     metadata['DATA_REPROJ_COLLECTION_TITLE'] = """
 Collection of reprojected, calibrated Cassini ISS images
@@ -1910,7 +2326,7 @@ def generate_reproj_browse_collection_xml(coll_browse_reproj_csv_path):
 
     coll_browse_reproj_xml_path = coll_browse_reproj_csv_path.replace('csv', 'xml')
 
-    metadata['BROWSE_REPROJ_COLLECTION_LID'] = 'urn:nasa:pds:cassini_iss_fring_mosaics_rsfrench2023:browse_reproj_img'
+    metadata['BROWSE_REPROJ_COLLECTION_LID'] = f'urn:nasa:pds:{BUNDLE_NAME}:browse_reproj_img'
     metadata['BROWSE_REPROJ_COLLECTION_CSV_PATH'] = coll_browse_reproj_csv_path
     metadata['BROWSE_REPROJ_COLLECTION_TITLE'] = """
 Collection for the browse products for the reprojected, calibrated Cassini ISS
@@ -1952,22 +2368,27 @@ def generate_xml_schema():
 
 EARLIEST_START_DATE_TIME = 1e38
 LATEST_STOP_DATE_TIME = 0
-
-NOW = datetime.utcnow().strftime('%Y-%m-%dT%H:%M:%SZ')
+NOW = datetime.datetime.now(datetime.UTC).strftime('%Y-%m-%dT%H:%M:%SZ')
 SENTINEL = -999
+OBSERVATION_INFO = None
 
 BASIC_XML_METADATA = {
-    'AUTHORS': 'Robert S. French, Matthew M. Hedman',
-    'EDITORS': 'Mia J.T. Mace, Mitchell K. Gordon, Matthew S. Tiscareno, Emilie R. Simpson',
+    'INFORMATION_MODEL_VERSION': '1.24.0.0',
+    'PDS4_PDS_SCHEMA': 'https://pds.nasa.gov/pds4/pds/v1/PDS4_PDS_1O00.xsd',
+    'PDS4_RINGS_SCHEMA': 'https://pds.nasa.gov/pds4/rings/v1/PDS4_RINGS_1O00_1D00.xsd',
+    'PDS4_DISP_SCHEMA': 'https://pds.nasa.gov/pds4/disp/v1/PDS4_DISP_1O00_1510.xsd',
+    'PDS4_CASSINI_SCHEMA': 'https://pds.nasa.gov/pds4/mission/cassini/v1/PDS4_CASSINI_1O00_1800.xsd',
     'KEYWORDS': ['saturn rings', 'f ring', 'cassini iss'],
-    'PUBLICATION_YEAR': datetime.utcnow().strftime('%Y'),
+    'PUBLICATION_YEAR': datetime.datetime.now(datetime.UTC).strftime('%Y'),
     'MIN_RING_RADIUS': f'{arguments.ring_radius+arguments.radius_inner_delta:.0f}',
     'MAX_RING_RADIUS': f'{arguments.ring_radius+arguments.radius_outer_delta:.0f}',
-    'USERGUIDE_LID': 'urn:nasa:pds:cassini_iss_fring_mosaics_rsfrench2023:document:users-guide', # XXX
+    'USERGUIDE_LID': f'urn:nasa:pds:${BUNDLE_NAME}:document:users-guide', # XXX
     'USERGUIDE_COMMENT': "Detailed User's Guide for the F Ring Mosaics and Reprojected Images in this bundle.",
     'CASSINI_USER_GUIDE_LID': 'urn:nasa:pds:cassini_iss_saturn:document:iss-data-user-guide',
     'CASSINI_USER_GUIDE_DESC': "The Cassini ISS Data User's Guide (PDS3); DOI: 10.17189/1504135",
-    'SENTINEL': str(SENTINEL)
+    'SENTINEL': str(SENTINEL),
+    'AUTHORS': 'Robert S. French, Matthew M. Hedman',
+    'EDITORS': 'Mia J.T. Mace, Mitchell K. Gordon, Matthew S. Tiscareno, Emilie R. Simpson',
 }
 
 
@@ -2039,6 +2460,7 @@ if GENERATE_BROWSE_REPROJ_COLLECTIONS:
                                                      'collection_browse_reproj_img.csv')
     browse_reproj_collection_fp = open(browse_reproj_collection_csv_path, 'w')
 
+read_observation_list()
 
 for obsid in f_ring.enumerate_obsids(arguments):
     # LOGGER.open(f'OBSID {obsid}')
