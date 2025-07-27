@@ -1,0 +1,105 @@
+<?xml-model href="https://pds.nasa.gov/pds4/pds/v1/PDS4_PDS_1M00.sch" schematypens="http://purl.oclc.org/dsdl/schematron"?>
+<Product_SPICE_Kernel 
+    xmlns="http://pds.nasa.gov/pds4/pds/v1"
+    xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+    xsi:schemaLocation="http://pds.nasa.gov/pds4/pds/v1 https://pds.nasa.gov/pds4/pds/v1/PDS4_PDS_1M00.xsd">
+    <Identification_Area>
+        <logical_identifier>urn:nasa:pds:cassini_iss_spokes_hedman-hamilton-2024:spice_kernels:kernels</logical_identifier>
+        <version_id>1.0</version_id>
+        <title>Metakernel</title>
+        <information_model_version>1.22.0.0</information_model_version>
+        <product_class>Product_SPICE_Kernel</product_class>
+        <Citation_Information>
+            <publication_year>2024</publication_year>
+            <keyword>Observation Geometry</keyword>
+            <description>
+                SPICE metakernel file, kernels.ker, defining ... used by  S.R. Callos, M.M.Hedman, D.P. Hamilton (2024).
+            </description> <!-- MJTM: please update -->
+        </Citation_Information>
+        <Modification_History>
+            <Modification_Detail>
+                <modification_date>2024-10-15</modification_date>
+                <version_id>1.0</version_id>
+                <description>Initial version.</description>
+            </Modification_Detail>
+        </Modification_History>
+    </Identification_Area>
+    <Context_Area>
+        <Time_Coordinates>
+            <start_date_time>2004-01-01T00:00:00Z</start_date_time> <!-- MJTM: please update -->
+            <stop_date_time>2014-01-01T00:00:00Z</stop_date_time> <!-- MJTM: please update -->
+        </Time_Coordinates>
+        <Primary_Result_Summary>
+            <purpose>Observation Geometry</purpose>
+            <processing_level>Derived</processing_level>
+            <description>
+               SPICE metakernel file, kernels.ker, defining ... used by  S.R. Callos, M.M.Hedman, D.P. Hamilton (2024).
+            </description> <!-- MJTM: please update -->
+        </Primary_Result_Summary>
+        <Investigation_Area>
+            <name>Cassini-Huygens</name>
+            <type>Mission</type>
+            <Internal_Reference>
+                <lid_reference>urn:nasa:pds:context:investigation:mission.cassini-huygens</lid_reference>
+                <reference_type>collection_to_investigation</reference_type>
+            </Internal_Reference>
+        </Investigation_Area>
+        <Observing_System>
+            <name>Cassini Orbiter Imaging Science Subsystem - Wide Angle Camera</name>
+            <Observing_System_Component>
+                <name>Cassini Orbiter</name>
+                <type>Host</type>
+                <Internal_Reference>
+                    <lid_reference>urn:nasa:pds:context:instrument_host:spacecraft.co</lid_reference>
+                    <reference_type>is_instrument_host</reference_type>
+                </Internal_Reference>
+            </Observing_System_Component>
+            <Observing_System_Component>
+                <name>Imaging Science Subsystem - Wide Angle</name>
+                <type>Instrument</type>
+                <description>ISSWA</description>
+               <Internal_Reference>
+                    <lid_reference>urn:nasa:pds:context:instrument:isswa.co</lid_reference>
+                    <reference_type>is_instrument</reference_type>
+                </Internal_Reference>
+            </Observing_System_Component>
+        </Observing_System>
+        <Target_Identification>
+             <name>Saturn Rings</name>
+             <type>Ring</type>
+             <Internal_Reference>
+                 <lid_reference>urn:nasa:pds:context:target:ring.saturn.rings</lid_reference>
+                 <reference_type>data_to_target</reference_type>
+             </Internal_Reference>
+         </Target_Identification>
+    </Context_Area>
+    <Reference_List>
+        <External_Reference>
+            <doi>10.1007/s11214-004-1455-8</doi> <!-- MJTM: update -->
+            <reference_text>
+                    S.R. Callos, M.M.Hedman, D.P. Hamilton, A Survey of Cassini Images of Spokes
+                    in Saturn's Rings: Unusual Spoke Types and Seasonal Trends, Journal Name,
+                    Volume xxx: Issue x-x, pp. xxx-xxx, 2024.
+                    An open access preprint PDF/A is provided in the document collection.
+            </reference_text>
+        </External_Reference>
+    </Reference_List>
+    <File_Area_SPICE_Kernel>
+        <File>
+            <file_name>kernels.ker</file_name>
+            <creation_date_time>2024-10-15T16:30:34</creation_date_time> 
+            <file_size unit="byte">12223</file_size>
+            <md5_checksum>5b696d617f857414281f8e57d8f5d561</md5_checksum>
+        </File>
+        <SPICE_Kernel>
+            <offset unit="byte">0</offset>
+            <object_length unit="byte">12223</object_length> 
+            <parsing_standard_id>SPICE</parsing_standard_id>
+            <description>
+             SPICE metakernel file, kernels.ker, defining ... used by  S.R. Callos, M.M.Hedman, D.P. Hamilton (2024).
+            </description> <!--MJTM: update -->
+            <kernel_type>MK</kernel_type>
+            <encoding_type>Character</encoding_type>
+        </SPICE_Kernel>
+    </File_Area_SPICE_Kernel>
+</Product_SPICE_Kernel>

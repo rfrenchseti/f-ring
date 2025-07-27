@@ -20,7 +20,10 @@ import numpy as np
 import numpy.ma as ma
 from PIL import Image
 
+import cspyce
 import julian
+import oops
+import oops.hosts.cassini.iss as coiss
 import pdslogger
 import pdstemplate
 
@@ -100,6 +103,8 @@ OBSERVATION_LIST_PATH = 'observation_list.csv'
 #     collection_document.lblx                      [RMS]
 #     document-01.pdf                               [RF writes]
 #     document-01.lblx                              [RMS]
+#   spice_kernels/
+#     kernels.ker                                   [RF writes]
 #   xml_schema/
 #     collection_xml_schema.csv                     [RMS]
 #     collection_xml_schema.lblx                    [RMS]
@@ -242,9 +247,9 @@ arguments = parser.parse_args(cmd_line)
 f_ring.init(arguments)
 
 
-CALIBRATED_DIR = '/data/pdsdata/holdings/calibrated' # XXX
-REPROJ_DIR = '/data/cb-results/fring/ring_mosaic/ring_repro' # XXX
-OFFSETS_DIR = '/data/cb-results/fring/offsets' # XXX
+CALIBRATED_DIR = '/data/pdsdata/holdings/calibrated'
+REPROJ_DIR = '/data/cb-results/fring/ring_mosaic/ring_repro'
+OFFSETS_DIR = '/data/cb-results/fring/offsets'
 
 GENERATE_REPROJ_IMAGE_LABELS = (arguments.generate_reproj_labels or
                                 arguments.generate_reproj or
@@ -340,7 +345,7 @@ LOGGER = pdslogger.PdsLogger('fring.pds4')
 
 LOG_DIR = arguments.log_dir
 os.makedirs(LOG_DIR, exist_ok=True)
-LOG_FILE_INFO = os.path.join(LOG_DIR, 'generate_pd4.log')
+LOG_FILE_INFO = os.path.join(LOG_DIR, 'generate_pds4.log')
 LOG_FILE_DEBUG = os.path.join(LOG_DIR, 'generate_pds4_debug.log')
 
 info_handler = pdslogger.file_handler(LOG_FILE_INFO, level=logging.INFO,
@@ -358,7 +363,27 @@ LOGGER.add_handler(handler)
 handler = pdslogger.error_handler(LOG_DIR, rotation='none')
 LOGGER.add_handler(handler)
 
-pdstemplate.PdsTemplate.set_logger(LOGGER)
+# Create a separate logger for pdstemplate that only handles warnings and errors
+# but writes to the same log files as the main logger
+pdstemplate_logger = pdslogger.PdsLogger('fring.pdstemplate')
+
+# Create handlers that write to the same files but with WARNING and ERROR levels
+pdstemplate_warning_handler = pdslogger.file_handler(LOG_FILE_INFO, level=logging.WARNING,
+                                                    rotation='ymdhms')
+pdstemplate_error_handler = pdslogger.file_handler(LOG_FILE_INFO, level=logging.ERROR,
+                                                  rotation='ymdhms')
+
+# Create a custom stdout handler that only shows warnings and errors
+pdstemplate_stdout_handler = logging.StreamHandler(sys.stdout)
+pdstemplate_stdout_handler.setLevel(logging.WARNING)
+pdstemplate_stdout_formatter = logging.Formatter('%(levelname)s: %(message)s')
+pdstemplate_stdout_handler.setFormatter(pdstemplate_stdout_formatter)
+
+pdstemplate_logger.add_handler(pdstemplate_warning_handler)
+pdstemplate_logger.add_handler(pdstemplate_error_handler)
+pdstemplate_logger.add_handler(pdstemplate_stdout_handler)
+
+pdstemplate.PdsTemplate.set_logger(pdstemplate_logger)
 
 
 ##########################################################################################
@@ -420,6 +445,11 @@ class ObsIdFailedException(Exception):
 def et_to_datetime(et, dec=None):
     """Convert a SPICE ET to a datetime like 2020-01-01T00:00:00Z."""
     return julian.ymdhms_format_from_tai(julian.tai_from_tdb(et), digits=dec) + 'Z'
+
+
+def utc2et(s):
+    """Convert a date/time in UTC format to SPICE Ephemeris Time."""
+    return julian.tdb_from_tai(julian.tai_from_iso(s))
 
 
 # F ring orbit from Albers 2012
@@ -549,7 +579,7 @@ def fixup_byte_to_str(data):
         for key in data:
             new_data[key.decode('utf-8')] = fixup_byte_to_str(data[key])
         return new_data
-    print('Unknown type in fixup_byte_to_str', type(data))
+    LOGGER.error(f'{obsid}: Unknown type in fixup_byte_to_str', type(data))
     return data
 
 
@@ -588,6 +618,7 @@ def populate_template(obsid, template_name, output_path, xml_metadata):
         xml_metadata (dict): XML metadata
     """
     template = pdstemplate.PdsTemplate(os.path.join('templates', template_name))
+    LOGGER.info(f'Writing {output_path}')
     template.write(xml_metadata, output_path, terminator='\n')
 
 
@@ -946,6 +977,82 @@ def compute_mid_sclk(start_sclk, stop_sclk):
     return f'{mid_sclk_int}.{mid_sclk_frac:03d}'
 
 
+def ra_dec_from_cmat(cmat):
+    z = unit(cmat[2, :])
+    ra = np.arctan2(z[1], z[0])
+    dec = np.arcsin(z[2])
+    if ra < 0: ra += 2 * np.pi
+    return ra, dec
+
+
+def unit(v):
+    return v / np.linalg.norm(v)
+
+
+def extract_roll_from_cmat(cmat):
+    z = unit(cmat[2, :])
+    x = unit(cmat[0, :])
+
+    # Reference X-axis for constructing ideal frame (Z-perp)
+    temp = np.array([0.0, 0.0, 1.0]) if abs(z[2]) < 0.9 else np.array([0.0, 1.0, 0.0])
+    x_ref = unit(np.cross(temp, z))
+    y_ref = np.cross(z, x_ref)
+
+    # Project original X into the Z-plane and normalize
+    x_proj = unit(x - np.dot(x, z) * z)
+
+    # Compute roll angle between projected X and ref X/Y
+    roll = np.arctan2(np.dot(x_proj, y_ref), np.dot(x_proj, x_ref))
+    return roll
+
+
+def rebuild_cmatrix_from_ra_dec_roll(ra, dec, roll):
+    # Construct Z axis from RA/DEC
+    z = np.array([
+        np.cos(dec) * np.cos(ra),
+        np.cos(dec) * np.sin(ra),
+        np.sin(dec)
+    ])
+    z = unit(z)
+
+    # Construct reference X-axis
+    temp = np.array([0.0, 0.0, 1.0]) if abs(z[2]) < 0.9 else np.array([0.0, 1.0, 0.0])
+    x_ref = unit(np.cross(temp, z))
+    y_ref = np.cross(z, x_ref)
+
+    # Apply roll about Z
+    cos_r = np.cos(roll)
+    sin_r = np.sin(roll)
+
+    x = cos_r * x_ref + sin_r * y_ref
+    y = -sin_r * x_ref + cos_r * y_ref
+
+    # Assemble new matrix (X, Y, Z as rows)
+    return np.stack([x, y, z], axis=0)
+
+
+def ra_rad_to_hms(ra):
+    """Convert right ascension in radians to a pretty string."""
+    ra_deg = ra*oops.DPR/15 # In hours
+    hh = int(ra_deg)
+    mm = int((ra_deg-hh)*60)
+    ss = (ra_deg-hh-mm/60.)*3600
+    return f"{hh:02d}h{mm:02d}m{ss:05.3f}s"
+
+
+def dec_rad_to_deg(dec):
+    """Convert declination in radians to a pretty string."""
+    dec_deg = dec*oops.DPR # In degrees
+    neg = "+"
+    if dec_deg < 0.:
+        neg = "-"
+        dec_deg = -dec_deg
+    dd = int(dec_deg)
+    mm = int((dec_deg-dd)*60)
+    ss = (dec_deg-dd-mm/60.)*3600
+    return f"{neg}{dd:03d}d{mm:02d}m{ss:05.3f}s"
+
+
 def write_suppl_file(output_path, metadata, xml_metadata):
     """Write the supplemental file for the reprojected image."""
     offset_path = img_to_offset_path(metadata['image_path'])
@@ -957,6 +1064,33 @@ def write_suppl_file(output_path, metadata, xml_metadata):
         nav_type = 'Ring and/or Satellite Models'
     else:
         nav_type = 'Stars'
+
+    image_path = metadata['image_path']
+    # image_path = '/mnt/ganymede/PDS/holdings/calibrated/COISS_2xxx/COISS_2008/data/1479575527_1479918643/W1479728335_1_CALIB.IMG'
+
+    obs = coiss.from_file(image_path, fast_distortion=True, return_all_planets=True)
+    center_meshgrid = oops.Meshgrid.for_fov(
+                obs.fov,
+                origin=(obs.data.shape[1]//2, obs.data.shape[0]//2),
+                limit =(obs.data.shape[1]//2, obs.data.shape[0]//2),
+                swap  =True)
+    bp = oops.backplane.Backplane(obs, meshgrid=center_meshgrid)
+    ra = bp.right_ascension(apparent=False).vals[0][0]
+    dec = bp.declination(apparent=False).vals[0][0]
+
+    # print('OOPS ra dec', ra, dec)
+    # XXX Add offset FOV
+    cmat = cspyce.pxform('J2000', 'CASSINI_ISS_WAC', obs.midtime)
+
+    ra, dec = ra_dec_from_cmat(cmat)
+    # print('CMAT ra dec', ra, dec)
+    # print(cmat)
+
+    roll = extract_roll_from_cmat(cmat)
+    # print('Roll', roll)
+    # Rebuild matrix
+    cmat_new = rebuild_cmatrix_from_ra_dec_roll(ra, dec, roll)
+    # print(cmat_new)
 
     image_name = metadata['image_name']
     start_date = xml_metadata['START_DATE_TIME_3']
@@ -976,28 +1110,21 @@ def write_suppl_file(output_path, metadata, xml_metadata):
     hdr_text += f'Image Stop Time (SCLK) = {partition}/{stop_sclk}\n'
     hdr_text += f'Image Stop Time (UTC) = {stop_date}\n'
     hdr_text += f'Trajectory Kernels Query Time = Observation mid time\n'
-    hdr_text += 'Stellar Aberration Correction = Yes\n'
-    hdr_text += 'Light Travel Time Correction = Yes\n'
+    hdr_text += 'Stellar Aberration Correction = No\n'
+    hdr_text += 'Light Travel Time Correction = No\n'
     hdr_text += f'Navigation Type = {nav_type}\n'
+    hdr_text += f'Navigated Boresight RA = {np.rad2deg(ra):.6} deg ({ra_rad_to_hms(ra)})\n'
+    hdr_text += f'Navigated Boresight Dec = {np.rad2deg(dec):.6} deg ({dec_rad_to_deg(dec)})\n'
+    hdr_text += f'Navigated Boresight Roll = {np.rad2deg(roll):.6} deg\n'
     hdr_text += 'C-Matrix = \n'
-
-    c_matrix = np.zeros((3,3))  # XXX
-    c_matrix[0,0] = -0.085965968
-    c_matrix[0,1] = -0.048688917
-    c_matrix[0,2] = 0.99510765
-    c_matrix[1,0] = 0.57417040
-    c_matrix[1,1] = -0.81868018
-    c_matrix[1,2] = 0.0095451612
-    c_matrix[2,0] = 0.81421017
-    c_matrix[2,1] = 0.57218192
-    c_matrix[2,2] = 0.098334370
 
     c_matrix_text = ''
     for i in range(3):
         for j in range(3):
-            c_matrix_text += f'{c_matrix[i,j]:16.10f}'
+            c_matrix_text += f'{cmat_new[i,j]:16.10f}'
         c_matrix_text += '\n'
 
+    LOGGER.info(f'Writing supplemental file for {image_name} to {output_path}')
     with open(output_path, 'w') as f:
         f.write(hdr_text)
         f.write(c_matrix_text)
@@ -1102,35 +1229,47 @@ def xml_metadata_for_image(obsid, metadata, bkgnd_metadata, img_type):
     else:
         incidence_angle = np.degrees(metadata['mean_incidence'])
 
-    ret['INCIDENCE_ANGLE'] = f'{incidence_angle:.6f}'
+    ret['MEAN_INCIDENCE_ANGLE'] = f'{incidence_angle:.6f}'
+    ret['MIN_INCIDENCE_ANGLE'] = f'{incidence_angle:.6f}'
+    ret['MAX_INCIDENCE_ANGLE'] = f'{incidence_angle:.6f}'
 
     if img_type == 'r':
         emission_angles = np.degrees(metadata['mean_emission'])
         phase_angles = np.degrees(metadata['mean_phase'])
         rad_resolutions = metadata['mean_radial_resolution']
-        ang_resolutions = metadata['mean_angular_resolution']
+        ang_resolutions = np.degrees(metadata['mean_angular_resolution'])
     else:
         emission_angles = np.degrees(metadata['mean_emission'][long_antimask])
         phase_angles = np.degrees(metadata['mean_phase'][long_antimask])
         rad_resolutions = metadata['mean_radial_resolution'][long_antimask]
-        ang_resolutions = metadata['mean_angular_resolution'][long_antimask]
+        ang_resolutions = np.degrees(metadata['mean_angular_resolution'][long_antimask])
 
     # XXX Implement difference between emission angle and observed ring elevation
-    ret['MEAN_OBS_RING_ELEV'] = f'{np.mean(emission_angles):.6f}'
-    ret['MIN_OBS_RING_ELEV'] = f'{np.min(emission_angles):.6f}'
-    ret['MAX_OBS_RING_ELEV'] = f'{np.max(emission_angles):.6f}'
+    ret['MEAN_EMISSION_ANGLE'] = f'{np.mean(emission_angles):.3f}'
+    ret['MIN_EMISSION_ANGLE'] = f'{np.min(emission_angles):.3f}'
+    ret['MAX_EMISSION_ANGLE'] = f'{np.max(emission_angles):.3f}'
 
-    ret['MEAN_PHASE_ANGLE'] = f'{np.mean(phase_angles):.6f}'
-    ret['MIN_PHASE_ANGLE'] = f'{np.min(phase_angles):.6f}'
-    ret['MAX_PHASE_ANGLE'] = f'{np.max(phase_angles):.6f}'
+    ret['MEAN_PHASE_ANGLE'] = f'{np.mean(phase_angles):.3f}'
+    ret['MIN_PHASE_ANGLE'] = f'{np.min(phase_angles):.3f}'
+    ret['MAX_PHASE_ANGLE'] = f'{np.max(phase_angles):.3f}'
 
-    ret['MEAN_REPROJ_GRID_RAD_RES'] = f'{np.mean(rad_resolutions):.6f}'
-    ret['MIN_REPROJ_GRID_RAD_RES'] = f'{np.min(rad_resolutions):.6f}'
-    ret['MAX_REPROJ_GRID_RAD_RES'] = f'{np.max(rad_resolutions):.6f}'
+    ret['MEAN_REPROJ_GRID_RAD_RES'] = f'{np.mean(rad_resolutions):.3f}'
+    ret['MIN_REPROJ_GRID_RAD_RES'] = f'{np.min(rad_resolutions):.3f}'
+    ret['MAX_REPROJ_GRID_RAD_RES'] = f'{np.max(rad_resolutions):.3f}'
 
-    ret['MEAN_REPROJ_GRID_ANG_RES'] = f'{np.mean(ang_resolutions):.6f}'
-    ret['MIN_REPROJ_GRID_ANG_RES'] = f'{np.min(ang_resolutions):.6f}'
-    ret['MAX_REPROJ_GRID_ANG_RES'] = f'{np.max(ang_resolutions):.6f}'
+    ret['MEAN_REPROJ_GRID_ANG_RES'] = f'{np.mean(ang_resolutions):.3f}'
+    ret['MIN_REPROJ_GRID_ANG_RES'] = f'{np.min(ang_resolutions):.3f}'
+    ret['MAX_REPROJ_GRID_ANG_RES'] = f'{np.max(ang_resolutions):.3f}'
+
+    inertial_longitudes = metadata['inertial_longitudes'][long_antimask]
+    if img_type == 'r':
+        radii = fring_radius_at_longitude(inertial_longitudes,
+                                          metadata['time'])
+    else:
+        radii = fring_radius_at_longitude(inertial_longitudes,
+                                          metadata['time'][long_antimask])
+    ret['MIN_RING_RADIUS'] = f'{np.min(radii)+arguments.radius_inner_delta:.3f}'
+    ret['MAX_RING_RADIUS'] = f'{np.max(radii)+arguments.radius_outer_delta:.3f}'
 
     if img_type != 'r':
         image_name_list = metadata['image_name_list']
@@ -1750,6 +1889,10 @@ def generate_image(obsid, output_dir, metadata, xml_metadata, img_type):
         (img_type != 'r' and GENERATE_MOSAIC_METADATA_TABLES)):
         # OBSID_mosaic_metadata_params.tab or
         # IMG_reproj_img_metadata_params.tab
+        if img_type == 'r':
+            LOGGER.info(f'Writing metadata table for reprojected image {image_name} to {metadata_params_table_path}')
+        else:
+            LOGGER.info(f'Writing metadata table for mosaic {obsid} to {metadata_params_table_path}')
         with open(metadata_params_table_path, 'w') as fp:
             if img_type == 'r':
                 fp.write('Corotating Longitude, '
@@ -1782,6 +1925,7 @@ def generate_image(obsid, output_dir, metadata, xml_metadata, img_type):
 
         if img_type != 'r':
             # mosaic_metadata_src_imgs.tab
+            LOGGER.info(f'Writing image list for mosaic {obsid} to {image_table_path}')
             with open(image_table_path, 'w') as fp:
                 fp.write('Source Image Index, LIDVID\n')
                 for idx in range(len(image_name_list)):
@@ -1857,7 +2001,7 @@ def generate_image(obsid, output_dir, metadata, xml_metadata, img_type):
 
 
 def generate_browse(obsid, browse_dir, metadata, xml_metadata, img_type):
-    """Create mosaic browse images. These are only from bkg-sub mosaics.
+    """Create mosaic browse images.
 
     Inputs:
         obsid           The observation name.
@@ -1933,6 +2077,12 @@ def generate_browse(obsid, browse_dir, metadata, xml_metadata, img_type):
         (img_type != 'r' and GENERATE_BROWSE_MOSAIC_IMAGES)):
         img = ma.filled(metadata['img'], 0)
         valid_cols = np.sum(img, axis=0) != 0
+        if not np.any(valid_cols):
+            if img_type == 'r':
+                LOGGER.error(f'No valid columns in reprojected image {image_name}')
+            else:
+                LOGGER.error(f'No valid columns in mosaic {obsid}')
+            raise ObsIdFailedException
         subimg = img[:, valid_cols]
         blackpoint = max(np.min(subimg), 0)
         whitepoint_ignore_frac = 0.995
@@ -1972,9 +2122,12 @@ def generate_browse(obsid, browse_dir, metadata, xml_metadata, img_type):
             if img_type == 'r':
                 png_path = os.path.join(browse_dir,
                             f'{image_name.lower()}_browse_reproj_img_{size}.png')
+                LOGGER.info(f'Writing browse image for reprojected image {image_name} '
+                            f'to {png_path}')
             else:
                 png_path = os.path.join(browse_dir,
                             f'{obsid.lower()}_browse_mosaic{sfx}_{size}.png')
+                LOGGER.info(f'Writing browse image for mosaic {obsid} to {png_path}')
             pil_img.save(png_path, 'PNG')
 
 
@@ -2380,8 +2533,6 @@ BASIC_XML_METADATA = {
     'PDS4_CASSINI_SCHEMA': 'https://pds.nasa.gov/pds4/mission/cassini/v1/PDS4_CASSINI_1O00_1800.xsd',
     'KEYWORDS': ['saturn rings', 'f ring', 'cassini iss'],
     'PUBLICATION_YEAR': datetime.datetime.now(datetime.UTC).strftime('%Y'),
-    'MIN_RING_RADIUS': f'{arguments.ring_radius+arguments.radius_inner_delta:.0f}',
-    'MAX_RING_RADIUS': f'{arguments.ring_radius+arguments.radius_outer_delta:.0f}',
     'USERGUIDE_LID': f'urn:nasa:pds:${BUNDLE_NAME}:document:users-guide', # XXX
     'USERGUIDE_COMMENT': "Detailed User's Guide for the F Ring Mosaics and Reprojected Images in this bundle.",
     'CASSINI_USER_GUIDE_LID': 'urn:nasa:pds:cassini_iss_saturn:document:iss-data-user-guide',
@@ -2463,36 +2614,36 @@ if GENERATE_BROWSE_REPROJ_COLLECTIONS:
 read_observation_list()
 
 for obsid in f_ring.enumerate_obsids(arguments):
-    # LOGGER.open(f'OBSID {obsid}')
-    try:
-        handle_one_obsid(obsid, reproj_collection_fp, browse_reproj_collection_fp)
-    except ObsIdFailedException:
-        # A logged failure
-        pass
-    except KeyboardInterrupt:
-        # Ctrl-C should be honored
-        raise
-    except SystemExit:
-        # sys.exit() should be honored
-        raise
-    except:
-        # Anything else
-        LOGGER.error('Uncaught exception:\n' + traceback.format_exc())
+    with LOGGER.open(f'OBSID {obsid}'):
+        try:
+            handle_one_obsid(obsid, reproj_collection_fp, browse_reproj_collection_fp)
+        except ObsIdFailedException:
+            # A logged failure
+            pass
+        except KeyboardInterrupt:
+            # Ctrl-C should be honored
+            raise
+        except SystemExit:
+            # sys.exit() should be honored
+            raise
+        except:
+            # Anything else
+            LOGGER.error(f'{obsid}: Uncaught exception:\n' + traceback.format_exc())
 
-    if GENERATE_MOSAIC_COLLECTIONS:
-        mosaic_lidvid = obsid_to_mosaic_lidvid(obsid, False)
-        mosaic_metadata_lidvid = obsid_to_mosaic_metadata_lidvid(obsid, False)
-        mosaic_collection_fp.write(f'P,{mosaic_lidvid}\n')
-        mosaic_collection_fp.write(f'P,{mosaic_metadata_lidvid}\n')
-        bsm_lidvid = obsid_to_mosaic_lidvid(obsid, True)
-        bsm_metadata_lidvid = obsid_to_mosaic_metadata_lidvid(obsid, True)
-        bsm_collection_fp.write(f'P,{bsm_lidvid}\n')
-        bsm_collection_fp.write(f'P,{bsm_metadata_lidvid}\n')
-    if GENERATE_BROWSE_MOSAIC_COLLECTIONS:
-        browse_mosaic_lidvid = obsid_to_mosaic_browse_lidvid(obsid, False)
-        browse_mosaic_collection_fp.write(f'P,{browse_mosaic_lidvid}\n')
-        browse_bsm_lidvid = obsid_to_mosaic_browse_lidvid(obsid, True)
-        browse_bsm_collection_fp.write(f'P,{browse_bsm_lidvid}\n')
+        if GENERATE_MOSAIC_COLLECTIONS:
+            mosaic_lidvid = obsid_to_mosaic_lidvid(obsid, False)
+            mosaic_metadata_lidvid = obsid_to_mosaic_metadata_lidvid(obsid, False)
+            mosaic_collection_fp.write(f'P,{mosaic_lidvid}\n')
+            mosaic_collection_fp.write(f'P,{mosaic_metadata_lidvid}\n')
+            bsm_lidvid = obsid_to_mosaic_lidvid(obsid, True)
+            bsm_metadata_lidvid = obsid_to_mosaic_metadata_lidvid(obsid, True)
+            bsm_collection_fp.write(f'P,{bsm_lidvid}\n')
+            bsm_collection_fp.write(f'P,{bsm_metadata_lidvid}\n')
+        if GENERATE_BROWSE_MOSAIC_COLLECTIONS:
+            browse_mosaic_lidvid = obsid_to_mosaic_browse_lidvid(obsid, False)
+            browse_mosaic_collection_fp.write(f'P,{browse_mosaic_lidvid}\n')
+            browse_bsm_lidvid = obsid_to_mosaic_browse_lidvid(obsid, True)
+            browse_bsm_collection_fp.write(f'P,{browse_bsm_lidvid}\n')
 
     # LOGGER.close()
 

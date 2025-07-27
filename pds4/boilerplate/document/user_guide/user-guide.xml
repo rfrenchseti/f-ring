@@ -1,0 +1,145 @@
+
+<?xml version="1.0" encoding="UTF-8"?>
+<?xml-model href="https://pds.nasa.gov/pds4/pds/v1/PDS4_PDS_1E00.sch"
+    schematypens="http://purl.oclc.org/dsdl/schematron"?>
+
+<Product_Document
+  xmlns="http://pds.nasa.gov/pds4/pds/v1"
+  xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+  xmlns:pds="http://pds.nasa.gov/pds4/pds/v1"
+  xsi:schemaLocation="http://pds.nasa.gov/pds4/pds/v1 https://pds.nasa.gov/pds4/pds/v1/PDS4_PDS_1E00.xsd">
+    <Identification_Area>
+        <logical_identifier>urn:nasa:pds:uranus_occ_support:document:earth-based-uranus-stellar-occultations-user-guide</logical_identifier>
+        <version_id>2.0</version_id>
+        <title>Earth-based Uranus Stellar Occultations User Guide</title>
+        <information_model_version>1.14.0.0</information_model_version>
+        <product_class>Product_Document</product_class>
+        <Citation_Information>
+            <author_list>French, Richard G.; McGhee-French, Colleen A.; Gordon, Mitchell K.</author_list>
+            <publication_year>2020</publication_year>
+            <doi>10.17189/1517665</doi>
+            <keyword>Uranus Ring Occultations User Guide</keyword>
+            <description>This document is a detailed, comprehensive guide which provides an overview of the
+            	earth-based Uranus stellar occultations archived in the PDS, and details essential to understanding
+            	and using the data in the set of data bundles of Uranus stellar occultations.</description>
+        </Citation_Information>
+        <Modification_History>
+            <Modification_Detail>
+                <modification_date>2020-12-05</modification_date>
+                <version_id>1.0</version_id>
+                <description>Initial version.</description>
+            </Modification_Detail>
+            <Modification_Detail>
+                <modification_date>2024-04-11</modification_date>
+                <version_id>2.0</version_id>
+                <description>Removing any reference to erroneous bundle u12_eso_104cm, i.e. removing row of 7 Table 9 in the User Guide pdf.</description>
+            </Modification_Detail>
+       </Modification_History>
+    </Identification_Area>
+    <Document>
+        <document_name>Earth-based Uranus Stellar Occultations User Guide</document_name>
+        <doi>10.17189/1517665</doi>
+        <author_list>French, R. G.; McGhee-French, C. A.; Gordon, M. K.</author_list>
+        <publication_date>2020-12-15</publication_date>
+        <document_editions>1</document_editions>
+        <description>Provides a comprehensive introduction to the Uranus system stellar occultations archived in
+            PDS, with emphasis on the methods for producing the data and the underlying orbit fit models.
+        </description>
+        <Document_Edition>
+            <edition_name>First</edition_name>
+            <language>English</language>
+            <files>14</files>
+            <description>Provides a comprehensive introduction to the Uranus system stellar occultations archived in
+            PDS, with emphasis on the methods for producing the data and the underlying orbit fit models.
+            </description>
+            <Document_File>
+                <file_name>earth-based-uranus-stellar-occultation-user-guide.pdf</file_name>
+                <creation_date_time>2024-04-11</creation_date_time>
+                <md5_checksum>ce8eb71f6179110016133069b2cf3686</md5_checksum>
+                <document_standard_id>PDF</document_standard_id>
+            </Document_File>
+
+            <Document_File>
+                <file_name>create_uranus_ringframes_french_et_al_1988_v1.pro</file_name>
+                <creation_date_time>2020-07-21</creation_date_time>
+                <md5_checksum>b3edfc381a5da1d3c4a7271d6a49decb</md5_checksum>
+                <document_standard_id>7-Bit ASCII Text</document_standard_id>
+            </Document_File>
+            <Document_File>
+                <file_name>occgeom_example1.pro</file_name>
+                <creation_date_time>2020-12-05</creation_date_time>
+                <md5_checksum>0c6678fb5aed829157f2723ecba4847b</md5_checksum>
+                <document_standard_id>7-Bit ASCII Text</document_standard_id>
+            </Document_File>
+            <Document_File>
+                <file_name>occgeom_example1.py</file_name>
+                <creation_date_time>2020-12-05</creation_date_time>
+                <md5_checksum>3fa114efcbe6425552e666f65a7a156a</md5_checksum>
+                <document_standard_id>7-Bit ASCII Text</document_standard_id>
+            </Document_File>
+            <Document_File>
+                <file_name>occgeom_example2.pro</file_name>
+                <creation_date_time>2020-12-05</creation_date_time>
+                <md5_checksum>fd1e8a02546312234dd5e57a90b289ec</md5_checksum>
+                <document_standard_id>7-Bit ASCII Text</document_standard_id>
+            </Document_File>
+            <Document_File>
+                <file_name>occgeom_example2.py</file_name>
+                <creation_date_time>2020-12-05</creation_date_time>
+                <md5_checksum>4b014a0322f85f75470657fcc3531935</md5_checksum>
+                <document_standard_id>7-Bit ASCII Text</document_standard_id>
+            </Document_File>
+            <Document_File>
+                <file_name>plot_epsilon_ring_example.pro</file_name>
+                <creation_date_time>2020-12-05</creation_date_time>
+                <md5_checksum>4c4dccd342372ed9799802d147a228a7</md5_checksum>
+                <document_standard_id>7-Bit ASCII Text</document_standard_id>
+            </Document_File>
+            <Document_File>
+                <file_name>plot_epsilon_ring_example.py</file_name>
+                <creation_date_time>2020-12-05</creation_date_time>
+                <md5_checksum>eead631619be01e398f4e737c4a63d7e</md5_checksum>
+                <document_standard_id>7-Bit ASCII Text</document_standard_id>
+            </Document_File>
+
+            <Document_File>
+                <file_name>plot_epsilon_ring_example_IDL.pdf</file_name>
+                <creation_date_time>2020-07-21</creation_date_time>
+                <md5_checksum>0011926129b30371632c5bc8d280bf6c</md5_checksum>
+                <document_standard_id>PDF</document_standard_id>
+            </Document_File>
+            <Document_File>
+                <file_name>plot_epsilon_ring_example_python.pdf</file_name>
+                <creation_date_time>2020-07-21</creation_date_time>
+                <md5_checksum>4b135e198d83bf0eee07fb21bdcbfab0</md5_checksum>
+                <document_standard_id>PDF</document_standard_id>
+            </Document_File>
+
+            <Document_File>
+                <file_name>ring_longitude_example.pro</file_name>
+                <creation_date_time>2020-12-05</creation_date_time>
+                <md5_checksum>6b6a35a49ac88d942dfdd067546fb253</md5_checksum>
+                <document_standard_id>7-Bit ASCII Text</document_standard_id>
+            </Document_File>
+            <Document_File>
+                <file_name>ring_longitude_example.py</file_name>
+                <creation_date_time>2020-12-05</creation_date_time>
+                <md5_checksum>e60cd8b5d13f2a3ee7abb6cc00489c8b</md5_checksum>
+                <document_standard_id>7-Bit ASCII Text</document_standard_id>
+            </Document_File>
+            <Document_File>
+                <file_name>UranusPoleExample1.py</file_name>
+                <creation_date_time>2020-07-21</creation_date_time>
+                <md5_checksum>1bf3f51baff0085d342b3f354fa9f94f</md5_checksum>
+                <document_standard_id>7-Bit ASCII Text</document_standard_id>
+            </Document_File>
+            <Document_File>
+                <file_name>UranusPoleExample2.py</file_name>
+                <creation_date_time>2020-12-05</creation_date_time>
+                <md5_checksum>d60978bcab0fecd42f82dd1c8413e44e</md5_checksum>
+                <document_standard_id>7-Bit ASCII Text</document_standard_id>
+            </Document_File>
+
+       </Document_Edition>
+    </Document>
+</Product_Document>

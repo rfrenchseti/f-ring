@@ -1,0 +1,685 @@
+
+<?xml version="1.0" encoding="UTF-8"?>
+<?xml-model href="https://pds.nasa.gov/pds4/pds/v1/PDS4_PDS_1E00.sch"
+    schematypens="http://purl.oclc.org/dsdl/schematron"?>
+
+<Product_Ancillary
+  xmlns="http://pds.nasa.gov/pds4/pds/v1"
+  xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+  xmlns:pds="http://pds.nasa.gov/pds4/pds/v1"
+  xsi:schemaLocation="http://pds.nasa.gov/pds4/pds/v1 https://pds.nasa.gov/pds4/pds/v1/PDS4_PDS_1E00.xsd">
+    <Identification_Area>
+        <logical_identifier>urn:nasa:pds:uranus_occ_support:document:uranus_occultations_index</logical_identifier>
+        <version_id>2.0</version_id>
+        <title>Combined Radial Profile Index for All Bundles in the Uranus system, Earth-Based Occultation Series.</title>
+        <information_model_version>1.14.0.0</information_model_version>
+        <product_class>Product_Ancillary</product_class>
+        <Citation_Information>
+            <author_list>French, Richard G.; McGhee-French, Colleen A.; Gordon, Mitchell K.</author_list>
+            <publication_year>2020</publication_year>
+            <keyword>uranus occultation index</keyword>
+            <description>Table of metadata for each radial profile in each Uranus Occultation data bundle.</description>
+        </Citation_Information>
+        <Modification_History>
+            <Modification_Detail>
+                <modification_date>2020-08-24</modification_date>
+                <version_id>1.0</version_id>
+                <description>Initial version</description>
+            </Modification_Detail>
+            <Modification_Detail>
+                <modification_date>2024-04-11</modification_date>
+                <version_id>2.0</version_id>
+                <description>Removed rows pertaining to erroneous u12_eso_104cm bundle, and corrected "Wide Field Camera 3" to "HST Faint Object Spectrograph"</description>
+            </Modification_Detail>
+       </Modification_History>
+    </Identification_Area>
+    <File_Area_Ancillary>
+        <File>
+            <file_name>uranus_occultations_index.tab</file_name>
+            <local_identifier>index</local_identifier>
+            <creation_date_time>2024-04-11T17:03:31</creation_date_time>
+            <md5_checksum>d24d238f794f8ef47775c3b42740a187</md5_checksum>
+        </File>
+        <Header>
+            <offset unit="byte">0</offset>
+            <object_length unit="byte">1353</object_length>
+            <parsing_standard_id>UTF-8 Text</parsing_standard_id>
+            <description>Provides the column headers, separated by commas, for the data table.</description>
+        </Header>
+        <Table_Character>
+            <offset unit="byte">1353</offset>
+            <records>2187</records>
+            <description>
+               Table of metadata. Each record (row) in the table supports a single radial profile. The table supports
+               all of the Uranus Earth based occultation data bundles provided to the PDS by Richard French, et al.
+            </description>
+            <record_delimiter>Carriage-Return Line-Feed</record_delimiter>
+            <Record_Character>
+                <fields>55</fields>
+                <groups>0</groups>
+                <record_length unit="byte">1081</record_length>
+                <Field_Character>
+                    <name>LID</name>
+                    <field_number>1</field_number>
+                    <field_location unit="byte">1</field_location>
+                    <data_type>ASCII_LID</data_type>
+                    <field_length unit="byte">84</field_length>
+                    <description>LID of the radial profile product.</description>
+                </Field_Character>
+                <Field_Character>
+                    <name>File Name</name>
+                    <field_number>2</field_number>
+                    <field_location unit="byte">87</field_location>
+                    <data_type>ASCII_File_Name</data_type>
+                    <field_length unit="byte">70</field_length>
+                    <description>Name of the radial profile product XML label file.</description>
+                </Field_Character>
+                <Field_Character>
+                    <name>File Specification</name>
+                    <field_number>3</field_number>
+                    <field_location unit="byte">159</field_location>
+                    <data_type>ASCII_String</data_type>
+                    <field_length unit="byte">128</field_length>
+                    <description>File path from  the bundle root directory to the XML label file of the radial profile product. The concatenation of the pds: directory_path_name and file_name</description>
+                </Field_Character>
+                <Field_Character>
+                    <name>Bundle LID</name>
+                    <field_number>4</field_number>
+                    <field_location unit="byte">289</field_location>
+                    <data_type>ASCII_LID</data_type>
+                    <field_length unit="byte">44</field_length>
+                    <description>Lid of the bundle.</description>
+                </Field_Character>
+                <Field_Character>
+                    <name>Bundle Name</name>
+                    <field_number>5</field_number>
+                    <field_location unit="byte">335</field_location>
+                    <data_type>ASCII_String</data_type>
+                    <field_length unit="byte">31</field_length>
+                    <description>Name of the bundle</description>
+                </Field_Character>
+                <Field_Character>
+                    <name>Star ID</name>
+                    <field_number>6</field_number>
+                    <field_location unit="byte">368</field_location>
+                    <data_type>ASCII_String</data_type>
+                    <field_length unit="byte">5</field_length>
+                    <description>The shorthand star identifier.</description>
+                </Field_Character>
+                <Field_Character>
+                    <name>Start Time UTC</name>
+                    <field_number>7</field_number>
+                    <field_location unit="byte">375</field_location>
+                    <data_type>ASCII_Date_Time_YMD_UTC</data_type>
+                    <field_length unit="byte">25</field_length>
+                    <description>The start time in UTC.</description>
+                </Field_Character>
+                <Field_Character>
+                    <name>Stop Time UTC</name>
+                    <field_number>8</field_number>
+                    <field_location unit="byte">402</field_location>
+                    <data_type>ASCII_Date_Time_YMD_UTC</data_type>
+                    <field_length unit="byte">25</field_length>
+                    <description>The stop time in UTC.</description>
+                </Field_Character>
+                <Field_Character>
+                    <name>Wavelength Range</name>
+                    <field_number>9</field_number>
+                    <field_location unit="byte">429</field_location>
+                    <data_type>ASCII_String</data_type>
+                    <field_length unit="byte">8</field_length>
+                    <description>The nominal wavelength range.</description>
+                </Field_Character>
+                <Field_Character>
+                    <name>Target</name>
+                    <field_number>10</field_number>
+                    <field_location unit="byte">439</field_location>
+                    <data_type>ASCII_String</data_type>
+                    <field_length unit="byte">12</field_length>
+                    <description>The general target. For this project</description>
+                </Field_Character>
+                <Field_Character>
+                    <name>Target</name>
+                    <field_number>11</field_number>
+                    <field_location unit="byte">453</field_location>
+                    <data_type>ASCII_String</data_type>
+                    <field_length unit="byte">12</field_length>
+                    <description>The specific target. For this project the name of the single ring; blank for profiles of the full system.</description>
+                </Field_Character>
+                <Field_Character>
+                    <name>Observing System</name>
+                    <field_number>12</field_number>
+                    <field_location unit="byte">467</field_location>
+                    <data_type>ASCII_String</data_type>
+                    <field_length unit="byte">56</field_length>
+                    <description>The observing system - generally the observatory and telescope with telescope identified by aperature diameter in cm.</description>
+                </Field_Character>
+                <Field_Character>
+                    <name>Instrument Name</name>
+                    <field_number>13</field_number>
+                    <field_location unit="byte">525</field_location>
+                    <data_type>ASCII_String</data_type>
+                    <field_length unit="byte">36</field_length>
+                    <description>The name of the instrument.</description>
+                </Field_Character>
+
+<!-- All of the remaining columns are based on attributes defined in the "rings" dictionary  -->
+
+                <Field_Character>
+                    <name>Occultation Type</name>
+                    <field_number>14</field_number>
+                    <field_location unit="byte">563</field_location>
+                    <data_type>ASCII_String</data_type>
+                    <field_length unit="byte">7</field_length>
+                    <description>The occultation type - "stellar" for all occultation profiles in this project.</description>
+                </Field_Character>
+                <Field_Character>
+                    <name>Occultation Direction</name>
+                    <field_number>15</field_number>
+                    <field_location unit="byte">572</field_location>
+                    <data_type>ASCII_String</data_type>
+                    <field_length unit="byte">7</field_length>
+                    <description>The direction of the occultation</description>
+                </Field_Character>
+                <Field_Character>
+                    <name>Ring Profile Direction</name>
+                    <field_number>16</field_number>
+                    <field_location unit="byte">581</field_location>
+                    <data_type>ASCII_String</data_type>
+                    <field_length unit="byte">7</field_length>
+                    <description>The direction of the radial profile</description>
+                </Field_Character>
+                <Field_Character>
+                    <name>Planetary Occultation Flag</name>
+                    <field_number>17</field_number>
+                    <field_location unit="byte">590</field_location>
+                    <data_type>ASCII_String</data_type>
+                    <field_length unit="byte">1</field_length>
+                    <description>Flag (Y</description>
+                </Field_Character>
+                <Field_Character>
+                    <name>Data Quality Score</name>
+                    <field_number>18</field_number>
+                    <field_location unit="byte">593</field_location>
+                    <data_type>ASCII_String</data_type>
+                    <field_length unit="byte">4</field_length>
+                    <description>Indicates the overall quality of the data. Possible values are:
+
+                    	0  Not observable - observations at the predicted occultation event time for this
+                    	   ring were either not recorded (for example, the star was below the horizon) or
+                    	   the occultation chord did not intersect the ring.
+
+                    	1  High-SNR profile with sharp edges matched by square-well model fit.
+
+                    	2  Moderate-SNR profile with well-defined midtime from square-well model fit,
+                    	   but possible systematic deviations of observed ring profile from model fit.
+
+                    	3  Clear ring detection but less-reliable ring width and or mid-time due to noise
+                    	   or substantial convolution by star diameter and/or instrumental time constant.
+
+                    	4  Unreliable  detection - some hint of a ring occultation, fitted by square-well
+                    	   model, but ~50% chance it is just noise.
+
+                    	5  No detection - Data were recorded at the expected location of a ring occultation,
+                    	   but no ring was observed, either because ring event was obscured by noise or (for
+                    	   the lambda ring) the optical depth of the ring at the observed longitude was below
+                    	   detectability, even if the overall SNR of the data is high.
+
+                    	6  Is not an indication of data quality. Indicates the product is a profile of the
+                    	   entire ring system based on the equator system of the planet.
+
+                    </description>
+                </Field_Character>
+                <Field_Character>
+                    <name>Data Quality Index</name>
+                    <field_number>19</field_number>
+                    <field_location unit="byte">599</field_location>
+                    <data_type>ASCII_Integer</data_type>
+                    <field_length unit="byte">1</field_length>
+                    <description>Provides a more precise subjective assessment by the data provider of the quality of the observed/predicted ring occultation.</description>
+                </Field_Character>
+                <Field_Character>
+                    <name>Ring Detected</name>
+                    <field_number>20</field_number>
+                    <field_location unit="byte">602</field_location>
+                    <data_type>ASCII_String</data_type>
+                    <field_length unit="byte">1</field_length>
+                    <description>Flag (Y</description>
+                </Field_Character>
+                <Field_Character>
+                    <name>Ring Plane</name>
+                    <field_number>21</field_number>
+                    <field_location unit="byte">605</field_location>
+                    <data_type>ASCII_String</data_type>
+                    <field_length unit="byte">7</field_length>
+                    <description>Indicates the plane upon which parameters such as ring_radius are based.</description>
+                </Field_Character>
+                <Field_Character>
+                    <name>Star Name</name>
+                    <field_number>22</field_number>
+                    <field_location unit="byte">614</field_location>
+                    <data_type>ASCII_String</data_type>
+                    <field_length unit="byte">22</field_length>
+                    <description>Provides catalog and the designation of the star in that catalog.</description>
+                </Field_Character>
+                <Field_Character>
+                    <name>Fresnel scale</name>
+                    <field_number>23</field_number>
+                    <field_location unit="byte">638</field_location>
+                    <data_type>ASCII_Real</data_type>
+                    <field_length unit="byte">4</field_length>
+                    <unit>kilometer</unit>
+                    <description>fresnel_scale is sqrt(lambda * D/2), where lambda is
+                        the central wavelength of the observation and D is the average distance
+                        between the observer and the occulting ring. This is an average value for
+                        the entire occultation and is a measure of the limit on the radial
+                        resolution of ring structure due to diffraction. Note that the actual
+                        overall resolution is affected as well by the projected diameter of
+                        the occulted star and the instrumental time constant, if any.</description>
+                </Field_Character>
+                <Field_Character>
+                    <name>Projected Star Diameter</name>
+                    <field_number>24</field_number>
+                    <field_location unit="byte">644</field_location>
+                    <data_type>ASCII_Real</data_type>
+                    <field_length unit="byte">6</field_length>
+                    <unit>kilometer</unit>
+                    <description>The projected angular diameter of the occulted star</description>
+                </Field_Character>
+                <Field_Character>
+                    <name>Sigma Projected Star Diameter</name>
+                    <field_number>25</field_number>
+                    <field_location unit="byte">652</field_location>
+                    <data_type>ASCII_Real</data_type>
+                    <field_length unit="byte">6</field_length>
+                    <unit>kilometer</unit>
+                    <description>The uncertainty (1-sigma) in the projected_star_diameter.</description>
+                </Field_Character>
+                <Field_Character>
+                    <name>Fractional Error Star Counts</name>
+                    <field_number>26</field_number>
+                    <field_location unit="byte">660</field_location>
+                    <data_type>ASCII_Real</data_type>
+                    <field_length unit="byte">11</field_length>
+                    <description>Indicates the fractional error (1-sigma) in star counts used for square-well model fit.</description>
+                </Field_Character>
+                <Field_Character>
+                    <name>Time Constant Type</name>
+                    <field_number>27</field_number>
+                    <field_location unit="byte">673</field_location>
+                    <data_type>ASCII_String</data_type>
+                    <field_length unit="byte">11</field_length>
+                    <description>time_constant_type distinguishes between three types of instrumental time constant assumed in a
+                    	square-well model.
+
+                    	Possible values are:
+                    	  none - No instrumental time constant, in which case time_constant and sigma_time_constant are both zero.
+
+                    	  single pole - A single pole filter with impulse response given by
+                	                    h(t) = (t/t_c^2)exp(-t/t_c) for t greater than 0, 0 for t less than 0,
+                                      where t_c is the time constant. See Eq. 9 Elliot et al. (1984) Astron. J. 1587-1603.
+
+                       double pole - double pole filter. was used
+
+                    </description>
+                </Field_Character>
+                <Field_Character>
+                    <name>Time Constant</name>
+                    <field_number>28</field_number>
+                    <field_location unit="byte">686</field_location>
+                    <data_type>ASCII_Real</data_type>
+                    <field_length unit="byte">7</field_length>
+                    <unit>second</unit>
+                    <description>Indicates the instrumental time constant of the detector. See Eq. 9 Elliot et al. (1984) Astron. J. 1587-1603.</description>
+                </Field_Character>
+                <Field_Character>
+                    <name>Sigma Time Constant</name>
+                    <field_number>29</field_number>
+                    <field_location unit="byte">695</field_location>
+                    <data_type>ASCII_Real</data_type>
+                    <field_length unit="byte">7</field_length>
+                    <unit>second</unit>
+                    <description>Indicates the uncertainty in the time_constant.</description>
+                </Field_Character>
+                <Field_Character>
+                    <name>Minimum Wavelength</name>
+                    <field_number>30</field_number>
+                    <field_location unit="byte">704</field_location>
+                    <data_type>ASCII_Real</data_type>
+                    <field_length unit="byte">11</field_length>
+                    <unit>nanometer</unit>
+                    <description>The smallest wavelength used in the observation.</description>
+                </Field_Character>
+                <Field_Character>
+                    <name>Maximum Wavelength</name>
+                    <field_number>31</field_number>
+                    <field_location unit="byte">717</field_location>
+                    <data_type>ASCII_Real</data_type>
+                    <field_length unit="byte">11</field_length>
+                    <unit>nanometer</unit>
+                    <description>The largest wavelength used in the observation.</description>
+                </Field_Character>
+                <Field_Character>
+                    <name>Radial Resolution</name>
+                    <field_number>32</field_number>
+                    <field_location unit="byte">730</field_location>
+                    <data_type>ASCII_Real</data_type>
+                    <field_length unit="byte">7</field_length>
+                    <unit>kilometer</unit>
+                    <description>Indicates the nominal radial distance over which changes in ring
+                       properties can be detected within a data product. Note: this value may be larger
+                       than the radial_sampling_interval value, because a data product can be over-sampled.
+                    </description>
+                </Field_Character>
+                <Field_Character>
+                    <name>Minimum Radial Sampling Interval</name>
+                    <field_number>33</field_number>
+                    <field_location unit="byte">739</field_location>
+                    <data_type>ASCII_Real</data_type>
+                    <field_length unit="byte">7</field_length>
+                    <unit>kilometer</unit>
+                    <description>Indicates the smallest radial spacing between consecutive
+                      points in a ring profile. In practice, this may be somewhat smaller
+                      than the radial_resolution because a profile may be over-sampled.</description>
+                </Field_Character>
+                <Field_Character>
+                    <name>Maximum Radial Sampling Interval</name>
+                    <field_number>34</field_number>
+                    <field_location unit="byte">748</field_location>
+                    <data_type>ASCII_Real</data_type>
+                    <field_length unit="byte">7</field_length>
+                    <unit>kilometer</unit>
+                    <description>Indicates the largest radial spacing between consecutive
+                      points in a ring profile. In practice, this may be somewhat smaller
+                      than the radial_resolution because a profile may be over-sampled.
+                    </description>
+                </Field_Character>
+                <Field_Character>
+                    <name>Reference Time UTC</name>
+                    <field_number>35</field_number>
+                    <field_location unit="byte">757</field_location>
+                    <data_type>ASCII_Date_Time_YMD_UTC</data_type>
+                    <field_length unit="byte">25</field_length>
+                    <unit>second</unit>
+                    <description>Provides a date and time in UTC format. Given in a label when time
+                    	values in a table are given as elapsed seconds offset from a reference time.
+                    	Unless there are compelling reasons to do otherwise, reference_time_utc should
+                    	correspond to the start of a day.
+                   </description>
+                </Field_Character>
+                <Field_Character>
+                    <name>Minimum Observed Event Time</name>
+                    <field_number>36</field_number>
+                    <field_location unit="byte">783</field_location>
+                    <data_type>ASCII_Real</data_type>
+                    <field_length unit="byte">11</field_length>
+                    <unit>second</unit>
+                    <description>
+                      minimum_observed_event_time gives the smallest value for observed_event_time in
+        	            the associated data file. It is given in numeric seconds as an offset
+                      from the specified UTC reference time.
+
+
+                    	observed_event_time indicates the instant at which photons were received at the
+                      instrument. provides a date and time in UTC format. Given in a label when time values in
+                      a table are given as elapsed seconds offset from a reference time. Generally, reference_time_utc should
+                      correspond to the start of a day.
+                    </description>
+                </Field_Character>
+                <Field_Character>
+                    <name>Maximum Observed Event Time</name>
+                    <field_number>37</field_number>
+                    <field_location unit="byte">797</field_location>
+                    <data_type>ASCII_Real</data_type>
+                    <field_length unit="byte">11</field_length>
+                    <unit>second</unit>
+                    <description>
+                      maximum_observed_event_time gives the largest value for observed_event_time in
+        	            the associated data file. It is given in numeric seconds as an offset
+                      from the specified UTC reference time.
+
+
+                    	observed_event_time indicates the instant at which photons were received at the
+                      instrument. provides a date and time in UTC format. Given in a label when time values in
+                      a table are given as elapsed seconds offset from a reference time. Generally, reference_time_utc should
+                      correspond to the start of a day.
+                    </description>
+                </Field_Character>
+                <Field_Character>
+                    <name>Observed Event Start TDB</name>
+                    <field_number>38</field_number>
+                    <field_location unit="byte">810</field_location>
+                    <data_type>ASCII_Real</data_type>
+                    <field_length unit="byte">15</field_length>
+                    <unit>second</unit>
+                    <description>observed_event_start_tdb indicates the value for earliest time
+                       in the described data, and is given in elapsed seconds since the J2000 epoch.
+                    </description>
+                </Field_Character>
+                <Field_Character>
+                    <name>Observed Event Stop TDB</name>
+                    <field_number>39</field_number>
+                    <field_location unit="byte">827</field_location>
+                    <data_type>ASCII_Real</data_type>
+                    <field_length unit="byte">15</field_length>
+                    <unit>second</unit>
+                    <description>observed_event_stop_tdb indicates the value for latest time
+                      in the described data, and is given in elapsed seconds since the J2000 epoch.
+                    </description>
+                </Field_Character>
+                <Field_Character>
+                    <name>Ring Event Start Time UTC</name>
+                    <field_number>40</field_number>
+                    <field_location unit="byte">844</field_location>
+                    <data_type>ASCII_Date_Time_YMD_UTC</data_type>
+                    <field_length unit="byte">25</field_length>
+                    <unit>second</unit>
+                    <description>Provides the UTC time corresponding to the earliest time in the described data.</description>
+                </Field_Character>
+                <Field_Character>
+                    <name>Ring Event Stop Time UTC</name>
+                    <field_number>41</field_number>
+                    <field_location unit="byte">871</field_location>
+                    <data_type>ASCII_Date_Time_YMD_UTC</data_type>
+                    <field_length unit="byte">25</field_length>
+                    <unit>second</unit>
+                    <description>Provides the UTC time corresponding to the latest time in the described data.</description>
+                </Field_Character>
+                <Field_Character>
+                    <name>Ring Event Start TDB</name>
+                    <field_number>42</field_number>
+                    <field_location unit="byte">898</field_location>
+                    <data_type>ASCII_Real</data_type>
+                    <field_length unit="byte">15</field_length>
+                    <unit>second</unit>
+                    <description>Provides the 'Barycentric Dynamical Time' time corresponding to the earliest time in the described data.</description>
+                </Field_Character>
+                <Field_Character>
+                    <name>Ring Event Stop TDB</name>
+                    <field_number>43</field_number>
+                    <field_location unit="byte">915</field_location>
+                    <data_type>ASCII_Real</data_type>
+                    <field_length unit="byte">15</field_length>
+                    <unit>second</unit>
+                    <description>Provides the 'Barycentric Dynamical Time' time corresponding to the latest time in the described data.</description>
+                </Field_Character>
+                <Field_Character>
+                    <name>Earth Received Start Time UTC</name>
+                    <field_number>44</field_number>
+                    <field_location unit="byte">932</field_location>
+                    <data_type>ASCII_Date_Time_YMD_UTC</data_type>
+                    <field_length unit="byte">25</field_length>
+                    <unit>second</unit>
+                    <description>The UTC time corresponding to the earliest time for the data product at which telemetry or other photons were received on Earth.</description>
+                </Field_Character>
+                <Field_Character>
+                    <name>Earth Received Stop Time UTC</name>
+                    <field_number>45</field_number>
+                    <field_location unit="byte">959</field_location>
+                    <data_type>ASCII_Date_Time_YMD_UTC</data_type>
+                    <field_length unit="byte">25</field_length>
+                    <unit>second</unit>
+                    <description>The UTC time corresponding to the latest time for the data product at which telemetry or other photons were received on Earth.</description>
+                </Field_Character>
+                <Field_Character>
+                    <name>Minimum Ring Radius</name>
+                    <field_number>46</field_number>
+                    <field_location unit="byte">986</field_location>
+                    <data_type>ASCII_Real</data_type>
+                    <field_length unit="byte">10</field_length>
+                    <unit>kilometer</unit>
+                    <description>The smallest ring radius value in the data table.</description>
+                </Field_Character>
+                <Field_Character>
+                    <name>Maximum Ring Radius</name>
+                    <field_number>47</field_number>
+                    <field_location unit="byte">998</field_location>
+                    <data_type>ASCII_Real</data_type>
+                    <field_length unit="byte">10</field_length>
+                    <unit>kilometer</unit>
+                    <description>The largest ring radius value in the data table.</description>
+                </Field_Character>
+                <Field_Character>
+                    <name>Minimum Ring Longitude</name>
+                    <field_number>48</field_number>
+                    <field_location unit="byte">1010</field_location>
+                    <data_type>ASCII_Real</data_type>
+                    <field_length unit="byte">8</field_length>
+                    <unit>degree</unit>
+                    <description>minimum_ring_longitude specifes one boundary for the ring longitude range
+                    	in the data; normally the smallest value. However, for ranges that cross the prime meridian,
+                    	the minimum ring longitude will have a value greater than the maximum ring longitude. Values
+                    	range from 0 to 360 in units of degrees.
+
+                    	ring_longitude specifies the inertial longitude of a ring feature relative to the prime
+                      meridian. In planetary ring systems, the prime meridian is the ascending node of the planet's
+                      invariable plane on the Earth's mean equator of J2000. Longitudes are measured in the
+                      direction of orbital motion along the planet's invariable plane to the ring's ascending node,
+                      and thence along the ring plane. Values range from 0 to 360 in units of degrees.
+                      Note: The invariable plane of a planet is equivalent to its equatorial plane for every ringed
+                      planet except Neptune
+                    </description>
+                </Field_Character>
+                <Field_Character>
+                    <name>Maximum Ring Longitude</name>
+                    <field_number>49</field_number>
+                    <field_location unit="byte">1020</field_location>
+                    <data_type>ASCII_Real</data_type>
+                    <field_length unit="byte">8</field_length>
+                    <unit>degree</unit>
+                    <description>maximum_ring_longitude specifes one boundary for the ring longitude range
+                    	in the data; normally the largest value. However, for ranges that cross the prime meridian,
+                    	the maximum ring longitude will have a value smaller than the minimum ring longitude. Values
+                    	range from 0 to 360 in units of degrees.
+
+                    	ring_longitude specifies the inertial longitude of a ring feature relative to the prime
+                      meridian. In planetary ring systems, the prime meridian is the ascending node of the planet's
+                      invariable plane on the Earth's mean equator of J2000. Longitudes are measured in the
+                      direction of orbital motion along the planet's invariable plane to the ring's ascending node,
+                      and thence along the ring plane. Values range from 0 to 360 in units of degrees.
+                      Note: The invariable plane of a planet is equivalent to its equatorial plane for every ringed
+                      planet except Neptune
+                    </description>
+                </Field_Character>
+                <Field_Character>
+                    <name>Minimum Observed Ring Azimuth</name>
+                    <field_number>50</field_number>
+                    <field_location unit="byte">1030</field_location>
+                    <data_type>ASCII_Real</data_type>
+                    <field_length unit="byte">8</field_length>
+                    <unit>degree</unit>
+                    <description>Specifes the smallest value for observed_ring_azimuth in the data file.
+                    	Values range from 0 to 360 in units of degrees.
+
+                    	observed_ring_azimuth is an angle measured at a point in the ring plane, starting
+                      from the direction of a photon heading to the observer, and ending at the direction of a local
+                      radial vector. This angle is projected into the ring plane and measured in the prograde
+                      direction. Note that, as seen from the observer, it equals 90 degrees along the right ansa
+                      and 270 degrees along the left ansa. Values range from 0 to 360 in units of degrees.
+                    </description>
+                </Field_Character>
+                <Field_Character>
+                    <name>Maximum Observed Ring Azimuth</name>
+                    <field_number>51</field_number>
+                    <field_location unit="byte">1040</field_location>
+                    <data_type>ASCII_Real</data_type>
+                    <field_length unit="byte">8</field_length>
+                    <unit>degree</unit>
+                    <description>Specifes the largest value for observed_ring_azimuth in the data file.
+                    	Values range from 0 to 360 in units of degrees.
+
+                      observed_ring_azimuth is an angle measured at a point in the ring plane, starting
+                      from the direction of a photon heading to the observer, and ending at the direction of a local
+                      radial vector. This angle is projected into the ring plane and measured in the prograde
+                      direction. Note that, as seen from the observer, it equals 90 degrees along the right ansa
+                      and 270 degrees along the left ansa. Values range from 0 to 360 in units of degrees.
+                    </description>
+                </Field_Character>
+                <Field_Character>
+                    <name>Observed Ring Elevation</name>
+                    <field_number>52</field_number>
+                    <field_location unit="byte">1050</field_location>
+                    <data_type>ASCII_Real</data_type>
+                    <field_length unit="byte">9</field_length>
+                    <unit>degree</unit>
+                    <description>observed_ring_elevation is an angle measured at a point in the ring plane, starting
+                      from the ring plane to the direction of a photon heading to the observer. This angle is
+                      positive on the side of the ring plane defined by positive angular momentum, and negative
+                      on the opposite side. Values range from -90 to +90 in units of degrees. This angle is constant
+                      for stellar occultations, but may vary significantly during radio occultations.
+                      Note: The direction of positive angular momentum points toward the IAU-defined north side
+                      of the ring plane for Jupiter, Saturn and Neptune, but IAU-defined south side of the ring
+                      plane for Uranus.
+                    </description>
+                </Field_Character>
+                <Field_Character>
+                    <name>Light Source Incidence Angle</name>
+                    <field_number>53</field_number>
+                    <field_location unit="byte">1061</field_location>
+                    <data_type>ASCII_Real</data_type>
+                    <field_length unit="byte">8</field_length>
+                    <unit>degree</unit>
+                    <description>light_source_incidence_angle is an angle measured from the local surface normal
+                      vector to the direction of a photon arriving from the light source. For rings, the normal vector
+                      is that on the same side of the rings as the light source, so values always range between 0
+                      and 90 in units of degrees.
+                      The value is always equal to 90 - | observed_ring_elevation |
+                      This will enable users to perform database searches based on the effective ring opening
+                      angle when they are not concerned about the distinction between north-side and southside
+                      viewpoints.
+                      We have included the 'light source' prefix to the term so that this quantity is not confused
+                      with 'incidence angle', a term that is generally associated with sunlight rather than stars
+                      or radio transmitters.
+                   </description>
+                </Field_Character>
+                <Field_Character>
+                    <name>Lowest Detectable Opacity</name>
+                    <field_number>54</field_number>
+                    <field_location unit="byte">1071</field_location>
+                    <data_type>ASCII_Real</data_type>
+                    <field_length unit="byte">4</field_length>
+                    <description>Indicates the sensitivity of a ring occultation data set to
+                       nearly opaque rings. It specifies the rough value for the smallest normal ring opacity that can
+                       be detected in the data at the resolution provided, incorporating both statistical effects and
+                       calibration uncertainties.
+
+                       -1.0 indicates the signal was too poor to allow the calculation of the value.
+                    </description>
+                </Field_Character>
+                <Field_Character>
+                    <name>Highest Detectable Opacity</name>
+                    <field_number>55</field_number>
+                    <field_location unit="byte">1077</field_location>
+                    <data_type>ASCII_Real</data_type>
+                    <field_length unit="byte">3</field_length>
+                    <description>Indicates the sensitivity of a ring occultation data set to
+                       nearly opaque rings. It specifies the rough value for the largest normal ring opacity that can
+                       be detected in the data at the resolution provided, incorporating both statistical effects and
+                       calibration uncertainties.
+
+                       -1.0 indicates the signal was too poor to allow the calculation of the value.
+                    </description>
+                </Field_Character>            </Record_Character>
+        </Table_Character>
+    </File_Area_Ancillary>
+</Product_Ancillary>
