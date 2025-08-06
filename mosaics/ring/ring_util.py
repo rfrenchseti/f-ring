@@ -521,9 +521,9 @@ def write_mosaic_pngs(full_png_path, small_png_path, img, mask_fill_value=-999):
 
     print('***', blackpoint, whitepoint, gamma)
     # The +0 forces a copy - necessary for PIL
-    scaled_mosaic = np.cast['int8'](ImageDisp.scale_image(img, blackpoint,
+    scaled_mosaic = np.asarray(ImageDisp.scale_image(img, blackpoint,
                                                           whitepoint,
-                                                          gamma))[::-1,:]+0
+                                                          gamma), dtype=np.uint8)[::-1,:]+0
     pil_img = Image.frombuffer('L', (scaled_mosaic.shape[1],
                                      scaled_mosaic.shape[0]),
                                scaled_mosaic, 'raw', 'L', 0, 1)
@@ -532,10 +532,10 @@ def write_mosaic_pngs(full_png_path, small_png_path, img, mask_fill_value=-999):
 
     # Reduced mosaic for easier viewing
     scale = max(img.shape[1] // 1920, 1)
-    scaled_mosaic = np.cast['int8'](ImageDisp.scale_image(img[:,::scale],
+    scaled_mosaic = np.asarray(ImageDisp.scale_image(img[:,::scale],
                                                           blackpoint,
                                                           whitepoint,
-                                                          gamma))[::-1,:]+0
+                                                          gamma), dtype=np.uint8)[::-1,:]+0
     pil_img = Image.frombuffer('L', (scaled_mosaic.shape[1],
                                      scaled_mosaic.shape[0]),
                            scaled_mosaic, 'raw', 'L', 0, 1)

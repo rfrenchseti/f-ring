@@ -1,0 +1,561 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<?xml-model href="$PDS4_PDS_SCHEMA$"
+    schematypens="http://purl.oclc.org/dsdl/schematron"?>
+<?xml-model href="$PDS4_RINGS_SCHEMA$"
+    schematypens="http://purl.oclc.org/dsdl/schematron"?>
+<?xml-model href="$PDS4_DISP_SCHEMA$"
+    schematypens="http://purl.oclc.org/dsdl/schematron"?>
+<?xml-model href="$PDS4_CASSINI_SCHEMA$"
+schematypens="http://purl.oclc.org/dsdl/schematron"?>
+
+<Product_Ancillary
+    xmlns="http://pds.nasa.gov/pds4/pds/v1"
+    xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+    xmlns:disp="http://pds.nasa.gov/pds4/disp/v1"
+    xmlns:rings="http://pds.nasa.gov/pds4/rings/v1"
+    xmlns:cassini="http://pds.nasa.gov/pds4/mission/cassini/v1"
+    xsi:schemaLocation="
+	http://pds.nasa.gov/pds4/pds/v1 $PDS4_PDS_SCHEMA$
+	http://pds.nasa.gov/pds4/rings/v1 $PDS4_RINGS_SCHEMA$">
+
+    <Identification_Area>
+        <logical_identifier>$GLOBAL_INDEX_LID$</logical_identifier>
+        <version_id>1.0</version_id>
+        <title>$GLOBAL_INDEX_TITLE$</title>
+        <information_model_version>$INFORMATION_MODEL_VERSION$</information_model_version>
+        <product_class>Product_Observational</product_class>
+        <Citation_Information>
+            <publication_year>$PUBLICATION_YEAR$</publication_year>
+            $FOR(KEYWORD=KEYWORDS)
+            <keyword>$KEYWORD$</keyword>
+            $END_FOR
+            <keyword>index</keyword>
+            <description>
+                $WRAP(16,91,GLOBAL_INDEX_DESCRIPTION,preserve_single_newlines=False)$
+            </description>
+            <List_Author>
+                <Person>
+                    <display_full_name>Robert S. French</display_full_name>
+                    <given_name>Robert</given_name>
+                    <family_name>French</family_name>
+                    <person_orcid>https://orcid.org/0000-0002-9527-7920</person_orcid>
+                    <sequence_number>1</sequence_number>
+                    <Affiliation>
+                        <organization_name>SETI Institute</organization_name>
+                        <organization_rorid>https://ror.org/02dxgk712</organization_rorid>
+                        <sequence_number>1</sequence_number>
+                    </Affiliation>
+                </Person>
+                <Person>
+                    <display_full_name>Matthew M. Hedman</display_full_name>
+                    <given_name>Matthew</given_name>
+                    <family_name>Hedman</family_name>
+                    <person_orcid>http://orcid.org/0000-0002-8592-0812</person_orcid>
+                    <sequence_number>2</sequence_number>
+                    <Affiliation>
+                        <organization_name>University of Idaho</organization_name>
+                        <organization_rorid>https://ror.org/03hbp5t65</organization_rorid>
+                        <sequence_number>1</sequence_number>
+                    </Affiliation>
+                </Person>
+            </List_Author>
+            <List_Contributor>
+                <Person>
+                    <contributor_type>DataCurator</contributor_type>
+                    <display_full_name>Mia J.T. Mace</display_full_name>
+                    <given_name>Mia</given_name>
+                    <family_name>Mace</family_name>
+                    <person_orcid>https://orcid.org/0000-0002-9905-816X</person_orcid>
+                    <sequence_number>1</sequence_number>
+                    <Affiliation>
+                        <organization_name>NASA's Planetary Data System (Ring-Moon Systems Node)</organization_name>
+                        <organization_rorid>https://ror.org/006ndaj41</organization_rorid>
+                        <sequence_number>1</sequence_number>
+                    </Affiliation>
+                    <Affiliation>
+                        <organization_name>SETI Institute</organization_name>
+                        <organization_rorid>https://ror.org/02dxgk712</organization_rorid>
+                        <sequence_number>2</sequence_number>
+                    </Affiliation>
+                </Person>
+                <Person>
+                    <contributor_type>DataCurator</contributor_type>
+                    <display_full_name>Mitchell K. Gordon</display_full_name>
+                    <given_name>Mitchell</given_name>
+                    <family_name>Gordon</family_name>
+                    <person_orcid>https://orcid.org/0000-0003-0985-2800</person_orcid>
+                    <sequence_number>2</sequence_number>
+                    <Affiliation>
+                        <organization_name>NASA's Planetary Data System (Ring-Moon Systems Node)</organization_name>
+                        <organization_rorid>https://ror.org/006ndaj41</organization_rorid>
+                        <sequence_number>1</sequence_number>
+                    </Affiliation>
+                    <Affiliation>
+                        <organization_name>SETI Institute</organization_name>
+                        <organization_rorid>https://ror.org/02dxgk712</organization_rorid>
+                        <sequence_number>2</sequence_number>
+                    </Affiliation>
+                </Person>
+                <Person>
+                    <contributor_type>DataCurator</contributor_type>
+                    <display_full_name>Matthew S. Tiscareno</display_full_name>
+                    <given_name>Matthew</given_name>
+                    <family_name>Tiscareno</family_name>
+                    <person_orcid>https://orcid.org/0000-0002-2736-3667</person_orcid>
+                    <sequence_number>2</sequence_number>
+                    <Affiliation>
+                        <organization_name>NASA's Planetary Data System (Ring-Moon Systems Node)</organization_name>
+                        <organization_rorid>https://ror.org/006ndaj41</organization_rorid>
+                        <sequence_number>1</sequence_number>
+                    </Affiliation>
+                    <Affiliation>
+                        <organization_name>SETI Institute</organization_name>
+                        <organization_rorid>https://ror.org/02dxgk712</organization_rorid>
+                        <sequence_number>2</sequence_number>
+                    </Affiliation>
+                </Person>
+                <Person>
+                    <contributor_type>DataCurator</contributor_type>
+                    <display_full_name>Emilie R. Simpson</display_full_name>
+                    <given_name>Emilie</given_name>
+                    <family_name>Simpson</family_name>
+                    <person_orcid>https://orcid.org/0000-0003-0447-9867</person_orcid>
+                    <sequence_number>2</sequence_number>
+                    <Affiliation>
+                        <organization_name>NASA's Planetary Data System (Ring-Moon Systems Node)</organization_name>
+                        <organization_rorid>https://ror.org/006ndaj41</organization_rorid>
+                        <sequence_number>1</sequence_number>
+                    </Affiliation>
+                    <Affiliation>
+                        <organization_name>SETI Institute</organization_name>
+                        <organization_rorid>https://ror.org/02dxgk712</organization_rorid>
+                        <sequence_number>2</sequence_number>
+                    </Affiliation>
+                </Person>
+            </List_Contributor>
+        </Citation_Information>
+        <Modification_History>
+            <Modification_Detail>
+                <modification_date>$CURRENT_DATE$</modification_date>
+                <version_id>1.0</version_id>
+                <description>Initial version.</description>
+            </Modification_Detail>
+        </Modification_History>
+    </Identification_Area>
+    <File_Area_Ancillary>
+        <File>
+            <file_name>$GLOBAL_INDEX_TABLE_FILENAME$</file_name>
+            <creation_date_time>$FILE_ZULU(GLOBAL_INDEX_CSV_PATH)$</creation_date_time>
+            <file_size unit="byte">$FILE_BYTES(GLOBAL_INDEX_CSV_PATH)$</file_size>
+            <md5_checksum>$FILE_MD5(GLOBAL_INDEX_CSV_PATH)$</md5_checksum>
+        </File>
+        <Header>
+            <offset unit="byte">0</offset>
+            <object_length unit="byte">$HEADER_LENGTH$</object_length>
+            <parsing_standard_id>UTF-8 Text</parsing_standard_id>
+            $IF(IS_MOSAIC)
+            $IF(IS_BKGND_SUB)
+            <description>logical_identifier,observation_id,file_spec,start_date_time,stop_date_time,spacecraft_clock_start_count,spacecraft_clock_stop_count,num_valid_longitudes,percent_coverage,min_corotating_longitude,max_corotating_longitude,min_inertial_longitude,max_inertial_longitude,mean_phase_angle,min_phase_angle,max_phase_angle,mean_incidence_angle,mean_emission_angle,min_emission_angle,max_emission_angle,mean_radial_resolution,min_radial_resolution,max_radial_resolution,mean_longitudinal_resolution,min_longitudinal_resolution,max_longitudinal_resolution,min_radius,max_radius,product_creation_date,num_images,min_image_name,max_image_name,bkgnd_lower_limit,bkgnd_upper_limit</description>
+            $ELSE
+            <description>logical_identifier,observation_id,file_spec,start_date_time,stop_date_time,spacecraft_clock_start_count,spacecraft_clock_stop_count,num_valid_longitudes,percent_coverage,min_corotating_longitude,max_corotating_longitude,min_inertial_longitude,max_inertial_longitude,mean_phase_angle,min_phase_angle,max_phase_angle,mean_incidence_angle,mean_emission_angle,min_emission_angle,max_emission_angle,mean_radial_resolution,min_radial_resolution,max_radial_resolution,mean_longitudinal_resolution,min_longitudinal_resolution,max_longitudinal_resolution,min_radius,max_radius,product_creation_date,num_images,min_image_name,max_image_name</description>
+            $ELSE
+            <description>logical_identifier,observation_id,file_spec,start_date_time,stop_date_time,spacecraft_clock_start_count,spacecraft_clock_stop_count,num_valid_longitudes,percent_coverage,min_corotating_longitude,max_corotating_longitude,min_inertial_longitude,max_inertial_longitude,mean_phase_angle,min_phase_angle,max_phase_angle,mean_incidence_angle,mean_emission_angle,min_emission_angle,max_emission_angle,mean_radial_resolution,min_radial_resolution,max_radial_resolution,mean_longitudinal_resolution,min_longitudinal_resolution,max_longitudinal_resolution,min_radius,max_radius,product_creation_date</description>
+            $END_IF
+        </Header>
+        <Table_Character>
+            <local_identifier>global_reproj_img_index</local_identifier>
+            <offset unit="byte">$HEADER_LENGTH$</offset>
+            <records>$FILE_RECORDS(GLOBAL_INDEX_CSV_PATH)-1$</records>
+            <description>
+                $WRAP(16,91,GLOBAL_INDEX_DESCRIPTION,preserve_single_newlines=False)$
+            </description>
+            <record_delimiter>Line-Feed</record_delimiter>
+            <Record_Character>
+                <fields>29</fields>
+                <groups>0</groups>
+                $IF(IS_MOSAIC)
+                $IF(IS_BKGND_SUB)
+                <record_length unit="byte">578</record_length>
+                $ELSE
+                <record_length unit="byte">565</record_length>
+                $END_IF
+                $ELSE
+                <record_length unit="byte">533</record_length>
+                $END_IF
+                <Field_Character>
+                    <name>logical_identifier</name>
+                    <field_number>1</field_number>
+                    <field_location unit="byte">1</field_location>
+                    <data_type>ASCII_LID</data_type>
+                    <field_length unit="byte">118</field_length>
+                    <description>
+                        The logical identifier for the product.
+                    </description>
+                </Field_Character>
+                <Field_Character>
+                    <name>observation_id</name>
+                    <field_number>2</field_number>
+                    <field_location unit="byte">120</field_location>
+                    <data_type>ASCII_String</data_type>
+                    <field_length unit="byte">29</field_length>
+                    <description>
+                        The Cassini Observation ID this product is associated with.
+                    </description>
+                </Field_Character>
+                <Field_Character>
+                    <name>file_spec</name>
+                    <field_number>3</field_number>
+                    <field_location unit="byte">151</field_location>
+                    <data_type>ASCII_String</data_type>
+                    <field_length unit="byte">101</field_length>
+                    <description>
+                        The file specification path for the product label file.
+                    </description>
+                </Field_Character>
+                <Field_Character>
+                    <name>start_date_time</name>
+                    <field_number>4</field_number>
+                    <field_location unit="byte">254</field_location>
+                    <data_type>ASCII_Date_Time_YMD_UTC</data_type>
+                    <field_length unit="byte">20</field_length>
+                    <unit>none</unit>
+                    <description>
+                        The start date and time of the observation in UTC.
+                    </description>
+                </Field_Character>
+                <Field_Character>
+                    <name>stop_date_time</name>
+                    <field_number>5</field_number>
+                    <field_location unit="byte">276</field_location>
+                    <data_type>ASCII_Date_Time_YMD_UTC</data_type>
+                    <field_length unit="byte">20</field_length>
+                    <unit>none</unit>
+                    <description>
+                        The stop date and time of the observation in UTC.
+                    </description>
+                </Field_Character>
+                <Field_Character>
+                    <name>spacecraft_clock_start_count</name>
+                    <field_number>6</field_number>
+                    <field_location unit="byte">298</field_location>
+                    <data_type>ASCII_Real</data_type>
+                    <field_length unit="byte">14</field_length>
+                    <unit>none</unit>
+                    <description>
+                        The spacecraft clock start count for the observation.
+                    </description>
+                </Field_Character>
+                <Field_Character>
+                    <name>spacecraft_clock_stop_count</name>
+                    <field_number>7</field_number>
+                    <field_location unit="byte">314</field_location>
+                    <data_type>ASCII_Real</data_type>
+                    <field_length unit="byte">14</field_length>
+                    <unit>none</unit>
+                    <description>
+                        The spacecraft clock stop count for the observation.
+                    </description>
+                </Field_Character>
+                <Field_Character>
+                    <name>num_valid_longitudes</name>
+                    <field_number>8</field_number>
+                    <field_location unit="byte">330</field_location>
+                    <data_type>ASCII_NonNegative_Integer</data_type>
+                    <field_length unit="byte">5</field_length>
+                    <unit>none</unit>
+                    <description>
+                        The number of valid longitudes in the product.
+                    </description>
+                </Field_Character>
+                <Field_Character>
+                    <name>percent_coverage</name>
+                    <field_number>9</field_number>
+                    <field_location unit="byte">337</field_location>
+                    <data_type>ASCII_Real</data_type>
+                    <field_length unit="byte">7</field_length>
+                    <unit>none</unit>
+                    <description>
+                        The percentage coverage of all longitudes in the product.
+                    </description>
+                </Field_Character>
+                <Field_Character>
+                    <name>min_corotating_longitude</name>
+                    <field_number>10</field_number>
+                    <field_location unit="byte">346</field_location>
+                    <data_type>ASCII_Real</data_type>
+                    <field_length unit="byte">6</field_length>
+                    <unit>deg</unit>
+                    <description>
+                        The minimum corotating longitude in the product that contains valid data.
+                    </description>
+                </Field_Character>
+                <Field_Character>
+                    <name>max_corotating_longitude</name>
+                    <field_number>11</field_number>
+                    <field_location unit="byte">354</field_location>
+                    <data_type>ASCII_Real</data_type>
+                    <field_length unit="byte">6</field_length>
+                    <unit>deg</unit>
+                    <description>
+                        The maximum corotating longitude in the product that contains valid data.
+                    </description>
+                </Field_Character>
+                <Field_Character>
+                    <name>min_inertial_longitude</name>
+                    <field_number>12</field_number>
+                    <field_location unit="byte">362</field_location>
+                    <data_type>ASCII_Real</data_type>
+                    <field_length unit="byte">7</field_length>
+                    <unit>deg</unit>
+                    <description>
+                        The minimum inertial longitude in the product associated with valid corotating longitudes.
+                    </description>
+                </Field_Character>
+                <Field_Character>
+                    <name>max_inertial_longitude</name>
+                    <field_number>13</field_number>
+                    <field_location unit="byte">371</field_location>
+                    <data_type>ASCII_Real</data_type>
+                    <field_length unit="byte">7</field_length>
+                    <unit>deg</unit>
+                    <description>
+                        The maximum inertial longitude in the product associated with valid corotating longitudes.
+                    </description>
+                </Field_Character>
+                <Field_Character>
+                    <name>mean_phase_angle</name>
+                    <field_number>14</field_number>
+                    <field_location unit="byte">380</field_location>
+                    <data_type>ASCII_Real</data_type>
+                    <field_length unit="byte">7</field_length>
+                    <unit>deg</unit>
+                    <description>
+                        The mean phase angle for the product.
+                    </description>
+                </Field_Character>
+                <Field_Character>
+                    <name>min_phase_angle</name>
+                    <field_number>15</field_number>
+                    <field_location unit="byte">389</field_location>
+                    <data_type>ASCII_Real</data_type>
+                    <field_length unit="byte">7</field_length>
+                    <unit>deg</unit>
+                    <description>
+                        The minimum phase angle for the product.
+                    </description>
+                </Field_Character>
+                <Field_Character>
+                    <name>max_phase_angle</name>
+                    <field_number>16</field_number>
+                    <field_location unit="byte">398</field_location>
+                    <data_type>ASCII_Real</data_type>
+                    <field_length unit="byte">7</field_length>
+                    <unit>deg</unit>
+                    <description>
+                        The maximum phase angle for the product.
+                    </description>
+                </Field_Character>
+                <Field_Character>
+                    <name>mean_incidence_angle</name>
+                    <field_number>17</field_number>
+                    <field_location unit="byte">407</field_location>
+                    <data_type>ASCII_Real</data_type>
+                    <field_length unit="byte">6</field_length>
+                    <unit>deg</unit>
+                    <description>
+                        The mean incidence angle for the product.
+                    </description>
+                </Field_Character>
+                <Field_Character>
+                    <name>mean_emission_angle</name>
+                    <field_number>18</field_number>
+                    <field_location unit="byte">415</field_location>
+                    <data_type>ASCII_Real</data_type>
+                    <field_length unit="byte">7</field_length>
+                    <unit>deg</unit>
+                    <description>
+                        The mean emission angle for the product.
+                    </description>
+                </Field_Character>
+                <Field_Character>
+                    <name>min_emission_angle</name>
+                    <field_number>19</field_number>
+                    <field_location unit="byte">424</field_location>
+                    <data_type>ASCII_Real</data_type>
+                    <field_length unit="byte">7</field_length>
+                    <unit>deg</unit>
+                    <description>
+                        The minimum emission angle for the product.
+                    </description>
+                </Field_Character>
+                <Field_Character>
+                    <name>max_emission_angle</name>
+                    <field_number>20</field_number>
+                    <field_location unit="byte">433</field_location>
+                    <data_type>ASCII_Real</data_type>
+                    <field_length unit="byte">7</field_length>
+                    <unit>deg</unit>
+                    <description>
+                        The maximum emission angle for the product.
+                    </description>
+                </Field_Character>
+                <Field_Character>
+                    <name>mean_radial_resolution</name>
+                    <field_number>21</field_number>
+                    <field_location unit="byte">442</field_location>
+                    <data_type>ASCII_Real</data_type>
+                    <field_length unit="byte">8</field_length>
+                    <unit>km/pixel</unit>
+                    <description>
+                        The mean radial resolution for the product.
+                    </description>
+                </Field_Character>
+                <Field_Character>
+                    <name>min_radial_resolution</name>
+                    <field_number>22</field_number>
+                    <field_location unit="byte">452</field_location>
+                    <data_type>ASCII_Real</data_type>
+                    <field_length unit="byte">8</field_length>
+                    <unit>km/pixel</unit>
+                    <description>
+                        The minimum radial resolution for the product.
+                    </description>
+                </Field_Character>
+                <Field_Character>
+                    <name>max_radial_resolution</name>
+                    <field_number>23</field_number>
+                    <field_location unit="byte">462</field_location>
+                    <data_type>ASCII_Real</data_type>
+                    <field_length unit="byte">8</field_length>
+                    <unit>km/pixel</unit>
+                    <description>
+                        The maximum radial resolution for the product.
+                    </description>
+                </Field_Character>
+                <Field_Character>
+                    <name>mean_longitudinal_resolution</name>
+                    <field_number>24</field_number>
+                    <field_location unit="byte">472</field_location>
+                    <data_type>ASCII_Real</data_type>
+                    <field_length unit="byte">7</field_length>
+                    <unit>deg/pixel</unit>
+                    <description>
+                        The mean longitudinal resolution for the product.
+                    </description>
+                </Field_Character>
+                <Field_Character>
+                    <name>min_longitudinal_resolution</name>
+                    <field_number>25</field_number>
+                    <field_location unit="byte">481</field_location>
+                    <data_type>ASCII_Real</data_type>
+                    <field_length unit="byte">7</field_length>
+                    <unit>deg/pixel</unit>
+                    <description>
+                        The minimum longitudinal resolution for the product.
+                    </description>
+                </Field_Character>
+                <Field_Character>
+                    <name>max_longitudinal_resolution</name>
+                    <field_number>26</field_number>
+                    <field_location unit="byte">490</field_location>
+                    <data_type>ASCII_Real</data_type>
+                    <field_length unit="byte">7</field_length>
+                    <unit>deg/pixel</unit>
+                    <description>
+                        The maximum longitudinal resolution for the product.
+                    </description>
+                </Field_Character>
+                <Field_Character>
+                    <name>min_radius</name>
+                    <field_number>27</field_number>
+                    <field_location unit="byte">499</field_location>
+                    <data_type>ASCII_Real</data_type>
+                    <field_length unit="byte">10</field_length>
+                    <unit>km</unit>
+                    <description>
+                        The minimum ring radius in the product.
+                    </description>
+                </Field_Character>
+                <Field_Character>
+                    <name>max_radius</name>
+                    <field_number>28</field_number>
+                    <field_location unit="byte">511</field_location>
+                    <data_type>ASCII_Real</data_type>
+                    <field_length unit="byte">10</field_length>
+                    <unit>km</unit>
+                    <description>
+                        The maximum ring radius in the product.
+                    </description>
+                </Field_Character>
+                <Field_Character>
+                    <name>product_creation_date</name>
+                    <field_number>29</field_number>
+                    <field_location unit="byte">523</field_location>
+                    <data_type>ASCII_Date_YMD</data_type>
+                    <field_length unit="byte">10</field_length>
+                    <unit>none</unit>
+                    <description>
+                        The date when the product was created.
+                    </description>
+                </Field_Character>
+                $IF(IS_MOSAIC)
+                <Field_Character>
+                    <name>num_images</name>
+                    <field_number>30</field_number>
+                    <field_location unit="byte">535</field_location>
+                    <data_type>ASCII_NonNegative_Integer</data_type>
+                    <field_length unit="byte">4</field_length>
+                    <unit>none</unit>
+                    <description>
+                        The number of source images used to create this mosaic.
+                    </description>
+                </Field_Character>
+                <Field_Character>
+                    <name>min_image_name</name>
+                    <field_number>31</field_number>
+                    <field_location unit="byte">541</field_location>
+                    <data_type>ASCII_String</data_type>
+                    <field_length unit="byte">11</field_length>
+                    <description>
+                        The name of the earliest source image used in this mosaic.
+                    </description>
+                </Field_Character>
+                <Field_Character>
+                    <name>max_image_name</name>
+                    <field_number>32</field_number>
+                    <field_location unit="byte">554</field_location>
+                    <data_type>ASCII_String</data_type>
+                    <field_length unit="byte">11</field_length>
+                    <description>
+                        The name of the latest source image used in this mosaic.
+                    </description>
+                </Field_Character>
+                $IF(IS_BKGND_SUB)
+                <Field_Character>
+                    <name>bkgnd_lower_limit</name>
+                    <field_number>33</field_number>
+                    <field_location unit="byte">567</field_location>
+                    <data_type>ASCII_Real</data_type>
+                    <field_length unit="byte">5</field_length>
+                    <unit>none</unit>
+                    <description>
+                        The lower ring delta radius used to delineate the background region; radii between this and core-1000 are used for background modeling.
+                    </description>
+                </Field_Character>
+                <Field_Character>
+                    <name>bkgnd_upper_limit</name>
+                    <field_number>34</field_number>
+                    <field_location unit="byte">574</field_location>
+                    <data_type>ASCII_Real</data_type>
+                    <field_length unit="byte">4</field_length>
+                    <unit>none</unit>
+                    <description>
+                        The upper ring delta radius used to delineate the background region; radii between this and core+1000 are used for background modeling.
+                    </description>
+                </Field_Character>
+                $END_IF
+                $END_IF
+            </Record_Character>
+        </Table_Character>
+    </File_Area_Ancillary>
+</Product_Ancillary>

@@ -18,7 +18,7 @@ import msgpack
 import msgpack_numpy
 import numpy as np
 import numpy.ma as ma
-from PIL import Image
+from PIL import Image, ImageDraw, ImageFont
 
 import cspyce
 import julian
@@ -45,69 +45,66 @@ OBSERVATION_LIST_PATH = 'observation_list.csv'
 #   bundle.lblx                                     [RMS]
 #   readme.txt                                      [RF writes]
 #   browse_mosaic/
-#     collection_browse_mosaic.csv                 +[generated: [P|S], LIDVID]
 #     collection_browse_mosaic.lblx                 [RMS]
+#     collection_browse_mosaic.csv                 +[generated: [P|S], LIDVID]
 #     OBSID/
+#       OBSID_browse_mosaic.lblx                   +[template mosaic-browse-image.lblx]
 #       OBSID_browse_mosaic_full.png               +[generated]
 #       OBSID_browse_mosaic_med.png                +[generated]
 #       OBSID_browse_mosaic_small.png              +[generated]
 #       OBSID_browse_mosaic_thumb.png              +[generated]
-#       OBSID_browse_mosaic.lblx                   +[template mosaic-browse-image.xml]
 #   browse_mosaic_bkg_sub/
-#     collection_browse_mosaic_bkg_sub.csv         +[generated: [P|S], LIDVID]
 #     collection_browse_mosaic_bkg_sub.lblx         [RMS]
+#     collection_browse_mosaic_bkg_sub.csv         +[generated: [P|S], LIDVID]
 #     OBSID/
+#       OBSID_browse_mosaic_bkg_sub.lblx           +[template mosaic-browse-image.lblx]
 #       OBSID_browse_mosaic_bkg_sub_full.png       +[generated]
 #       OBSID_browse_mosaic_bkg_sub_med.png        +[generated]
 #       OBSID_browse_mosaic_bkg_sub_small.png      +[generated]
 #       OBSID_browse_mosaic_bkg_sub_thumb.png      +[generated]
-#       OBSID_browse_mosaic_bkg_sub.lblx           +[template mosaic-browse-image.xml]
 #   browse_reproj_img/
-#     collection_browse_reproj_img.csv             +[generated: [P|S], LIDVID]
 #     collection_browse_reproj_img.lblx             [RMS]
+#     collection_browse_reproj_img.csv             +[generated: [P|S], LIDVID]
 #     OBSID/
+#       IMG_browse_reproj_img.lblx                 +[template reproj-browse-image.lblx]
 #       IMG_browse_reproj_img_full.png             +[generated]
 #       IMG_browse_reproj_img_thumb.png            +[generated]
-#       IMG_browse_reproj_img.lblx                 +[template reproj-browse-image.xml]
 #   context/
 #     [written by RMS]
 #   data_mosaic/
-#     collection_data_mosaic.csv                   +[generated: [P|S], LIDVID]
 #     collection_data_mosaic.lblx                   [RMS]
+#     collection_data_mosaic.csv                   +[generated: [P|S], LIDVID]
 #     OBSID/
+#       OBSID_mosaic.lblx                          +[template mosaic.lblx]
 #       OBSID_mosaic.img                           +[generated]
-#       OBSID_mosaic.lblx                          +[template mosaic.xml]
 #       OBSID_mosaic_metadata_src_imgs.tab         +[generated]
 #       OBSID_mosaic_metadata_params.tab           +[generated]
-#       OBSID_mosaic_metadata.lblx                 +[template mosaic-metadata.xml]
 #   data_mosaic_bkg_sub/
-#     collection_data_mosaic_bkg_sub.csv           +[generated: [P|S], LIDVID]
 #     collection_data_mosaic_bkg_sub.lblx           [RMS]
+#     collection_data_mosaic_bkg_sub.csv           +[generated: [P|S], LIDVID]
 #     OBSID/
+#       OBSID_mosaic_bkg_sub.lblx                  +[template mosaic.lblx]
 #       OBSID_mosaic_bkg_sub.img                   +[generated]
-#       OBSID_mosaic_bkg_sub.lblx                  +[template mosaic.xml]
 #       OBSID_mosaic_bkg_sub_metadata_src_imgs.tab +[generated]
 #       OBSID_mosaic_bkg_sub_metadata_params.tab   +[generated]
-#       OBSID_mosaic_bkg_sub_metadata.lblx         +[template mosaic-metadata.xml]
 #   data_reproj_img/
-#     collection_data_reproj_img.csv               +[generated: [P|S], LIDVID]
 #     collection_data_reproj_img.lblx               [RMS]
+#     collection_data_reproj_img.csv               +[generated: [P|S], LIDVID]
 #     OBSID/
-#       IMG_reproj_img.img                         +[generated]
-#       IMG_reproj_img.lblx                        +[template reproj-img.xml]
+#       IMG_reproj_img.lblx                        +[template reproj-img.lblx]
+#       IMG_reproj_img.img                         +[generated]
 #       IMG_reproj_img_suppl.txt                   +[generated]
 #       IMG_reproj_img_metadata_params.tab         +[generated]
-#       IMG_reproj_img_metadata.lblx               +[template reproj-img-metadata.xml]
 #   document/
-#     collection_document.csv                       [RMS]
 #     collection_document.lblx                      [RMS]
-#     document-01.pdf                               [RF writes]
+#     collection_document.csv                       [RMS]
 #     document-01.lblx                              [RMS]
+#     document-01.pdf                               [RF writes]
 #   spice_kernels/
 #     kernels.ker                                   [RF writes]
 #   xml_schema/
-#     collection_xml_schema.csv                     [RMS]
 #     collection_xml_schema.lblx                    [RMS]
+#     collection_xml_schema.csv                     [RMS]
 #
 # Internal_Reference:
 #   Mosaic: Mosaic Metadata, Mosaic Browse, BSMosaic
@@ -149,13 +146,13 @@ parser.add_argument('--generate-reproj-suppl-files',
 parser.add_argument('--generate-reproj-collections',
                     action='store_true', default=False,
                     help='Generate reproj collections files')
+parser.add_argument('--generate-reproj-global-index',
+                    action='store_true', default=False,
+                    help='Generate reproj global index file')
 parser.add_argument('--generate-reproj',
                     action='store_true', default=False,
                     help='Generate reproj image files and labels')
 
-parser.add_argument('--generate-reproj-metadata-labels',
-                    action='store_true', default=False,
-                    help='Generate reproj table labels')
 parser.add_argument('--generate-reproj-metadata-tables',
                     action='store_true', default=False,
                     help='Generate reproj tables')
@@ -191,13 +188,13 @@ parser.add_argument('--generate-mosaic-images',
 parser.add_argument('--generate-mosaic-collections',
                     action='store_true', default=False,
                     help='Generate mosaic and bkgnd-sub mosaic collections files')
+parser.add_argument('--generate-mosaic-global-index',
+                    action='store_true', default=False,
+                    help='Generate mosaic and bkgnd-sub mosaic global index file')
 parser.add_argument('--generate-mosaics',
                     action='store_true', default=False,
                     help='Generate mosaic and bkgnd-sub mosaic image files and labels')
 
-parser.add_argument('--generate-mosaic-metadata-labels',
-                    action='store_true', default=False,
-                    help='Generate mosaic and bkgnd-sub metadata table labels')
 parser.add_argument('--generate-mosaic-metadata-tables',
                     action='store_true', default=False,
                     help='Generate mosaic and bkgnd-sub metadata tables')
@@ -266,10 +263,6 @@ GENERATE_REPROJ_SUPPL_FILES = (arguments.generate_reproj_suppl_files or
                                arguments.generate_all_reproj or
                                arguments.generate_all)
 
-GENERATE_REPROJ_METADATA_LABELS = (arguments.generate_reproj_metadata_labels or
-                                   arguments.generate_reproj_metadata or
-                                   arguments.generate_all_reproj or
-                                   arguments.generate_all)
 GENERATE_REPROJ_METADATA_TABLES = (arguments.generate_reproj_metadata_tables or
                                    arguments.generate_reproj_metadata or
                                    arguments.generate_all_reproj or
@@ -278,6 +271,9 @@ GENERATE_REPROJ_METADATA_TABLES = (arguments.generate_reproj_metadata_tables or
 GENERATE_REPROJ_COLLECTIONS = (arguments.generate_reproj_collections or
                                arguments.generate_all_reproj or
                                arguments.generate_all)
+GENERATE_REPROJ_GLOBAL_INDEX = (arguments.generate_reproj_global_index or
+                                arguments.generate_all_reproj or
+                                arguments.generate_all)
 
 GENERATE_BROWSE_REPROJ_LABELS = (arguments.generate_reproj_browse_labels or
                                  arguments.generate_reproj_browse or
@@ -306,12 +302,10 @@ GENERATE_MOSAIC_IMAGES = (arguments.generate_mosaic_images or
 GENERATE_MOSAIC_COLLECTIONS = (arguments.generate_mosaic_collections or
                                arguments.generate_all_mosaics or
                                arguments.generate_all)
+GENERATE_MOSAIC_GLOBAL_INDEX = (arguments.generate_mosaic_global_index or
+                                arguments.generate_all_mosaics or
+                                arguments.generate_all)
 
-GENERATE_MOSAIC_METADATA_LABELS = (arguments.generate_mosaic_metadata_labels or
-                                   arguments.generate_mosaic_metadata or
-                                   arguments.generate_all_mosaics or
-                                   arguments.generate_all_labels or
-                                   arguments.generate_all)
 GENERATE_MOSAIC_METADATA_TABLES = (arguments.generate_mosaic_metadata_tables or
                                    arguments.generate_mosaic_metadata or
                                    arguments.generate_all_mosaics or
@@ -608,7 +602,7 @@ def read_offset_metadata_path(offset_path):
     return metadata
 
 
-def populate_template(obsid, template_name, output_path, xml_metadata):
+def populate_template(template_name, output_path, xml_metadata):
     """Copy a template to an output file after making substitutions.
 
     Parameters:
@@ -619,7 +613,7 @@ def populate_template(obsid, template_name, output_path, xml_metadata):
     """
     template = pdstemplate.PdsTemplate(os.path.join('templates', template_name))
     LOGGER.info(f'Writing {output_path}')
-    template.write(xml_metadata, output_path, terminator='\n')
+    template.write(xml_metadata, output_path)
 
 
 def fixup_byte_to_str(data):
@@ -831,23 +825,6 @@ def image_name_to_reproj_lidvid(name):
     return image_name_to_reproj_lid(name)+'::1.0'
 
 
-def image_name_to_reproj_metadata_lid(name):
-    """Convert Cassini ISS image name to a reprojected image metadata LID.
-
-    urn:nasa:pds:fring_mosaic_rsfrench2025:data_reproj_img:1551253524n_reproj_img_metadata
-    """
-    name = name.lower()
-    return (f'urn:nasa:pds:{BUNDLE_NAME}:data_reproj_img:{name}_reproj_img_metadata')
-
-
-def image_name_to_reproj_metadata_lidvid(name):
-    """Convert Cassini ISS image name to a reprojected image metadata LIDVID.
-
-    urn:nasa:pds:fring_mosaic_rsfrench2025:data_reproj_img:1551253524n_reproj_img_metadata::1.0
-    """
-    return image_name_to_reproj_metadata_lid(name)+'::1.0'
-
-
 def image_name_to_reproj_browse_lid(name):
     """Convert Cassini ISS image name to a reprojected browse image LID.
 
@@ -886,28 +863,6 @@ def obsid_to_mosaic_lidvid(obsid, bkg_sub):
     urn:nasa:pds:fring_mosaic_rsfrench2025:data_mosaic_bkg_sub:iosic_276rb_complitb4001_si_mosaic_bkg_sub::1.0
     """
     return obsid_to_mosaic_lid(obsid, bkg_sub)+'::1.0'
-
-
-def obsid_to_mosaic_metadata_lid(obsid, bkg_sub):
-    """Convert OBSID to a mosaic or bsm metadata LID.
-
-    urn:nasa:pds:fring_mosaic_rsfrench2025:data_mosaic:iosic_276rb_complitb4001_si_mosaic_metadata
-        or
-    urn:nasa:pds:fring_mosaic_rsfrench2025:data_mosaic_bkg_sub:iosic_276rb_complitb4001_si_mosaic_bkg_sub_metadata
-    """
-    sfx = '_bkg_sub' if bkg_sub else ''
-    obsid = obsid.lower()
-    return (f'urn:nasa:pds:{BUNDLE_NAME}:data_mosaic{sfx}:{obsid}_mosaic{sfx}_metadata')
-
-
-def obsid_to_mosaic_metadata_lidvid(obsid, bkg_sub):
-    """Convert OBSID to a mosaic or bsm metadata LIDVID.
-
-    urn:nasa:pds:fring_mosaic_rsfrench2025:data_mosaic:iosic_276rb_complitb4001_si_metadata::1.0
-        or
-    urn:nasa:pds:fring_mosaic_rsfrench2025:data_mosaic_bkg_sub:iosic_276rb_complitb4001_si_metadata_bkg_sub::1.0
-    """
-    return obsid_to_mosaic_metadata_lid(obsid, bkg_sub)+'::1.0'
 
 
 def obsid_to_mosaic_browse_lid(obsid, bkg_sub):
@@ -1136,7 +1091,7 @@ def read_observation_list():
     """Read the observation list from the observation list CSV file.
 
     The CSV file has the following columns:
-        Observation,Inertial,Nav qual,Bkgnd qual,Prometheus,Pandora,Additional Comments,
+        Observation,Inertial,Nav qual,Bkgnd qual,Prometheus,Pandora,Notes,
 
     Notes:
         B: Background-subtracted mosaic is missing data due to insufficient radial extent
@@ -1182,6 +1137,10 @@ def xml_metadata_for_image(obsid, metadata, bkgnd_metadata, img_type):
     """
     ret = BASIC_XML_METADATA.copy()
 
+    ret['CURRENT_DATE'] = datetime.datetime.now(datetime.timezone.utc).strftime('%Y-%m-%d')
+    ret['CURRENT_DATE_TIME'] = datetime.datetime.now(datetime.timezone.utc).strftime(
+        '%Y-%m-%dT%H:%M:%SZ')
+
     long_antimask = metadata['long_antimask']
 
     match = re.search(r'^(.*)_(\d+)$', obsid)
@@ -1214,12 +1173,10 @@ def xml_metadata_for_image(obsid, metadata, bkgnd_metadata, img_type):
 
     xml_add_pds3_label_info(ret, obsid, min_image_path, max_image_path)
 
-    ret['NUM_VALID_LONGITUDES'] = str(np.sum(long_antimask))
+    ret['NUM_VALID_LONGITUDES'] = np.sum(long_antimask)
     ret['MOSAIC_LID'] = obsid_to_mosaic_lid(obsid, img_type == 'b')
     ret['MOSAIC_ORIGINAL_LID'] = obsid_to_mosaic_lid(obsid, False)
     ret['MOSAIC_BKG_SUB_LID'] = obsid_to_mosaic_lid(obsid, True)
-    ret['MOSAIC_METADATA_LID'] = obsid_to_mosaic_metadata_lid(obsid,
-                                                              img_type == 'b')
     ret['BROWSE_MOSAIC_LID'] = obsid_to_mosaic_browse_lid(obsid, img_type == 'b')
 
     xml_add_comments(ret, img_type, obsid, metadata, bkgnd_metadata)
@@ -1229,9 +1186,8 @@ def xml_metadata_for_image(obsid, metadata, bkgnd_metadata, img_type):
     else:
         incidence_angle = np.degrees(metadata['mean_incidence'])
 
-    ret['MEAN_INCIDENCE_ANGLE'] = f'{incidence_angle:.6f}'
-    ret['MIN_INCIDENCE_ANGLE'] = f'{incidence_angle:.6f}'
-    ret['MAX_INCIDENCE_ANGLE'] = f'{incidence_angle:.6f}'
+    ret['MEAN_INCIDENCE_ANGLE'] = f'{incidence_angle:.3f}'
+    ret['MEAN_INCIDENCE_ANGLE_FIXED'] = f'{incidence_angle:6.3f}'
 
     if img_type == 'r':
         emission_angles = np.degrees(metadata['mean_emission'])
@@ -1246,20 +1202,32 @@ def xml_metadata_for_image(obsid, metadata, bkgnd_metadata, img_type):
 
     # XXX Implement difference between emission angle and observed ring elevation
     ret['MEAN_EMISSION_ANGLE'] = f'{np.mean(emission_angles):.3f}'
+    ret['MEAN_EMISSION_ANGLE_FIXED'] = f'{np.mean(emission_angles):7.3f}'
     ret['MIN_EMISSION_ANGLE'] = f'{np.min(emission_angles):.3f}'
+    ret['MIN_EMISSION_ANGLE_FIXED'] = f'{np.min(emission_angles):7.3f}'
     ret['MAX_EMISSION_ANGLE'] = f'{np.max(emission_angles):.3f}'
+    ret['MAX_EMISSION_ANGLE_FIXED'] = f'{np.max(emission_angles):7.3f}'
 
     ret['MEAN_PHASE_ANGLE'] = f'{np.mean(phase_angles):.3f}'
+    ret['MEAN_PHASE_ANGLE_FIXED'] = f'{np.mean(phase_angles):7.3f}'
     ret['MIN_PHASE_ANGLE'] = f'{np.min(phase_angles):.3f}'
+    ret['MIN_PHASE_ANGLE_FIXED'] = f'{np.min(phase_angles):7.3f}'
     ret['MAX_PHASE_ANGLE'] = f'{np.max(phase_angles):.3f}'
+    ret['MAX_PHASE_ANGLE_FIXED'] = f'{np.max(phase_angles):7.3f}'
 
     ret['MEAN_REPROJ_GRID_RAD_RES'] = f'{np.mean(rad_resolutions):.3f}'
+    ret['MEAN_REPROJ_GRID_RAD_RES_FIXED'] = f'{np.mean(rad_resolutions):8.3f}'
     ret['MIN_REPROJ_GRID_RAD_RES'] = f'{np.min(rad_resolutions):.3f}'
+    ret['MIN_REPROJ_GRID_RAD_RES_FIXED'] = f'{np.min(rad_resolutions):8.3f}'
     ret['MAX_REPROJ_GRID_RAD_RES'] = f'{np.max(rad_resolutions):.3f}'
+    ret['MAX_REPROJ_GRID_RAD_RES_FIXED'] = f'{np.max(rad_resolutions):8.3f}'
 
-    ret['MEAN_REPROJ_GRID_ANG_RES'] = f'{np.mean(ang_resolutions):.3f}'
-    ret['MIN_REPROJ_GRID_ANG_RES'] = f'{np.min(ang_resolutions):.3f}'
-    ret['MAX_REPROJ_GRID_ANG_RES'] = f'{np.max(ang_resolutions):.3f}'
+    ret['MEAN_REPROJ_GRID_ANG_RES'] = f'{np.mean(ang_resolutions):.5f}'
+    ret['MEAN_REPROJ_GRID_ANG_RES_FIXED'] = f'{np.mean(ang_resolutions):7.5f}'
+    ret['MIN_REPROJ_GRID_ANG_RES'] = f'{np.min(ang_resolutions):.5f}'
+    ret['MIN_REPROJ_GRID_ANG_RES_FIXED'] = f'{np.min(ang_resolutions):7.5f}'
+    ret['MAX_REPROJ_GRID_ANG_RES'] = f'{np.max(ang_resolutions):.5f}'
+    ret['MAX_REPROJ_GRID_ANG_RES_FIXED'] = f'{np.max(ang_resolutions):7.5f}'
 
     inertial_longitudes = metadata['inertial_longitudes'][long_antimask]
     if img_type == 'r':
@@ -1269,11 +1237,13 @@ def xml_metadata_for_image(obsid, metadata, bkgnd_metadata, img_type):
         radii = fring_radius_at_longitude(inertial_longitudes,
                                           metadata['time'][long_antimask])
     ret['MIN_RING_RADIUS'] = f'{np.min(radii)+arguments.radius_inner_delta:.3f}'
+    ret['MIN_RING_RADIUS_FIXED'] = f'{np.min(radii)+arguments.radius_inner_delta:10.3f}'
     ret['MAX_RING_RADIUS'] = f'{np.max(radii)+arguments.radius_outer_delta:.3f}'
+    ret['MAX_RING_RADIUS_FIXED'] = f'{np.max(radii)+arguments.radius_outer_delta:10.3f}'
 
     if img_type != 'r':
         image_name_list = metadata['image_name_list']
-        ret['NUM_IMAGES'] = str(len(image_name_list))
+        ret['NUM_IMAGES'] = len(image_name_list)
         image_name0 = metadata['image_name_list'][0]
     else:
         _, image_name0 = os.path.split(metadata['image_path'])
@@ -1437,8 +1407,12 @@ def xml_add_comments(ret, img_type, obsid, metadata, bkgnd_metadata):
         # longitudes are populated.
         ret['MIN_RING_COROTATING_LONG'] = '0.00'
         ret['MAX_RING_COROTATING_LONG'] = '360.00'
+    ret['MIN_RING_COROTATING_LONG_FIXED'] = f'{min_corot_long:6.2f}'
+    ret['MAX_RING_COROTATING_LONG_FIXED'] = f'{max_corot_long:6.2f}'
     ret['MIN_RING_INERTIAL_LONG'] = f'{min_inertial:.3f}'
     ret['MAX_RING_INERTIAL_LONG'] = f'{max_inertial:.3f}'
+    ret['MIN_RING_INERTIAL_LONG_FIXED'] = f'{min_inertial:7.3f}'
+    ret['MAX_RING_INERTIAL_LONG_FIXED'] = f'{max_inertial:7.3f}'
 
     # References to browse images and other mosaic variation
     if img_type == 'b':
@@ -1480,7 +1454,6 @@ def xml_add_reproj_comments(ret, metadata, root_obsid, start_date_time,
                             min_corot_long, max_corot_long, diff_corot):
     """Add comments to the XML metadata for a reprojected image."""
     image_name = metadata['image_name']
-    ret['REPROJ_METADATA_LID'] = image_name_to_reproj_lid(image_name)
     ret['REPROJ_TITLE'] = f"""
 Reprojected version of Cassini ISS calibrated image {image_name} from
 observation {root_obsid}
@@ -1491,7 +1464,6 @@ Metadata for the reprojected version of Cassini ISS calibrated image
 """
     ret['REPROJ_LID'] = image_name_to_reproj_lid(image_name)
     ret['BROWSE_REPROJ_LID'] = image_name_to_reproj_browse_lid(image_name)
-    ret['REPROJ_METADATA_LID'] = image_name_to_reproj_metadata_lid(image_name)
 
     ret['REPROJ_DESCRIPTION'] = ret['REPROJ_TITLE']
 
@@ -1578,6 +1550,8 @@ def xml_add_mosaic_comments(ret, metadata, bkgnd_metadata, img_type, root_obsid,
 
     total_hours = total_secs / 3600
 
+    ret['MIN_IMAGE_NAME'] = min_image_name
+    ret['MAX_IMAGE_NAME'] = max_image_name
     ret['MOSAIC_TITLE'] = f"""
 {cap_bkg}F Ring mosaic created from reprojected, calibrated Cassini ISS images
 from observation {root_obsid} spanning {min_image_name} ({start_date_time}) to
@@ -1639,7 +1613,9 @@ other available observation chunks.
     bkg_comment = ''
     if img_type == 'b':
         lower_limit = 1000-bkgnd_metadata['ring_lower_limit']*5
+        ret['BKGND_LOWER_LIMIT'] = lower_limit
         upper_limit = 1000-(400-bkgnd_metadata['ring_upper_limit'])*5
+        ret['BKGND_UPPER_LIMIT'] = upper_limit
         bkg_comment = f"""
 
 
@@ -1774,19 +1750,21 @@ reprojected, calibrated Cassini ISS images from {root_obsid}, {start_date_time} 
     ret['MOSAIC_IMG_FILENAME'] = f'{obsid.lower()}_mosaic{sfx}.img'
 
 
-def generate_image(obsid, output_dir, metadata, xml_metadata, img_type):
+def generate_image(obsid, output_dir, metadata, xml_metadata, global_index_fp,
+                   img_type):
     """Create mosaic images and labels and mosaic metadata tables and labels.
 
     Inputs:
-        obsid           The observation name.
-        output_dir      The directory in which to put all output files.
-        metadata        The metadata for a mosaic, background-subtracted
-                        mosaic, or reprojected image.
-        xml_metadata    The XML substitutions.
-        img_type        The img_type of data being provided:
-                            'm' = Mosaic
-                            'b' = Background-subtracted mosaic
-                            'r' = Reprojected image
+        obsid               The observation name.
+        output_dir          The directory in which to put all output files.
+        metadata            The metadata for a mosaic, background-subtracted
+                            mosaic, or reprojected image.
+        xml_metadata        The XML substitutions.
+        global_index_fp     The file pointer for the global index.
+        img_type            The img_type of data being provided:
+                                'm' = Mosaic
+                                'b' = Background-subtracted mosaic
+                                'r' = Reprojected image
 
     The global flags are used to determine which output files to create:
 
@@ -1798,7 +1776,6 @@ def generate_image(obsid, output_dir, metadata, xml_metadata, img_type):
           OBSID_mosaic.lblx                           [GENERATE_MOSAIC_IMAGE_LABELS]
           OBSID_mosaic_metadata_src_imgs.tab          [GENERATE_MOSAIC_METADATA_TABLES]
           OBSID_mosaic_metadata_params.tab            [GENERATE_MOSAIC_METADATA_TABLES]
-          OBSID_mosaic_metadata.lblx                  [GENERATE_MOSAIC_METADATA_LABELS]
 
     img_type = 'b':
 
@@ -1808,7 +1785,6 @@ def generate_image(obsid, output_dir, metadata, xml_metadata, img_type):
           OBSID_mosaic_bkg_sub.lblx                   [GENERATE_MOSAIC_IMAGE_LABELS]
           OBSID_mosaic_bkg_sub_metadata_src_imgs.tab  [GENERATE_MOSAIC_METADATA_TABLES]
           OBSID_mosaic_bkg_sub_metadata_params.tab    [GENERATE_MOSAIC_METADATA_TABLES]
-          OBSID_mosaic_bkg_sub_metadata.lblx          [GENERATE_MOSAIC_METADATA_LABELS]
 
     img_type = 'r':
 
@@ -1817,7 +1793,6 @@ def generate_image(obsid, output_dir, metadata, xml_metadata, img_type):
           IMG_reproj_img.img                          [GENERATE_REPROJ_IMAGES]
           IMG_reproj_img.lblx                         [GENERATE_REPROJ_IMAGE_LABELS]
           IMG_reproj_img_metadata_params.tab          [GENERATE_REPROJ_METADATA_TABLES]
-          IMG_reproj_img_metadata.lblx                [GENERATE_REPROJ_METADATA_LABELS]
           IMG_reproj_img_suppl.txt                    [GENERATE_REPROJ_SUPPL_FILES]
     """
     os.makedirs(output_dir, exist_ok=True)
@@ -1877,13 +1852,16 @@ def generate_image(obsid, output_dir, metadata, xml_metadata, img_type):
         params_filename = f'{image_name.lower()}_reproj_img_metadata_params.tab'
         xml_metadata['METADATA_PARAMS_TABLE_FILENAME'] = params_filename
         metadata_params_table_path = os.path.join(output_dir, params_filename)
+        xml_metadata['METADATA_PARAMS_TABLE_PATH'] = metadata_params_table_path
     else:
         params_filename = f'{obsid.lower()}_mosaic{sfx}_metadata_params.tab'
         xml_metadata['METADATA_PARAMS_TABLE_FILENAME'] = params_filename
         metadata_params_table_path = os.path.join(output_dir, params_filename)
+        xml_metadata['METADATA_PARAMS_TABLE_PATH'] = metadata_params_table_path
         src_imgs_filename = f'{obsid.lower()}_mosaic{sfx}_metadata_src_imgs.tab'
         xml_metadata['IMAGE_TABLE_FILENAME'] = src_imgs_filename
         image_table_path = os.path.join(output_dir, src_imgs_filename)
+        xml_metadata['IMAGE_TABLE_PATH'] = image_table_path
 
     if ((img_type == 'r' and GENERATE_REPROJ_METADATA_TABLES) or
         (img_type != 'r' and GENERATE_MOSAIC_METADATA_TABLES)):
@@ -1911,16 +1889,16 @@ def generate_image(obsid, output_dir, metadata, xml_metadata, img_type):
                 emission = emission_angles[idx]
                 if img_type == 'r':
                     row = (f'{longitude:6.2f}, '
-                           f'{inertial:7.3f}, {rad_resolution:10.5f}, '
+                           f'{inertial:7.3f}, {rad_resolution:8.3f}, '
                            f'{ang_resolution:10.5f}, '
-                           f'{phase:10.6f}, {emission:10.6f}')
+                           f'{phase:8.3f}, {emission:8.3f}')
                 else:
                     et = ETs[idx]
                     image_idx = image_indexes[idx]
                     row = (f'{longitude:6.2f}, {image_idx:4d}, {et:13.3f}, '
-                           f'{inertial:7.3f}, {rad_resolution:10.5f}, '
+                           f'{inertial:7.3f}, {rad_resolution:8.3f}, '
                            f'{ang_resolution:10.5f}, '
-                           f'{phase:10.6f}, {emission:10.6f}')
+                           f'{phase:8.3f}, {emission:8.3f}')
                 fp.write(row+'\n')
 
         if img_type != 'r':
@@ -1932,27 +1910,6 @@ def generate_image(obsid, output_dir, metadata, xml_metadata, img_type):
                     lidvid = image_name_to_reproj_lidvid(image_name_list[idx])
                     row = f'{idx:4d}, {lidvid}'
                     fp.write(row+'\n')
-
-
-            ###############################
-            ###     METADATA_LABELS     ###
-            ###############################
-
-    if ((img_type == 'r' and GENERATE_REPROJ_METADATA_LABELS) or
-        (img_type != 'r' and GENERATE_MOSAIC_METADATA_LABELS)):
-        xml_metadata['METADATA_PARAMS_TABLE_PATH'] = metadata_params_table_path
-        if img_type != 'r':
-            xml_metadata['IMAGE_TABLE_PATH'] = image_table_path
-        if img_type == 'r':
-            metadata_label_output_path = os.path.join(output_dir,
-                                   f'{image_name.lower()}_reproj_img_metadata.lblx')
-            populate_template(obsid, 'data_reproj_img_metadata.lblx',
-                              metadata_label_output_path, xml_metadata)
-        else:
-            metadata_label_output_path = os.path.join(output_dir,
-                                   f'{obsid.lower()}_mosaic{sfx}_metadata.lblx')
-            populate_template(obsid, 'data_mosaic_metadata.lblx',
-                              metadata_label_output_path, xml_metadata)
 
 
             ###############################
@@ -1977,9 +1934,9 @@ def generate_image(obsid, output_dir, metadata, xml_metadata, img_type):
         img.tofile(image_output_path)
 
 
-            #############################
-            ###  REPROJ IMG SUPPL FILE ###
-            #############################
+            ###############################
+            ###  REPROJ IMG SUPPL FILE  ###
+            ###############################
 
     if img_type == 'r' and GENERATE_REPROJ_SUPPL_FILES:
         suppl_output_path = os.path.join(output_dir, xml_metadata['REPROJ_IMG_SUPPL_FILENAME'])
@@ -1995,9 +1952,91 @@ def generate_image(obsid, output_dir, metadata, xml_metadata, img_type):
     if ((img_type == 'r' and GENERATE_REPROJ_IMAGE_LABELS) or
         (img_type != 'r' and GENERATE_MOSAIC_IMAGE_LABELS)):
         if img_type == 'r':
-            populate_template(obsid, 'data_reproj_img.lblx', label_output_path, xml_metadata)
+            populate_template('data_reproj_img.lblx', label_output_path, xml_metadata)
         else:
-            populate_template(obsid, 'data_mosaic.lblx', label_output_path, xml_metadata)
+            populate_template('data_mosaic.lblx', label_output_path, xml_metadata)
+
+
+            ####################################
+            ###  MOSAIC/REPROJ_GLOBAL_INDEX  ###
+            ####################################
+
+    if GENERATE_MOSAIC_GLOBAL_INDEX or GENERATE_REPROJ_GLOBAL_INDEX:
+        orig_obsid = xml_metadata['OBSERVATION_ID'].upper()
+        mean_incidence = xml_metadata['MEAN_INCIDENCE_ANGLE_FIXED']
+        mean_emission = xml_metadata['MEAN_EMISSION_ANGLE_FIXED']
+        min_emission = xml_metadata['MIN_EMISSION_ANGLE_FIXED']
+        max_emission = xml_metadata['MAX_EMISSION_ANGLE_FIXED']
+        mean_phase = xml_metadata['MEAN_PHASE_ANGLE_FIXED']
+        min_phase = xml_metadata['MIN_PHASE_ANGLE_FIXED']
+        max_phase = xml_metadata['MAX_PHASE_ANGLE_FIXED']
+        mean_reproj_grid_rad_res = xml_metadata['MEAN_REPROJ_GRID_RAD_RES_FIXED']
+        min_reproj_grid_rad_res = xml_metadata['MIN_REPROJ_GRID_RAD_RES_FIXED']
+        max_reproj_grid_rad_res = xml_metadata['MAX_REPROJ_GRID_RAD_RES_FIXED']
+        mean_reproj_grid_ang_res = xml_metadata['MEAN_REPROJ_GRID_ANG_RES_FIXED']
+        min_reproj_grid_ang_res = xml_metadata['MIN_REPROJ_GRID_ANG_RES_FIXED']
+        max_reproj_grid_ang_res = xml_metadata['MAX_REPROJ_GRID_ANG_RES_FIXED']
+        min_radius = xml_metadata['MIN_RING_RADIUS_FIXED']
+        max_radius = xml_metadata['MAX_RING_RADIUS_FIXED']
+        num_valid_longitudes = xml_metadata['NUM_VALID_LONGITUDES']
+        min_corotating_longitude = xml_metadata['MIN_RING_COROTATING_LONG_FIXED']
+        max_corotating_longitude = xml_metadata['MAX_RING_COROTATING_LONG_FIXED']
+        min_inertial_longitude = xml_metadata['MIN_RING_INERTIAL_LONG_FIXED']
+        max_inertial_longitude = xml_metadata['MAX_RING_INERTIAL_LONG_FIXED']
+        filespec = '/'.join(label_output_path.split('/')[-3:])
+        start_date = xml_metadata['START_DATE_TIME']
+        stop_date = xml_metadata['STOP_DATE_TIME']
+        current_date = xml_metadata['CURRENT_DATE']
+        sclk_start = xml_metadata['SPACECRAFT_CLOCK_START_COUNT']
+        sclk_stop = xml_metadata['SPACECRAFT_CLOCK_STOP_COUNT']
+        if img_type == 'r':
+            lid = xml_metadata['REPROJ_LID']
+        else:
+            lid = xml_metadata['MOSAIC_LID']
+        row = (f'{lid:117}, '
+               f'{orig_obsid:29}, '
+               f'{filespec:101}, '
+               f'{start_date}, '
+               f'{stop_date}, '
+               f'{sclk_start}, '
+               f'{sclk_stop}, '
+               f'{num_valid_longitudes:5d}, '
+               f'{num_valid_longitudes/180:7.3f}, '
+               f'{min_corotating_longitude}, '
+               f'{max_corotating_longitude}, '
+               f'{min_inertial_longitude}, '
+               f'{max_inertial_longitude}, '
+               f'{mean_phase}, '
+               f'{min_phase}, '
+               f'{max_phase}, '
+               f'{mean_incidence}, '
+               f'{mean_emission}, '
+               f'{min_emission}, '
+               f'{max_emission}, '
+               f'{mean_reproj_grid_rad_res}, '
+               f'{min_reproj_grid_rad_res}, '
+               f'{max_reproj_grid_rad_res}, '
+               f'{mean_reproj_grid_ang_res}, '
+               f'{min_reproj_grid_ang_res}, '
+               f'{max_reproj_grid_ang_res}, '
+               f'{min_radius}, '
+               f'{max_radius}, '
+               f'{current_date}')
+        if img_type == 'r' and GENERATE_REPROJ_GLOBAL_INDEX:
+            global_index_fp.write(row+'\n')
+        elif img_type in 'bm' and GENERATE_MOSAIC_GLOBAL_INDEX:
+            min_image_name = xml_metadata['MIN_IMAGE_NAME']
+            max_image_name = xml_metadata['MAX_IMAGE_NAME']
+            num_images = xml_metadata['NUM_IMAGES']
+            row += (f', {num_images:4d}, '
+                    f'{min_image_name:11}, '
+                    f'{max_image_name:11}')
+            if img_type == 'b':
+                lower_limit = -xml_metadata['BKGND_LOWER_LIMIT']
+                upper_limit = xml_metadata['BKGND_UPPER_LIMIT']
+                row += (f', {lower_limit:5d}, '
+                        f'{upper_limit:4d}')
+            global_index_fp.write(row+'\n')
 
 
 def generate_browse(obsid, browse_dir, metadata, xml_metadata, img_type):
@@ -2024,7 +2063,7 @@ def generate_browse(obsid, browse_dir, metadata, xml_metadata, img_type):
           OBSID_browse_mosaic_med.png
           OBSID_browse_mosaic_small.png
           OBSID_browse_mosaic_thumb.png
-          OBSID_browse_mosaic.xml
+          OBSID_browse_mosaic.lblx
 
     img_type == 'b':
 
@@ -2034,7 +2073,7 @@ def generate_browse(obsid, browse_dir, metadata, xml_metadata, img_type):
           OBSID_browse_mosaic_bkg_sub_med.png
           OBSID_browse_mosaic_bkg_sub_small.png
           OBSID_browse_mosaic_bkg_sub_thumb.png
-          OBSID_browse_mosaic_bkg_sub.xml
+          OBSID_browse_mosaic_bkg_sub.lblx
 
     img_type == 'r':
 
@@ -2044,7 +2083,7 @@ def generate_browse(obsid, browse_dir, metadata, xml_metadata, img_type):
           IMG_browse_reproj_img_med.png
           IMG_browse_reproj_img_small.png
           IMG_browse_reproj_img_thumb.png
-          IMG_browse_reproj_img.xml
+          IMG_browse_reproj_img.lblx
     """
     os.makedirs(browse_dir, exist_ok=True)
 
@@ -2054,6 +2093,12 @@ def generate_browse(obsid, browse_dir, metadata, xml_metadata, img_type):
     if partial_obsid:
         root_obsid = match[1]
         obsid_chunk = match[2]
+    obsid_lc = obsid.lower()
+    obsid_split = obsid_lc.split('_')
+    if len(obsid_split) == 5:
+        obsid_partial_lc = '_'.join([obsid_split[1], obsid_split[2], obsid_split[4]])
+    else:
+        obsid_partial_lc = '_'.join([obsid_split[1], obsid_split[2]])
 
     cap_bkg = 'Background-subtracted ' if img_type == 'b' else ''
 
@@ -2085,7 +2130,7 @@ def generate_browse(obsid, browse_dir, metadata, xml_metadata, img_type):
             raise ObsIdFailedException
         subimg = img[:, valid_cols]
         blackpoint = max(np.min(subimg), 0)
-        whitepoint_ignore_frac = 0.995
+        whitepoint_ignore_frac = 0.998
         img_sorted = sorted(list(subimg.flatten()))
         whitepoint = img_sorted[np.clip(int(len(img_sorted)*
                                             whitepoint_ignore_frac),
@@ -2115,10 +2160,32 @@ def generate_browse(obsid, browse_dir, metadata, xml_metadata, img_type):
             greyscale_img = np.floor((np.maximum(downsampled_img-blackpoint, 0)/
                                      (whitepoint-blackpoint))**gamma*256)
             greyscale_img = np.clip(greyscale_img, 0, 255)
-            scaled_img = np.cast['int8'](greyscale_img[::-1,:])
+            scaled_img = np.asarray(greyscale_img[::-1,:], dtype=np.uint8)
             pil_img = Image.frombuffer('L', (scaled_img.shape[1],
                                              scaled_img.shape[0]),
                                        scaled_img, 'raw', 'L', 0, 1)
+
+            font = TITLE_FONTS[(img_type, size)]
+            if font is not None:
+                if size == 'thumb':
+                    if img_type == 'b':
+                        title = f'{obsid_partial_lc}\nbkgnd-sub mosaic'
+                    elif img_type == 'm':
+                        title = f'{obsid_partial_lc}\nmosaic'
+                    else:
+                        title = f'{image_name.lower()}\nreproj img'
+                    corner = (0,0)
+                else:
+                    if img_type == 'b':
+                        title = f'{obsid_lc}\nbkgnd-sub mosaic'
+                    elif img_type == 'm':
+                        title = f'{obsid_lc}\nmosaic'
+                    else:
+                        title = f'{image_name.lower()}\nreproj img'
+                    corner = (5, 5)
+                draw = ImageDraw.Draw(pil_img)
+                draw.text(corner, title, fill=255, font=TITLE_FONTS[(img_type, size)])
+
             if img_type == 'r':
                 png_path = os.path.join(browse_dir,
                             f'{image_name.lower()}_browse_reproj_img_{size}.png')
@@ -2128,6 +2195,7 @@ def generate_browse(obsid, browse_dir, metadata, xml_metadata, img_type):
                 png_path = os.path.join(browse_dir,
                             f'{obsid.lower()}_browse_mosaic{sfx}_{size}.png')
                 LOGGER.info(f'Writing browse image for mosaic {obsid} to {png_path}')
+
             pil_img.save(png_path, 'PNG')
 
 
@@ -2210,60 +2278,67 @@ data available are shown as black.
             output_path = os.path.join(browse_dir,
                                        f'{obsid.lower()}_browse_mosaic{sfx}.lblx')
         if img_type == 'r':
-            populate_template(obsid, 'browse_reproj_img.lblx', output_path, xml_metadata)
+            populate_template('browse_reproj_img.lblx', output_path, xml_metadata)
         else:
-            populate_template(obsid, 'browse_mosaic.lblx', output_path, xml_metadata)
+            populate_template('browse_mosaic.lblx', output_path, xml_metadata)
 
 
 def generate_mosaic(obsid,
                     mosaic_dir, bsm_dir,
                     mosaic_browse_dir, bsm_browse_dir,
-                    mosaic_metadata, bsm_metadata, bkgnd_metadata):
+                    mosaic_metadata, bsm_metadata, bkgnd_metadata,
+                    global_mosaic_index_fp, global_bsm_index_fp):
     """Create all files related to mosaics.
 
     Inputs:
-        obsid              The observation name.
-        mosaic_dir          The directory in which to put all mosaic files.
-        bsm_dir             The directory in which to put all bsm files.
-        mosaic_browse_dir   The directory in which to put mosaic browse files.
-        bsm_browse_dir      The directory in which to put bsm browse files.
-        mosaic_metadata     The metadata for the mosaic.
-        bsm_metadata        The metadata for the background-subtracted mosaic.
-        bkgnd_metadata      The metadata for the background subtraction model.
+        obsid                   The observation name.
+        mosaic_dir              The directory in which to put all mosaic files.
+        bsm_dir                 The directory in which to put all bsm files.
+        mosaic_browse_dir       The directory in which to put mosaic browse files.
+        bsm_browse_dir          The directory in which to put bsm browse files.
+        mosaic_metadata         The metadata for the mosaic.
+        bsm_metadata            The metadata for the background-subtracted mosaic.
+        bkgnd_metadata          The metadata for the background subtraction model.
+        mosaic_global_index_fp  The file pointer for the mosaic global index.
+        bsm_global_index_fp     The file pointer for the bsm global index.
     """
     # Do plain mosaics first
     xml_metadata = xml_metadata_for_image(obsid, mosaic_metadata, bkgnd_metadata, 'm')
-    if (GENERATE_MOSAIC_METADATA_TABLES or GENERATE_MOSAIC_METADATA_LABELS or
-        GENERATE_MOSAIC_IMAGES or GENERATE_MOSAIC_IMAGE_LABELS):
-        generate_image(obsid, mosaic_dir, mosaic_metadata, xml_metadata, 'm')
+    if (GENERATE_MOSAIC_METADATA_TABLES or GENERATE_MOSAIC_IMAGES or
+        GENERATE_MOSAIC_IMAGE_LABELS):
+        generate_image(obsid, mosaic_dir, mosaic_metadata, xml_metadata,
+                       global_mosaic_index_fp, 'm')
     if GENERATE_BROWSE_MOSAIC_IMAGES or GENERATE_BROWSE_MOSAIC_LABELS:
         generate_browse(obsid, mosaic_browse_dir, mosaic_metadata,
                         xml_metadata, 'm')
 
     # Now do BSM
     xml_metadata = xml_metadata_for_image(obsid, bsm_metadata, bkgnd_metadata, 'b')
-    if (GENERATE_MOSAIC_METADATA_TABLES or GENERATE_MOSAIC_METADATA_LABELS or
-        GENERATE_MOSAIC_IMAGES or GENERATE_MOSAIC_IMAGE_LABELS):
-        generate_image(obsid, bsm_dir, bsm_metadata, xml_metadata, 'b')
+    if (GENERATE_MOSAIC_METADATA_TABLES or GENERATE_MOSAIC_IMAGES or
+        GENERATE_MOSAIC_IMAGE_LABELS):
+        generate_image(obsid, bsm_dir, bsm_metadata, xml_metadata,
+                       global_bsm_index_fp, 'b')
     if GENERATE_BROWSE_MOSAIC_IMAGES or GENERATE_BROWSE_MOSAIC_LABELS:
         generate_browse(obsid, bsm_browse_dir, bsm_metadata, xml_metadata, 'b')
 
 
-def generate_reproj(obsid, reproj_dir, reproj_browse_dir, reproj_metadata):
+def generate_reproj(obsid, reproj_dir, reproj_browse_dir, reproj_metadata,
+                    global_reproj_index_fp):
     """Create all files related to reprojected images.
 
     Inputs:
-        obsid               The observation name.
-        reproj_dir          The directory in which to put all reproj files.
-        reproj_browse_dir   The directory in which to put all reproj browse
-                            files.
-        reproj_metadata     The metadata for the reprojected images.
+        obsid                   The observation name.
+        reproj_dir              The directory in which to put all reproj files.
+        reproj_browse_dir       The directory in which to put all reproj browse
+                                files.
+        reproj_metadata         The metadata for the reprojected images.
+        global_reproj_index_fp  The file pointer for the reproj global index.
     """
     xml_metadata = xml_metadata_for_image(obsid, reproj_metadata, None, 'r')
-    if (GENERATE_REPROJ_METADATA_TABLES or GENERATE_REPROJ_METADATA_LABELS or
-        GENERATE_REPROJ_IMAGES or GENERATE_REPROJ_IMAGE_LABELS or
-        GENERATE_REPROJ_SUPPL_FILES):
-        generate_image(obsid, reproj_dir, reproj_metadata, xml_metadata, 'r')
+    if (GENERATE_REPROJ_METADATA_TABLES or GENERATE_REPROJ_IMAGES or
+        GENERATE_REPROJ_IMAGE_LABELS or GENERATE_REPROJ_SUPPL_FILES):
+        generate_image(obsid, reproj_dir, reproj_metadata, xml_metadata,
+                       global_reproj_index_fp, 'r')
     if GENERATE_BROWSE_REPROJ_IMAGES or GENERATE_BROWSE_REPROJ_LABELS:
         generate_browse(obsid, reproj_browse_dir, reproj_metadata,
                         xml_metadata, 'r')
@@ -2275,7 +2350,9 @@ def generate_reproj(obsid, reproj_dir, reproj_browse_dir, reproj_metadata):
 #
 ##########################################################################################
 
-def handle_one_obsid(obsid, reproj_collection_fp, browse_reproj_collection_fp):
+def handle_one_obsid(obsid, reproj_collection_fp, browse_reproj_collection_fp,
+                     global_mosaic_index_fp, global_bsm_index_fp,
+                     global_reproj_index_fp):
     mosaic_dir = os.path.join(arguments.output_dir, 'data_mosaic',
                               obsid.lower())
     bsm_dir = os.path.join(arguments.output_dir, 'data_mosaic_bkg_sub',
@@ -2303,8 +2380,8 @@ def handle_one_obsid(obsid, reproj_collection_fp, browse_reproj_collection_fp):
     bsm_metadata = None
 
     if (GENERATE_MOSAIC_IMAGES or GENERATE_MOSAIC_IMAGE_LABELS or
-        GENERATE_MOSAIC_METADATA_TABLES or GENERATE_MOSAIC_METADATA_LABELS or
-        GENERATE_BROWSE_MOSAIC_IMAGES or GENERATE_BROWSE_MOSAIC_LABELS):
+        GENERATE_MOSAIC_METADATA_TABLES or GENERATE_BROWSE_MOSAIC_IMAGES or
+        GENERATE_BROWSE_MOSAIC_LABELS or GENERATE_MOSAIC_GLOBAL_INDEX):
         mosaic_browse_dir = os.path.join(arguments.output_dir, 'browse_mosaic',
                                          obsid.lower())
         bsm_browse_dir = os.path.join(arguments.output_dir,
@@ -2336,12 +2413,13 @@ def handle_one_obsid(obsid, reproj_collection_fp, browse_reproj_collection_fp):
         generate_mosaic(obsid,
                         mosaic_dir, bsm_dir,
                         mosaic_browse_dir, bsm_browse_dir,
-                        mosaic_metadata, bsm_metadata, bkgnd_metadata)
+                        mosaic_metadata, bsm_metadata, bkgnd_metadata,
+                        global_mosaic_index_fp, global_bsm_index_fp)
 
     if (GENERATE_REPROJ_IMAGES or GENERATE_REPROJ_IMAGE_LABELS or
-        GENERATE_REPROJ_METADATA_TABLES or GENERATE_REPROJ_METADATA_LABELS or
-        GENERATE_BROWSE_REPROJ_IMAGES or GENERATE_BROWSE_REPROJ_LABELS or
-        GENERATE_REPROJ_SUPPL_FILES):
+        GENERATE_REPROJ_METADATA_TABLES or GENERATE_BROWSE_REPROJ_IMAGES or
+        GENERATE_BROWSE_REPROJ_LABELS or GENERATE_REPROJ_SUPPL_FILES or
+        GENERATE_REPROJ_GLOBAL_INDEX):
         if mosaic_metadata is None:
             mosaic_metadata = read_mosaic(mosaic_path, mosaic_metadata_path,
                                           bkg_sub=False, read_img=False)
@@ -2359,14 +2437,13 @@ def handle_one_obsid(obsid, reproj_collection_fp, browse_reproj_collection_fp):
 
             if GENERATE_REPROJ_COLLECTIONS:
                 reproj_lidvid = image_name_to_reproj_lidvid(image_name)
-                reproj_metadata_lidvid = image_name_to_reproj_metadata_lidvid(image_name)
                 reproj_collection_fp.write(f'P,{reproj_lidvid}\n')
-                reproj_collection_fp.write(f'P,{reproj_metadata_lidvid}\n')
             if GENERATE_BROWSE_REPROJ_COLLECTIONS:
                 browse_reproj_lidvid = image_name_to_reproj_browse_lidvid(image_name)
                 browse_reproj_collection_fp.write(f'P,{browse_reproj_lidvid}\n')
 
-            generate_reproj(obsid, reproj_dir, reproj_browse_dir, reproj_metadata)
+            generate_reproj(obsid, reproj_dir, reproj_browse_dir, reproj_metadata,
+                            global_reproj_index_fp)
 
 
 ##########################################################################################
@@ -2374,6 +2451,15 @@ def handle_one_obsid(obsid, reproj_collection_fp, browse_reproj_collection_fp):
 # GENERATE COLLECTION XMLs
 #
 ##########################################################################################
+
+def generate_mosaic_global_mosaic_index_xml(global_mosaic_index_path,
+                                            global_bsm_index_path):
+    """Generate the mosaic global index xml file."""
+    metadata = BASIC_XML_METADATA.copy()
+
+    populate_template('global_mosaic_index.lblx', global_mosaic_index_path, metadata)
+    populate_template('global_bsm_index.lblx', global_bsm_index_path, metadata)
+
 
 def generate_mosaic_collection_xml(coll_data_mosaic_csv_path,
                                    coll_bsm_data_mosaic_csv_path):
@@ -2398,8 +2484,7 @@ created from reprojected, calibrated Cassini ISS images, and
 associated metadata.
     """
     metadata['DATA_MOSAIC_COLLECTION_CSV_NAME'] = 'collection_data_mosaic.csv'
-    populate_template(None, 'collection_data_mosaic.lblx',
-                      coll_data_mosaic_xml_path, metadata)
+    populate_template('collection_data_mosaic.lblx', coll_data_mosaic_xml_path, metadata)
     metadata['DATA_MOSAIC_COLLECTION_LID'] = f'urn:nasa:pds:{BUNDLE_NAME}:data_mosaic_bkg_sub'
     metadata['DATA_MOSAIC_COLLECTION_CSV_PATH'] = coll_bsm_data_mosaic_csv_path
     metadata['DATA_MOSAIC_COLLECTION_TITLE'] = """
@@ -2411,8 +2496,7 @@ This is the collection of background-subtracted F Ring mosaics created from
 reprojected, calibrated Cassini ISS images, and associated metadata.
     """
     metadata['DATA_MOSAIC_COLLECTION_CSV_NAME'] = 'collection_data_mosaic_bkg_sub.csv'
-    populate_template(None, 'collection_data_mosaic.lblx',
-                      coll_bsm_data_mosaic_xml_path, metadata)
+    populate_template('collection_data_mosaic.lblx', coll_bsm_data_mosaic_xml_path, metadata)
 
 
 def generate_mosaic_browse_collection_xml(coll_browse_mosaic_csv_path,
@@ -2434,8 +2518,7 @@ This is the collection of browse products for the (non background-subtracted) F
 Ring mosaics created from reprojected, calibrated Cassini ISS images
     """
     metadata['BROWSE_MOSAIC_COLLECTION_CSV_NAME'] = 'collection_browse_mosaic.csv'
-    populate_template(None, 'collection_browse_mosaic.lblx',
-                      coll_browse_mosaic_xml_path, metadata)
+    populate_template('collection_browse_mosaic.lblx', coll_browse_mosaic_xml_path, metadata)
     metadata['BROWSE_MOSAIC_COLLECTION_LID'] = f'urn:nasa:pds:{BUNDLE_NAME}:browse_mosaic_bkg_sub'
     metadata['BROWSE_MOSAIC_COLLECTION_CSV_PATH'] = coll_bsm_browse_mosaic_csv_path
     metadata['BROWSE_MOSAIC_COLLECTION_TITLE'] = """
@@ -2447,8 +2530,15 @@ This is the collection of browse products for the background-subtracted F
 Ring mosaics created from reprojected, calibrated Cassini ISS images
     """
     metadata['BROWSE_MOSAIC_COLLECTION_CSV_NAME'] = 'collection_browse_mosaic_bkg_sub.csv'
-    populate_template(None, 'collection_browse_mosaic.lblx',
-                      coll_bsm_browse_mosaic_xml_path, metadata)
+    populate_template('collection_browse_mosaic.lblx', coll_bsm_browse_mosaic_xml_path, metadata)
+
+
+def generate_reproj_global_index_xml(global_reproj_index_path):
+    """Generate the reproj global index xml file."""
+    metadata = BASIC_XML_METADATA.copy()
+
+    populate_template('global_reproj_index.lblx', global_reproj_index_path, metadata)
+
 
 
 def generate_reproj_collection_xml(coll_data_reproj_csv_path):
@@ -2469,8 +2559,7 @@ Collection of reprojected, calibrated Cassini ISS images
 This is the collection of reprojected, calibrated Cassini ISS images
     """
     metadata['DATA_REPROJ_COLLECTION_CSV_NAME'] = 'collection_data_reproj_img.csv'
-    populate_template(None, 'collection_data_reproj_img.lblx',
-                      coll_data_reproj_xml_path, metadata)
+    populate_template('collection_data_reproj_img.lblx', coll_data_reproj_xml_path, metadata)
 
 
 def generate_reproj_browse_collection_xml(coll_browse_reproj_csv_path):
@@ -2490,8 +2579,43 @@ This is the collection of browse products for the reprojected, calibrated Cassin
 ISS images
     """
     metadata['BROWSE_REPROJ_COLLECTION_CSV_NAME'] = 'collection_browse_reproj_img.csv'
-    populate_template(None, 'collection_browse_reproj_img.lblx',
-                      coll_browse_reproj_xml_path, metadata)
+    populate_template('collection_browse_reproj_img.lblx', coll_browse_reproj_xml_path, metadata)
+
+
+def generate_global_index_xml(global_index_csv_path, hdr, img_type):
+    """Generate a global index xml file."""
+    metadata = BASIC_XML_METADATA.copy()
+
+    if img_type == 'r':
+        metadata['GLOBAL_INDEX_LID'] = f'urn:nasa:pds:{BUNDLE_NAME}:reproj_img_global_index'
+        metadata['GLOBAL_INDEX_TITLE'] = 'Global Reprojected Image Index'
+        metadata['GLOBAL_INDEX_DESCRIPTION'] = """
+Index table containing metadata for all reprojected images in the F-ring mosaic dataset.
+        """
+    elif img_type == 'm':
+        metadata['GLOBAL_INDEX_LID'] = f'urn:nasa:pds:{BUNDLE_NAME}:mosaic_global_index'
+        metadata['GLOBAL_INDEX_TITLE'] = 'Global Mosaic Index'
+        metadata['GLOBAL_INDEX_DESCRIPTION'] = """
+Index table containing metadata for all mosaics in the F-ring mosaic dataset.
+        """
+    elif img_type == 'b':
+        metadata['GLOBAL_INDEX_LID'] = f'urn:nasa:pds:{BUNDLE_NAME}:mosaic_bkg_sub_global_index'
+        metadata['GLOBAL_INDEX_TITLE'] = 'Global Background-Subtracted Mosaic Index'
+        metadata['GLOBAL_INDEX_DESCRIPTION'] = """
+Index table containing metadata for all background-subtracted mosaics in the F-ring mosaic dataset.
+        """
+    else:
+        raise ValueError(f'Invalid image type: {img_type}')
+
+    global_index_xml_path = global_index_csv_path.replace('tab', 'xml')
+
+    metadata['CURRENT_DATE'] = datetime.datetime.now(datetime.timezone.utc).strftime('%Y-%m-%d')
+    metadata['HEADER_LENGTH'] = len(hdr)+1
+    metadata['GLOBAL_INDEX_CSV_PATH'] = global_index_csv_path
+    metadata['GLOBAL_INDEX_TABLE_FILENAME'] = global_index_csv_path.split('/')[-1]
+    metadata['IS_MOSAIC'] = img_type in 'mb'
+    metadata['IS_BKGND_SUB'] = img_type == 'b'
+    populate_template('global_index.lblx', global_index_xml_path, metadata)
 
 
 ##########################################################################################
@@ -2506,9 +2630,8 @@ def generate_xml_schema():
     schema_dir = os.path.join(arguments.output_dir, 'xml_schema')
     csv_path = os.path.join(schema_dir, 'collection_xml_schema.csv')
     metadata['XML_SCHEMA_CSV_PATH'] = csv_path
-    populate_template(None, 'collection_xml_schema.csv',
-                      csv_path, metadata)
-    populate_template(None, 'collection_xml_schema.lblx',
+    populate_template('collection_xml_schema.csv', csv_path, metadata)
+    populate_template('collection_xml_schema.lblx',
                       os.path.join(schema_dir, 'collection_xml_schema.lblx'),
                       metadata)
 
@@ -2518,6 +2641,21 @@ def generate_xml_schema():
 # TOP LEVEL
 #
 ##########################################################################################
+
+TITLE_FONTS = {
+    ('r', 'thumb'): ImageFont.truetype('cmunssdc.ttf', 9),
+    ('r', 'small'): ImageFont.truetype('cmunssdc.ttf', 14),
+    ('r', 'med'): ImageFont.truetype('cmunssdc.ttf', 14),
+    ('r', 'full'): ImageFont.truetype('cmunssdc.ttf', 14),
+    ('b', 'thumb'): ImageFont.truetype('cmunssdc.ttf', 9),
+    ('b', 'small'): ImageFont.truetype('cmunssdc.ttf', 14),
+    ('b', 'med'): ImageFont.truetype('cmunssdc.ttf', 14),
+    ('b', 'full'): None,
+    ('m', 'thumb'): ImageFont.truetype('cmunssdc.ttf', 9),
+    ('m', 'small'): ImageFont.truetype('cmunssdc.ttf', 14),
+    ('m', 'med'): ImageFont.truetype('cmunssdc.ttf', 14),
+    ('m', 'full'): None,
+}
 
 EARLIEST_START_DATE_TIME = 1e38
 LATEST_STOP_DATE_TIME = 0
@@ -2543,9 +2681,11 @@ BASIC_XML_METADATA = {
 }
 
 
+if (GENERATE_REPROJ_GLOBAL_INDEX or GENERATE_MOSAIC_GLOBAL_INDEX):
+    os.makedirs(os.path.join(arguments.output_dir, 'document/supplemental'), exist_ok=True)
+
 if (GENERATE_MOSAIC_IMAGE_LABELS or
     GENERATE_MOSAIC_IMAGES or
-    GENERATE_MOSAIC_METADATA_LABELS or
     GENERATE_MOSAIC_METADATA_TABLES or
     GENERATE_MOSAIC_COLLECTIONS):
     os.makedirs(os.path.join(arguments.output_dir, 'data_mosaic'), exist_ok=True)
@@ -2558,8 +2698,7 @@ if (GENERATE_BROWSE_MOSAIC_LABELS or
     os.makedirs(os.path.join(arguments.output_dir, 'browse_mosaic_bkg_sub'),
                 exist_ok=True)
 
-if (GENERATE_REPROJ_METADATA_LABELS or
-    GENERATE_REPROJ_METADATA_TABLES or
+if (GENERATE_REPROJ_METADATA_TABLES or
     GENERATE_REPROJ_COLLECTIONS):
     os.makedirs(os.path.join(arguments.output_dir, 'data_reproj_img'), exist_ok=True)
 
@@ -2570,6 +2709,55 @@ if (GENERATE_BROWSE_REPROJ_LABELS or
 
 if GENERATE_XML_SCHEMA:
     os.makedirs(os.path.join(arguments.output_dir, 'xml_schema'), exist_ok=True)
+
+GLOBAL_REPROJ_INDEX_HDR = ('logical_identifier,'
+                           'observation_id,'
+                           'file_spec,'
+                           'start_date_time,'
+                           'stop_date_time,'
+                           'spacecraft_clock_start_count,'
+                           'spacecraft_clock_stop_count,'
+                           'num_valid_longitudes,'
+                           'percent_coverage,'
+                           'min_corotating_longitude,'
+                           'max_corotating_longitude,'
+                           'min_inertial_longitude,'
+                           'max_inertial_longitude,'
+                           'mean_phase_angle,'
+                           'min_phase_angle,'
+                           'max_phase_angle,'
+                           'mean_incidence_angle,'
+                           'mean_emission_angle,'
+                           'min_emission_angle,'
+                           'max_emission_angle,'
+                           'mean_radial_resolution,'
+                           'min_radial_resolution,'
+                           'max_radial_resolution,'
+                           'mean_longitudinal_resolution,'
+                           'min_longitudinal_resolution,'
+                           'max_longitudinal_resolution,'
+                           'min_radius,'
+                           'max_radius,'
+                           'product_creation_date')
+
+global_mosaic_index_fp = None
+global_bsm_index_fp = None
+if GENERATE_MOSAIC_GLOBAL_INDEX:
+    global_mosaic_index_csv_path = os.path.join(arguments.output_dir,
+                                                'document/supplemental',
+                                                'global_mosaic_index.tab')
+    global_mosaic_index_fp = open(global_mosaic_index_csv_path, 'w')
+    GLOBAL_MOSAIC_INDEX_HDR = GLOBAL_REPROJ_INDEX_HDR + (',num_images,'
+                                                         'min_image_name,'
+                                                         'max_image_name')
+    global_mosaic_index_fp.write(GLOBAL_MOSAIC_INDEX_HDR+'\n')
+    global_bsm_index_csv_path = os.path.join(arguments.output_dir,
+                                             'document/supplemental',
+                                             'global_mosaic_bkg_sub_index.tab')
+    global_bsm_index_fp = open(global_bsm_index_csv_path, 'w')
+    GLOBAL_BSM_INDEX_HDR = GLOBAL_MOSAIC_INDEX_HDR + (',bkgnd_lower_limit,'
+                                                      'bkgnd_upper_limit')
+    global_bsm_index_fp.write(GLOBAL_BSM_INDEX_HDR+'\n')
 
 mosaic_collection_fp = None
 bsm_collection_fp = None
@@ -2597,6 +2785,14 @@ if GENERATE_BROWSE_MOSAIC_COLLECTIONS:
 
     browse_bsm_collection_fp = open(browse_bsm_collection_csv_path, 'w')
 
+global_reproj_index_fp = None
+if GENERATE_REPROJ_GLOBAL_INDEX:
+    global_reproj_index_csv_path = os.path.join(arguments.output_dir,
+                                                'document/supplemental',
+                                                'global_reproj_img_index.tab')
+    global_reproj_index_fp = open(global_reproj_index_csv_path, 'w')
+    global_reproj_index_fp.write(GLOBAL_REPROJ_INDEX_HDR+'\n')
+
 reproj_collection_fp = None
 if GENERATE_REPROJ_COLLECTIONS:
     reproj_collection_csv_path = os.path.join(arguments.output_dir,
@@ -2616,7 +2812,9 @@ read_observation_list()
 for obsid in f_ring.enumerate_obsids(arguments):
     with LOGGER.open(f'OBSID {obsid}'):
         try:
-            handle_one_obsid(obsid, reproj_collection_fp, browse_reproj_collection_fp)
+            handle_one_obsid(obsid, reproj_collection_fp, browse_reproj_collection_fp,
+                             global_mosaic_index_fp, global_bsm_index_fp,
+                             global_reproj_index_fp)
         except ObsIdFailedException:
             # A logged failure
             pass
@@ -2632,13 +2830,9 @@ for obsid in f_ring.enumerate_obsids(arguments):
 
         if GENERATE_MOSAIC_COLLECTIONS:
             mosaic_lidvid = obsid_to_mosaic_lidvid(obsid, False)
-            mosaic_metadata_lidvid = obsid_to_mosaic_metadata_lidvid(obsid, False)
             mosaic_collection_fp.write(f'P,{mosaic_lidvid}\n')
-            mosaic_collection_fp.write(f'P,{mosaic_metadata_lidvid}\n')
             bsm_lidvid = obsid_to_mosaic_lidvid(obsid, True)
-            bsm_metadata_lidvid = obsid_to_mosaic_metadata_lidvid(obsid, True)
             bsm_collection_fp.write(f'P,{bsm_lidvid}\n')
-            bsm_collection_fp.write(f'P,{bsm_metadata_lidvid}\n')
         if GENERATE_BROWSE_MOSAIC_COLLECTIONS:
             browse_mosaic_lidvid = obsid_to_mosaic_browse_lidvid(obsid, False)
             browse_mosaic_collection_fp.write(f'P,{browse_mosaic_lidvid}\n')
@@ -2647,6 +2841,13 @@ for obsid in f_ring.enumerate_obsids(arguments):
 
     # LOGGER.close()
 
+if GENERATE_MOSAIC_GLOBAL_INDEX:
+    global_mosaic_index_fp.close()
+    generate_global_index_xml(global_mosaic_index_csv_path, GLOBAL_MOSAIC_INDEX_HDR,
+                              img_type='m')
+    global_bsm_index_fp.close()
+    generate_global_index_xml(global_bsm_index_csv_path, GLOBAL_BSM_INDEX_HDR,
+                              img_type='b')
 if GENERATE_MOSAIC_COLLECTIONS:
     mosaic_collection_fp.close()
     bsm_collection_fp.close()
@@ -2657,6 +2858,10 @@ if GENERATE_BROWSE_MOSAIC_COLLECTIONS:
     browse_bsm_collection_fp.close()
     generate_mosaic_browse_collection_xml(browse_mosaic_collection_csv_path,
                                           browse_bsm_collection_csv_path)
+if GENERATE_REPROJ_GLOBAL_INDEX:
+    global_reproj_index_fp.close()
+    generate_global_index_xml(global_reproj_index_csv_path, GLOBAL_REPROJ_INDEX_HDR,
+                              img_type='r')
 if GENERATE_REPROJ_COLLECTIONS:
     reproj_collection_fp.close()
     generate_reproj_collection_xml(reproj_collection_csv_path)
@@ -2666,3 +2871,97 @@ if GENERATE_BROWSE_REPROJ_COLLECTIONS:
 
 if GENERATE_XML_SCHEMA:
     generate_xml_schema()
+
+
+# Support for OPUS index files:
+#
+# Occultation Constraints: None
+
+#   General Constraints
+# Planet - Saturn
+# Intended Target Name - Saturn Rings
+# Nominal Target Class - Ring
+# Mission - Cassini
+# Instrument Host Name - Cassini
+# Instrument Name - Cassini ISS
+# Observation Type - TBD: Reprojected Image? Mosaic?
+# Observation Time - From start_date_time and stop_date_time
+# Observation Duration - stop_date_time - start_date_time
+# Measurement Quantity - Reflectivity
+# Right Ascension - N/A
+# Declination - N/A
+
+#   PDS Constraints
+# Volume ID - "urn:nasa:pds:cassini_iss_fring_mosaics_rsfrench2025:data_mosaic"
+# Product Creation Time - product_creation_time
+# Primary File Spec - file_spec
+# OPUS ID - TBD
+# Note - N/A
+
+#   Wavelength Constraints
+# Wavelength - Derive from CLEAR
+# Wavelength Resolution - Derived
+# Wavenumber - Derived
+# Wavenumber Resolution - Derived
+# Spectral Information Flag - No
+# Spectrum Size - N/A
+# Polarization Type - None
+
+#   Ring Geo Constraints
+# Observed Ring Radius - min_radius to max_radius
+# Observed Longitude - min_inertial_longitude to max_inertial_longitude
+# Sub-Solar J2000 Longitude - N/A
+# Observed Solar Hour Angle - N/A
+# Sub-Observer J2000 Longitude - N/A
+# Longitude WRT Observer - N/A
+# Azimuth WRT Observer - N/A
+# Observed Distance to Ring Int - N/A
+# Ring Center Distance - N/A
+# Observed Resolution - N/A
+# Projected Radial Resolution - min_radial_resolution to max_radial_resolution
+# Observed Phase Angle - min_phase_angle to max_phase_angle
+# Observed Incidence Angle - mean_incidence_angle
+# Observed Emission Angle - min_emission_angle to max_emission_angle
+# Observed North-Based Incidence - Derived
+# Observed North-Based Emission - Derived
+# Solar Ring Elevation - Derived
+# Observer Ring Elevation - Derived
+# Ring Center Phase - Copy from Observed Phase Angle?
+# Ring Center Incidence - Copy from Observed Incidence Angle?
+# Ring Center Emission - Copy from Observed Emission Angle?
+# Ring Center North-Based Incidence - Copy from Observed North-Based Incidence?
+# Ring Center North-Based Emission - Copy from Observed North-Based Emission?
+# Ring Center Opening Angle to Sun - Copy from Observed Opening Angle to Sun?
+# Ring Center Opening Angle to Observer - Copy from Observed Opening Angle to Observer?
+# Edge-On ***
+# Ring Event Time - N/A
+
+#   Cassini Mission
+# Observation Name - observation_id
+# Activity Name - Derived
+# Mission Phase - Derived
+# Cassini Target Code - Derived
+# Cassini Original Target Name - N/A
+# Saturn Orbit Number - Derived
+# Primary Instrument - Derived
+# Is Prime - Derived
+# Sequence ID - N/A
+# Spacecraft Clock Start Count - spacecraft_clock_start_count
+# Spacecraft Clock Stop Count - spacecraft_clock_stop_count
+# Earth Received Start Time (YMDhms) - N/A
+# Earth Received Stop Time (YMDhms) - N/A
+
+#   Cassini ISS Constraints
+# Camera - N/A
+# Filter - CLEAR
+# Shutter Mode - N/A
+# Shutter State - Enabled
+# Compression Type - N/A
+# Data Conversion Type - N/A
+# Gain Mode - N/A
+# Instrument Mode - FULL
+# Missing Lines - N/A
+# Image Number - N/A
+# Target Description - N/A
+# Image Observation Type - N/A
+# Exposure Duration [Image] (secs) - N/A
