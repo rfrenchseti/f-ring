@@ -1,6 +1,12 @@
+Mia's current tasks (8/7/25):
+- I will update the kernels.lblx and collection_spice_kernels.
+- I will create a collections file for the document directory.
+- I will include the full List_Author and List_Contributor classes in the collection and bundle labels.
+
+
 - Add bundle.xml
 
-- Fix PdsLogger open/close bug
+- Deal with Prometheus and Pandora in reprojected images.
 
 - Detect which stars are visible in reproj images and mosaics (probably only for
   occultations) and add them as targets in the labels and collections.
@@ -49,42 +55,7 @@
     < <cassini:valid_maximum_DN_sat>4095</cassini:valid_maximum_DN_sat>        <<=== FROM WHERE?
 
 
-- Need to review all rings-dictionary lighting geometry and
-  reprojection-dictionary parameters for correctness.
-
 - Once the rings dictionary is cleaned up, update the description for
   <rings:description>
 
 - Consider using wrap-around longitude limits.
-
-- Add offset data for reprojected images. How?
-
-- Add offset data for mosaics? How?
-
-- Add SPICE kernels? How?
-
-- Should the reprojected images be called reproj_img or just reproj?
-
-====================================================================================================
-
-@Rob French
- I checked with EN and this is the proposed implementation for the classes and attributes for the <List_Author> class (CCB-356):
-<List_Author>              <!-- 0:1 Choose List_Author or List_Editor or both, but not neither -->
-       <Person>                   <!-- 0:M Choose Person or Organization or both, but not neither; multiple Person is allowed -->
-           <display_full_name/>       <!-- 0:1            -->
-           <given_name/>              <!-- 1:1 (required) -->
-           <family_name/>             <!-- 1:1 (required) -->
-           <person_orcid/>            <!-- 0:1            -->
-           <Affiliation>              <!-- 0:1 -->
-               <organization_name/>       <!-- 1:1 (required) -->
-               <organization_rorid/>      <!-- 0:1            -->
-           </Affiliation>
-       </Person>
-       <Organization>             <!-- 0:M Choose Person or Organization or both, but not neither; multiple Organization is allowed -->
-           <organization_name/>        <!-- 1:1 (required) -->
-           <organization_rorid/>       <!-- 0:1            -->
-           <parent_organization_name/> <!-- 0:1            -->
-           <parent_organization_rorid/> <!-- 0:1            -->
-       </Organization>
-   </List_Author>
-However, this will NOT be included in the upcoming 1.L.0.0 / 1.21.0.0 Build (Dec 2023, for schedule refer to https://pds.nasa.gov/datastandards/about/).  Steve Hughes says that CCB-356 will be implemented in the next build.

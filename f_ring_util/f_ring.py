@@ -180,6 +180,11 @@ def enumerate_obsids(arguments):
     """Based on the given command line argument, yield a list of obsids."""
     data_path, _ = bkgnd_sub_mosaic_paths(arguments, '', make_dirs=False)
     bp = data_path.replace(BKGND_SUB_MOSAIC_DIR+'/', '')
+    specific_obsids = []
+    if len(arguments.obsid) > 0 and len(arguments.obsid[0]) > 0:
+        specific_obsids = [x.upper() for x in arguments.obsid[0]]
+    else:
+        specific_obsids = []
     for _, _, filenames in os.walk(BKGND_SUB_MOSAIC_DIR):
         for filename in sorted(filenames):
             if filename.endswith('.npz'):
@@ -187,8 +192,7 @@ def enumerate_obsids(arguments):
                 if ind < 0:
                     continue
                 obs_id = filename[:ind]
-                if (len(arguments.obsid) > 0 and len(arguments.obsid[0]) > 0 and
-                    obs_id not in arguments.obsid[0]):
+                if (len(specific_obsids) > 0 and obs_id not in specific_obsids):
                     continue
                 if arguments.start_obsid and arguments.start_obsid > obs_id:
                     continue

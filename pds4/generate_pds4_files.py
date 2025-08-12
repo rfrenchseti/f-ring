@@ -1316,8 +1316,12 @@ def xml_add_pds3_label_info(ret, obsid, min_image_path, max_image_path):
     ret['DATA_CONVERSION_TYPE'] = min_label['DATA_CONVERSION_TYPE']
     ret['DELAYED_READOUT_FLAG'] = min_label['DELAYED_READOUT_FLAG']
     ret['DETECTOR_TEMPERATURE'] = str(min_label['DETECTOR_TEMPERATURE']).split(' ')[0]
-    ret['EARTH_RECEIVED_START_TIME'] = min_label['EARTH_RECEIVED_START_TIME']
-    ret['EARTH_RECEIVED_STOP_TIME'] = min_label['EARTH_RECEIVED_STOP_TIME']
+    ret['EARTH_RECEIVED_START_TIME'] = julian.iso_from_tai(julian.tai_from_tdb(
+        julian.tdb_from_iso(min_label['EARTH_RECEIVED_START_TIME'])),
+        ymd=False, digits=3)
+    ret['EARTH_RECEIVED_STOP_TIME'] = julian.iso_from_tai(julian.tai_from_tdb(
+        julian.tdb_from_iso(min_label['EARTH_RECEIVED_STOP_TIME'])),
+        ymd=False, digits=3)
     ret['ELECTRONICS_BIAS'] = min_label['ELECTRONICS_BIAS']
     ret['EXPECTED_MAXIMUM'] = min_label['EXPECTED_MAXIMUM']
     ret['EXPECTED_PACKETS'] = min_label['EXPECTED_PACKETS']
@@ -1465,7 +1469,12 @@ Metadata for the reprojected version of Cassini ISS calibrated image
     ret['REPROJ_LID'] = image_name_to_reproj_lid(image_name)
     ret['BROWSE_REPROJ_LID'] = image_name_to_reproj_browse_lid(image_name)
 
-    ret['REPROJ_DESCRIPTION'] = ret['REPROJ_TITLE']
+    ret['REPROJ_DESCRIPTION'] = ret['REPROJ_TITLE'] + """
+
+This derived data product is part of bundle cassini_iss_fring_mosaics_rsfrench2025,
+created by Robert S. French et al., and archived at the Ring-Moon Systems Node.
+For full citation information, see collection or bundle labels.
+"""
 
     ret['REPROJ_COMMENT'] = f"""
 This data file is an individual reprojected image of Saturn's F ring from Cassini ISS
@@ -1563,7 +1572,12 @@ calibrated Cassini ISS images from observation {root_obsid} spanning
 {min_image_name} ({start_date_time}) to {max_image_name} ({stop_date_time})
 """
 
-    ret['MOSAIC_DESCRIPTION'] = ret['MOSAIC_TITLE']
+    ret['MOSAIC_DESCRIPTION'] = ret['MOSAIC_TITLE'] + """
+
+This derived data product is part of bundle cassini_iss_fring_mosaics_rsfrench2025,
+created by Robert S. French et al., and archived at the Ring-Moon Systems Node.
+For full citation information, see collection or bundle labels.
+"""
 
     additional_notes = []
 
@@ -1734,18 +1748,6 @@ the reprojection wraps around then they will be 0 and 359.98.
 ring core -1000km and +1000km at each inertial longitude containing valid data at the time
 of the observation.
 """
-
-    ret['MOSAIC_METADATA_DESCRIPTION'] = ret['MOSAIC_METADATA_TITLE']
-    ret['MOSAIC_METADATA_COMMENT'] = f"""
-Two files containing metadata for the {cap_bkg.lower()}mosaics created from
-reprojected, calibrated Cassini ISS images from {root_obsid}, {start_date_time} to
-{stop_date_time}:
-
-1) Indices and LIDs of source images
-
-2) Metadata parameters per corotating longitude
-"""
-    ret['MOSAIC_METADATA_RINGS_DESCRIPTION'] = ret['MOSAIC_METADATA_DESCRIPTION']
 
     ret['MOSAIC_IMG_FILENAME'] = f'{obsid.lower()}_mosaic{sfx}.img'
 
@@ -2095,10 +2097,11 @@ def generate_browse(obsid, browse_dir, metadata, xml_metadata, img_type):
         obsid_chunk = match[2]
     obsid_lc = obsid.lower()
     obsid_split = obsid_lc.split('_')
+    obsid_partial_lc = obsid_lc
     if len(obsid_split) == 5:
-        obsid_partial_lc = '_'.join([obsid_split[1], obsid_split[2], obsid_split[4]])
+        obsid_partial_lc = f'{obsid_split[1]}_{obsid_split[2]}/{obsid_split[4]}'
     else:
-        obsid_partial_lc = '_'.join([obsid_split[1], obsid_split[2]])
+        obsid_partial_lc = f'{obsid_split[1]}_{obsid_split[2]}'
 
     cap_bkg = 'Background-subtracted ' if img_type == 'b' else ''
 
@@ -2106,11 +2109,13 @@ def generate_browse(obsid, browse_dir, metadata, xml_metadata, img_type):
         sfx = '_bkg_sub' if img_type == 'b' else ''
         sizes = (('full',  1,   1, 401, 18000),
                  ('med',   1,  10, 400,  1800),
-                 ('small', 1,  45, 400,   400),
+                 ('small', 2,  90, 200,   200),
                  ('thumb', 4, 180, 100,   100))
     else:
         image_name = metadata['image_name']
         sizes = (('full',  1,    1, 401, 18000),
+                 ('med',   1, None, 400,  1800),
+                 ('small', 2, None, 200,   200),
                  ('thumb', 4, None, 100,   100))
 
 
@@ -2167,14 +2172,14 @@ def generate_browse(obsid, browse_dir, metadata, xml_metadata, img_type):
 
             font = TITLE_FONTS[(img_type, size)]
             if font is not None:
-                if size == 'thumb':
+                if size in ('thumb', 'small'):
                     if img_type == 'b':
                         title = f'{obsid_partial_lc}\nbkgnd-sub mosaic'
                     elif img_type == 'm':
                         title = f'{obsid_partial_lc}\nmosaic'
                     else:
                         title = f'{image_name.lower()}\nreproj img'
-                    corner = (0,0)
+                    corner = (5, 3)
                 else:
                     if img_type == 'b':
                         title = f'{obsid_lc}\nbkgnd-sub mosaic'
@@ -2217,12 +2222,18 @@ These browse images correspond to the reprojected, calibrated Cassini ISS image
 {image_name} from observation {root_obsid} taken at {start_date}. The
 reprojected image is in units of I/F. The browse images map I/F to 8-bit
 greyscale and are contrast-stretched for easier viewing, using a blackpoint at
-the minimum image value, a whitepoint at the 99.5% maximum image value, and a
-gamma of 0.5. Browse images are available in two sizes: full (equal in size to
-the reprojected image) and thumb (100x100, padded as necessary). The browse
-images omit longitudes that have no data available; if the available longitudes
-are discontinuous, the browse image will show the longitudes as being adjacent.
-Pixels with no data available are shown as black.
+the minimum image value, a whitepoint at the 99.8% maximum image value, and a
+gamma of 0.5. Browse images are available in four sizes: full (equal in size to
+the reprojected image), med (downsampled by 10 in longitude; up to 1800x400),
+small (200x200), and thumb (100x100). The small and thumb sizes are padded as
+necessary. The browse images omit longitudes that have no data available; if the
+available longitudes are discontinuous, the browse image will show the
+longitudes as being adjacent. Pixels with no data available are shown as black.
+
+
+This derived data product is part of bundle cassini_iss_fring_mosaics_rsfrench2025,
+created by Robert S. French et al., and archived at the Ring-Moon Systems Node.
+For full citation information, see collection or bundle labels.
 """
     else:
         # Find the image names at the starting and ending ETs
@@ -2247,11 +2258,16 @@ from reprojected, calibrated Cassini ISS images from observation {root_obsid}.
 The images used range from {min_image_name} ({start_date}) to {max_image_name}
 ({stop_date}). The mosaic data are in units of I/F. The browse images map I/F to
 8-bit greyscale and are contrast-stretched for easier viewing, using a
-blackpoint at the minimum mosaic value, a whitepoint at the 99.5% maximum mosaic
+blackpoint at the minimum mosaic value, a whitepoint at the 99.8% maximum mosaic
 value, and a gamma of 0.5. Browse images are available in four sizes: full
 (18000x401), med (1800x400), small (400x400), and thumb (100x100). The full
 longitude range is shown even when no images cover that area. Pixels with no
 data available are shown as black.
+
+
+This derived data product is part of bundle cassini_iss_fring_mosaics_rsfrench2025,
+created by Robert S. French et al., and archived at the Ring-Moon Systems Node.
+For full citation information, see collection or bundle labels.
 """
 
     if ((img_type != 'r' and GENERATE_BROWSE_REPROJ_LABELS) or
@@ -2643,17 +2659,17 @@ def generate_xml_schema():
 ##########################################################################################
 
 TITLE_FONTS = {
-    ('r', 'thumb'): ImageFont.truetype('cmunssdc.ttf', 9),
-    ('r', 'small'): ImageFont.truetype('cmunssdc.ttf', 14),
-    ('r', 'med'): ImageFont.truetype('cmunssdc.ttf', 14),
-    ('r', 'full'): ImageFont.truetype('cmunssdc.ttf', 14),
-    ('b', 'thumb'): ImageFont.truetype('cmunssdc.ttf', 9),
-    ('b', 'small'): ImageFont.truetype('cmunssdc.ttf', 14),
-    ('b', 'med'): ImageFont.truetype('cmunssdc.ttf', 14),
+    ('r', 'thumb'): ImageFont.truetype('/usr/share/fonts/opentype/urw-base35/NimbusSans-Bold.otf', 11),
+    ('r', 'small'): ImageFont.truetype('/usr/share/fonts/opentype/urw-base35/NimbusSans-Bold.otf', 14),
+    ('r', 'med'): ImageFont.truetype('/usr/share/fonts/opentype/urw-base35/NimbusSans-Bold.otf', 14),
+    ('r', 'full'): None,
+    ('b', 'thumb'): ImageFont.truetype('/usr/share/fonts/opentype/urw-base35/NimbusSans-Bold.otf', 8),
+    ('b', 'small'): ImageFont.truetype('/usr/share/fonts/opentype/urw-base35/NimbusSans-Bold.otf', 14),
+    ('b', 'med'): ImageFont.truetype('/usr/share/fonts/opentype/urw-base35/NimbusSans-Bold.otf', 14),
     ('b', 'full'): None,
-    ('m', 'thumb'): ImageFont.truetype('cmunssdc.ttf', 9),
-    ('m', 'small'): ImageFont.truetype('cmunssdc.ttf', 14),
-    ('m', 'med'): ImageFont.truetype('cmunssdc.ttf', 14),
+    ('m', 'thumb'): ImageFont.truetype('/usr/share/fonts/opentype/urw-base35/NimbusSans-Bold.otf', 8),
+    ('m', 'small'): ImageFont.truetype('/usr/share/fonts/opentype/urw-base35/NimbusSans-Bold.otf', 14),
+    ('m', 'med'): ImageFont.truetype('/usr/share/fonts/opentype/urw-base35/NimbusSans-Bold.otf', 14),
     ('m', 'full'): None,
 }
 
@@ -2665,13 +2681,19 @@ OBSERVATION_INFO = None
 
 BASIC_XML_METADATA = {
     'INFORMATION_MODEL_VERSION': '1.24.0.0',
-    'PDS4_PDS_SCHEMA': 'https://pds.nasa.gov/pds4/pds/v1/PDS4_PDS_1O00.xsd',
-    'PDS4_RINGS_SCHEMA': 'https://pds.nasa.gov/pds4/rings/v1/PDS4_RINGS_1O00_1D00.xsd',
-    'PDS4_DISP_SCHEMA': 'https://pds.nasa.gov/pds4/disp/v1/PDS4_DISP_1O00_1510.xsd',
-    'PDS4_CASSINI_SCHEMA': 'https://pds.nasa.gov/pds4/mission/cassini/v1/PDS4_CASSINI_1O00_1800.xsd',
+    'PDS4_PDS_SCHEMA_XSD': 'https://pds.nasa.gov/pds4/pds/v1/PDS4_PDS_1O00.xsd',
+    'PDS4_PDS_SCHEMA': 'https://pds.nasa.gov/pds4/pds/v1/PDS4_PDS_1O00.sch',
+    'PDS4_RINGS_SCHEMA_XSD': 'https://pds.nasa.gov/pds4/rings/v1/PDS4_RINGS_1O00_1D00.xsd',
+    'PDS4_RINGS_SCHEMA': 'https://pds.nasa.gov/pds4/rings/v1/PDS4_RINGS_1O00_1D00.sch',
+    'PDS4_DISP_SCHEMA_XSD': 'https://pds.nasa.gov/pds4/disp/v1/PDS4_DISP_1O00_1510.xsd',
+    'PDS4_DISP_SCHEMA': 'https://pds.nasa.gov/pds4/disp/v1/PDS4_DISP_1O00_1510.sch',
+    'PDS4_CASSINI_SCHEMA_XSD': 'https://pds.nasa.gov/pds4/mission/cassini/v1/PDS4_CASSINI_1O00_1800.xsd',
+    'PDS4_CASSINI_SCHEMA': 'https://pds.nasa.gov/pds4/mission/cassini/v1/PDS4_CASSINI_1O00_1800.sch',
+    'PDS4_GEOM_SCHEMA_XSD': 'https://pds.nasa.gov/pds4/geom/v1/PDS4_GEOM_1O00_1D00.xsd',
+    'PDS4_GEOM_SCHEMA': 'https://pds.nasa.gov/pds4/geom/v1/PDS4_GEOM_1O00_1D00.sch',
     'KEYWORDS': ['saturn rings', 'f ring', 'cassini iss'],
     'PUBLICATION_YEAR': datetime.datetime.now(datetime.UTC).strftime('%Y'),
-    'USERGUIDE_LID': f'urn:nasa:pds:${BUNDLE_NAME}:document:users-guide', # XXX
+    'USERGUIDE_LID': f'urn:nasa:pds:{BUNDLE_NAME}:document:users-guide', # XXX
     'USERGUIDE_COMMENT': "Detailed User's Guide for the F Ring Mosaics and Reprojected Images in this bundle.",
     'CASSINI_USER_GUIDE_LID': 'urn:nasa:pds:cassini_iss_saturn:document:iss-data-user-guide',
     'CASSINI_USER_GUIDE_DESC': "The Cassini ISS Data User's Guide (PDS3); DOI: 10.17189/1504135",
@@ -2838,8 +2860,6 @@ for obsid in f_ring.enumerate_obsids(arguments):
             browse_mosaic_collection_fp.write(f'P,{browse_mosaic_lidvid}\n')
             browse_bsm_lidvid = obsid_to_mosaic_browse_lidvid(obsid, True)
             browse_bsm_collection_fp.write(f'P,{browse_bsm_lidvid}\n')
-
-    # LOGGER.close()
 
 if GENERATE_MOSAIC_GLOBAL_INDEX:
     global_mosaic_index_fp.close()

@@ -158,6 +158,7 @@ schematypens="http://purl.oclc.org/dsdl/schematron"?>
             <description>logical_identifier,observation_id,file_spec,start_date_time,stop_date_time,spacecraft_clock_start_count,spacecraft_clock_stop_count,num_valid_longitudes,percent_coverage,min_corotating_longitude,max_corotating_longitude,min_inertial_longitude,max_inertial_longitude,mean_phase_angle,min_phase_angle,max_phase_angle,mean_incidence_angle,mean_emission_angle,min_emission_angle,max_emission_angle,mean_radial_resolution,min_radial_resolution,max_radial_resolution,mean_longitudinal_resolution,min_longitudinal_resolution,max_longitudinal_resolution,min_radius,max_radius,product_creation_date,num_images,min_image_name,max_image_name,bkgnd_lower_limit,bkgnd_upper_limit</description>
             $ELSE
             <description>logical_identifier,observation_id,file_spec,start_date_time,stop_date_time,spacecraft_clock_start_count,spacecraft_clock_stop_count,num_valid_longitudes,percent_coverage,min_corotating_longitude,max_corotating_longitude,min_inertial_longitude,max_inertial_longitude,mean_phase_angle,min_phase_angle,max_phase_angle,mean_incidence_angle,mean_emission_angle,min_emission_angle,max_emission_angle,mean_radial_resolution,min_radial_resolution,max_radial_resolution,mean_longitudinal_resolution,min_longitudinal_resolution,max_longitudinal_resolution,min_radius,max_radius,product_creation_date,num_images,min_image_name,max_image_name</description>
+            $END_IF
             $ELSE
             <description>logical_identifier,observation_id,file_spec,start_date_time,stop_date_time,spacecraft_clock_start_count,spacecraft_clock_stop_count,num_valid_longitudes,percent_coverage,min_corotating_longitude,max_corotating_longitude,min_inertial_longitude,max_inertial_longitude,mean_phase_angle,min_phase_angle,max_phase_angle,mean_incidence_angle,mean_emission_angle,min_emission_angle,max_emission_angle,mean_radial_resolution,min_radial_resolution,max_radial_resolution,mean_longitudinal_resolution,min_longitudinal_resolution,max_longitudinal_resolution,min_radius,max_radius,product_creation_date</description>
             $END_IF
@@ -171,15 +172,19 @@ schematypens="http://purl.oclc.org/dsdl/schematron"?>
             </description>
             <record_delimiter>Line-Feed</record_delimiter>
             <Record_Character>
-                <fields>29</fields>
-                <groups>0</groups>
                 $IF(IS_MOSAIC)
                 $IF(IS_BKGND_SUB)
+                <fields>34</fields>
+                <groups>0</groups>
                 <record_length unit="byte">578</record_length>
                 $ELSE
+                <fields>32</fields>
+                <groups>0</groups>
                 <record_length unit="byte">565</record_length>
                 $END_IF
                 $ELSE
+                <fields>29</fields>
+                <groups>0</groups>
                 <record_length unit="byte">533</record_length>
                 $END_IF
                 <Field_Character>
