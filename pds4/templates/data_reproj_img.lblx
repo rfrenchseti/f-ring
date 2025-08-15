@@ -305,18 +305,17 @@
             <offset unit="byte">0</offset>
             <axes>2</axes>
             <axis_index_order>Last Index Fastest</axis_index_order>
-            <description>Some description  </description>
             <Element_Array>
                 <data_type>IEEE754LSBSingle</data_type>
                 <unit>I/F</unit>
             </Element_Array>
             <Axis_Array>
-                <axis_name>Line</axis_name> <!-- vertical (radial) -->
+                <axis_name>Line</axis_name> <!-- vertical (delta radius) -->
                 <elements>$IMG_NUM_LINES$</elements>
                 <sequence_number>1</sequence_number>
             </Axis_Array>
             <Axis_Array>
-                <axis_name>Sample</axis_name> <!-- horizontal (longitude) -->
+                <axis_name>Sample</axis_name> <!-- horizontal (co-rotating longitude) -->
                 <elements>$IMG_NUM_SAMPLES$</elements>
                 <sequence_number>2</sequence_number>
             </Axis_Array>

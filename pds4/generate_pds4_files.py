@@ -1991,52 +1991,54 @@ def generate_image(obsid, output_dir, metadata, xml_metadata, global_index_fp,
         current_date = xml_metadata['CURRENT_DATE']
         sclk_start = xml_metadata['SPACECRAFT_CLOCK_START_COUNT']
         sclk_stop = xml_metadata['SPACECRAFT_CLOCK_STOP_COUNT']
+        notes = OBSERVATION_INFO[obsid]['notes']
         if img_type == 'r':
             lid = xml_metadata['REPROJ_LID']
         else:
             lid = xml_metadata['MOSAIC_LID']
-        row = (f'{lid:117}, '
-               f'{orig_obsid:29}, '
-               f'{filespec:101}, '
-               f'{start_date}, '
-               f'{stop_date}, '
-               f'{sclk_start}, '
-               f'{sclk_stop}, '
-               f'{num_valid_longitudes:5d}, '
-               f'{num_valid_longitudes/180:7.3f}, '
-               f'{min_corotating_longitude}, '
-               f'{max_corotating_longitude}, '
-               f'{min_inertial_longitude}, '
-               f'{max_inertial_longitude}, '
-               f'{mean_phase}, '
-               f'{min_phase}, '
-               f'{max_phase}, '
-               f'{mean_incidence}, '
-               f'{mean_emission}, '
-               f'{min_emission}, '
-               f'{max_emission}, '
-               f'{mean_reproj_grid_rad_res}, '
-               f'{min_reproj_grid_rad_res}, '
-               f'{max_reproj_grid_rad_res}, '
-               f'{mean_reproj_grid_ang_res}, '
-               f'{min_reproj_grid_ang_res}, '
-               f'{max_reproj_grid_ang_res}, '
-               f'{min_radius}, '
-               f'{max_radius}, '
-               f'{current_date}')
+        row = (f'{lid:117},'
+               f'{orig_obsid:29},'
+               f'{filespec:101},'
+               f'{start_date},'
+               f'{stop_date},'
+               f'{sclk_start},'
+               f'{sclk_stop},'
+               f'{num_valid_longitudes:5d},'
+               f'{num_valid_longitudes/180:7.3f},'
+               f'{min_corotating_longitude},'
+               f'{max_corotating_longitude},'
+               f'{min_inertial_longitude},'
+               f'{max_inertial_longitude},'
+               f'{mean_phase},'
+               f'{min_phase},'
+               f'{max_phase},'
+               f'{mean_incidence},'
+               f'{mean_emission},'
+               f'{min_emission},'
+               f'{max_emission},'
+               f'{mean_reproj_grid_rad_res},'
+               f'{min_reproj_grid_rad_res},'
+               f'{max_reproj_grid_rad_res},'
+               f'{mean_reproj_grid_ang_res},'
+               f'{min_reproj_grid_ang_res},'
+               f'{max_reproj_grid_ang_res},'
+               f'{min_radius},'
+               f'{max_radius},'
+               f'{current_date},'
+               f'{notes:4}')
         if img_type == 'r' and GENERATE_REPROJ_GLOBAL_INDEX:
             global_index_fp.write(row+'\n')
         elif img_type in 'bm' and GENERATE_MOSAIC_GLOBAL_INDEX:
             min_image_name = xml_metadata['MIN_IMAGE_NAME']
             max_image_name = xml_metadata['MAX_IMAGE_NAME']
             num_images = xml_metadata['NUM_IMAGES']
-            row += (f', {num_images:4d}, '
-                    f'{min_image_name:11}, '
+            row += (f',{num_images:4d},'
+                    f'{min_image_name:11},'
                     f'{max_image_name:11}')
             if img_type == 'b':
                 lower_limit = -xml_metadata['BKGND_LOWER_LIMIT']
                 upper_limit = xml_metadata['BKGND_UPPER_LIMIT']
-                row += (f', {lower_limit:5d}, '
+                row += (f',{lower_limit:5d},'
                         f'{upper_limit:4d}')
             global_index_fp.write(row+'\n')
 
@@ -2623,7 +2625,7 @@ Index table containing metadata for all background-subtracted mosaics in the F-r
     else:
         raise ValueError(f'Invalid image type: {img_type}')
 
-    global_index_xml_path = global_index_csv_path.replace('tab', 'xml')
+    global_index_xml_path = global_index_csv_path.replace('.tab', '.lblx')
 
     metadata['CURRENT_DATE'] = datetime.datetime.now(datetime.timezone.utc).strftime('%Y-%m-%d')
     metadata['HEADER_LENGTH'] = len(hdr)+1
@@ -2760,7 +2762,8 @@ GLOBAL_REPROJ_INDEX_HDR = ('logical_identifier,'
                            'max_longitudinal_resolution,'
                            'min_radius,'
                            'max_radius,'
-                           'product_creation_date')
+                           'product_creation_date,'
+                           'notes')
 
 global_mosaic_index_fp = None
 global_bsm_index_fp = None
