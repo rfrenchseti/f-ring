@@ -4,12 +4,12 @@
 
 <Product_Collection xmlns="http://pds.nasa.gov/pds4/pds/v1"
     xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
-    xsi:schemaLocation="http://pds.nasa.gov/pds4/pds/v1 $PDS4_PDS_SCHEMA$">
+    xsi:schemaLocation="http://pds.nasa.gov/pds4/pds/v1 $PDS4_PDS_SCHEMA_XSD$">
 
     <Identification_Area>
-        <logical_identifier>urn:nasa:pds:cdap2020_hedman_saturn_dusty_rings:xml_schema</logical_identifier>
+        <logical_identifier>$XML_SCHEMA_COLLECTION_LID$</logical_identifier>
         <version_id>1.0</version_id>
-        <title>XML schema collection for the F ring mosaics and associated reprojected versions of Cassini ISS calibrated images</title>
+        <title>XML Schema Collection for the F Ring Mosaics and Associated Reprojected Versions of Cassini ISS Calibrated Images</title>
         <information_model_version>$INFORMATION_MODEL_VERSION$</information_model_version>
         <product_class>Product_Collection</product_class>
         <Citation_Information>
@@ -136,15 +136,15 @@
     </Collection>
     <File_Area_Inventory>
         <File>
-            <file_name>collection_xml_schema.csv</file_name>
-            <creation_date_time>$FILE_ZULU(XML_SCHEMA_CSV_PATH)$</creation_date_time>
-            <file_size unit="byte">$FILE_BYTES(XML_SCHEMA_CSV_PATH)$</file_size>
-            <md5_checksum>$FILE_MD5(XML_SCHEMA_CSV_PATH)$</md5_checksum>
+            <file_name>$COLLECTION_XML_SCHEMA_CSV_NAME$</file_name>
+            <creation_date_time>$FILE_ZULU(COLLECTION_XML_SCHEMA_CSV_PATH)$</creation_date_time>
+            <file_size unit="byte">$FILE_BYTES(COLLECTION_XML_SCHEMA_CSV_PATH)$</file_size>
+            <md5_checksum>$FILE_MD5(COLLECTION_XML_SCHEMA_CSV_PATH)$</md5_checksum>
         </File>
         <Inventory>
             <offset unit="byte">0</offset>
             <parsing_standard_id>PDS DSV 1</parsing_standard_id>
-            <records>4</records>
+            <records>$FILE_RECORDS(COLLECTION_XML_SCHEMA_CSV_PATH)$</records>
             <record_delimiter>Line-Feed</record_delimiter>
             <field_delimiter>Comma</field_delimiter>
             <Record_Delimited>

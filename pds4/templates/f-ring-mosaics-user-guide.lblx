@@ -1,0 +1,263 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<?xml-model href="$PDS4_PDS_SCHEMA$"
+    schematypens="http://purl.oclc.org/dsdl/schematron"?>
+
+<Product_Document
+  xmlns="http://pds.nasa.gov/pds4/pds/v1"
+  xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+  xmlns:pds="http://pds.nasa.gov/pds4/pds/v1"
+  xsi:schemaLocation="http://pds.nasa.gov/pds4/pds/v1 $PDS4_PDS_SCHEMA_XSD$">
+    <Identification_Area>
+        <logical_identifier>$USERGUIDE_LID$</logical_identifier>
+        <version_id>1.0</version_id>
+        <title>Cassini ISS F Ring Mosaics User's Guide</title>
+        <information_model_version>$INFORMATION_MODEL_VERSION$</information_model_version>
+        <product_class>Product_Document</product_class>
+        <Citation_Information>
+            <publication_year>$PUBLICATION_YEAR$</publication_year>
+            <doi>$USERGUIDE_DOI$</doi>
+            $FOR(KEYWORD=KEYWORDS_MOSAIC_REPROJ)
+            <keyword>$KEYWORD$</keyword>
+            $END_FOR
+            <description>
+                This document is a detailed, comprehensive guide that provides an overview of the
+                Cassini ISS F Ring mosaics and associated reprojected versions of Cassini ISS
+                calibrated images archived in the PDS. It provides details essential to
+                understanding and using the data in the bundle.
+            </description>
+            <List_Author>
+                <Person>
+                    <display_full_name>Robert S. French</display_full_name>
+                    <given_name>Robert</given_name>
+                    <family_name>French</family_name>
+                    <person_orcid>https://orcid.org/0000-0002-9527-7920</person_orcid>
+                    <sequence_number>1</sequence_number>
+                    <Affiliation>
+                        <organization_name>SETI Institute</organization_name>
+                        <organization_rorid>https://ror.org/02dxgk712</organization_rorid>
+                        <sequence_number>1</sequence_number>
+                    </Affiliation>
+                </Person>
+                <Person>
+                    <display_full_name>Matthew M. Hedman</display_full_name>
+                    <given_name>Matthew</given_name>
+                    <family_name>Hedman</family_name>
+                    <person_orcid>http://orcid.org/0000-0002-8592-0812</person_orcid>
+                    <sequence_number>2</sequence_number>
+                    <Affiliation>
+                        <organization_name>University of Idaho</organization_name>
+                        <organization_rorid>https://ror.org/03hbp5t65</organization_rorid>
+                        <sequence_number>1</sequence_number>
+                    </Affiliation>
+                </Person>
+            </List_Author>
+            <List_Contributor>
+                <Person>
+                    <contributor_type>DataCurator</contributor_type>
+                    <display_full_name>Mia J.T. Mace</display_full_name>
+                    <given_name>Mia</given_name>
+                    <family_name>Mace</family_name>
+                    <person_orcid>https://orcid.org/0000-0002-9905-816X</person_orcid>
+                    <sequence_number>1</sequence_number>
+                    <Affiliation>
+                        <organization_name>NASA's Planetary Data System (Ring-Moon Systems Node)</organization_name>
+                        <organization_rorid>https://ror.org/006ndaj41</organization_rorid>
+                        <sequence_number>1</sequence_number>
+                    </Affiliation>
+                    <Affiliation>
+                        <organization_name>SETI Institute</organization_name>
+                        <organization_rorid>https://ror.org/02dxgk712</organization_rorid>
+                        <sequence_number>2</sequence_number>
+                    </Affiliation>
+                </Person>
+                <Person>
+                    <contributor_type>DataCurator</contributor_type>
+                    <display_full_name>Mitchell K. Gordon</display_full_name>
+                    <given_name>Mitchell</given_name>
+                    <family_name>Gordon</family_name>
+                    <person_orcid>https://orcid.org/0000-0003-0985-2800</person_orcid>
+                    <sequence_number>2</sequence_number>
+                    <Affiliation>
+                        <organization_name>NASA's Planetary Data System (Ring-Moon Systems Node)</organization_name>
+                        <organization_rorid>https://ror.org/006ndaj41</organization_rorid>
+                        <sequence_number>1</sequence_number>
+                    </Affiliation>
+                    <Affiliation>
+                        <organization_name>SETI Institute</organization_name>
+                        <organization_rorid>https://ror.org/02dxgk712</organization_rorid>
+                        <sequence_number>2</sequence_number>
+                    </Affiliation>
+                </Person>
+                <Person>
+                    <contributor_type>DataCurator</contributor_type>
+                    <display_full_name>Matthew S. Tiscareno</display_full_name>
+                    <given_name>Matthew</given_name>
+                    <family_name>Tiscareno</family_name>
+                    <person_orcid>https://orcid.org/0000-0002-2736-3667</person_orcid>
+                    <sequence_number>2</sequence_number>
+                    <Affiliation>
+                        <organization_name>NASA's Planetary Data System (Ring-Moon Systems Node)</organization_name>
+                        <organization_rorid>https://ror.org/006ndaj41</organization_rorid>
+                        <sequence_number>1</sequence_number>
+                    </Affiliation>
+                    <Affiliation>
+                        <organization_name>SETI Institute</organization_name>
+                        <organization_rorid>https://ror.org/02dxgk712</organization_rorid>
+                        <sequence_number>2</sequence_number>
+                    </Affiliation>
+                </Person>
+                <Person>
+                    <contributor_type>DataCurator</contributor_type>
+                    <display_full_name>Emilie R. Simpson</display_full_name>
+                    <given_name>Emilie</given_name>
+                    <family_name>Simpson</family_name>
+                    <person_orcid>https://orcid.org/0000-0003-0447-9867</person_orcid>
+                    <sequence_number>2</sequence_number>
+                    <Affiliation>
+                        <organization_name>NASA's Planetary Data System (Ring-Moon Systems Node)</organization_name>
+                        <organization_rorid>https://ror.org/006ndaj41</organization_rorid>
+                        <sequence_number>1</sequence_number>
+                    </Affiliation>
+                    <Affiliation>
+                        <organization_name>SETI Institute</organization_name>
+                        <organization_rorid>https://ror.org/02dxgk712</organization_rorid>
+                        <sequence_number>2</sequence_number>
+                    </Affiliation>
+                </Person>
+            </List_Contributor>
+        </Citation_Information>
+        <Modification_History>
+            <Modification_Detail>
+                <modification_date>$CURRENT_ZULU(date_only=True)$</modification_date>
+                <version_id>1.0</version_id>
+                <description>Initial version.</description>
+            </Modification_Detail>
+        </Modification_History>
+    </Identification_Area>
+    <Context_Area>
+        <Investigation_Area>
+            <name>Cassini-Huygens</name>
+            <type>Mission</type>
+            <Internal_Reference>
+                <lid_reference>urn:nasa:pds:context:investigation:mission.cassini-huygens</lid_reference>
+                <reference_type>document_to_investigation</reference_type>
+            </Internal_Reference>
+        </Investigation_Area>
+        <Observing_System>
+            <name>Cassini Orbiter Imaging Science Subsystem</name>
+            <Observing_System_Component>
+                <name>Cassini Orbiter</name>
+                <type>Host</type>
+                <Internal_Reference>
+                    <lid_reference>urn:nasa:pds:context:instrument_host:spacecraft.co</lid_reference>
+                    <reference_type>is_instrument_host</reference_type>
+                </Internal_Reference>
+            </Observing_System_Component>
+           <Observing_System_Component>
+                <name>Imaging Science Subsystem - Wide Angle</name>
+                <type>Instrument</type>
+                <description>ISSWA</description>
+                <Internal_Reference>
+                    <lid_reference>urn:nasa:pds:context:instrument:isswa.co</lid_reference>
+                    <reference_type>is_instrument</reference_type>
+                </Internal_Reference>
+            </Observing_System_Component>
+            <Observing_System_Component>
+                <name>Imaging Science Subsystem - Narrow Angle</name>
+                <type>Instrument</type>
+                <description>ISSNA</description>
+                <Internal_Reference>
+                    <lid_reference>urn:nasa:pds:context:instrument:issna.co</lid_reference>
+                    <reference_type>is_instrument</reference_type>
+                </Internal_Reference>
+            </Observing_System_Component>
+        </Observing_System>
+        <Target_Identification>
+            <name>F Ring of Saturn</name>
+            <type>Ring</type>
+            <Internal_Reference>
+                <lid_reference>urn:nasa:pds:context:target:ring.saturn.f_ring</lid_reference>
+                <reference_type>document_to_target</reference_type>
+            </Internal_Reference>
+        </Target_Identification>
+        <Target_Identification>
+            <name>Saturn Rings</name>
+            <type>Ring</type>
+            <Internal_Reference>
+                <lid_reference>urn:nasa:pds:context:target:ring.saturn.rings</lid_reference>
+                <reference_type>document_to_target</reference_type>
+            </Internal_Reference>
+        </Target_Identification>
+        <Target_Identification>
+            <name>Prometheus</name>
+            <alternate_designation>Saturn XVI (Prometheus)</alternate_designation>
+            <alternate_designation>S/1980 S 27</alternate_designation>
+            <alternate_designation>NAIF ID 616</alternate_designation>
+            <type>Satellite</type>
+            <description>
+                NAIF ID: 616;
+                Center of motion: Saturn;
+                LID of central body: urn:nasa:pds:context:target:planet.saturn;
+                NAIF ID of central body: 699.
+            </description>
+            <Internal_Reference>
+                <lid_reference>urn:nasa:pds:context:target:satellite.saturn.prometheus</lid_reference>
+                <reference_type>document_to_target</reference_type>
+            </Internal_Reference>
+        </Target_Identification>
+        <Target_Identification>
+            <name>Pandora</name>
+            <alternate_designation>Saturn XVII (Pandora)</alternate_designation>
+            <alternate_designation>S/1980 S 26</alternate_designation>
+            <alternate_designation>NAIF ID 617</alternate_designation>
+            <type>Satellite</type>
+            <description>
+                NAIF ID: 617;
+                Center of motion: Saturn;
+                LID of central body: urn:nasa:pds:context:target:planet.saturn;
+                NAIF ID of central body: 699.
+            </description>
+            <Internal_Reference>
+                <lid_reference>urn:nasa:pds:context:target:satellite.saturn.pandora</lid_reference>
+                <reference_type>document_to_target</reference_type>
+            </Internal_Reference>
+        </Target_Identification>
+    </Context_Area>
+    <Document>
+        <document_name>F Ring Mosaics User's Guide</document_name>
+        <doi>$USERGUIDE_DOI$</doi>
+        <publication_date>$CURRENT_ZULU(date_only=True)$</publication_date>
+        <document_editions>1</document_editions>
+        <description>
+            This document is a detailed, comprehensive guide that provides an overview of the
+            Cassini ISS F Ring mosaics and associated reprojected versions of Cassini ISS
+            calibrated images archived in the PDS. It provides details essential to
+            understanding and using the data in the bundle.
+        </description>
+        <Document_Edition>
+            <edition_name>First Edition</edition_name>
+            <language>English</language>
+            <files>1</files>
+            <Document_File>
+                <file_name>$USERGUIDE_PDF_NAME$</file_name>
+                <creation_date_time>$FILE_ZULU(USERGUIDE_PDF_PATH)$</creation_date_time>
+                <md5_checksum>$FILE_MD5(USERGUIDE_PDF_PATH)$</md5_checksum>
+                <document_standard_id>PDF</document_standard_id>
+            </Document_File>
+        </Document_Edition>
+        <List_Author>
+            <Person>
+                <display_full_name>Robert S. French</display_full_name>
+                <given_name>Robert</given_name>
+                <family_name>French</family_name>
+                <person_orcid>https://orcid.org/0000-0002-9527-7920</person_orcid>
+                <sequence_number>1</sequence_number>
+                <Affiliation>
+                    <organization_name>SETI Institute</organization_name>
+                    <organization_rorid>https://ror.org/02dxgk712</organization_rorid>
+                    <sequence_number>1</sequence_number>
+                </Affiliation>
+            </Person>
+        </List_Author>
+    </Document>
+</Product_Document>

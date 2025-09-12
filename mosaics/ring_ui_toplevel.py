@@ -388,7 +388,6 @@ def update_one_list(listbox, new_list_entries, char_skip=0):
 # Make command-line arguments for subprocesses
 #
 def cmdline_arguments(guidata, subprocesses=False):
-    ret = ring_util.ring_basic_cmd_line(arguments)
     ring_radius = guidata.entry_ring_radius.value()
     radius_inner = guidata.entry_radius_inner.value()
     radius_outer = guidata.entry_radius_outer.value()
@@ -397,17 +396,18 @@ def cmdline_arguments(guidata, subprocesses=False):
     radial_zoom_amount = guidata.entry_radial_zoom_amount.value()
     longitude_zoom_amount = guidata.entry_longitude_zoom_amount.value()
 
-    ret += ['--ring-type', str(arguments.ring_type),
-            '--ring-radius', str(ring_radius),
-            '--radius-inner-delta', str(radius_inner),
-            '--radius-outer-delta', str(radius_outer),
-            '--radius-resolution', '%.3f'%radius_resolution,
-            '--longitude-resolution', '%.3f'%longitude_resolution,
-            '--radial-zoom-amount', '%d'%radial_zoom_amount,
-            '--longitude-zoom-amount', '%d'%longitude_zoom_amount,
-            '--instrument-host', arguments.instrument_host]
+    ret = ['--ring-type', str(arguments.ring_type),
+           '--corot-type', arguments.corot_type,
+           '--ring-radius', str(ring_radius),
+           '--radius-inner-delta', str(radius_inner),
+           '--radius-outer-delta', str(radius_outer),
+           '--radius-resolution', '%.3f'%radius_resolution,
+           '--longitude-resolution', '%.3f'%longitude_resolution,
+           '--radial-zoom-amount', '%d'%radial_zoom_amount,
+           '--longitude-zoom-amount', '%d'%longitude_zoom_amount,
+           '--instrument-host', arguments.instrument_host]
     if subprocesses:
-        ret += ['--max-subprocesses', '2']
+        ret += ['--max-subprocesses', '4']
 
     return ret
 

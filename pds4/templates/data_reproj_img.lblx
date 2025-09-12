@@ -31,10 +31,9 @@
         <product_class>Product_Observational</product_class>
         <Citation_Information>
             <publication_year>$PUBLICATION_YEAR$</publication_year>
-            $FOR(KEYWORD=KEYWORDS)
+            $FOR(KEYWORD=KEYWORDS_REPROJ)
             <keyword>$KEYWORD$</keyword>
             $END_FOR
-            <keyword>reprojected image</keyword>
             <description>
                 $WRAP(16,91,REPROJ_DESCRIPTION,preserve_single_newlines=False)$
             </description>
@@ -232,12 +231,12 @@
                             <local_identifier>reproj_grid</local_identifier>
                             <rings:reprojection_grid_radial_sampling_interval unit="km">5.0</rings:reprojection_grid_radial_sampling_interval>
                             <rings:reprojection_grid_longitudinal_sampling_interval unit="deg">0.02</rings:reprojection_grid_longitudinal_sampling_interval>
-                            <rings:mean_radial_resolution unit="km">$MEAN_REPROJ_GRID_RAD_RES$</rings:mean_radial_resolution>
                             <rings:minimum_radial_resolution unit="km">$MIN_REPROJ_GRID_RAD_RES$</rings:minimum_radial_resolution>
                             <rings:maximum_radial_resolution unit="km">$MAX_REPROJ_GRID_RAD_RES$</rings:maximum_radial_resolution>
-                            <rings:mean_longitudinal_resolution unit="deg">$MEAN_REPROJ_GRID_ANG_RES$</rings:mean_longitudinal_resolution>
+                            <rings:mean_radial_resolution unit="km">$MEAN_REPROJ_GRID_RAD_RES$</rings:mean_radial_resolution>
                             <rings:minimum_longitudinal_resolution unit="deg">$MIN_REPROJ_GRID_ANG_RES$</rings:minimum_longitudinal_resolution>
                             <rings:maximum_longitudinal_resolution unit="deg">$MAX_REPROJ_GRID_ANG_RES$</rings:maximum_longitudinal_resolution>
+                            <rings:mean_longitudinal_resolution unit="deg">$MEAN_REPROJ_GRID_ANG_RES$</rings:mean_longitudinal_resolution>
                         </rings:Reprojection_Grid_Parameters>
                     </rings:Reprojection_Geometry>
                 </rings:Ring_Reprojection>
@@ -291,6 +290,10 @@
             </reference_text>
             <description>NAIF HTML documentation describing SPICE</description>
         </External_Reference>
+        <Source_Product_Internal>
+            <lidvid_reference>$CALIB_LIDVID$</lidvid_reference>
+            <reference_type>data_to_calibrated_source_product</reference_type>
+        </Source_Product_Internal>
     </Reference_List>
     <File_Area_Observational>
         <File>

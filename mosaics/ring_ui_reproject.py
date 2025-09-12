@@ -16,6 +16,7 @@ import logging
 import numpy as np
 import numpy.ma as ma
 import os
+import shutil
 import subprocess
 import sys
 import time
@@ -493,7 +494,7 @@ def reproject_one_image(offrepdata, option_no, option_no_update,
             return
 
         offrepdata.off_metadata = read_offset_metadata(offrepdata.image_path,
-                                                    arguments.instrument_host, 'saturn')
+                                                       arguments.instrument_host, 'saturn')
         status = offrepdata.off_metadata['status']
         if status != 'ok':
             if arguments.verbose:
@@ -1230,11 +1231,61 @@ for obsid, image_name, image_path in ring_enumerate_files(arguments):
 
     offrepdata.image_log_filehander = None
 
-    if arguments.verbose:
-        print('Processing', obsid, '/', image_name)
+    # if arguments.verbose:
+    #     print('Processing', obsid, '/', image_name)
+
+    # Hack to fix old repro images
+    # Only process images that have a 0 in one of the offset fields
+    # or that have a non-zero pixel map in the original copy
+    if False:
+        reprocess = False
+        old_path = offrepdata.repro_path.replace('cb-results/fring/ring_mosaic', 'f-ring.old')
+        old_ret = read_repro(old_path)
+        if old_ret is not None and 'bad_pixel_map' in old_ret and old_ret['bad_pixel_map'] is not None:
+            bad_pixel_map = old_ret['bad_pixel_map']
+            print(obsid, '/', image_name, np.sum(bad_pixel_map))
+            if np.any(bad_pixel_map):
+                print(obsid, '/', image_name, 'Some bad pixels in original repro')
+                reprocess = True
+                shutil.copy(old_path, offrepdata.repro_path)
+        if False:
+            off_metadata = read_offset_metadata(offrepdata.image_path,
+                                                        arguments.instrument_host, 'saturn')
+
+            if off_metadata is None or 'offset' not in off_metadata:
+                if arguments.verbose:
+                    print(obsid, '/', image_name, 'Skipped because no offset field present')
+                continue
+            if off_metadata['offset'] is None:
+                the_offset = None
+            else:
+                the_offset = off_metadata['offset']
+            if not 'manual_offset' in off_metadata:
+                manual_offset = None
+            else:
+                manual_offset = off_metadata['manual_offset']
+
+            if the_offset is None and manual_offset is None:
+                if arguments.verbose:
+                    print(obsid, '/', image_name, 'OFFSET IS INVALID - ABORTING')
+                continue
+
+            offset = None
+            if manual_offset is not None:
+                offset = manual_offset
+            elif the_offset is not None:
+                offset = the_offset
+            if offset is not None and (offset[0] == 0 or offset[1] == 0):
+                print(obsid, '/', image_name,'Some offset is zero')
+                reprocess = True
+
+        if not reprocess:
+            continue
+    # End of hack
 
     ret = read_repro(offrepdata.repro_path)
     _update_offrepdata_repro(offrepdata, ret)
+
     if ret is not None:
         offrepdata.bad_pixel_map = ret['bad_pixel_map']
     if offrepdata.bad_pixel_map is not None:

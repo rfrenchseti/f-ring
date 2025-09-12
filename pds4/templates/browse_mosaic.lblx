@@ -4,7 +4,7 @@
 
 <Product_Browse xmlns="http://pds.nasa.gov/pds4/pds/v1"
     xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="
-    http://pds.nasa.gov/pds4/pds/v1 $PDS4_PDS_SCHEMA$">
+    http://pds.nasa.gov/pds4/pds/v1 $PDS4_PDS_SCHEMA_XSD$">
 
     <Identification_Area>
         <logical_identifier>$BROWSE_MOSAIC_LID$</logical_identifier>
@@ -16,10 +16,9 @@
         <product_class>Product_Browse</product_class>
         <Citation_Information>
             <publication_year>$PUBLICATION_YEAR$</publication_year>
-            $FOR(KEYWORD=KEYWORDS)
+            $FOR(KEYWORD=KEYWORDS_MOSAIC)
             <keyword>$KEYWORD$</keyword>
             $END_FOR
-            <keyword>mosaic</keyword>
             <description>
                 $WRAP(16,91,BROWSE_MOSAIC_DESCRIPTION,preserve_single_newlines=False)$
             </description>

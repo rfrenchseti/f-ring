@@ -5,7 +5,7 @@
 <Product_Collection
     xmlns="http://pds.nasa.gov/pds4/pds/v1"
     xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
-    xsi:schemaLocation="http://pds.nasa.gov/pds4/pds/v1 $PDS4_PDS_SCHEMA$">
+    xsi:schemaLocation="http://pds.nasa.gov/pds4/pds/v1 $PDS4_PDS_SCHEMA_XSD$">
 
     <Identification_Area>
         <logical_identifier>$DATA_REPROJ_COLLECTION_LID$</logical_identifier>
@@ -17,7 +17,7 @@
         <product_class>Product_Collection</product_class>
         <Citation_Information>
             <publication_year>$PUBLICATION_YEAR$</publication_year>
-            $FOR(KEYWORD=KEYWORDS)
+            $FOR(KEYWORD=KEYWORDS_REPROJ)
             <keyword>$KEYWORD$</keyword>
             $END_FOR
             <description>
@@ -164,7 +164,7 @@
                 </Internal_Reference>
             </Observing_System_Component>
             <Observing_System_Component>
-                <name>Cassini Orbiter Imaging Science Subsystem - Wide Angle Camera</name>
+                <name>Imaging Science Subsystem - Wide Angle</name>
                 <type>Instrument</type>
                 <description>ISSWA</description>
                 <Internal_Reference>
@@ -173,7 +173,7 @@
                 </Internal_Reference>
             </Observing_System_Component>
             <Observing_System_Component>
-                <name>Cassini Orbiter Imaging Science Subsystem - Narrow Angle Camera</name>
+                <name>Imaging Science Subsystem - Narrow Angle</name>
                 <type>Instrument</type>
                 <description>ISSNA</description>
                 <Internal_Reference>

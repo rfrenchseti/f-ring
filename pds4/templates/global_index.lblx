@@ -1,34 +1,30 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <?xml-model href="$PDS4_PDS_SCHEMA$"
     schematypens="http://purl.oclc.org/dsdl/schematron"?>
-<?xml-model href="$PDS4_RINGS_SCHEMA$"
-    schematypens="http://purl.oclc.org/dsdl/schematron"?>
-<?xml-model href="$PDS4_DISP_SCHEMA$"
-    schematypens="http://purl.oclc.org/dsdl/schematron"?>
-<?xml-model href="$PDS4_CASSINI_SCHEMA$"
-schematypens="http://purl.oclc.org/dsdl/schematron"?>
 
 <Product_Ancillary
     xmlns="http://pds.nasa.gov/pds4/pds/v1"
     xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
-    xmlns:disp="http://pds.nasa.gov/pds4/disp/v1"
-    xmlns:rings="http://pds.nasa.gov/pds4/rings/v1"
-    xmlns:cassini="http://pds.nasa.gov/pds4/mission/cassini/v1"
     xsi:schemaLocation="
-	http://pds.nasa.gov/pds4/pds/v1 $PDS4_PDS_SCHEMA$
-	http://pds.nasa.gov/pds4/rings/v1 $PDS4_RINGS_SCHEMA$">
+	http://pds.nasa.gov/pds4/pds/v1 $PDS4_PDS_SCHEMA_XSD$">
 
     <Identification_Area>
         <logical_identifier>$GLOBAL_INDEX_LID$</logical_identifier>
         <version_id>1.0</version_id>
         <title>$GLOBAL_INDEX_TITLE$</title>
         <information_model_version>$INFORMATION_MODEL_VERSION$</information_model_version>
-        <product_class>Product_Observational</product_class>
+        <product_class>Product_Ancillary</product_class>
         <Citation_Information>
             <publication_year>$PUBLICATION_YEAR$</publication_year>
-            $FOR(KEYWORD=KEYWORDS)
+            $IF(IS_MOSAIC)
+            $FOR(KEYWORD=KEYWORDS_MOSAIC)
             <keyword>$KEYWORD$</keyword>
             $END_FOR
+            $ELSE
+            $FOR(KEYWORD=KEYWORDS_REPROJ)
+            <keyword>$KEYWORD$</keyword>
+            $END_FOR
+            $END_IF
             <keyword>index</keyword>
             <description>
                 $WRAP(16,91,GLOBAL_INDEX_DESCRIPTION,preserve_single_newlines=False)$
@@ -178,17 +174,17 @@ schematypens="http://purl.oclc.org/dsdl/schematron"?>
                 <groups>0</groups>
                 <record_length unit="byte">550</record_length>
                 $ELSE
-                <fields>32</fields>
+                <fields>33</fields>
                 <groups>0</groups>
                 <record_length unit="byte">539</record_length>
                 $END_IF
                 $ELSE
-                <fields>29</fields>
+                <fields>30</fields>
                 <groups>0</groups>
                 <record_length unit="byte">510</record_length>
                 $END_IF
                 <Field_Character>
-                    <name>logical_identifier</name>
+                    <name>pds:logical_identifier</name>
                     <field_number>1</field_number>
                     <field_location unit="byte">1</field_location>
                     <data_type>ASCII_LID</data_type>
@@ -198,7 +194,7 @@ schematypens="http://purl.oclc.org/dsdl/schematron"?>
                     </description>
                 </Field_Character>
                 <Field_Character>
-                    <name>observation_id</name>
+                    <name>cassini:observation_id</name>
                     <field_number>2</field_number>
                     <field_location unit="byte">119</field_location>
                     <data_type>ASCII_String</data_type>
@@ -218,7 +214,7 @@ schematypens="http://purl.oclc.org/dsdl/schematron"?>
                     </description>
                 </Field_Character>
                 <Field_Character>
-                    <name>start_date_time</name>
+                    <name>pds:start_date_time</name>
                     <field_number>4</field_number>
                     <field_location unit="byte">251</field_location>
                     <data_type>ASCII_Date_Time_YMD_UTC</data_type>
@@ -229,7 +225,7 @@ schematypens="http://purl.oclc.org/dsdl/schematron"?>
                     </description>
                 </Field_Character>
                 <Field_Character>
-                    <name>stop_date_time</name>
+                    <name>pds:stop_date_time</name>
                     <field_number>5</field_number>
                     <field_location unit="byte">272</field_location>
                     <data_type>ASCII_Date_Time_YMD_UTC</data_type>
@@ -240,7 +236,7 @@ schematypens="http://purl.oclc.org/dsdl/schematron"?>
                     </description>
                 </Field_Character>
                 <Field_Character>
-                    <name>spacecraft_clock_start_count</name>
+                    <name>cassini:spacecraft_clock_start_count</name>
                     <field_number>6</field_number>
                     <field_location unit="byte">293</field_location>
                     <data_type>ASCII_Real</data_type>
@@ -251,7 +247,7 @@ schematypens="http://purl.oclc.org/dsdl/schematron"?>
                     </description>
                 </Field_Character>
                 <Field_Character>
-                    <name>spacecraft_clock_stop_count</name>
+                    <name>cassini:spacecraft_clock_stop_count</name>
                     <field_number>7</field_number>
                     <field_location unit="byte">308</field_location>
                     <data_type>ASCII_Real</data_type>
@@ -284,7 +280,7 @@ schematypens="http://purl.oclc.org/dsdl/schematron"?>
                     </description>
                 </Field_Character>
                 <Field_Character>
-                    <name>min_corotating_longitude</name>
+                    <name>rings:minimum_corotating_ring_longitude</name>
                     <field_number>10</field_number>
                     <field_location unit="byte">337</field_location>
                     <data_type>ASCII_Real</data_type>
@@ -295,7 +291,7 @@ schematypens="http://purl.oclc.org/dsdl/schematron"?>
                     </description>
                 </Field_Character>
                 <Field_Character>
-                    <name>max_corotating_longitude</name>
+                    <name>rings:maximum_corotating_ring_longitude</name>
                     <field_number>11</field_number>
                     <field_location unit="byte">344</field_location>
                     <data_type>ASCII_Real</data_type>
@@ -306,7 +302,7 @@ schematypens="http://purl.oclc.org/dsdl/schematron"?>
                     </description>
                 </Field_Character>
                 <Field_Character>
-                    <name>min_inertial_longitude</name>
+                    <name>rings:minimum_inertial_ring_longitude</name>
                     <field_number>12</field_number>
                     <field_location unit="byte">351</field_location>
                     <data_type>ASCII_Real</data_type>
@@ -317,7 +313,7 @@ schematypens="http://purl.oclc.org/dsdl/schematron"?>
                     </description>
                 </Field_Character>
                 <Field_Character>
-                    <name>max_inertial_longitude</name>
+                    <name>rings:maximum_inertial_ring_longitude</name>
                     <field_number>13</field_number>
                     <field_location unit="byte">359</field_location>
                     <data_type>ASCII_Real</data_type>
@@ -328,7 +324,7 @@ schematypens="http://purl.oclc.org/dsdl/schematron"?>
                     </description>
                 </Field_Character>
                 <Field_Character>
-                    <name>mean_phase_angle</name>
+                    <name>rings:mean_phase_angle</name>
                     <field_number>14</field_number>
                     <field_location unit="byte">367</field_location>
                     <data_type>ASCII_Real</data_type>
@@ -339,7 +335,7 @@ schematypens="http://purl.oclc.org/dsdl/schematron"?>
                     </description>
                 </Field_Character>
                 <Field_Character>
-                    <name>min_phase_angle</name>
+                    <name>rings:minimum_phase_angle</name>
                     <field_number>15</field_number>
                     <field_location unit="byte">375</field_location>
                     <data_type>ASCII_Real</data_type>
@@ -350,7 +346,7 @@ schematypens="http://purl.oclc.org/dsdl/schematron"?>
                     </description>
                 </Field_Character>
                 <Field_Character>
-                    <name>max_phase_angle</name>
+                    <name>rings:maximum_phase_angle</name>
                     <field_number>16</field_number>
                     <field_location unit="byte">383</field_location>
                     <data_type>ASCII_Real</data_type>
@@ -361,7 +357,7 @@ schematypens="http://purl.oclc.org/dsdl/schematron"?>
                     </description>
                 </Field_Character>
                 <Field_Character>
-                    <name>mean_incidence_angle</name>
+                    <name>rings:mean_incidence_angle</name>
                     <field_number>17</field_number>
                     <field_location unit="byte">391</field_location>
                     <data_type>ASCII_Real</data_type>
@@ -372,7 +368,7 @@ schematypens="http://purl.oclc.org/dsdl/schematron"?>
                     </description>
                 </Field_Character>
                 <Field_Character>
-                    <name>mean_emission_angle</name>
+                    <name>rings:mean_emission_angle</name>
                     <field_number>18</field_number>
                     <field_location unit="byte">398</field_location>
                     <data_type>ASCII_Real</data_type>
@@ -383,7 +379,7 @@ schematypens="http://purl.oclc.org/dsdl/schematron"?>
                     </description>
                 </Field_Character>
                 <Field_Character>
-                    <name>min_emission_angle</name>
+                    <name>rings:minimum_emission_angle</name>
                     <field_number>19</field_number>
                     <field_location unit="byte">406</field_location>
                     <data_type>ASCII_Real</data_type>
@@ -394,7 +390,7 @@ schematypens="http://purl.oclc.org/dsdl/schematron"?>
                     </description>
                 </Field_Character>
                 <Field_Character>
-                    <name>max_emission_angle</name>
+                    <name>rings:maximum_emission_angle</name>
                     <field_number>20</field_number>
                     <field_location unit="byte">414</field_location>
                     <data_type>ASCII_Real</data_type>
@@ -405,7 +401,7 @@ schematypens="http://purl.oclc.org/dsdl/schematron"?>
                     </description>
                 </Field_Character>
                 <Field_Character>
-                    <name>mean_radial_resolution</name>
+                    <name>rings:mean_radial_resolution</name>
                     <field_number>21</field_number>
                     <field_location unit="byte">422</field_location>
                     <data_type>ASCII_Real</data_type>
@@ -416,7 +412,7 @@ schematypens="http://purl.oclc.org/dsdl/schematron"?>
                     </description>
                 </Field_Character>
                 <Field_Character>
-                    <name>min_radial_resolution</name>
+                    <name>rings:minimum_radial_resolution</name>
                     <field_number>22</field_number>
                     <field_location unit="byte">431</field_location>
                     <data_type>ASCII_Real</data_type>
@@ -427,7 +423,7 @@ schematypens="http://purl.oclc.org/dsdl/schematron"?>
                     </description>
                 </Field_Character>
                 <Field_Character>
-                    <name>max_radial_resolution</name>
+                    <name>rings:maximum_radial_resolution</name>
                     <field_number>23</field_number>
                     <field_location unit="byte">440</field_location>
                     <data_type>ASCII_Real</data_type>
@@ -438,7 +434,7 @@ schematypens="http://purl.oclc.org/dsdl/schematron"?>
                     </description>
                 </Field_Character>
                 <Field_Character>
-                    <name>mean_longitudinal_resolution</name>
+                    <name>rings:mean_longitudinal_resolution</name>
                     <field_number>24</field_number>
                     <field_location unit="byte">449</field_location>
                     <data_type>ASCII_Real</data_type>
@@ -449,7 +445,7 @@ schematypens="http://purl.oclc.org/dsdl/schematron"?>
                     </description>
                 </Field_Character>
                 <Field_Character>
-                    <name>min_longitudinal_resolution</name>
+                    <name>rings:minimum_longitudinal_resolution</name>
                     <field_number>25</field_number>
                     <field_location unit="byte">457</field_location>
                     <data_type>ASCII_Real</data_type>
@@ -460,7 +456,7 @@ schematypens="http://purl.oclc.org/dsdl/schematron"?>
                     </description>
                 </Field_Character>
                 <Field_Character>
-                    <name>max_longitudinal_resolution</name>
+                    <name>rings:maximum_longitudinal_resolution</name>
                     <field_number>26</field_number>
                     <field_location unit="byte">465</field_location>
                     <data_type>ASCII_Real</data_type>
@@ -471,7 +467,7 @@ schematypens="http://purl.oclc.org/dsdl/schematron"?>
                     </description>
                 </Field_Character>
                 <Field_Character>
-                    <name>min_radius</name>
+                    <name>rings:minimum_ring_radius</name>
                     <field_number>27</field_number>
                     <field_location unit="byte">473</field_location>
                     <data_type>ASCII_Real</data_type>
@@ -482,7 +478,7 @@ schematypens="http://purl.oclc.org/dsdl/schematron"?>
                     </description>
                 </Field_Character>
                 <Field_Character>
-                    <name>max_radius</name>
+                    <name>rings:maximum_ring_radius</name>
                     <field_number>28</field_number>
                     <field_location unit="byte">484</field_location>
                     <data_type>ASCII_Real</data_type>

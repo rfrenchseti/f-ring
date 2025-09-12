@@ -6,7 +6,7 @@
 <?xml-model href="$PDS4_DISP_SCHEMA$"
     schematypens="http://purl.oclc.org/dsdl/schematron"?>
 <?xml-model href="$PDS4_CASSINI_SCHEMA$"
-schematypens="http://purl.oclc.org/dsdl/schematron"?>
+    schematypens="http://purl.oclc.org/dsdl/schematron"?>
 
 <Product_Observational
     xmlns="http://pds.nasa.gov/pds4/pds/v1"
@@ -30,10 +30,9 @@ schematypens="http://purl.oclc.org/dsdl/schematron"?>
         <product_class>Product_Observational</product_class>
         <Citation_Information>
             <publication_year>$PUBLICATION_YEAR$</publication_year>
-            $FOR(KEYWORD=KEYWORDS)
+            $FOR(KEYWORD=KEYWORDS_MOSAIC)
             <keyword>$KEYWORD$</keyword>
             $END_FOR
-            <keyword>mosaic</keyword>
             <description>
                 $WRAP(16,91,MOSAIC_DESCRIPTION,preserve_single_newlines=False)$
             </description>
@@ -150,12 +149,12 @@ schematypens="http://purl.oclc.org/dsdl/schematron"?>
                         <rings:mean_phase_angle unit="deg">$MEAN_PHASE_ANGLE$</rings:mean_phase_angle>
                         <rings:minimum_phase_angle unit="deg">$MIN_PHASE_ANGLE$</rings:minimum_phase_angle>
                         <rings:maximum_phase_angle unit="deg">$MAX_PHASE_ANGLE$</rings:maximum_phase_angle>
-                        <rings:mean_emission_angle unit="deg">$MEAN_EMISSION_ANGLE$</rings:mean_emission_angle>
-                        <rings:minimum_emission_angle unit="deg">$MIN_EMISSION_ANGLE$</rings:minimum_emission_angle>
-                        <rings:maximum_emission_angle unit="deg">$MAX_EMISSION_ANGLE$</rings:maximum_emission_angle>
                         <rings:mean_incidence_angle unit="deg">$MEAN_INCIDENCE_ANGLE$</rings:mean_incidence_angle>
                         <rings:minimum_incidence_angle unit="deg">$MEAN_INCIDENCE_ANGLE$</rings:minimum_incidence_angle>
                         <rings:maximum_incidence_angle unit="deg">$MEAN_INCIDENCE_ANGLE$</rings:maximum_incidence_angle>
+                        <rings:mean_emission_angle unit="deg">$MEAN_EMISSION_ANGLE$</rings:mean_emission_angle>
+                        <rings:minimum_emission_angle unit="deg">$MIN_EMISSION_ANGLE$</rings:minimum_emission_angle>
+                        <rings:maximum_emission_angle unit="deg">$MAX_EMISSION_ANGLE$</rings:maximum_emission_angle>
                         <rings:minimum_corotating_ring_longitude unit="deg">$MIN_RING_COROTATING_LONG$</rings:minimum_corotating_ring_longitude>
                         <rings:maximum_corotating_ring_longitude unit="deg">$MAX_RING_COROTATING_LONG$</rings:maximum_corotating_ring_longitude>
                         <rings:minimum_ring_radius unit="km">$MIN_RING_RADIUS$</rings:minimum_ring_radius>

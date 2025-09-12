@@ -2,26 +2,25 @@
 <?xml-model href="$PDS4_PDS_SCHEMA$"
     schematypens="http://purl.oclc.org/dsdl/schematron"?>
 
-<Product_Collection
+<Product_Bundle
     xmlns="http://pds.nasa.gov/pds4/pds/v1"
     xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
     xsi:schemaLocation="http://pds.nasa.gov/pds4/pds/v1 $PDS4_PDS_SCHEMA_XSD$">
-
     <Identification_Area>
-        <logical_identifier>$DATA_MOSAIC_COLLECTION_LID$</logical_identifier>
+        <logical_identifier>$BUNDLE_LID$</logical_identifier>
         <version_id>1.0</version_id>
-        <title>
-            $WRAP(12,91,DATA_MOSAIC_COLLECTION_TITLE,preserve_single_newlines=False)$
-        </title>
+        <title>F Ring Mosaics and Reprojected Images Created from Calibrated Cassini ISS Images, and Associated Metadata</title>
         <information_model_version>$INFORMATION_MODEL_VERSION$</information_model_version>
-        <product_class>Product_Collection</product_class>
+        <product_class>Product_Bundle</product_class>
         <Citation_Information>
-            <publication_year>$PUBLICATION_YEAR$</publication_year>
-            $FOR(KEYWORD=KEYWORDS_MOSAIC)
+            <publication_year>2025</publication_year>
+            <doi>$BUNDLE_DOI$</doi>
+            $FOR(KEYWORD=KEYWORDS_MOSAIC_REPROJ)
             <keyword>$KEYWORD$</keyword>
             $END_FOR
             <description>
-                $WRAP(16,91,DATA_MOSAIC_COLLECTION_DESCRIPTION,preserve_single_newlines=False)$
+                This bundle contains F ring mosaics and reprojected versions of Cassini ISS
+                calibrated images, along with associated metadata and documentation.
             </description>
             <List_Author>
                 <Person>
@@ -125,10 +124,10 @@
             </List_Contributor>
         </Citation_Information>
         <Modification_History>
-            <Modification_Detail>
+	        <Modification_Detail>
                 <modification_date>$CURRENT_ZULU(date_only=True)$</modification_date>
                 <version_id>1.0</version_id>
-                <description>Initial version.</description>
+                <description>Initial version</description>
             </Modification_Detail>
         </Modification_History>
     </Identification_Area>
@@ -140,8 +139,15 @@
         <Primary_Result_Summary>
             <purpose>Science</purpose>
             <processing_level>Derived</processing_level>
+            <description>
+                This bundle contains F ring mosaics and reprojected versions of Cassini ISS
+                calibrated images, along with associated metadata, and documentation. The images
+                and mosaics cover the period from $EARLIEST_START_DATE_TIME$ to
+                $LATEST_STOP_DATE_TIME$.
+            </description>
             <Science_Facets>
                 <wavelength_range>Visible</wavelength_range>
+                <domain>Rings</domain>
                 <discipline_name>Ring-Moon Systems</discipline_name>
             </Science_Facets>
         </Primary_Result_Summary>
@@ -150,7 +156,7 @@
             <type>Mission</type>
             <Internal_Reference>
                 <lid_reference>urn:nasa:pds:context:investigation:mission.cassini-huygens</lid_reference>
-                <reference_type>collection_to_investigation</reference_type>
+                <reference_type>bundle_to_investigation</reference_type>
             </Internal_Reference>
         </Investigation_Area>
         <Observing_System>
@@ -164,20 +170,20 @@
                 </Internal_Reference>
             </Observing_System_Component>
             <Observing_System_Component>
-                <name>Imaging Science Subsystem - Wide Angle</name>
-                <type>Instrument</type>
-                <description>ISSWA</description>
-                <Internal_Reference>
-                    <lid_reference>urn:nasa:pds:context:instrument:isswa.co</lid_reference>
-                    <reference_type>is_instrument</reference_type>
-                </Internal_Reference>
-            </Observing_System_Component>
-            <Observing_System_Component>
                 <name>Imaging Science Subsystem - Narrow Angle</name>
                 <type>Instrument</type>
                 <description>ISSNA</description>
                 <Internal_Reference>
                     <lid_reference>urn:nasa:pds:context:instrument:issna.co</lid_reference>
+                    <reference_type>is_instrument</reference_type>
+                </Internal_Reference>
+            </Observing_System_Component>
+            <Observing_System_Component>
+                <name>Imaging Science Subsystem - Wide Angle</name>
+                <type>Instrument</type>
+                <description>ISSWA</description>
+                <Internal_Reference>
+                    <lid_reference>urn:nasa:pds:context:instrument:isswa.co</lid_reference>
                     <reference_type>is_instrument</reference_type>
                 </Internal_Reference>
             </Observing_System_Component>
@@ -187,7 +193,7 @@
             <type>Ring</type>
             <Internal_Reference>
                 <lid_reference>urn:nasa:pds:context:target:ring.saturn.f_ring</lid_reference>
-                <reference_type>collection_to_target</reference_type>
+                <reference_type>bundle_to_target</reference_type>
             </Internal_Reference>
         </Target_Identification>
         <Target_Identification>
@@ -195,7 +201,7 @@
             <type>Ring</type>
             <Internal_Reference>
                 <lid_reference>urn:nasa:pds:context:target:ring.saturn.rings</lid_reference>
-                <reference_type>collection_to_target</reference_type>
+                <reference_type>bundle_to_target</reference_type>
             </Internal_Reference>
         </Target_Identification>
         <Target_Identification>
@@ -212,7 +218,7 @@
             </description>
             <Internal_Reference>
                 <lid_reference>urn:nasa:pds:context:target:satellite.saturn.prometheus</lid_reference>
-                <reference_type>collection_to_target</reference_type>
+                <reference_type>bundle_to_target</reference_type>
             </Internal_Reference>
         </Target_Identification>
         <Target_Identification>
@@ -229,57 +235,79 @@
             </description>
             <Internal_Reference>
                 <lid_reference>urn:nasa:pds:context:target:satellite.saturn.pandora</lid_reference>
-                <reference_type>collection_to_target</reference_type>
+                <reference_type>bundle_to_target</reference_type>
             </Internal_Reference>
         </Target_Identification>
     </Context_Area>
     <Reference_List>
         <Internal_Reference>
             <lid_reference>$USERGUIDE_LID$</lid_reference>
-            <reference_type>collection_to_document</reference_type>
+            <reference_type>bundle_to_document</reference_type>
             <comment>
                 $WRAP(16,91,USERGUIDE_COMMENT,preserve_single_newlines=False)$
             </comment>
         </Internal_Reference>
         <Internal_Reference>
             <lid_reference>$CASSINI_USER_GUIDE_LID$</lid_reference>
-            <reference_type>collection_to_document</reference_type>
+            <reference_type>bundle_to_document</reference_type>
             <comment>$CASSINI_USER_GUIDE_DESC$</comment>
         </Internal_Reference>
     </Reference_List>
-    <Collection>
-        <collection_type>Data</collection_type>
-    </Collection>
-    <File_Area_Inventory>
-        <File>
-            <file_name>$DATA_MOSAIC_COLLECTION_CSV_NAME$</file_name>
-            <creation_date_time>$FILE_ZULU(DATA_MOSAIC_COLLECTION_CSV_PATH)$</creation_date_time>
-            <file_size unit="byte">$FILE_BYTES(DATA_MOSAIC_COLLECTION_CSV_PATH)$</file_size>
-            <md5_checksum>$FILE_MD5(DATA_MOSAIC_COLLECTION_CSV_PATH)$</md5_checksum>
-        </File>
-        <Inventory>
-            <offset unit="byte">0</offset>
-            <parsing_standard_id>PDS DSV 1</parsing_standard_id>
-            <records>$FILE_RECORDS(DATA_MOSAIC_COLLECTION_CSV_PATH)$</records>
-            <record_delimiter>Line-Feed</record_delimiter>
-            <field_delimiter>Comma</field_delimiter>
-            <Record_Delimited>
-                <fields>2</fields>
-                <groups>0</groups>
-                <Field_Delimited>
-                    <name>Member Status</name>
-                    <field_number>1</field_number>
-                    <data_type>ASCII_String</data_type>
-                    <maximum_field_length unit="byte">1</maximum_field_length>
-                </Field_Delimited>
-                <Field_Delimited>
-                    <name>LIDVID_LID</name>
-                    <field_number>2</field_number>
-                    <data_type>ASCII_LIDVID_LID</data_type>
-                    <maximum_field_length unit="byte">255</maximum_field_length>
-                </Field_Delimited>
-            </Record_Delimited>
-            <reference_type>inventory_has_member_product</reference_type>
-        </Inventory>
-    </File_Area_Inventory>
-</Product_Collection>
+    <Bundle>
+        <bundle_type>Archive</bundle_type>
+        <description>
+            This bundle contains F ring mosaics and reprojected versions of Cassini ISS
+            calibrated images, along with associated metadata and documentation.
+        </description>
+    </Bundle>
+    <Bundle_Member_Entry>
+        <lid_reference>$BROWSE_MOSAIC_COLLECTION_LID$</lid_reference>
+        <member_status>Primary</member_status>
+        <reference_type>bundle_has_browse_collection</reference_type>
+    </Bundle_Member_Entry>
+    <Bundle_Member_Entry>
+        <lid_reference>$BROWSE_MOSAIC_BKG_SUB_COLLECTION_LID$</lid_reference>
+        <member_status>Primary</member_status>
+        <reference_type>bundle_has_browse_collection</reference_type>
+    </Bundle_Member_Entry>
+    <Bundle_Member_Entry>
+        <lid_reference>$BROWSE_REPROJ_COLLECTION_LID$</lid_reference>
+        <member_status>Primary</member_status>
+        <reference_type>bundle_has_browse_collection</reference_type>
+    </Bundle_Member_Entry>
+    <Bundle_Member_Entry>
+        <lid_reference>$CONTEXT_COLLECTION_LID$</lid_reference>
+        <member_status>Primary</member_status>
+        <reference_type>bundle_has_context_collection</reference_type>
+    </Bundle_Member_Entry>
+    <Bundle_Member_Entry>
+        <lid_reference>$DATA_MOSAIC_COLLECTION_LID$</lid_reference>
+        <member_status>Primary</member_status>
+        <reference_type>bundle_has_data_collection</reference_type>
+    </Bundle_Member_Entry>
+    <Bundle_Member_Entry>
+        <lid_reference>$DATA_MOSAIC_BKG_SUB_COLLECTION_LID$</lid_reference>
+        <member_status>Primary</member_status>
+        <reference_type>bundle_has_data_collection</reference_type>
+    </Bundle_Member_Entry>
+    <Bundle_Member_Entry>
+        <lid_reference>$DATA_REPROJ_COLLECTION_LID$</lid_reference>
+        <member_status>Primary</member_status>
+        <reference_type>bundle_has_data_collection</reference_type>
+    </Bundle_Member_Entry>
+    <Bundle_Member_Entry>
+        <lid_reference>$DOCUMENT_COLLECTION_LID$</lid_reference>
+        <member_status>Primary</member_status>
+        <reference_type>bundle_has_document_collection</reference_type>
+    </Bundle_Member_Entry>
+    <Bundle_Member_Entry>
+        <lid_reference>$SPICE_KERNELS_COLLECTION_LID$</lid_reference>
+        <member_status>Primary</member_status>
+        <reference_type>bundle_has_spice_kernel_collection</reference_type>
+    </Bundle_Member_Entry>
+    <Bundle_Member_Entry>
+        <lid_reference>$XML_SCHEMA_COLLECTION_LID$</lid_reference>
+        <member_status>Primary</member_status>
+        <reference_type>bundle_has_schema_collection</reference_type>
+    </Bundle_Member_Entry>
+</Product_Bundle>

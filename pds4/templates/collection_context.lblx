@@ -2,27 +2,23 @@
 <?xml-model href="$PDS4_PDS_SCHEMA$"
     schematypens="http://purl.oclc.org/dsdl/schematron"?>
 
-<Product_Collection
-    xmlns="http://pds.nasa.gov/pds4/pds/v1"
+<Product_Collection xmlns="http://pds.nasa.gov/pds4/pds/v1"
     xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
     xsi:schemaLocation="http://pds.nasa.gov/pds4/pds/v1 $PDS4_PDS_SCHEMA_XSD$">
-
     <Identification_Area>
-        <logical_identifier>$BROWSE_REPROJ_COLLECTION_LID$</logical_identifier>
+        <logical_identifier>$CONTEXT_COLLECTION_LID$</logical_identifier>
         <version_id>1.0</version_id>
-        <title>
-            $WRAP(12,91,BROWSE_REPROJ_COLLECTION_TITLE,preserve_single_newlines=False)$
-        </title>
+        <title>Context Collection for the F Ring Mosaics and Associated Reprojected Versions of Cassini ISS Calibrated Images</title>
         <information_model_version>$INFORMATION_MODEL_VERSION$</information_model_version>
         <product_class>Product_Collection</product_class>
         <Citation_Information>
             <publication_year>$PUBLICATION_YEAR$</publication_year>
-            $FOR(KEYWORD=KEYWORDS_REPROJ)
+            $FOR(KEYWORD=KEYWORDS)
             <keyword>$KEYWORD$</keyword>
             $END_FOR
-            <keyword>browse products</keyword>
             <description>
-                $WRAP(16,91,BROWSE_REPROJ_COLLECTION_DESCRIPTION,preserve_single_newlines=False)$
+                This collection contains the context products relevant to Saturn's F Ring mosaics
+                and associated reprojected versions of Cassini ISS calibrated images.
             </description>
             <List_Author>
                 <Person>
@@ -129,24 +125,24 @@
             <Modification_Detail>
                 <modification_date>$CURRENT_ZULU(date_only=True)$</modification_date>
                 <version_id>1.0</version_id>
-                <description>Initial version.</description>
+                <description>Initial version</description>
             </Modification_Detail>
         </Modification_History>
     </Identification_Area>
     <Collection>
-        <collection_type>Browse</collection_type>
+        <collection_type>Context</collection_type>
     </Collection>
     <File_Area_Inventory>
         <File>
-            <file_name>$BROWSE_REPROJ_COLLECTION_CSV_NAME$</file_name>
-            <creation_date_time>$FILE_ZULU(BROWSE_REPROJ_COLLECTION_CSV_PATH)$</creation_date_time>
-            <file_size unit="byte">$FILE_BYTES(BROWSE_REPROJ_COLLECTION_CSV_PATH)$</file_size>
-            <md5_checksum>$FILE_MD5(BROWSE_REPROJ_COLLECTION_CSV_PATH)$</md5_checksum>
+            <file_name>$COLLECTION_CONTEXT_CSV_NAME$</file_name>
+            <creation_date_time>$FILE_ZULU(COLLECTION_CONTEXT_CSV_PATH)$</creation_date_time>
+            <file_size unit="byte">$FILE_BYTES(COLLECTION_CONTEXT_CSV_PATH)$</file_size>
+            <md5_checksum>$FILE_MD5(COLLECTION_CONTEXT_CSV_PATH)$</md5_checksum>
         </File>
         <Inventory>
             <offset unit="byte">0</offset>
             <parsing_standard_id>PDS DSV 1</parsing_standard_id>
-            <records>$FILE_RECORDS(BROWSE_REPROJ_COLLECTION_CSV_PATH)$</records>
+            <records>$FILE_RECORDS(COLLECTION_CONTEXT_CSV_PATH)$</records>
             <record_delimiter>Line-Feed</record_delimiter>
             <field_delimiter>Comma</field_delimiter>
             <Record_Delimited>
