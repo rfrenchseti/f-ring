@@ -1299,7 +1299,10 @@ def write_suppl_file(output_path, metadata, xml_metadata):
     oops_ra_non_app_ctr_nav = bp_ctr_nav.right_ascension(apparent=False).vals[0][0]
     oops_dec_non_app_ctr_nav = bp_ctr_nav.declination(apparent=False).vals[0][0]
 
-    cmat = cspyce.pxform('J2000', 'CASSINI_ISS_WAC', obs.midtime)
+    if image_name[-1] == 'w':
+        cmat = cspyce.pxform('J2000', 'CASSINI_ISS_WAC', obs.midtime)
+    else:
+        cmat = cspyce.pxform('J2000', 'CASSINI_ISS_NAC', obs.midtime)
     roll = extract_roll_from_cmat(cmat)
 
     cmat_nav = rebuild_cmatrix_from_ra_dec_roll(oops_ra_non_app_ctr_nav, oops_dec_non_app_ctr_nav, roll)
@@ -2453,7 +2456,7 @@ def generate_browse(obsid, browse_dir, metadata, xml_metadata, img_type):
                     elif img_type == 'm':
                         title = f'{obsid_lc}\nmosaic'
                     else:
-                        title = f'{image_name.lower()}\nreproj img'
+                        title = f'{obsid_lc} / {image_name.lower()}\nreproj img'
                     corner = (5, 5)
                 draw = ImageDraw.Draw(pil_img)
                 draw.text(corner, title, fill=255, font=TITLE_FONTS[(img_type, size)])

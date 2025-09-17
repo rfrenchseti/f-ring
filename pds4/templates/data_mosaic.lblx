@@ -11,8 +11,8 @@
 <Product_Observational
     xmlns="http://pds.nasa.gov/pds4/pds/v1"
     xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
-    xmlns:disp="http://pds.nasa.gov/pds4/disp/v1"
     xmlns:rings="http://pds.nasa.gov/pds4/rings/v1"
+    xmlns:disp="http://pds.nasa.gov/pds4/disp/v1"
     xmlns:cassini="http://pds.nasa.gov/pds4/mission/cassini/v1"
     xsi:schemaLocation="
 	http://pds.nasa.gov/pds4/pds/v1 $PDS4_PDS_SCHEMA_XSD$
