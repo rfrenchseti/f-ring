@@ -149,7 +149,7 @@
                     <cassini:inst_cmprs_ratio>$INST_CMPRS_RATIO$</cassini:inst_cmprs_ratio>
                     <cassini:light_flood_state_flag>$LIGHT_FLOOD_STATE_FLAG$</cassini:light_flood_state_flag>
                     <cassini:method_description>$METHOD_DESC$</cassini:method_description>
-                    <cassini:missing_lines>$MISSING_LINES$</cassini:missing_lines>
+                    <cassini:missing_lines>$MISSING_LINES$</cassini:missing_lines>$NOESCAPE(MISSING_LINES_COMMENT)$
                     <cassini:missing_packet_flag>$MISSING_PACKET_FLAG$</cassini:missing_packet_flag>
                     <cassini:observation_id>$OBSERVATION_ID$</cassini:observation_id>
                     <cassini:optics_temperature_front unit="degC">$OPTICS_TEMPERATURE[0]$</cassini:optics_temperature_front>

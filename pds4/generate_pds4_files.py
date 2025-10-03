@@ -1299,15 +1299,19 @@ def write_suppl_file(output_path, metadata, xml_metadata):
     oops_ra_non_app_ctr_nav = bp_ctr_nav.right_ascension(apparent=False).vals[0][0]
     oops_dec_non_app_ctr_nav = bp_ctr_nav.declination(apparent=False).vals[0][0]
 
+    image_name = metadata['image_name']
+
     if image_name[-1] == 'w':
         cmat = cspyce.pxform('J2000', 'CASSINI_ISS_WAC', obs.midtime)
-    else:
+    elif image_name[-1] == 'n':
         cmat = cspyce.pxform('J2000', 'CASSINI_ISS_NAC', obs.midtime)
+    else:
+        assert False, f'Unknown image name camera {image_name}'
+
     roll = extract_roll_from_cmat(cmat)
 
     cmat_nav = rebuild_cmatrix_from_ra_dec_roll(oops_ra_non_app_ctr_nav, oops_dec_non_app_ctr_nav, roll)
 
-    image_name = metadata['image_name']
     start_date = xml_metadata['START_DATE_TIME_3']
     partition = xml_metadata['SPACECRAFT_CLOCK_CNT_PARTITION']
     start_sclk = xml_metadata['SPACECRAFT_CLOCK_START_COUNT']
@@ -1619,7 +1623,8 @@ def xml_add_pds3_label_info(ret, obsid, min_image_path, max_image_path):
     ret['INST_CMPRS_TYPE'] = min_label['INST_CMPRS_TYPE']
     ret['LIGHT_FLOOD_STATE_FLAG'] = min_label['LIGHT_FLOOD_STATE_FLAG']
     ret['METHOD_DESC'] = min_label['METHOD_DESC']
-    ret['MISSING_LINES'] = min_label['MISSING_LINES']
+    ret['MISSING_LINES'] = -1 if min_label['MISSING_LINES'] == 'N/A' else min_label['MISSING_LINES']
+    ret['MISSING_LINES_COMMENT'] = ' <!--A value of -1 indicates that the value in the original PDS3 label was N/A -->' if ret['MISSING_LINES'] == -1 else ''
     ret['MISSING_PACKET_FLAG'] = min_label['MISSING_PACKET_FLAG']
     ret['MISSION_NAME'] = min_label['MISSION_NAME']
     ret['MISSION_PHASE_NAME'] = min_label['MISSION_PHASE_NAME']
@@ -2894,6 +2899,9 @@ Index table containing metadata for all background-subtracted mosaics in the F-r
 
 def generate_support_files():
     """Generate the support files."""
+    # readme.txt
+    copy_file('readme.txt', os.path.join(arguments.output_dir, 'readme.txt'))
+
     # context/collection_context.csv
     # context/collection_context.lblx
     metadata = BASIC_XML_METADATA.copy()
@@ -3029,14 +3037,14 @@ BASIC_XML_METADATA = {
     'PDS4_CASSINI_SCHEMA': 'https://pds.nasa.gov/pds4/mission/cassini/v1/PDS4_CASSINI_1O00_1800.sch',
     'PDS4_GEOM_SCHEMA_XSD': 'https://pds.nasa.gov/pds4/geom/v1/PDS4_GEOM_1O00_19B0.xsd',
     'PDS4_GEOM_SCHEMA': 'https://pds.nasa.gov/pds4/geom/v1/PDS4_GEOM_1O00_19B0.sch',
-    'BUNDLE_DOI': '10.00000/0000000',  # XXX
+    'BUNDLE_DOI': '10.17189/3tfh-th07',
     'KEYWORDS': ['saturn rings', 'f ring', 'cassini iss'],
     'KEYWORDS_MOSAIC': ['saturn rings', 'f ring', 'cassini iss', 'mosaic'],
     'KEYWORDS_REPROJ': ['saturn rings', 'f ring', 'cassini iss', 'reprojected image'],
     'KEYWORDS_MOSAIC_REPROJ': ['saturn rings', 'f ring', 'cassini iss', 'mosaic', 'reprojected image'],
     'PUBLICATION_YEAR': datetime.datetime.now(datetime.UTC).strftime('%Y'),
     'USERGUIDE_LID': USERGUIDE_LID,
-    'USERGUIDE_DOI': '10.00000/0000000',  # XXX
+    'USERGUIDE_DOI': '10.17189/ajhh-aj88',
     'USERGUIDE_PDF_NAME': 'f-ring-mosaics-user-guide.pdf',
     'USERGUIDE_PDF_PATH': os.path.join('document', 'user_guide', 'f-ring-mosaics-user-guide.pdf'),
     'USERGUIDE_COMMENT': "Detailed User's Guide for the F Ring Mosaics and Reprojected Images in this bundle.",

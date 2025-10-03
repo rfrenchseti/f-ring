@@ -260,6 +260,16 @@
             calibrated images, along with associated metadata and documentation.
         </description>
     </Bundle>
+    <File_Area_Text>
+        <File>
+            <file_name>readme.txt</file_name>
+        </File>
+        <Stream_Text>
+            <offset unit="byte">0</offset>
+            <parsing_standard_id>7-Bit ASCII Text</parsing_standard_id>
+            <record_delimiter>Line-Feed</record_delimiter>
+        </Stream_Text>
+    </File_Area_Text>
     <Bundle_Member_Entry>
         <lid_reference>$BROWSE_MOSAIC_COLLECTION_LID$</lid_reference>
         <member_status>Primary</member_status>
