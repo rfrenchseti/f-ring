@@ -151,16 +151,82 @@
             <parsing_standard_id>UTF-8 Text</parsing_standard_id>
             $IF(IS_MOSAIC)
             $IF(IS_BKGND_SUB)
-            <description>logical_identifier,observation_id,file_spec,start_date_time,stop_date_time,spacecraft_clock_start_count,spacecraft_clock_stop_count,num_valid_longitudes,percent_coverage,min_corotating_longitude,max_corotating_longitude,min_inertial_longitude,max_inertial_longitude,mean_phase_angle,min_phase_angle,max_phase_angle,mean_incidence_angle,mean_emission_angle,min_emission_angle,max_emission_angle,mean_radial_resolution,min_radial_resolution,max_radial_resolution,mean_longitudinal_resolution,min_longitudinal_resolution,max_longitudinal_resolution,min_radius,max_radius,product_creation_date,notes,num_images,min_image_name,max_image_name,bkgnd_lower_limit,bkgnd_upper_limit</description>
+            <description>pds:logical_identifier,cassini:observation_id,file_spec,pds:start_date_time,pds:stop_date_time,
+            cassini:spacecraft_clock_start_count,cassini:spacecraft_clock_stop_count,
+            num_valid_longitudes,percent_coverage,
+            rings:minimum_corotating_ring_longitude,rings:maximum_corotating_ring_longitude,
+            rings:minimum_inertial_ring_longitude,rings:maximum_inertial_ring_longitude,
+            rings:mean_phase_angle,rings:minimum_phase_angle,rings:maximum_phase_angle,
+            rings:mean_incidence_angle,
+            rings:mean_emission_angle,rings:minimum_emission_angle,rings:maximum_emission_angle,
+            rings:mean_radial_resolution,rings:minimum_radial_resolution,rings:maximum_radial_resolution,
+            rings:mean_longitudinal_resolution,rings:minimum_longitudinal_resolution,rings:maximum_longitudinal_resolution,
+            rings:minimum_ring_radius,rings:maximum_ring_radius,
+            mean_core_radius,minimum_core_radius,maximum_core_radius,
+            mean_longitude_ascending_node,minimum_longitude_ascending_node,maximum_longitude_ascending_node,
+            mean_longitude_pericenter,minimum_longitude_pericenter,maximum_longitude_pericenter,
+            minimum_true_anomaly,maximum_true_anomaly,
+            mean_corotating_longitude_prometheus,minimum_corotating_longitude_prometheus,maximum_corotating_longitude_prometheus,
+            mean_radius_prometheus,minimum_radius_prometheus,maximum_radius_prometheus,
+            mean_corotating_longitude_pandora,minimum_corotating_longitude_pandora,maximum_corotating_longitude_pandora,
+            mean_radius_pandora,minimum_radius_pandora,maximum_radius_pandora,
+            pds:creation_date_time,notes,
+            num_images,min_image_name,max_image_name,bkgnd_lower_limit,bkgnd_upper_limit</description>
             $ELSE
-            <description>logical_identifier,observation_id,file_spec,start_date_time,stop_date_time,spacecraft_clock_start_count,spacecraft_clock_stop_count,num_valid_longitudes,percent_coverage,min_corotating_longitude,max_corotating_longitude,min_inertial_longitude,max_inertial_longitude,mean_phase_angle,min_phase_angle,max_phase_angle,mean_incidence_angle,mean_emission_angle,min_emission_angle,max_emission_angle,mean_radial_resolution,min_radial_resolution,max_radial_resolution,mean_longitudinal_resolution,min_longitudinal_resolution,max_longitudinal_resolution,min_radius,max_radius,product_creation_date,notes,num_images,min_image_name,max_image_name</description>
+            <description>pds:logical_identifier,cassini:observation_id,file_spec,pds:start_date_time,pds:stop_date_time,
+            cassini:spacecraft_clock_start_count,cassini:spacecraft_clock_stop_count,
+            num_valid_longitudes,percent_coverage,
+            rings:minimum_corotating_ring_longitude,rings:maximum_corotating_ring_longitude,
+            rings:minimum_inertial_ring_longitude,rings:maximum_inertial_ring_longitude,
+            rings:mean_phase_angle,rings:minimum_phase_angle,rings:maximum_phase_angle,
+            rings:mean_incidence_angle,
+            rings:mean_emission_angle,rings:minimum_emission_angle,rings:maximum_emission_angle,
+            rings:mean_radial_resolution,rings:minimum_radial_resolution,rings:maximum_radial_resolution,
+            rings:mean_longitudinal_resolution,rings:minimum_longitudinal_resolution,rings:maximum_longitudinal_resolution,
+            rings:minimum_ring_radius,rings:maximum_ring_radius,
+            mean_core_radius,minimum_core_radius,maximum_core_radius,
+            mean_longitude_ascending_node,minimum_longitude_ascending_node,maximum_longitude_ascending_node,
+            mean_longitude_pericenter,minimum_longitude_pericenter,maximum_longitude_pericenter,
+            minimum_true_anomaly,maximum_true_anomaly,
+            mean_corotating_longitude_prometheus,minimum_corotating_longitude_prometheus,maximum_corotating_longitude_prometheus,
+            mean_radius_prometheus,minimum_radius_prometheus,maximum_radius_prometheus,
+            mean_corotating_longitude_pandora,minimum_corotating_longitude_pandora,maximum_corotating_longitude_pandora,
+            mean_radius_pandora,minimum_radius_pandora,maximum_radius_pandora,
+            pds:creation_date_time,notes,
+            num_images,min_image_name,max_image_name</description>
             $END_IF
             $ELSE
-            <description>logical_identifier,observation_id,file_spec,start_date_time,stop_date_time,spacecraft_clock_start_count,spacecraft_clock_stop_count,num_valid_longitudes,percent_coverage,min_corotating_longitude,max_corotating_longitude,min_inertial_longitude,max_inertial_longitude,mean_phase_angle,min_phase_angle,max_phase_angle,mean_incidence_angle,mean_emission_angle,min_emission_angle,max_emission_angle,mean_radial_resolution,min_radial_resolution,max_radial_resolution,mean_longitudinal_resolution,min_longitudinal_resolution,max_longitudinal_resolution,min_radius,max_radius,product_creation_date,notes</description>
+            <description>pds:logical_identifier,cassini:observation_id,file_spec,pds:start_date_time,pds:stop_date_time,
+            cassini:spacecraft_clock_start_count,cassini:spacecraft_clock_stop_count,
+            num_valid_longitudes,percent_coverage,
+            rings:minimum_corotating_ring_longitude,rings:maximum_corotating_ring_longitude,
+            rings:minimum_inertial_ring_longitude,rings:maximum_inertial_ring_longitude,
+            rings:mean_phase_angle,rings:minimum_phase_angle,rings:maximum_phase_angle,
+            rings:mean_incidence_angle,
+            rings:mean_emission_angle,rings:minimum_emission_angle,rings:maximum_emission_angle,
+            rings:mean_radial_resolution,rings:minimum_radial_resolution,rings:maximum_radial_resolution,
+            rings:mean_longitudinal_resolution,rings:minimum_longitudinal_resolution,rings:maximum_longitudinal_resolution,rings:minimum_ring_radius,rings:maximum_ring_radius,
+            core_radius,
+            longitude_ascending_node,
+            longitude_pericenter,
+            minimum_true_anomaly,maximum_true_anomaly,
+            corotating_longitude_prometheus,
+            radius_prometheus,
+            corotating_longitude_pandora,
+            radius_pandora,
+            pds:creation_date_time,notes</description>
             $END_IF
         </Header>
         <Table_Character>
+            $IF(IS_MOSAIC)
+            $IF(IS_BKGND_SUB)
+            <local_identifier>global_mosaic_bkg_sub_index</local_identifier>
+            $ELSE
+            <local_identifier>global_mosaic_index</local_identifier>
+            $END_IF
+            $ELSE
             <local_identifier>global_reproj_img_index</local_identifier>
+            $END_IF
             <offset unit="byte">$HEADER_LENGTH$</offset>
             <records>$FILE_RECORDS(GLOBAL_INDEX_CSV_PATH)-1$</records>
             <description>
@@ -170,18 +236,18 @@
             <Record_Character>
                 $IF(IS_MOSAIC)
                 $IF(IS_BKGND_SUB)
-                <fields>35</fields>
+                <fields>58</fields>
                 <groups>0</groups>
-                <record_length unit="byte">550</record_length>
+                <record_length unit="byte">770</record_length>
                 $ELSE
-                <fields>33</fields>
+                <fields>56</fields>
                 <groups>0</groups>
-                <record_length unit="byte">539</record_length>
+                <record_length unit="byte">759</record_length>
                 $END_IF
                 $ELSE
-                <fields>30</fields>
+                <fields>39</fields>
                 <groups>0</groups>
-                <record_length unit="byte">510</record_length>
+                <record_length unit="byte">600</record_length>
                 $END_IF
                 <Field_Character>
                     <name>pds:logical_identifier</name>
@@ -488,21 +554,275 @@
                         The maximum ring radius in the product.
                     </description>
                 </Field_Character>
+                $IF(IS_MOSAIC)
                 <Field_Character>
-                    <name>product_creation_date</name>
+                    <name>mean_core_radius</name>
                     <field_number>29</field_number>
                     <field_location unit="byte">495</field_location>
-                    <data_type>ASCII_Date_YMD</data_type>
+                    <data_type>ASCII_Real</data_type>
                     <field_length unit="byte">10</field_length>
+                    <unit>km</unit>
+                    <description>
+                        Mean F-ring core radius over valid longitudes in the product.
+                    </description>
+                </Field_Character>
+                <Field_Character>
+                    <name>minimum_core_radius</name>
+                    <field_number>30</field_number>
+                    <field_location unit="byte">506</field_location>
+                    <data_type>ASCII_Real</data_type>
+                    <field_length unit="byte">10</field_length>
+                    <unit>km</unit>
+                    <description>
+                        Minimum F-ring core radius over valid longitudes in the product.
+                    </description>
+                </Field_Character>
+                <Field_Character>
+                    <name>maximum_core_radius</name>
+                    <field_number>31</field_number>
+                    <field_location unit="byte">517</field_location>
+                    <data_type>ASCII_Real</data_type>
+                    <field_length unit="byte">10</field_length>
+                    <unit>km</unit>
+                    <description>
+                        Maximum F-ring core radius over valid longitudes in the product.
+                    </description>
+                </Field_Character>
+                <Field_Character>
+                    <name>mean_longitude_ascending_node</name>
+                    <field_number>32</field_number>
+                    <field_location unit="byte">528</field_location>
+                    <data_type>ASCII_Real</data_type>
+                    <field_length unit="byte">7</field_length>
+                    <unit>deg</unit>
+                    <description>
+                        Mean longitude of the ascending node over valid longitudes in the product.
+                    </description>
+                </Field_Character>
+                <Field_Character>
+                    <name>minimum_longitude_ascending_node</name>
+                    <field_number>33</field_number>
+                    <field_location unit="byte">536</field_location>
+                    <data_type>ASCII_Real</data_type>
+                    <field_length unit="byte">7</field_length>
+                    <unit>deg</unit>
+                    <description>
+                        Minimum longitude of the ascending node over valid longitudes in the product.
+                    </description>
+                </Field_Character>
+                <Field_Character>
+                    <name>maximum_longitude_ascending_node</name>
+                    <field_number>34</field_number>
+                    <field_location unit="byte">544</field_location>
+                    <data_type>ASCII_Real</data_type>
+                    <field_length unit="byte">7</field_length>
+                    <unit>deg</unit>
+                    <description>
+                        Maximum longitude of the ascending node over valid longitudes in the product.
+                    </description>
+                </Field_Character>
+                <Field_Character>
+                    <name>mean_longitude_pericenter</name>
+                    <field_number>35</field_number>
+                    <field_location unit="byte">552</field_location>
+                    <data_type>ASCII_Real</data_type>
+                    <field_length unit="byte">7</field_length>
+                    <unit>deg</unit>
+                    <description>
+                        Mean longitude of pericenter over valid longitudes in the product.
+                    </description>
+                </Field_Character>
+                <Field_Character>
+                    <name>minimum_longitude_pericenter</name>
+                    <field_number>36</field_number>
+                    <field_location unit="byte">560</field_location>
+                    <data_type>ASCII_Real</data_type>
+                    <field_length unit="byte">7</field_length>
+                    <unit>deg</unit>
+                    <description>
+                        Minimum longitude of pericenter over valid longitudes in the product.
+                    </description>
+                </Field_Character>
+                <Field_Character>
+                    <name>maximum_longitude_pericenter</name>
+                    <field_number>37</field_number>
+                    <field_location unit="byte">568</field_location>
+                    <data_type>ASCII_Real</data_type>
+                    <field_length unit="byte">7</field_length>
+                    <unit>deg</unit>
+                    <description>
+                        Maximum longitude of pericenter over valid longitudes in the product.
+                    </description>
+                </Field_Character>
+                <Field_Character>
+                    <name>minimum_true_anomaly</name>
+                    <field_number>38</field_number>
+                    <field_location unit="byte">576</field_location>
+                    <data_type>ASCII_Real</data_type>
+                    <field_length unit="byte">7</field_length>
+                    <unit>deg</unit>
+                    <description>
+                        Minimum true anomaly over valid longitudes in the product.
+                    </description>
+                </Field_Character>
+                <Field_Character>
+                    <name>maximum_true_anomaly</name>
+                    <field_number>39</field_number>
+                    <field_location unit="byte">584</field_location>
+                    <data_type>ASCII_Real</data_type>
+                    <field_length unit="byte">7</field_length>
+                    <unit>deg</unit>
+                    <description>
+                        Maximum true anomaly over valid longitudes in the product.
+                    </description>
+                </Field_Character>
+                <Field_Character>
+                    <name>mean_corotating_longitude_prometheus</name>
+                    <field_number>40</field_number>
+                    <field_location unit="byte">592</field_location>
+                    <data_type>ASCII_Real</data_type>
+                    <field_length unit="byte">7</field_length>
+                    <unit>deg</unit>
+                    <description>
+                        Mean corotating longitude of Prometheus over valid longitudes in the product.
+                    </description>
+                </Field_Character>
+                <Field_Character>
+                    <name>minimum_corotating_longitude_prometheus</name>
+                    <field_number>41</field_number>
+                    <field_location unit="byte">600</field_location>
+                    <data_type>ASCII_Real</data_type>
+                    <field_length unit="byte">7</field_length>
+                    <unit>deg</unit>
+                    <description>
+                        Minimum corotating longitude of Prometheus over valid longitudes in the product.
+                    </description>
+                </Field_Character>
+                <Field_Character>
+                    <name>maximum_corotating_longitude_prometheus</name>
+                    <field_number>42</field_number>
+                    <field_location unit="byte">608</field_location>
+                    <data_type>ASCII_Real</data_type>
+                    <field_length unit="byte">7</field_length>
+                    <unit>deg</unit>
+                    <description>
+                        Maximum corotating longitude of Prometheus over valid longitudes in the product.
+                    </description>
+                </Field_Character>
+                <Field_Character>
+                    <name>mean_radius_prometheus</name>
+                    <field_number>43</field_number>
+                    <field_location unit="byte">616</field_location>
+                    <data_type>ASCII_Real</data_type>
+                    <field_length unit="byte">10</field_length>
+                    <unit>km</unit>
+                    <description>
+                        Mean distance from Saturn to Prometheus over valid longitudes in the product.
+                    </description>
+                </Field_Character>
+                <Field_Character>
+                    <name>minimum_radius_prometheus</name>
+                    <field_number>44</field_number>
+                    <field_location unit="byte">627</field_location>
+                    <data_type>ASCII_Real</data_type>
+                    <field_length unit="byte">10</field_length>
+                    <unit>km</unit>
+                    <description>
+                        Minimum distance from Saturn to Prometheus over valid longitudes in the product.
+                    </description>
+                </Field_Character>
+                <Field_Character>
+                    <name>maximum_radius_prometheus</name>
+                    <field_number>45</field_number>
+                    <field_location unit="byte">638</field_location>
+                    <data_type>ASCII_Real</data_type>
+                    <field_length unit="byte">10</field_length>
+                    <unit>km</unit>
+                    <description>
+                        Maximum distance from Saturn to Prometheus over valid longitudes in the product.
+                    </description>
+                </Field_Character>
+                <Field_Character>
+                    <name>mean_corotating_longitude_pandora</name>
+                    <field_number>46</field_number>
+                    <field_location unit="byte">649</field_location>
+                    <data_type>ASCII_Real</data_type>
+                    <field_length unit="byte">7</field_length>
+                    <unit>deg</unit>
+                    <description>
+                        Mean corotating longitude of Pandora over valid longitudes in the product.
+                    </description>
+                </Field_Character>
+                <Field_Character>
+                    <name>minimum_corotating_longitude_pandora</name>
+                    <field_number>47</field_number>
+                    <field_location unit="byte">657</field_location>
+                    <data_type>ASCII_Real</data_type>
+                    <field_length unit="byte">7</field_length>
+                    <unit>deg</unit>
+                    <description>
+                        Minimum corotating longitude of Pandora over valid longitudes in the product.
+                    </description>
+                </Field_Character>
+                <Field_Character>
+                    <name>maximum_corotating_longitude_pandora</name>
+                    <field_number>48</field_number>
+                    <field_location unit="byte">665</field_location>
+                    <data_type>ASCII_Real</data_type>
+                    <field_length unit="byte">7</field_length>
+                    <unit>deg</unit>
+                    <description>
+                        Maximum corotating longitude of Pandora over valid longitudes in the product.
+                    </description>
+                </Field_Character>
+                <Field_Character>
+                    <name>mean_radius_pandora</name>
+                    <field_number>49</field_number>
+                    <field_location unit="byte">673</field_location>
+                    <data_type>ASCII_Real</data_type>
+                    <field_length unit="byte">10</field_length>
+                    <unit>km</unit>
+                    <description>
+                        Mean distance from Saturn to Pandora over valid longitudes in the product.
+                    </description>
+                </Field_Character>
+                <Field_Character>
+                    <name>minimum_radius_pandora</name>
+                    <field_number>50</field_number>
+                    <field_location unit="byte">684</field_location>
+                    <data_type>ASCII_Real</data_type>
+                    <field_length unit="byte">10</field_length>
+                    <unit>km</unit>
+                    <description>
+                        Minimum distance from Saturn to Pandora over valid longitudes in the product.
+                    </description>
+                </Field_Character>
+                <Field_Character>
+                    <name>maximum_radius_pandora</name>
+                    <field_number>51</field_number>
+                    <field_location unit="byte">695</field_location>
+                    <data_type>ASCII_Real</data_type>
+                    <field_length unit="byte">10</field_length>
+                    <unit>km</unit>
+                    <description>
+                        Maximum distance from Saturn to Pandora over valid longitudes in the product.
+                    </description>
+                </Field_Character>
+                <Field_Character>
+                    <name>pds:creation_date_time</name>
+                    <field_number>52</field_number>
+                    <field_location unit="byte">706</field_location>
+                    <data_type>ASCII_Date_Time_YMD_UTC</data_type>
+                    <field_length unit="byte">20</field_length>
                     <unit>none</unit>
                     <description>
-                        The date when the product was created.
+                        The date and time when the product was created (UTC).
                     </description>
                 </Field_Character>
                 <Field_Character>
                     <name>notes</name>
-                    <field_number>30</field_number>
-                    <field_location unit="byte">506</field_location>
+                    <field_number>53</field_number>
+                    <field_location unit="byte">727</field_location>
                     <data_type>ASCII_String</data_type>
                     <field_length unit="byte">4</field_length>
                     <unit>none</unit>
@@ -510,11 +830,10 @@
                         Any notes about the product. See the User Guide for details.
                     </description>
                 </Field_Character>
-                $IF(IS_MOSAIC)
                 <Field_Character>
                     <name>num_images</name>
-                    <field_number>31</field_number>
-                    <field_location unit="byte">511</field_location>
+                    <field_number>54</field_number>
+                    <field_location unit="byte">732</field_location>
                     <data_type>ASCII_NonNegative_Integer</data_type>
                     <field_length unit="byte">4</field_length>
                     <unit>none</unit>
@@ -524,8 +843,8 @@
                 </Field_Character>
                 <Field_Character>
                     <name>min_image_name</name>
-                    <field_number>32</field_number>
-                    <field_location unit="byte">516</field_location>
+                    <field_number>55</field_number>
+                    <field_location unit="byte">737</field_location>
                     <data_type>ASCII_String</data_type>
                     <field_length unit="byte">11</field_length>
                     <description>
@@ -534,8 +853,8 @@
                 </Field_Character>
                 <Field_Character>
                     <name>max_image_name</name>
-                    <field_number>33</field_number>
-                    <field_location unit="byte">528</field_location>
+                    <field_number>56</field_number>
+                    <field_location unit="byte">749</field_location>
                     <data_type>ASCII_String</data_type>
                     <field_length unit="byte">11</field_length>
                     <description>
@@ -545,27 +864,149 @@
                 $IF(IS_BKGND_SUB)
                 <Field_Character>
                     <name>bkgnd_lower_limit</name>
-                    <field_number>34</field_number>
-                    <field_location unit="byte">540</field_location>
-                    <data_type>ASCII_Real</data_type>
+                    <field_number>57</field_number>
+                    <field_location unit="byte">761</field_location>
+                    <data_type>ASCII_Integer</data_type>
                     <field_length unit="byte">5</field_length>
-                    <unit>none</unit>
+                    <unit>km</unit>
                     <description>
                         The lower ring delta radius used to delineate the background region; radii between this and core-1000 are used for background modeling.
                     </description>
                 </Field_Character>
                 <Field_Character>
                     <name>bkgnd_upper_limit</name>
-                    <field_number>35</field_number>
-                    <field_location unit="byte">546</field_location>
-                    <data_type>ASCII_Real</data_type>
+                    <field_number>58</field_number>
+                    <field_location unit="byte">767</field_location>
+                    <data_type>ASCII_Integer</data_type>
                     <field_length unit="byte">4</field_length>
-                    <unit>none</unit>
+                    <unit>km</unit>
                     <description>
                         The upper ring delta radius used to delineate the background region; radii between this and core+1000 are used for background modeling.
                     </description>
                 </Field_Character>
                 $END_IF
+                $ELSE
+                <Field_Character>
+                    <name>core_radius</name>
+                    <field_number>29</field_number>
+                    <field_location unit="byte">495</field_location>
+                    <data_type>ASCII_Real</data_type>
+                    <field_length unit="byte">10</field_length>
+                    <unit>km</unit>
+                    <description>
+                        F-ring core radius for the reprojected image.
+                    </description>
+                </Field_Character>
+                <Field_Character>
+                    <name>longitude_ascending_node</name>
+                    <field_number>30</field_number>
+                    <field_location unit="byte">506</field_location>
+                    <data_type>ASCII_Real</data_type>
+                    <field_length unit="byte">7</field_length>
+                    <unit>deg</unit>
+                    <description>
+                        Longitude of the ascending node for the reprojected image.
+                    </description>
+                </Field_Character>
+                <Field_Character>
+                    <name>longitude_pericenter</name>
+                    <field_number>31</field_number>
+                    <field_location unit="byte">514</field_location>
+                    <data_type>ASCII_Real</data_type>
+                    <field_length unit="byte">7</field_length>
+                    <unit>deg</unit>
+                    <description>
+                        Longitude of pericenter for the reprojected image.
+                    </description>
+                </Field_Character>
+                <Field_Character>
+                    <name>minimum_true_anomaly</name>
+                    <field_number>32</field_number>
+                    <field_location unit="byte">522</field_location>
+                    <data_type>ASCII_Real</data_type>
+                    <field_length unit="byte">7</field_length>
+                    <unit>deg</unit>
+                    <description>
+                        Minimum true anomaly over the image mid-time span.
+                    </description>
+                </Field_Character>
+                <Field_Character>
+                    <name>maximum_true_anomaly</name>
+                    <field_number>33</field_number>
+                    <field_location unit="byte">530</field_location>
+                    <data_type>ASCII_Real</data_type>
+                    <field_length unit="byte">7</field_length>
+                    <unit>deg</unit>
+                    <description>
+                        Maximum true anomaly over the image mid-time span.
+                    </description>
+                </Field_Character>
+                <Field_Character>
+                    <name>corotating_longitude_prometheus</name>
+                    <field_number>34</field_number>
+                    <field_location unit="byte">538</field_location>
+                    <data_type>ASCII_Real</data_type>
+                    <field_length unit="byte">7</field_length>
+                    <unit>deg</unit>
+                    <description>
+                        Corotating longitude of Prometheus at image mid-time.
+                    </description>
+                </Field_Character>
+                <Field_Character>
+                    <name>radius_prometheus</name>
+                    <field_number>35</field_number>
+                    <field_location unit="byte">546</field_location>
+                    <data_type>ASCII_Real</data_type>
+                    <field_length unit="byte">10</field_length>
+                    <unit>km</unit>
+                    <description>
+                        Distance from Saturn to Prometheus at image mid-time.
+                    </description>
+                </Field_Character>
+                <Field_Character>
+                    <name>corotating_longitude_pandora</name>
+                    <field_number>36</field_number>
+                    <field_location unit="byte">557</field_location>
+                    <data_type>ASCII_Real</data_type>
+                    <field_length unit="byte">7</field_length>
+                    <unit>deg</unit>
+                    <description>
+                        Corotating longitude of Pandora at image mid-time.
+                    </description>
+                </Field_Character>
+                <Field_Character>
+                    <name>radius_pandora</name>
+                    <field_number>37</field_number>
+                    <field_location unit="byte">565</field_location>
+                    <data_type>ASCII_Real</data_type>
+                    <field_length unit="byte">10</field_length>
+                    <unit>km</unit>
+                    <description>
+                        Distance from Saturn to Pandora at image mid-time.
+                    </description>
+                </Field_Character>
+                <Field_Character>
+                    <name>pds:creation_date_time</name>
+                    <field_number>38</field_number>
+                    <field_location unit="byte">576</field_location>
+                    <data_type>ASCII_Date_Time_YMD_UTC</data_type>
+                    <field_length unit="byte">20</field_length>
+                    <unit>none</unit>
+                    <description>
+                        The date and time when the product was created (UTC).
+                    </description>
+                </Field_Character>
+                <Field_Character>
+                    <name>notes</name>
+                    <field_number>39</field_number>
+                    <field_location unit="byte">597</field_location>
+                    <data_type>ASCII_String</data_type>
+                    <field_length unit="byte">4</field_length>
+                    <unit>none</unit>
+                    <description>
+                        Any notes about the product. See the User Guide for details.
+                    </description>
+                </Field_Character>
                 $END_IF
             </Record_Character>
         </Table_Character>

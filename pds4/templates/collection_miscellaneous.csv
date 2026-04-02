@@ -1,4 +1,6 @@
-P,urn:nasa:pds:cassini_iss_fring_mosaics_rsfrench2025:document:f-ring-mosaics-user-guide::1.0
+P,urn:nasa:pds:cassini_iss_fring_mosaics_rsfrench2025:miscellaneous:mosaic_bkg_sub_global_index::1.0
+P,urn:nasa:pds:cassini_iss_fring_mosaics_rsfrench2025:miscellaneous:mosaic_global_index::1.0
+P,urn:nasa:pds:cassini_iss_fring_mosaics_rsfrench2025:miscellaneous:reproj_img_global_index::1.0
 S,urn:nasa:pds:cassini_iss_saturn:document:iss-data-user-guide::1.0
 S,urn:nasa:pds:context:instrument:issna.co::1.2
 S,urn:nasa:pds:context:instrument:isswa.co::1.2

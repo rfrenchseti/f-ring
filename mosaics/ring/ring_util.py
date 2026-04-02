@@ -737,18 +737,31 @@ ROTATING_ET = julian.tdb_from_tai(julian.tai_from_iso("2007-01-01"))
 FRING_MEAN_MOTION = 581.964
 FRING_A = 140221.3
 FRING_E = 0.00235
-FRING_W0_DEG = 24.2
-FRING_DW_DEGDAY = 2.70025
+FRING_CURLY_W0_DEG = 24.2
+FRING_CURLY_DW_DEGDAY = 2.70025
 
 def f_ring_longitude_shift(img_ET):
     return - (FRING_MEAN_MOTION * ((img_ET - ROTATING_ET) / 86400.)) % 360.
 
-def f_ring_inertial_to_corotating(longitude, ET):
-    return (longitude + f_ring_longitude_shift(ET)) % 360.
+def f_ring_inertial_to_corotating(inertial_longitude, ET):
+    return (inertial_longitude + f_ring_longitude_shift(ET)) % 360.
 
 def f_ring_corotating_to_inertial(co_long, ET):
     return (co_long - f_ring_longitude_shift(ET)) % 360.
 
 def f_ring_corotating_to_true_anomaly(co_long, ET):
-    curly_w = FRING_W0_DEG + FRING_DW_DEGDAY*et/86400.
-    return (co_long - f_ring_longitude_shift(ET) - curly_w) % 360.
+    curly_w = (FRING_CURLY_W0_DEG + FRING_CURLY_DW_DEGDAY * ET / 86400.) % 360.
+    inertial_longitude = f_ring_corotating_to_inertial(co_long, ET)
+    return (inertial_longitude - curly_w) % 360.
+
+def f_ring_radius_at_longitude(inertial_longitude, et):
+    """Return radius of the F ring core at the inertial longitude and time.
+
+    Inertial longitude is true longitude.
+    """
+    curly_w = (FRING_CURLY_W0_DEG + FRING_CURLY_DW_DEGDAY*et / 86400.) % 360.
+
+    radius = (FRING_A * (1-FRING_E**2) /
+              (1 + FRING_E * np.cos(np.radians(inertial_longitude-curly_w))))
+
+    return radius

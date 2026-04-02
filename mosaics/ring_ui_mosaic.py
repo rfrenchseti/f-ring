@@ -21,8 +21,7 @@ import julian
 from nav.config import (CB_RESULTS_ROOT,
                         PYTHON_EXE)
 import nav.logging_setup
-from nav.ring_mosaic import (rings_fring_corotating_to_inertial,
-                             rings_generate_longitudes,
+from nav.ring_mosaic import (rings_generate_longitudes,
                              rings_mosaic_add,
                              rings_mosaic_init)
 from ring.ring_util import (img_to_repro_path,
@@ -34,6 +33,9 @@ from ring.ring_util import (img_to_repro_path,
                             ring_basic_cmd_line,
                             ring_enumerate_files,
                             ring_init,
+                            f_ring_corotating_to_true_anomaly,
+                            f_ring_radius_at_longitude,
+                            f_ring_corotating_to_inertial,
                             write_mosaic,
                             write_mosaic_pngs,
                             RING_REPROJECT_PY,
@@ -255,9 +257,8 @@ def command_refresh_color(mosaicdata, mosaicdispdata):
     elif color_sel == 'longitude':
         minval = 0.
         maxval = 360.
-        valsrc = np.degrees(
-            rings_fring_corotating_to_inertial(mosaicdata.longitudes,
-                                               mosaicdata.ETs))
+        valsrc = f_ring_corotating_to_inertial(np.degrees(mosaicdata.longitudes),
+                                               mosaicdata.ETs)
 
     if minval is None:
         minval = np.min(valsrc[np.where(mosaicdata.longitudes >= 0.)[0]])
@@ -306,17 +307,6 @@ def setup_mosaic_window(mosaicdata, mosaicdispdata):
 
     addon_control_frame = mosaicdispdata.imdisp.addon_control_frame
 
-    label = Label(addon_control_frame, text='Inertial Long:')
-    label.grid(row=gridrow, column=gridcolumn, sticky=W)
-    # We make this one fixed-width so that the color-control column stays
-    # in one place
-    mosaicdispdata.label_inertial_longitude = Label(addon_control_frame,
-                                                    text='', anchor='w',
-                                                    width=28)
-    mosaicdispdata.label_inertial_longitude.grid(row=gridrow,
-                                                 column=gridcolumn+1, sticky=W)
-    gridrow += 1
-
     label = Label(addon_control_frame, text='Co-Rot Long:')
     label.grid(row=gridrow, column=gridcolumn, sticky=W)
     # We make this one fixed-width so that the color-control column stays
@@ -327,7 +317,7 @@ def setup_mosaic_window(mosaicdata, mosaicdispdata):
                                         sticky=W)
     gridrow += 1
 
-    label = Label(addon_control_frame, text='Radius:')
+    label = Label(addon_control_frame, text='Rel Radius:')
     label.grid(row=gridrow, column=gridcolumn, sticky=W)
     mosaicdispdata.label_radius = Label(addon_control_frame, text='')
     mosaicdispdata.label_radius.grid(row=gridrow, column=gridcolumn+1, sticky=W)
@@ -365,6 +355,32 @@ def setup_mosaic_window(mosaicdata, mosaicdispdata):
     mosaicdispdata.label_angular_resolution = Label(addon_control_frame, text='')
     mosaicdispdata.label_angular_resolution.grid(row=gridrow, column=gridcolumn+1,
                                                  sticky=W)
+    gridrow += 1
+
+    label = Label(addon_control_frame, text='Inertial Long:')
+    label.grid(row=gridrow, column=gridcolumn, sticky=W)
+    # We make this one fixed-width so that the color-control column stays
+    # in one place
+    mosaicdispdata.label_inertial_longitude = Label(addon_control_frame,
+                                                    text='', anchor='w',
+                                                    width=28)
+    mosaicdispdata.label_inertial_longitude.grid(row=gridrow,
+                                                 column=gridcolumn+1, sticky=W)
+    gridrow += 1
+
+    label = Label(addon_control_frame, text='Abs Radius:')
+    label.grid(row=gridrow, column=gridcolumn, sticky=W)
+    mosaicdispdata.label_abs_radius = Label(addon_control_frame, text='')
+    mosaicdispdata.label_abs_radius.grid(row=gridrow, column=gridcolumn+1, sticky=W)
+    gridrow += 1
+
+    label = Label(addon_control_frame, text='True Anomaly:')
+    label.grid(row=gridrow, column=gridcolumn, sticky=W)
+    mosaicdispdata.label_true_anomaly = Label(addon_control_frame,
+                                              text='')
+    mosaicdispdata.label_true_anomaly.grid(row=gridrow,
+                                           column=gridcolumn+1,
+                                           sticky=W)
     gridrow += 1
 
     label = Label(addon_control_frame, text='Image:')
@@ -525,10 +541,17 @@ def command_refresh_mosaic(mosaicdata, mosaicdispdata):
 # The callback for mouse move events on the mosaic image
 def callback_move_mosaic(x, y, mosaicdata):
     x = int(x)
-    if x < 0: return
+    if x < 0: 
+        return
+    
+    corot_long = np.degrees(mosaicdata.longitudes[x])
+    inertial_long = f_ring_corotating_to_inertial(corot_long, mosaicdata.ETs[x])
+    abs_radius = f_ring_radius_at_longitude(inertial_long, mosaicdata.ETs[x])
+    true_anomaly = f_ring_corotating_to_true_anomaly(corot_long, mosaicdata.ETs[x])
+    rel_radius = y*arguments.radius_resolution + arguments.radius_inner_delta
+
     if mosaicdata.longitudes[x] < 0:  # Invalid longitude
         mosaicdispdata.label_inertial_longitude.config(text='')
-        mosaicdispdata.label_longitude.config(text='')
         mosaicdispdata.label_phase.config(text='')
         mosaicdispdata.label_incidence.config(text='')
         mosaicdispdata.label_emission.config(text='')
@@ -537,13 +560,12 @@ def callback_move_mosaic(x, y, mosaicdata):
         mosaicdispdata.label_image.config(text='')
         mosaicdispdata.label_obsid.config(text='')
         mosaicdispdata.label_date.config(text='')
+        mosaicdispdata.label_radius.config(text='')
+        mosaicdispdata.label_abs_radius.config(text='')
+        mosaicdispdata.label_true_anomaly.config(text='')
     else:
         mosaicdispdata.label_inertial_longitude.config(text=
-                    ('%7.3f'%(np.degrees(rings_fring_corotating_to_inertial(
-                                    mosaicdata.longitudes[x],
-                                    mosaicdata.ETs[x])))))
-        mosaicdispdata.label_longitude.config(text=
-                    ('%7.3f'%(np.degrees(mosaicdata.longitudes[x]))))
+                    ('%7.3f'%inertial_long))
         mosaicdispdata.label_phase.config(text=
                     ('%7.3f'%(np.degrees(mosaicdata.phase_angles[x]))))
         mosaicdispdata.label_incidence.config(text=
@@ -563,13 +585,17 @@ def callback_move_mosaic(x, y, mosaicdata):
             julian.ymdhms_format_from_tai(julian.tai_from_tdb(
                 float(mosaicdata.ETs[x])), sep=' '))
 
+    mosaicdispdata.label_longitude.config(text=
+                ('%7.3f'%corot_long))
+    mosaicdispdata.label_abs_radius.config(text='%7.3f'%abs_radius)
+    mosaicdispdata.label_true_anomaly.config(text='%7.3f'%true_anomaly)
+
     y = int(y)
     if y < 0:
         return
 
-    radius = (y*arguments.radius_resolution+
-              arguments.ring_radius+arguments.radius_inner_delta)
-    mosaicdispdata.label_radius.config(text = '%7.3f'%radius)
+    mosaicdispdata.label_radius.config(text='%7.3f'%rel_radius)
+    mosaicdispdata.label_abs_radius.config(text='%7.3f'%(rel_radius + abs_radius))
 
 # The command for Mosaic button press - rerun offset/reproject
 def callback_b1press_mosaic(x, y, mosaicdata):

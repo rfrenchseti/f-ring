@@ -28,11 +28,24 @@ J2000_TO_SATURN = cspyce.twovec(saturn_z_axis_in_j2000, 3,
                                 saturn_x_axis_in_j2000, 1)
 
 def saturn_to_prometheus(et):
-    (prometheus_j2000, lt) = cspyce.spkez(PROMETHEUS_ID, et, 'J2000', 'NONE', SATURN_ID)
-    prometheus_sat = np.dot(J2000_TO_SATURN, prometheus_j2000[0:3])
-    dist = np.sqrt(prometheus_sat[0]**2.+prometheus_sat[1]**2.+prometheus_sat[2]**2.)
-    longitude = np.degrees(math.atan2(prometheus_sat[1], prometheus_sat[0]))
-    return (dist, longitude)
+    et_arr = np.asarray(et, dtype=np.float64)
+
+    def _one(t):
+        (prometheus_j2000, lt) = cspyce.spkez(PROMETHEUS_ID, t, 'J2000', 'NONE', SATURN_ID)
+        prometheus_sat = np.dot(J2000_TO_SATURN, prometheus_j2000[0:3])
+        dist = np.sqrt(prometheus_sat[0]**2.+prometheus_sat[1]**2.+prometheus_sat[2]**2.)
+        longitude = np.degrees(math.atan2(prometheus_sat[1], prometheus_sat[0]))
+        return dist, longitude
+
+    if et_arr.ndim == 0:
+        return _one(float(et_arr))
+    flat = et_arr.ravel()
+    n = flat.size
+    dist_out = np.empty(n, dtype=np.float64)
+    long_out = np.empty(n, dtype=np.float64)
+    for i in range(n):
+        dist_out[i], long_out[i] = _one(float(flat[i]))
+    return dist_out.reshape(et_arr.shape), long_out.reshape(et_arr.shape)
 
 
 def saturn_to_prometheus_corot(et):
@@ -43,11 +56,24 @@ def saturn_to_prometheus_corot(et):
 
 
 def saturn_to_pandora(et):
-    (pandora_j2000, lt) = cspyce.spkez(PANDORA_ID, et, 'J2000', 'NONE', SATURN_ID)
-    pandora_sat = np.dot(J2000_TO_SATURN, pandora_j2000[0:3])
-    dist = np.sqrt(pandora_sat[0]**2.+pandora_sat[1]**2.+pandora_sat[2]**2.)
-    longitude = np.degrees(math.atan2(pandora_sat[1], pandora_sat[0]))
-    return (dist, longitude)
+    et_arr = np.asarray(et, dtype=np.float64)
+
+    def _one(t):
+        (pandora_j2000, lt) = cspyce.spkez(PANDORA_ID, t, 'J2000', 'NONE', SATURN_ID)
+        pandora_sat = np.dot(J2000_TO_SATURN, pandora_j2000[0:3])
+        dist = np.sqrt(pandora_sat[0]**2.+pandora_sat[1]**2.+pandora_sat[2]**2.)
+        longitude = np.degrees(math.atan2(pandora_sat[1], pandora_sat[0]))
+        return dist, longitude
+
+    if et_arr.ndim == 0:
+        return _one(float(et_arr))
+    flat = et_arr.ravel()
+    n = flat.size
+    dist_out = np.empty(n, dtype=np.float64)
+    long_out = np.empty(n, dtype=np.float64)
+    for i in range(n):
+        dist_out[i], long_out[i] = _one(float(flat[i]))
+    return dist_out.reshape(et_arr.shape), long_out.reshape(et_arr.shape)
 
 
 def saturn_to_pandora_corot(et):

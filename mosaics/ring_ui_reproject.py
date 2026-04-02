@@ -25,6 +25,8 @@ import cProfile, pstats, io
 import traceback
 
 from tkinter import *
+
+from numpy.random import f
 from imgdisp import ImageDisp, FloatEntry
 
 import cspyce
@@ -41,8 +43,6 @@ from nav.offset import master_find_offset
 from nav.nav import Navigation
 from nav.ring_mosaic import (rings_generate_longitudes,
                              rings_reproject,
-                             rings_ring_corotating_to_inertial,
-                             rings_ring_inertial_to_corotating,
                              rings_ring_pixels)
 from ring.ring_util import (img_to_repro_path,
                             read_repro,
@@ -50,6 +50,10 @@ from ring.ring_util import (img_to_repro_path,
                             ring_basic_cmd_line,
                             ring_enumerate_files,
                             ring_init,
+                            f_ring_corotating_to_true_anomaly,
+                            f_ring_radius_at_longitude,
+                            f_ring_corotating_to_inertial,
+                            f_ring_inertial_to_corotating,
                             write_repro,
                             OffRepData,
                             RING_REPROJECT_PY)
@@ -373,8 +377,7 @@ def _update_offrepdata_repro(offrepdata, metadata):
 
         full_longitudes = rings_generate_longitudes(
                 longitude_resolution=np.radians(arguments.longitude_resolution))
-        offrepdata.repro_longitudes = full_longitudes[
-                                        offrepdata.repro_long_antimask]
+        offrepdata.repro_longitudes = full_longitudes[offrepdata.repro_long_antimask]
 
 def _write_repro_data(offrepdata):
     metadata = {}
@@ -654,12 +657,11 @@ def callback_mouse_offset(x, y, offrepdata, offrepdispdata):
 
     if offrepdispdata.off_longitudes is not None:
         offrepdispdata.label_off_corot_longitude.config(text=
-                        ('%7.3f'%(np.degrees(offrepdispdata.off_longitudes[y,x]))))
+                        ('%7.3f'%(offrepdispdata.off_longitudes[y,x])))
         offrepdispdata.label_off_inertial_longitude.config(
-               text=('%7.3f'%(np.degrees(rings_ring_corotating_to_inertial(
-                                 arguments.corot_type,
+               text=('%7.3f'%(f_ring_corotating_to_inertial(
                                  offrepdispdata.off_longitudes[y,x],
-                                 offrepdata.obs.midtime)))))
+                                 offrepdata.obs.midtime))))
     if offrepdispdata.off_radii is not None:
         offrepdispdata.label_off_radius.config(text=
                         ('%7.3f'%offrepdispdata.off_radii[y,x]))
@@ -785,9 +787,8 @@ def setup_offset_reproject_window(offrepdata, offrepdispdata):
     offrepdispdata.off_longitudes = (offrepdata.obs.bp
                                      .ring_longitude('saturn:ring')
                                      .vals.astype('float'))
-    offrepdispdata.off_longitudes = rings_ring_inertial_to_corotating(
-                           arguments.corot_type,
-                           offrepdispdata.off_longitudes,
+    offrepdispdata.off_longitudes = f_ring_inertial_to_corotating(
+                           np.degrees(offrepdispdata.off_longitudes),
                            offrepdata.obs.midtime)
 
     offrepdispdata.toplevel = Tk()
@@ -1031,7 +1032,7 @@ def setup_offset_reproject_window(offrepdata, offrepdispdata):
                                               sticky=W)
     gridrow += 1
 
-    label = Label(repro_addon_control_frame, text='Radius:')
+    label = Label(repro_addon_control_frame, text='Rel Radius:')
     label.grid(row=gridrow, column=gridcolumn, sticky=W)
     offrepdispdata.label_radius = Label(repro_addon_control_frame, text='')
     offrepdispdata.label_radius.grid(row=gridrow, column=gridcolumn+1, sticky=W)
@@ -1071,6 +1072,12 @@ def setup_offset_reproject_window(offrepdata, offrepdispdata):
                                                 sticky=W)
     gridrow += 1
 
+    label = Label(repro_addon_control_frame, text='Abs Radius:')
+    label.grid(row=gridrow, column=gridcolumn, sticky=W)
+    offrepdispdata.label_abs_radius = Label(repro_addon_control_frame, text='')
+    offrepdispdata.label_abs_radius.grid(row=gridrow, column=gridcolumn+1, sticky=W)
+    gridrow += 1
+
     label = Label(repro_addon_control_frame, text='Inertial Long:')
     label.grid(row=gridrow, column=gridcolumn, sticky=W)
     offrepdispdata.label_inertial_longitude = Label(repro_addon_control_frame,
@@ -1078,6 +1085,15 @@ def setup_offset_reproject_window(offrepdata, offrepdispdata):
     offrepdispdata.label_inertial_longitude.grid(row=gridrow,
                                                  column=gridcolumn+1,
                                                  sticky=W)
+    gridrow += 1
+
+    label = Label(repro_addon_control_frame, text='True Anomaly:')
+    label.grid(row=gridrow, column=gridcolumn, sticky=W)
+    offrepdispdata.label_true_anomaly = Label(repro_addon_control_frame,
+                                              text='')
+    offrepdispdata.label_true_anomaly.grid(row=gridrow,
+                                           column=gridcolumn+1,
+                                           sticky=W)
     gridrow += 1
 
     offrepdispdata.imdisp_repro.pack(side=LEFT)
@@ -1156,17 +1172,16 @@ def callback_repro(x, y, offrepdata, offrepdispdata):
 
     x = int(x)
 
-    offrepdispdata.label_corot_longitude.config(text=
-                        ('%7.3f'%(np.degrees(offrepdispdata.repro_longitudes[x]))))
-    offrepdispdata.label_inertial_longitude.config(text=('%7.3f'%(
-                      np.degrees(rings_ring_corotating_to_inertial(
-                             arguments.corot_type,
-                             offrepdispdata.repro_longitudes[x],
-                             offrepdata.obs.midtime)))))
-    radius = (y*arguments.radius_resolution+
-              arguments.ring_radius+
-              arguments.radius_inner_delta)
-    offrepdispdata.label_radius.config(text='%7.3f'%radius)
+    corot_long = np.degrees(offrepdispdata.repro_longitudes[x])
+    inertial_long = f_ring_corotating_to_inertial(corot_long, offrepdata.obs.midtime)
+    abs_radius = f_ring_radius_at_longitude(inertial_long, offrepdata.obs.midtime)
+    true_anomaly = f_ring_corotating_to_true_anomaly(corot_long, offrepdata.obs.midtime)
+    rel_radius = y*arguments.radius_resolution + arguments.radius_inner_delta
+    offrepdispdata.label_corot_longitude.config(text=('%7.3f'%corot_long))
+    offrepdispdata.label_inertial_longitude.config(text=('%7.3f'%inertial_long))
+    offrepdispdata.label_radius.config(text='%7.3f' % rel_radius)
+    offrepdispdata.label_abs_radius.config(text='%7.3f' % (rel_radius + abs_radius))
+    offrepdispdata.label_true_anomaly.config(text='%7.3f' % true_anomaly)
     offrepdispdata.label_radial_resolution.config(text=
                 ('%7.3f'%offrepdispdata.repro_radial_resolutions[x]))
     offrepdispdata.label_angular_resolution.config(text=

@@ -178,7 +178,7 @@ def add_parser_arguments(parser):
 
 def enumerate_obsids(arguments):
     """Based on the given command line argument, yield a list of obsids."""
-    data_path, _ = bkgnd_sub_mosaic_paths(arguments, '', make_dirs=False)
+    data_path, _ = bkgnd_sub_mosaic_paths(arguments, '')
     bp = data_path.replace(BKGND_SUB_MOSAIC_DIR+'/', '')
     specific_obsids = []
     if len(arguments.obsid) > 0 and len(arguments.obsid[0]) > 0:
@@ -207,7 +207,7 @@ def enumerate_obsids(arguments):
 #
 ################################################################################
 
-def mosaic_paths(arguments, obsid, make_dirs=False):
+def mosaic_paths(arguments, obsid):
     """"Return paths for mosaic data and mosaic metadata.
 
     There are found in MOSAIC_DIR and have the extensions -MOSAIC.npy
@@ -220,8 +220,6 @@ def mosaic_paths(arguments, obsid, make_dirs=False):
                        arguments.longitude_resolution,
                        arguments.radial_zoom_amount,
                        arguments.longitude_zoom_amount))
-    if make_dirs:
-        os.makedirs(MOSAIC_DIR, exist_ok=True)
     data_path = file_clean_join(MOSAIC_DIR,
                                 obsid+mosaic_res_data+'-MOSAIC.npy')
     metadata_path = file_clean_join(
@@ -231,7 +229,7 @@ def mosaic_paths(arguments, obsid, make_dirs=False):
     return (data_path, metadata_path)
 
 
-def bkgnd_paths(arguments, obsid, make_dirs=False):
+def bkgnd_paths(arguments, obsid):
     """"Return paths for background model and background model metadata.
 
     There are found in BKGND_DIR and have the extensions -BKGND-MODEL.npz
@@ -244,8 +242,6 @@ def bkgnd_paths(arguments, obsid, make_dirs=False):
                       arguments.longitude_resolution,
                       arguments.radial_zoom_amount,
                       arguments.longitude_zoom_amount))
-    if make_dirs:
-        os.makedirs(BKGND_DIR, exist_ok=True)
     bkgnd_model_path = file_clean_join(
                      BKGND_DIR,
                      obsid+bkgnd_res_data+'-BKGND-MODEL.npz')
@@ -256,7 +252,7 @@ def bkgnd_paths(arguments, obsid, make_dirs=False):
     return (bkgnd_model_path, bkgnd_metadata_path)
 
 
-def bkgnd_sub_mosaic_paths(arguments, obsid, make_dirs=False):
+def bkgnd_sub_mosaic_paths(arguments, obsid):
     """"Return paths for background-subtracted mosaic and metadata.
 
     There are found in BKGND_DIR and have the extensions -BKGND-MODEL.npz
@@ -269,8 +265,6 @@ def bkgnd_sub_mosaic_paths(arguments, obsid, make_dirs=False):
                       arguments.longitude_resolution,
                       arguments.radial_zoom_amount,
                       arguments.longitude_zoom_amount))
-    if make_dirs:
-        os.makedirs(BKGND_SUB_MOSAIC_DIR, exist_ok=True)
     data_path = file_clean_join(BKGND_SUB_MOSAIC_DIR,
                                 obsid+bkgnd_res_data+'-BKGND-SUB-MOSAIC.npz')
     metadata_path = file_clean_join(
@@ -280,7 +274,7 @@ def bkgnd_sub_mosaic_paths(arguments, obsid, make_dirs=False):
     return (data_path, metadata_path)
 
 
-def polar_png_path(arguments, obsid, make_dirs=False):
+def polar_png_path(arguments, obsid):
     """"Return path for polar-projected PNG.
 
     This is POLAR_PNG_DIR/...-POLAR.png
@@ -293,8 +287,6 @@ def polar_png_path(arguments, obsid, make_dirs=False):
                     arguments.longitude_resolution,
                     arguments.radial_zoom_amount,
                     arguments.longitude_zoom_amount))
-    if make_dirs:
-        os.makedirs(POLAR_PNG_DIR, exist_ok=True)
     data_path = file_clean_join(POLAR_PNG_DIR,
                                 obsid+png_res_data+'-POLAR.png')
     return data_path
@@ -553,29 +545,41 @@ def read_obs_list(filename='CASSINI_OBSERVATION_LIST'):
     """Read an observation list used to restrict EW stats."""
     if filename not in OBS_LISTS:
         OBS_LISTS[filename] = pd.read_csv(f'../observation_lists/{filename}.csv',
-                                          parse_dates=['Date'],
+                                          parse_dates=['Start Date', 'End Date'],
                                           index_col='Observation')
 
 
 def read_ew_stats(filename, obslist_filename=None, obslist_column=None,
                   verbose=True):
     """Read an EW stats file with an optional restriction column."""
-    obsdata = pd.read_csv(filename, parse_dates=['Date'],
-                          index_col='Observation',
-                          na_values='--')
+    try:
+        obsdata = pd.read_csv(filename, parse_dates=['Date', 'Start Date', 'End Date'],
+                              index_col='Observation',
+                              na_values='--')
+    except Exception as e:
+        # Old format file I don't want to redo
+        obsdata = pd.read_csv(filename, parse_dates=['Date'],
+                              index_col='Observation',
+                              na_values='--')
     if obslist_filename is not None and obslist_column is not None:
         read_obs_list(obslist_filename)
         obsdata = obsdata.join(OBS_LISTS[obslist_filename], rsuffix='_obslist')
         obsdata = obsdata[obsdata[obslist_column] == 1]
+    time0 = np.datetime64('1970-01-01T00:00:00') # Epoch
     if verbose:
         print(f'** SUMMARY STATISTICS - {filename} **')
         print('Unique observation names:', len(obsdata.groupby('Observation')))
         print('Total slices:', len(obsdata))
-        print('Starting date:', obsdata['Date'].min())
-        print('Ending date:', obsdata['Date'].max())
-        print('Time span:', obsdata['Date'].max()-obsdata['Date'].min())
-    time0 = np.datetime64('1970-01-01T00:00:00') # Epoch
-    obsdata['Date_days'] = (obsdata['Date']-time0).dt.total_seconds()/86400
+        try:
+            print('Starting date:', obsdata['Start Date'].min())
+            print('Ending date:', obsdata['End Date'].max())
+            print('Time span:', obsdata['End Date'].max()-obsdata['Start Date'].min())
+            obsdata['Date_days'] = (obsdata['Start Date']-time0).dt.total_seconds()/86400
+        except KeyError:
+            print('Starting date:', obsdata['Date'].min())
+            print('Ending date:', obsdata['Date'].max())
+            print('Time span:', obsdata['Date'].max()-obsdata['Date'].min())
+            obsdata['Date_days'] = (obsdata['Date']-time0).dt.total_seconds()/86400
     obsdata['Mu'] = np.abs(np.cos(np.radians(obsdata['Mean Emission'])))
     obsdata['Mu0'] = np.abs(np.cos(np.radians(obsdata['Incidence'])))
     return obsdata
@@ -601,65 +605,197 @@ def read_showalter_voyager_ew_stats(filename, verbose=True):
 
 ### OTHER UTILITY FUNCTIONS
 
-def add_hover(obsdata, p1, obsdata2=None, p2=None):
-    """Add hover text to scatter points."""
-    cursor1 = mplcursors.cursor(p1, hover=True)
+def add_hover(obsdata, p1, obsdata2=None, p2=None, obsdata3=None, p3=None):
+    """Add hover text to scatter points.
+
+    Parameters:
+        obsdata: DataFrame with observation data
+        p1: Plot object (Line2D, PathCollection, etc.) or list/tuple of plot objects
+        obsdata2: Optional second DataFrame
+        p2: Optional second plot object or list/tuple of plot objects
+        obsdata3: Optional third DataFrame
+        p3: Optional third plot object or list/tuple of plot objects
+    """
+    # mplcursors can handle lists directly, but extract for consistency
+    # Extract the actual plot object if p1/p2 are lists/tuples
+    plot1 = p1[0] if isinstance(p1, (list, tuple)) else p1
+    plot2 = None
+    plot3 = None
+    if p2 is not None:
+        plot2 = p2[0] if isinstance(p2, (list, tuple)) else p2
+    if p3 is not None:
+        plot3 = p3[0] if isinstance(p3, (list, tuple)) else p3
+
+    # Create cursors with hover enabled
+    # Note: annotation_kwargs can be used to customize the annotation appearance
+    cursor1 = mplcursors.cursor(plot1, hover=True)
+    cursor2 = None
+    cursor3 = None
+    if obsdata2 is not None and plot2 is not None:
+        cursor2 = mplcursors.cursor(plot2, hover=True)
+    if obsdata3 is not None and plot3 is not None:
+        cursor3 = mplcursors.cursor(plot3, hover=True)
+
     @cursor1.connect('add')
-    def on_add(sel):
-        row = obsdata.iloc[sel.target.index]
-        sel.annotation.set(text=f"{row.name} @ {row['Min Long']:.2f}\n"
-                                f"{str(row['Date']).split(' ')[0]} "
-                                f"a={row['Mean Phase']:.0f} e={row['Mean Emission']:.0f} "
-                                f"i={row['Incidence']:.2f}")
-        if obsdata2 is not None:
-            for s in cursor2.selections:
-                cursor2.remove_selection(s)
-    if obsdata2 is not None:
-        cursor2 = mplcursors.cursor(p2, hover=True)
+    def on_add1(sel):
+        try:
+            # Get the index - try both possible attributes
+            idx = getattr(sel, 'index', None)
+            if idx is None:
+                idx = getattr(sel.target, 'index', None)
+            if idx is None:
+                # Last resort: try to get index from target data
+                idx = sel.target.ind[0] if hasattr(sel.target, 'ind') and len(sel.target.ind) > 0 else 0
+
+            row = obsdata.iloc[idx]
+            text = (f"{row.name} @ {row['Min Long']:.2f}\n"
+                    f"{str(row['Date']).split(' ')[0]} "
+                    f"a={row['Mean Phase']:.0f} e={row['Mean Emission']:.0f} "
+                    f"i={row['Incidence']:.2f}")
+
+            # The annotation is a matplotlib Text object - use set_text()
+            sel.annotation.set_text(text)
+
+            # Clear selections from cursor2 and cursor3 if they exist
+            if cursor2 is not None:
+                try:
+                    # Get a copy of selections to avoid modification during iteration
+                    selections_to_remove = list(cursor2.selections)
+                    for s in selections_to_remove:
+                        cursor2.remove_selection(s)
+                except (AttributeError, TypeError, KeyError, ValueError):
+                    pass
+            if cursor3 is not None:
+                try:
+                    # Get a copy of selections to avoid modification during iteration
+                    selections_to_remove = list(cursor3.selections)
+                    for s in selections_to_remove:
+                        cursor3.remove_selection(s)
+                except (AttributeError, TypeError, KeyError, ValueError):
+                    pass
+        except (IndexError, KeyError, AttributeError):
+            # Silently handle errors to avoid cluttering output
+            pass
+
+    if cursor2 is not None:
         @cursor2.connect('add')
-        def on_add(sel):
-            row = obsdata2.iloc[sel.target.index]
-            sel.annotation.set(text=f"{row.name} @ {row['Min Long']:.2f}\n"
-                                    f"{str(row['Date']).split(' ')[0]} "
-                                    f"a={row['Mean Phase']:.0f} e={row['Mean Emission']:.0f} "
-                                    f"i={row['Incidence']:.2f}")
-            for s in cursor1.selections:
-                cursor1.remove_selection(s)
+        def on_add2(sel):
+            try:
+                # Get the index - try both possible attributes
+                idx = getattr(sel, 'index', None)
+                if idx is None:
+                    idx = getattr(sel.target, 'index', None)
+                if idx is None:
+                    # Last resort: try to get index from target data
+                    idx = sel.target.ind[0] if hasattr(sel.target, 'ind') and len(sel.target.ind) > 0 else 0
+
+                row = obsdata2.iloc[idx]
+                text = (f"{row.name} @ {row['Min Long']:.2f}\n"
+                        f"{str(row['Date']).split(' ')[0]} "
+                        f"a={row['Mean Phase']:.0f} e={row['Mean Emission']:.0f} "
+                        f"i={row['Incidence']:.2f}")
+
+                # The annotation is a matplotlib Text object - use set_text()
+                sel.annotation.set_text(text)
+
+                # Clear selections from cursor1
+                try:
+                    selections_to_remove = list(cursor1.selections)
+                    for s in selections_to_remove:
+                        cursor1.remove_selection(s)
+                except (AttributeError, TypeError, KeyError, ValueError):
+                    pass
+                if cursor3 is not None:
+                    try:
+                        # Get a copy of selections to avoid modification during iteration
+                        selections_to_remove = list(cursor3.selections)
+                        for s in selections_to_remove:
+                            cursor3.remove_selection(s)
+                    except (AttributeError, TypeError, KeyError, ValueError):
+                        pass
+            except (IndexError, KeyError, AttributeError):
+                # Silently handle errors to avoid cluttering output
+                pass
+
+    if cursor3 is not None:
+        @cursor3.connect('add')
+        def on_add3(sel):
+            try:
+                # Get the index - try both possible attributes
+                idx = getattr(sel, 'index', None)
+                if idx is None:
+                    idx = getattr(sel.target, 'index', None)
+                if idx is None:
+                    # Last resort: try to get index from target data
+                    idx = sel.target.ind[0] if hasattr(sel.target, 'ind') and len(sel.target.ind) > 0 else 0
+
+                row = obsdata3.iloc[idx]
+                text = (f"{row.name} @ {row['Min Long']:.2f}\n"
+                        f"{str(row['Date']).split(' ')[0]} "
+                        f"a={row['Mean Phase']:.0f} e={row['Mean Emission']:.0f} "
+                        f"i={row['Incidence']:.2f}")
+
+                # The annotation is a matplotlib Text object - use set_text()
+                sel.annotation.set_text(text)
+
+                # Clear selections from cursor1
+                try:
+                    selections_to_remove = list(cursor1.selections)
+                    for s in selections_to_remove:
+                        cursor2.remove_selection(s)
+                except (AttributeError, TypeError, KeyError, ValueError):
+                    pass
+                if cursor2 is not None:
+                    try:
+                        # Get a copy of selections to avoid modification during iteration
+                        selections_to_remove = list(cursor2.selections)
+                        for s in selections_to_remove:
+                            cursor2.remove_selection(s)
+                    except (AttributeError, TypeError, KeyError, ValueError):
+                        pass
+            except (IndexError, KeyError, AttributeError):
+                # Silently handle errors to avoid cluttering output
+                pass
+
+    # Return cursors to keep them alive (important for Jupyter)
+    return cursor1, cursor2, cursor3
 
 
 # These EWs are raw, not adjusted for emission angle
 DATA2012_DICT = {
-    'ISS_000RI_SATSRCHAP001_PRIME': [ 2.6, 0.8],
-    'ISS_00ARI_SPKMOVPER001_PRIME': [ 3.1, 0.6],
-    'ISS_006RI_LPHRLFMOV001_PRIME': [ 4.7, 0.9],
-    'ISS_007RI_LPHRLFMOV001_PRIME': [ 1.5, 0.3],
-    'ISS_029RF_FMOVIE001_VIMS':     [12.6, 2.7],
-    'ISS_031RF_FMOVIE001_VIMS':     [10.3, 1.4],
-    'ISS_032RF_FMOVIE001_VIMS':     [ 9.9, 1.8],
-    'ISS_033RF_FMOVIE001_VIMS':     [12.9, 1.7],
-    'ISS_036RF_FMOVIE001_VIMS':     [13.6, 5.3],
-    'ISS_036RF_FMOVIE002_VIMS':     [ 2.9, 2.2],
-    'ISS_039RF_FMOVIE002_VIMS':     [ 2.7, 1.7],
-    'ISS_039RF_FMOVIE001_VIMS':     [ 1.7, 1.0],
-    'ISS_041RF_FMOVIE002_VIMS':     [ 1.8, 1.0],
-    'ISS_041RF_FMOVIE001_VIMS':     [ 2.1, 0.9],
-    'ISS_044RF_FMOVIE001_VIMS':     [ 2.4, 0.9],
-    'ISS_051RI_LPMRDFMOV001_PRIME': [ 8.1, 1.6],
-    'ISS_055RF_FMOVIE001_VIMS':     [ 1.3, 0.3],
-    'ISS_055RI_LPMRDFMOV001_PRIME': [ 3.2, 0.5],
-    'ISS_057RF_FMOVIE001_VIMS':     [ 1.3, 0.3],
-    'ISS_068RF_FMOVIE001_VIMS':     [ 0.9, 0.1],
-    'ISS_075RF_FMOVIE002_VIMS':     [ 1.2, 0.2],
-    'ISS_083RI_FMOVIE109_VIMS':     [ 1.9, 0.6],
-    'ISS_087RF_FMOVIE003_PRIME':    [ 0.9, 0.2],
-    'ISS_089RF_FMOVIE003_PRIME':    [ 1.0, 0.2],
-    'ISS_100RF_FMOVIE003_PRIME':    [ 0.8, 0.1]
+    'ISS_000RI_SATSRCHAP001_PRIME': [ 2.6, 0.8, 74],
+    'ISS_00ARI_SPKMOVPER001_PRIME': [ 3.1, 0.6, 77],
+    'ISS_006RI_LPHRLFMOV001_PRIME': [ 4.7, 0.9, 84],
+    'ISS_007RI_LPHRLFMOV001_PRIME': [ 1.5, 0.3, 69],
+    'ISS_029RF_FMOVIE001_VIMS':     [12.6, 2.7, 122],
+    'ISS_031RF_FMOVIE001_VIMS':     [10.3, 1.4, 126],
+    'ISS_032RF_FMOVIE001_VIMS':     [ 9.9, 1.8, 126],
+    'ISS_033RF_FMOVIE001_VIMS':     [12.9, 1.7, 121],
+    'ISS_036RF_FMOVIE001_VIMS':     [13.6, 5.3, 124],
+    'ISS_036RF_FMOVIE002_VIMS':     [ 2.9, 2.2, 144],
+    'ISS_039RF_FMOVIE002_VIMS':     [ 2.7, 1.7, 148],
+    'ISS_039RF_FMOVIE001_VIMS':     [ 1.7, 1.0, 145],
+    'ISS_041RF_FMOVIE002_VIMS':     [ 1.8, 1.0, 144],
+    'ISS_041RF_FMOVIE001_VIMS':     [ 2.1, 0.9, 129],
+    'ISS_044RF_FMOVIE001_VIMS':     [ 2.4, 0.9, 119],
+    'ISS_051RI_LPMRDFMOV001_PRIME': [ 8.1, 1.6, 94],
+    'ISS_055RF_FMOVIE001_VIMS':     [ 1.3, 0.3, 123],
+    'ISS_055RI_LPMRDFMOV001_PRIME': [ 3.2, 0.5, 101],
+    'ISS_057RF_FMOVIE001_VIMS':     [ 1.3, 0.3, 118],
+    'ISS_068RF_FMOVIE001_VIMS':     [ 0.9, 0.1, 130],
+    'ISS_075RF_FMOVIE002_VIMS':     [ 1.2, 0.2, 116],
+    'ISS_083RI_FMOVIE109_VIMS':     [ 1.9, 0.6, 107],
+    'ISS_087RF_FMOVIE003_PRIME':    [ 0.9, 0.2, 130],
+    'ISS_089RF_FMOVIE003_PRIME':    [ 1.0, 0.2, 122],
+    'ISS_100RF_FMOVIE003_PRIME':    [ 0.8, 0.1, 128]
 }
 _data2012_obsname = DATA2012_DICT.keys()
 _data2012_ew = [x[0] for x in DATA2012_DICT.values()]
 _data2012_std = [x[1] for x in DATA2012_DICT.values()]
+_data2012_emission = [x[2] for x in DATA2012_DICT.values()]
 DATA2012_DF = pd.DataFrame({'EW Mean': _data2012_ew,
-                            'EW Std':  _data2012_std},
+                            'EW Std':  _data2012_std,
+                            'Mean Emission': _data2012_emission},
                             index=_data2012_obsname)
 
 def find_common_data_2012(obsdata, verbose=True):
@@ -669,7 +805,7 @@ def find_common_data_2012(obsdata, verbose=True):
 
     # Compute the normal EW by adjusting by the mean emission angle in the new data
     commondata['Normal EW Mean_2012'] = commondata['EW Mean_2012'] * np.abs(
-            np.cos(np.radians(commondata['Mean Emission'])))
+            np.cos(np.radians(commondata['Mean Emission_2012'])))
 
     # Compute the ratios between the new and old data
     # (these should be approximately the same)

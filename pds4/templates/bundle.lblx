@@ -20,7 +20,9 @@
             $END_FOR
             <description>
                 This bundle contains F ring mosaics and reprojected versions of Cassini ISS
-                calibrated images, along with associated metadata and documentation.
+                calibrated images, along with associated metadata, documentation, and global
+                index files. The images and mosaics cover the period from 
+                $EARLIEST_START_DATE_TIME$ to $LATEST_STOP_DATE_TIME$.
             </description>
             <List_Author>
                 <Person>
@@ -141,9 +143,9 @@
             <processing_level>Derived</processing_level>
             <description>
                 This bundle contains F ring mosaics and reprojected versions of Cassini ISS
-                calibrated images, along with associated metadata, and documentation. The images
-                and mosaics cover the period from $EARLIEST_START_DATE_TIME$ to
-                $LATEST_STOP_DATE_TIME$.
+                calibrated images, along with associated metadata, documentation, and global
+                index files. The images and mosaics cover the period from 
+                $EARLIEST_START_DATE_TIME$ to $LATEST_STOP_DATE_TIME$.
             </description>
             <Science_Facets>
                 <wavelength_range>Visible</wavelength_range>
@@ -257,7 +259,9 @@
         <bundle_type>Archive</bundle_type>
         <description>
             This bundle contains F ring mosaics and reprojected versions of Cassini ISS
-            calibrated images, along with associated metadata and documentation.
+            calibrated images, along with associated metadata, documentation, and global
+            index files. The images and mosaics cover the period from 
+            $EARLIEST_START_DATE_TIME$ to $LATEST_STOP_DATE_TIME$.
         </description>
     </Bundle>
     <File_Area_Text>
@@ -309,6 +313,11 @@
         <lid_reference>$DOCUMENT_COLLECTION_LID$</lid_reference>
         <member_status>Primary</member_status>
         <reference_type>bundle_has_document_collection</reference_type>
+    </Bundle_Member_Entry>
+    <Bundle_Member_Entry>
+        <lid_reference>$MISCELLANEOUS_COLLECTION_LID$</lid_reference>
+        <member_status>Primary</member_status>
+        <reference_type>bundle_has_miscellaneous_collection</reference_type>
     </Bundle_Member_Entry>
     <Bundle_Member_Entry>
         <lid_reference>$SPICE_KERNELS_COLLECTION_LID$</lid_reference>
