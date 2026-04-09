@@ -170,7 +170,7 @@
             mean_radius_prometheus,minimum_radius_prometheus,maximum_radius_prometheus,
             mean_corotating_longitude_pandora,minimum_corotating_longitude_pandora,maximum_corotating_longitude_pandora,
             mean_radius_pandora,minimum_radius_pandora,maximum_radius_pandora,
-            pds:creation_date_time,notes,
+            pds:creation_date_time,nav_quality,bkgnd_quality,notes,
             num_images,min_image_name,max_image_name,bkgnd_lower_limit,bkgnd_upper_limit</description>
             $ELSE
             <description>pds:logical_identifier,cassini:observation_id,file_spec,pds:start_date_time,pds:stop_date_time,
@@ -192,7 +192,7 @@
             mean_radius_prometheus,minimum_radius_prometheus,maximum_radius_prometheus,
             mean_corotating_longitude_pandora,minimum_corotating_longitude_pandora,maximum_corotating_longitude_pandora,
             mean_radius_pandora,minimum_radius_pandora,maximum_radius_pandora,
-            pds:creation_date_time,notes,
+            pds:creation_date_time,nav_quality,notes,
             num_images,min_image_name,max_image_name</description>
             $END_IF
             $ELSE
@@ -206,7 +206,7 @@
             rings:mean_emission_angle,rings:minimum_emission_angle,rings:maximum_emission_angle,
             rings:mean_radial_resolution,rings:minimum_radial_resolution,rings:maximum_radial_resolution,
             rings:mean_longitudinal_resolution,rings:minimum_longitudinal_resolution,rings:maximum_longitudinal_resolution,rings:minimum_ring_radius,rings:maximum_ring_radius,
-            core_radius,
+            mean_core_radius,minimum_core_radius,maximum_core_radius,
             longitude_ascending_node,
             longitude_pericenter,
             minimum_true_anomaly,maximum_true_anomaly,
@@ -214,7 +214,7 @@
             radius_prometheus,
             corotating_longitude_pandora,
             radius_pandora,
-            pds:creation_date_time,notes</description>
+            pds:creation_date_time,nav_quality,notes</description>
             $END_IF
         </Header>
         <Table_Character>
@@ -236,18 +236,18 @@
             <Record_Character>
                 $IF(IS_MOSAIC)
                 $IF(IS_BKGND_SUB)
-                <fields>58</fields>
+                <fields>60</fields>
                 <groups>0</groups>
-                <record_length unit="byte">770</record_length>
+                <record_length unit="byte">775</record_length>
                 $ELSE
-                <fields>56</fields>
+                <fields>57</fields>
                 <groups>0</groups>
-                <record_length unit="byte">759</record_length>
+                <record_length unit="byte">762</record_length>
                 $END_IF
                 $ELSE
-                <fields>39</fields>
+                <fields>42</fields>
                 <groups>0</groups>
-                <record_length unit="byte">600</record_length>
+                <record_length unit="byte">625</record_length>
                 $END_IF
                 <Field_Character>
                     <name>pds:logical_identifier</name>
@@ -819,10 +819,35 @@
                         The date and time when the product was created (UTC).
                     </description>
                 </Field_Character>
+                $IF(IS_BKGND_SUB)
                 <Field_Character>
-                    <name>notes</name>
+                    <name>nav_quality</name>
                     <field_number>53</field_number>
                     <field_location unit="byte">727</field_location>
+                    <data_type>ASCII_String</data_type>
+                    <field_length unit="byte">1</field_length>
+                    <unit>none</unit>
+                    <description>
+                        Subjective quality of the navigation of the images that were used to create
+                        this mosaic (G=good, F=fair, P=poor).
+                    </description>
+                </Field_Character>
+                <Field_Character>
+                    <name>bkgnd_quality</name>
+                    <field_number>54</field_number>
+                    <field_location unit="byte">729</field_location>
+                    <data_type>ASCII_String</data_type>
+                    <field_length unit="byte">1</field_length>
+                    <unit>none</unit>
+                    <description>
+                        Subjective quality of the background modeling and subtraction process used
+                        on this mosaic (G=good, F=fair, P=poor).
+                    </description>
+                </Field_Character>
+                <Field_Character>
+                    <name>notes</name>
+                    <field_number>55</field_number>
+                    <field_location unit="byte">731</field_location>
                     <data_type>ASCII_String</data_type>
                     <field_length unit="byte">4</field_length>
                     <unit>none</unit>
@@ -832,8 +857,8 @@
                 </Field_Character>
                 <Field_Character>
                     <name>num_images</name>
-                    <field_number>54</field_number>
-                    <field_location unit="byte">732</field_location>
+                    <field_number>56</field_number>
+                    <field_location unit="byte">736</field_location>
                     <data_type>ASCII_NonNegative_Integer</data_type>
                     <field_length unit="byte">4</field_length>
                     <unit>none</unit>
@@ -843,8 +868,8 @@
                 </Field_Character>
                 <Field_Character>
                     <name>min_image_name</name>
-                    <field_number>55</field_number>
-                    <field_location unit="byte">737</field_location>
+                    <field_number>57</field_number>
+                    <field_location unit="byte">741</field_location>
                     <data_type>ASCII_String</data_type>
                     <field_length unit="byte">11</field_length>
                     <description>
@@ -853,19 +878,18 @@
                 </Field_Character>
                 <Field_Character>
                     <name>max_image_name</name>
-                    <field_number>56</field_number>
-                    <field_location unit="byte">749</field_location>
+                    <field_number>58</field_number>
+                    <field_location unit="byte">753</field_location>
                     <data_type>ASCII_String</data_type>
                     <field_length unit="byte">11</field_length>
                     <description>
                         The name of the latest source image used in this mosaic.
                     </description>
                 </Field_Character>
-                $IF(IS_BKGND_SUB)
                 <Field_Character>
                     <name>bkgnd_lower_limit</name>
-                    <field_number>57</field_number>
-                    <field_location unit="byte">761</field_location>
+                    <field_number>59</field_number>
+                    <field_location unit="byte">765</field_location>
                     <data_type>ASCII_Integer</data_type>
                     <field_length unit="byte">5</field_length>
                     <unit>km</unit>
@@ -875,8 +899,8 @@
                 </Field_Character>
                 <Field_Character>
                     <name>bkgnd_upper_limit</name>
-                    <field_number>58</field_number>
-                    <field_location unit="byte">767</field_location>
+                    <field_number>60</field_number>
+                    <field_location unit="byte">771</field_location>
                     <data_type>ASCII_Integer</data_type>
                     <field_length unit="byte">4</field_length>
                     <unit>km</unit>
@@ -884,23 +908,100 @@
                         The upper ring delta radius used to delineate the background region; radii between this and core+1000 are used for background modeling.
                     </description>
                 </Field_Character>
+                $ELSE
+                <Field_Character>
+                    <name>nav_quality</name>
+                    <field_number>53</field_number>
+                    <field_location unit="byte">727</field_location>
+                    <data_type>ASCII_String</data_type>
+                    <field_length unit="byte">1</field_length>
+                    <unit>none</unit>
+                    <description>
+                        Subjective quality of the navigation of the images that were used to create
+                        this mosaic (G=good, F=fair, P=poor).
+                    </description>
+                </Field_Character>
+                <Field_Character>
+                    <name>notes</name>
+                    <field_number>54</field_number>
+                    <field_location unit="byte">729</field_location>
+                    <data_type>ASCII_String</data_type>
+                    <field_length unit="byte">4</field_length>
+                    <unit>none</unit>
+                    <description>
+                        Any notes about the product. See the User Guide for details.
+                    </description>
+                </Field_Character>
+                <Field_Character>
+                    <name>num_images</name>
+                    <field_number>55</field_number>
+                    <field_location unit="byte">734</field_location>
+                    <data_type>ASCII_NonNegative_Integer</data_type>
+                    <field_length unit="byte">4</field_length>
+                    <unit>none</unit>
+                    <description>
+                        The number of source images used to create this mosaic.
+                    </description>
+                </Field_Character>
+                <Field_Character>
+                    <name>min_image_name</name>
+                    <field_number>56</field_number>
+                    <field_location unit="byte">739</field_location>
+                    <data_type>ASCII_String</data_type>
+                    <field_length unit="byte">11</field_length>
+                    <description>
+                        The name of the earliest source image used in this mosaic.
+                    </description>
+                </Field_Character>
+                <Field_Character>
+                    <name>max_image_name</name>
+                    <field_number>57</field_number>
+                    <field_location unit="byte">751</field_location>
+                    <data_type>ASCII_String</data_type>
+                    <field_length unit="byte">11</field_length>
+                    <description>
+                        The name of the latest source image used in this mosaic.
+                    </description>
+                </Field_Character>
                 $END_IF
                 $ELSE
                 <Field_Character>
-                    <name>core_radius</name>
+                    <name>mean_core_radius</name>
                     <field_number>29</field_number>
                     <field_location unit="byte">495</field_location>
                     <data_type>ASCII_Real</data_type>
                     <field_length unit="byte">10</field_length>
                     <unit>km</unit>
                     <description>
-                        F-ring core radius for the reprojected image.
+                        Mean F-ring core radius over valid longitudes in the reprojected image.
+                    </description>
+                </Field_Character>
+                <Field_Character>
+                    <name>minimum_core_radius</name>
+                    <field_number>30</field_number>
+                    <field_location unit="byte">506</field_location>
+                    <data_type>ASCII_Real</data_type>
+                    <field_length unit="byte">10</field_length>
+                    <unit>km</unit>
+                    <description>
+                        Minimum F-ring core radius over valid longitudes in the reprojected image.
+                    </description>
+                </Field_Character>
+                <Field_Character>
+                    <name>maximum_core_radius</name>
+                    <field_number>31</field_number>
+                    <field_location unit="byte">517</field_location>
+                    <data_type>ASCII_Real</data_type>
+                    <field_length unit="byte">10</field_length>
+                    <unit>km</unit>
+                    <description>
+                        Maximum F-ring core radius over valid longitudes in the reprojected image.
                     </description>
                 </Field_Character>
                 <Field_Character>
                     <name>longitude_ascending_node</name>
-                    <field_number>30</field_number>
-                    <field_location unit="byte">506</field_location>
+                    <field_number>32</field_number>
+                    <field_location unit="byte">528</field_location>
                     <data_type>ASCII_Real</data_type>
                     <field_length unit="byte">7</field_length>
                     <unit>deg</unit>
@@ -910,8 +1011,8 @@
                 </Field_Character>
                 <Field_Character>
                     <name>longitude_pericenter</name>
-                    <field_number>31</field_number>
-                    <field_location unit="byte">514</field_location>
+                    <field_number>33</field_number>
+                    <field_location unit="byte">536</field_location>
                     <data_type>ASCII_Real</data_type>
                     <field_length unit="byte">7</field_length>
                     <unit>deg</unit>
@@ -921,8 +1022,8 @@
                 </Field_Character>
                 <Field_Character>
                     <name>minimum_true_anomaly</name>
-                    <field_number>32</field_number>
-                    <field_location unit="byte">522</field_location>
+                    <field_number>34</field_number>
+                    <field_location unit="byte">544</field_location>
                     <data_type>ASCII_Real</data_type>
                     <field_length unit="byte">7</field_length>
                     <unit>deg</unit>
@@ -932,8 +1033,8 @@
                 </Field_Character>
                 <Field_Character>
                     <name>maximum_true_anomaly</name>
-                    <field_number>33</field_number>
-                    <field_location unit="byte">530</field_location>
+                    <field_number>35</field_number>
+                    <field_location unit="byte">552</field_location>
                     <data_type>ASCII_Real</data_type>
                     <field_length unit="byte">7</field_length>
                     <unit>deg</unit>
@@ -943,8 +1044,8 @@
                 </Field_Character>
                 <Field_Character>
                     <name>corotating_longitude_prometheus</name>
-                    <field_number>34</field_number>
-                    <field_location unit="byte">538</field_location>
+                    <field_number>36</field_number>
+                    <field_location unit="byte">560</field_location>
                     <data_type>ASCII_Real</data_type>
                     <field_length unit="byte">7</field_length>
                     <unit>deg</unit>
@@ -954,8 +1055,8 @@
                 </Field_Character>
                 <Field_Character>
                     <name>radius_prometheus</name>
-                    <field_number>35</field_number>
-                    <field_location unit="byte">546</field_location>
+                    <field_number>37</field_number>
+                    <field_location unit="byte">568</field_location>
                     <data_type>ASCII_Real</data_type>
                     <field_length unit="byte">10</field_length>
                     <unit>km</unit>
@@ -965,8 +1066,8 @@
                 </Field_Character>
                 <Field_Character>
                     <name>corotating_longitude_pandora</name>
-                    <field_number>36</field_number>
-                    <field_location unit="byte">557</field_location>
+                    <field_number>38</field_number>
+                    <field_location unit="byte">579</field_location>
                     <data_type>ASCII_Real</data_type>
                     <field_length unit="byte">7</field_length>
                     <unit>deg</unit>
@@ -976,8 +1077,8 @@
                 </Field_Character>
                 <Field_Character>
                     <name>radius_pandora</name>
-                    <field_number>37</field_number>
-                    <field_location unit="byte">565</field_location>
+                    <field_number>39</field_number>
+                    <field_location unit="byte">587</field_location>
                     <data_type>ASCII_Real</data_type>
                     <field_length unit="byte">10</field_length>
                     <unit>km</unit>
@@ -987,8 +1088,8 @@
                 </Field_Character>
                 <Field_Character>
                     <name>pds:creation_date_time</name>
-                    <field_number>38</field_number>
-                    <field_location unit="byte">576</field_location>
+                    <field_number>40</field_number>
+                    <field_location unit="byte">598</field_location>
                     <data_type>ASCII_Date_Time_YMD_UTC</data_type>
                     <field_length unit="byte">20</field_length>
                     <unit>none</unit>
@@ -997,9 +1098,23 @@
                     </description>
                 </Field_Character>
                 <Field_Character>
+                    <name>nav_quality</name>
+                    <field_number>41</field_number>
+                    <field_location unit="byte">619</field_location>
+                    <data_type>ASCII_String</data_type>
+                    <field_length unit="byte">1</field_length>
+                    <unit>none</unit>
+                    <description>
+                        Subjective quality of the navigation of the images that were used to create
+                        the mosaic that this image is part of (G=good, F=fair, P=poor). Note that
+                        this does not necessarily mean that this particular image has this quality,
+                        just that all images in the same mosaic taken as a whole have this quality.
+                    </description>
+                </Field_Character>
+                <Field_Character>
                     <name>notes</name>
-                    <field_number>39</field_number>
-                    <field_location unit="byte">597</field_location>
+                    <field_number>42</field_number>
+                    <field_location unit="byte">621</field_location>
                     <data_type>ASCII_String</data_type>
                     <field_length unit="byte">4</field_length>
                     <unit>none</unit>

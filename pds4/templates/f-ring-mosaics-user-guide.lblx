@@ -23,7 +23,8 @@
                 This document is a detailed, comprehensive guide that provides an overview of the
                 Cassini ISS F Ring mosaics and associated reprojected versions of Cassini ISS
                 calibrated images archived in the PDS. It provides details essential to
-                understanding and using the data in the bundle.
+                understanding and using the data in the bundle. Example Python programs are
+                also included.
             </description>
             <List_Author>
                 <Person>
@@ -232,17 +233,42 @@
             This document is a detailed, comprehensive guide that provides an overview of the
             Cassini ISS F Ring mosaics and associated reprojected versions of Cassini ISS
             calibrated images archived in the PDS. It provides details essential to
-            understanding and using the data in the bundle.
+            understanding and using the data in the bundle. Example Python programs are
+            also included.
         </description>
         <Document_Edition>
             <edition_name>First Edition</edition_name>
             <language>English</language>
-            <files>1</files>
+            <files>5</files>
             <Document_File>
                 <file_name>$USERGUIDE_PDF_NAME$</file_name>
                 <creation_date_time>$FILE_ZULU(USERGUIDE_PDF_PATH)$</creation_date_time>
                 <md5_checksum>$FILE_MD5(USERGUIDE_PDF_PATH)$</md5_checksum>
                 <document_standard_id>PDF</document_standard_id>
+            </Document_File>
+            <Document_File>
+                <file_name>$MOSAIC_UTILS_PY_NAME$</file_name>
+                <creation_date_time>$FILE_ZULU(MOSAIC_UTILS_PY_PATH)$</creation_date_time>
+                <md5_checksum>$FILE_MD5(MOSAIC_UTILS_PY_PATH)$</md5_checksum>
+                <document_standard_id>Python</document_standard_id>
+            </Document_File>
+            <Document_File>
+                <file_name>$DISPLAY_REPROJ_IMG_PY_NAME$</file_name>
+                <creation_date_time>$FILE_ZULU(DISPLAY_REPROJ_IMG_PY_PATH)$</creation_date_time>
+                <md5_checksum>$FILE_MD5(DISPLAY_REPROJ_IMG_PY_PATH)$</md5_checksum>
+                <document_standard_id>Python</document_standard_id>
+            </Document_File>
+            <Document_File>
+                <file_name>$PLOT_EWS_MA_PY_NAME$</file_name>
+                <creation_date_time>$FILE_ZULU(PLOT_EWS_MA_PY_PATH)$</creation_date_time>
+                <md5_checksum>$FILE_MD5(PLOT_EWS_MA_PY_PATH)$</md5_checksum>
+                <document_standard_id>Python</document_standard_id>
+            </Document_File>
+            <Document_File>
+                <file_name>$PLOT_EWS_DF_PY_NAME$</file_name>
+                <creation_date_time>$FILE_ZULU(PLOT_EWS_DF_PY_PATH)$</creation_date_time>
+                <md5_checksum>$FILE_MD5(PLOT_EWS_DF_PY_PATH)$</md5_checksum>
+                <document_standard_id>Python</document_standard_id>
             </Document_File>
         </Document_Edition>
         <List_Author>

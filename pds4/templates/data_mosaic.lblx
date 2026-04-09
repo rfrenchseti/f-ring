@@ -247,13 +247,13 @@
         </File>
         <Header>
             <offset unit="byte">0</offset>
-            <object_length unit="byte">27</object_length>
+            <object_length unit="byte">19</object_length>
             <parsing_standard_id>UTF-8 Text</parsing_standard_id>
-            <description>Source Image Index, LIDVID</description>
+            <description>image_index,LIDVID</description>
         </Header>
         <Table_Character>
             <local_identifier>image_table</local_identifier>
-            <offset unit="byte">27</offset>
+            <offset unit="byte">19</offset>
             <records>$FILE_RECORDS(IMAGE_TABLE_PATH)-1$</records>
             <description>Source image indices and associated LIDVIDs</description>
             <record_delimiter>Line-Feed</record_delimiter>
@@ -262,15 +262,13 @@
                 <groups>0</groups>
                 <record_length unit="byte">102</record_length>
                 <Field_Character>
-                    <name>Source Image Index</name>
+                    <name>image_index</name>
                     <field_number>1</field_number>
                     <field_location unit="byte">1</field_location>
                     <data_type>ASCII_NonNegative_Integer</data_type>
                     <field_length unit="byte">4</field_length>
                     <description>
-                        The index number specific to this mosaic for the source image. A source
-                        image can appear in multiple mosaics and therefore will be referenced by
-                        different index numbers in each.
+                        The index number specific to this mosaic for the source image.
                     </description>
                 </Field_Character>
                 <Field_Character>
@@ -293,28 +291,33 @@
         </File>
         <Header>
             <offset unit="byte">0</offset>
-            <object_length unit="byte">349</object_length>
+            <object_length unit="byte">379</object_length>
             <parsing_standard_id>UTF-8 Text</parsing_standard_id>
-            <description>Corotating Longitude, Image Index, Mid-time SPICE ET,
-                Inertial Longitude, Radial Resolution, Angular Resolution, Incidence Angle,
-                Phase Angle, Emission Angle, Core Radius, Longitude of Ascending Node,
-                Longitude of Pericenter, True Anomaly, Corotating Longitude of Prometheus, 
-                Radius of Prometheus, Corotating Longitude of Pandora, Radius of Pandora
+            <description>
+                rings:corotating_ring_longitude,image_index,
+                rings:observed_event_tdb,
+                rings:inertial_ring_longitude,
+                rings:radial_resolution,rings:longitudinal_resolution,
+                rings:incidence_angle,rings:phase_angle,rings:emission_angle,
+                core_radius,longitude_ascending_node,longitude_pericenter,true_anomaly,
+                corotating_longitude_prometheus,radius_prometheus,
+                corotating_longitude_pandora,radius_pandora
             </description>
         </Header>
         <Table_Character>
-            <offset unit="byte">349</offset>
+            <local_identifier>metadata_params</local_identifier>
+            <offset unit="byte">379</offset>
             <records>$FILE_RECORDS(METADATA_PARAMS_TABLE_PATH)-1$</records>
             <description>
                 The metadata for each longitude in the mosaic that contains valid data.
             </description>
             <record_delimiter>Line-Feed</record_delimiter>
             <Record_Character>
-                <fields>8</fields>
+                <fields>17</fields>
                 <groups>0</groups>
                 <record_length unit="byte">165</record_length>
                 <Field_Character>
-                    <name>Corotating Longitude</name>
+                    <name>rings:corotating_ring_longitude</name>
                     <field_number>1</field_number>
                     <field_location unit="byte">1</field_location>
                     <data_type>ASCII_Real</data_type>
@@ -327,7 +330,7 @@
                     </description>
                 </Field_Character>
                 <Field_Character>
-                    <name>Image Index</name>
+                    <name>image_index</name>
                     <field_number>2</field_number>
                     <field_location unit="byte">9</field_location>
                     <data_type>ASCII_NonNegative_Integer</data_type>
@@ -340,20 +343,20 @@
                     </description>
                 </Field_Character>
                 <Field_Character>
-                    <name>Mid-time SPICE ET</name>
+                    <name>rings:observed_event_tdb</name>
                     <field_number>3</field_number>
                     <field_location unit="byte">15</field_location>
                     <data_type>ASCII_Real</data_type>
                     <field_length unit="byte">13</field_length>
                     <unit>s</unit>
                     <description>
-                        The Ephemeris Time, defined as the number of seconds since the J2000 epoch, for
-                        the middle of the exposure of the source image that provided data for this
-                        corotating longitude.
+                        The Ephemeris Time, defined as the number of seconds since the J2000 epoch,
+                        for the middle of the exposure of the source image that provided data for
+                        this corotating longitude.
                     </description>
                 </Field_Character>
                 <Field_Character>
-                    <name>Inertial Longitude</name>
+                    <name>rings:inertial_ring_longitude</name>
                     <field_number>4</field_number>
                     <field_location unit="byte">30</field_location>
                     <data_type>ASCII_Real</data_type>
@@ -366,38 +369,40 @@
                     </description>
                 </Field_Character>
                 <Field_Character>
-                    <name>Radial Resolution</name>
+                    <name>rings:radial_resolution</name>
                     <field_number>5</field_number>
                     <field_location unit="byte">39</field_location>
                     <data_type>ASCII_Real</data_type>
                     <field_length unit="byte">8</field_length>
                     <unit>km/pixel</unit>
                     <description>
-                        The mean resolution in the radial direction for image data at this corotating
-                        longitude. This information is taken from the given source image.
+                        The resolution in the radial direction for image data at this corotating
+                        longitude. This information is taken from the given reprojected source
+                        image.
                     </description>
                 </Field_Character>
                 <Field_Character>
-                    <name>Angular Resolution</name>
+                    <name>rings:longitudinal_resolution</name>
                     <field_number>6</field_number>
                     <field_location unit="byte">49</field_location>
                     <data_type>ASCII_Real</data_type>
                     <field_length unit="byte">8</field_length>
                     <unit>deg/pixel</unit>
                     <description>
-                        The mean resolution in the longitude direction for image data at this
-                        corotating longitude. This information is taken from the given source image.
+                        The angular resolution in the longitude direction for image data at this
+                        corotating longitude. This information is taken from the given reprojected
+                        source image.
                     </description>
                 </Field_Character>
                 <Field_Character>
-                    <name>Incidence Angle</name>
+                    <name>rings:incidence_angle</name>
                     <field_number>7</field_number>
-                    <field_location unit="byte">38</field_location>
+                    <field_location unit="byte">59</field_location>
                     <data_type>ASCII_Real</data_type>
                     <field_length unit="byte">7</field_length>
                     <unit>deg</unit>
                     <description>
-                        The mean incidence angle for Saturn's ring plane during the times the
+                        The incidence angle for Saturn's ring plane during the times the
                         images constituting this mosaic were taken. This field will be the same
                         for all corotating longitudes within a single mosaic. Due to the extremely
                         slow rate of change of the incidence angle, we do not compute a separate
@@ -405,89 +410,86 @@
                     </description>
                 </Field_Character>
                 <Field_Character>
-                    <name>Phase Angle</name>
+                    <name>rings:phase_angle</name>
                     <field_number>8</field_number>
                     <field_location unit="byte">68</field_location>
                     <data_type>ASCII_Real</data_type>
                     <field_length unit="byte">7</field_length>
                     <unit>deg</unit>
                     <description>
-                        The mean phase angle at this corotating longitude. This information is taken
-                        from the given source image.
+                        The phase angle at this corotating longitude. This information is taken
+                        from the given reprojected source image.
                     </description>
                 </Field_Character>
                 <Field_Character>
-                    <name>Emission Angle</name>
+                    <name>rings:emission_angle</name>
                     <field_number>9</field_number>
                     <field_location unit="byte">77</field_location>
                     <data_type>ASCII_Real</data_type>
                     <field_length unit="byte">7</field_length>
                     <unit>deg</unit>
                     <description>
-                        The mean emission angle at this corotating longitude. This information is
-                        taken from the given source image.
+                        The emission angle at this corotating longitude. This information is
+                        taken from the given reprojected source image.
                     </description>
                 </Field_Character>
                 <Field_Character>
-                    <name>Core Radius</name>
+                    <name>core_radius</name>
                     <field_number>10</field_number>
                     <field_location unit="byte">86</field_location>
                     <data_type>ASCII_Real</data_type>
                     <field_length unit="byte">10</field_length>
                     <unit>km</unit>
                     <description>
-                        The radius (absolute distance from Saturn's center) of the F ring core at
-                        this corotating longitude at the time the image that supplied data for
-                        this corotating longitude was taken.
-                        This value is computed assuming a=140221.3 km, e=0.00235, long_peri
-                        at J2000 epoch = 24.2 deg, and pericenter precession rate = 2.70025 
-                        deg/day.
+                        The F ring core radius from the elliptic model at the tabulated corotating
+                        longitude and exposure mid-time, using a=140221.3 km, e=0.00235,
+                        long_peri at J2000 = 24.2 deg, and pericenter precession rate =
+                        2.70025 deg/day.
                     </description>
                 </Field_Character>
                 <Field_Character>
-                    <name>Longitude of Ascending Node</name>
+                    <name>longitude_ascending_node</name>
                     <field_number>11</field_number>
                     <field_location unit="byte">98</field_location>
                     <data_type>ASCII_Real</data_type>
                     <field_length unit="byte">7</field_length>
                     <unit>deg</unit>
                     <description>
-                        The longitude of the ascending node for the F ring at the time the image
-                        that supplied data for this corotating longitude was taken. This field
-                        will be the same for all corotating longitudes from a single image.
-                        This value is computed assuming Omega at J2000 
-                        epoch = 15.0 deg and Omega regression rate = -2.68778 deg/day.
+                        The longitude of the ascending node for the F ring at the tabulated
+                        exposure mid-time. This field will be the same for all corotating
+                        longitudes from a single image. This value is computed assuming Omega
+                        at J2000 epoch = 15.0 deg and Omega regression rate = -2.68778 deg/day.
                     </description>
                 </Field_Character>
                 <Field_Character>
-                    <name>Longitude of Pericenter</name>
+                    <name>longitude_pericenter</name>
                     <field_number>12</field_number>
                     <field_location unit="byte">107</field_location>
                     <data_type>ASCII_Real</data_type>
                     <field_length unit="byte">7</field_length>
                     <unit>deg</unit>
                     <description>
-                        The longitude of pericenter for the F ring at the time the image
-                        that supplied data for this corotating longitude was taken. This field
-                        will be the same for all corotating longitudes from a single image.
-                        This value is computed assuming long_peri at J2000 epoch = 24.2 deg and
-                        pericenter precession rate = 2.70025 deg/day.
+                        The longitude of pericenter for the F ring at the tabulated
+                        exposure mid-time. This field will be the same for all corotating
+                        longitudes from a single image. This value is computed assuming
+                        longitude_pericenter at J2000 epoch = 24.2 deg and pericenter precession
+                        rate = 2.70025 deg/day.
                     </description>
                 </Field_Character>
                 <Field_Character>
-                    <name>True Anomaly</name>
+                    <name>true_anomaly</name>
                     <field_number>13</field_number>
                     <field_location unit="byte">116</field_location>
                     <data_type>ASCII_Real</data_type>
                     <field_length unit="byte">7</field_length>
                     <unit>deg</unit>
                     <description>
-                        The true anomaly for this corotating longitude. This value is computed as
-                        inertial_longitude - long_peri.
+                        True anomaly = (inertial_longitude - longitude_pericenter) % 360 at the
+                        tabulated exposure mid-time.
                     </description>
                 </Field_Character>
                 <Field_Character>
-                    <name>Corotating Longitude of Prometheus</name>
+                    <name>corotating_longitude_prometheus</name>
                     <field_number>14</field_number>
                     <field_location unit="byte">125</field_location>
                     <data_type>ASCII_Real</data_type>
@@ -495,14 +497,13 @@
                     <unit>deg</unit>
                     <description>
                         The corotating longitude (in the F ring reference frame) of Prometheus
-                        at the time the image that supplied data for this corotating longitude was
-                        taken. This field will be the same for all corotating longitudes from
-                        a single image. 
-                        This value is computed using the sat393.bsp SPICE kernel.
+                        at the tabulated exposure mid-time. This field will be the same for all
+                        corotating longitudes from a single image. This value is computed using
+                        the sat393.bsp SPICE kernel.
                     </description>
                 </Field_Character>
                 <Field_Character>
-                    <name>Radius of Prometheus</name>
+                    <name>radius_prometheus</name>
                     <field_number>15</field_number>
                     <field_location unit="byte">134</field_location>
                     <data_type>ASCII_Real</data_type>
@@ -510,14 +511,13 @@
                     <unit>km</unit>
                     <description>
                         The radius (absolute distance from Saturn's center) of Prometheus at
-                        the time the image that supplied data for this corotating longitude was
-                        taken. This field will be the same for all corotating longitudes from a
-                        single image.
-                        This value is computed using the sat393.bsp SPICE kernel.
+                        the tabulated exposure mid-time. This field will be the same for all
+                        corotating longitudes from a single image. This value is computed using
+                        the sat393.bsp SPICE kernel.
                     </description>
                 </Field_Character>
                 <Field_Character>
-                    <name>Corotating Longitude of Pandora</name>
+                    <name>corotating_longitude_pandora</name>
                     <field_number>16</field_number>
                     <field_location unit="byte">146</field_location>
                     <data_type>ASCII_Real</data_type>
@@ -525,14 +525,13 @@
                     <unit>deg</unit>
                     <description>
                         The corotating longitude (in the F ring reference frame) of Pandora
-                        at the time the image that supplied data for this corotating longitude was
-                        taken. This field will be the same for all corotating longitudes from a
-                        single image.
-                        This value is computed using the sat393.bsp SPICE kernel.
+                        at the tabulated exposure mid-time. This field will be the same for all
+                        corotating longitudes from a single image. This value is computed using
+                        the sat393.bsp SPICE kernel.
                     </description>
                 </Field_Character>
                 <Field_Character>
-                    <name>Radius of Pandora</name>
+                    <name>radius_pandora</name>
                     <field_number>17</field_number>
                     <field_location unit="byte">155</field_location>
                     <data_type>ASCII_Real</data_type>
@@ -540,10 +539,9 @@
                     <unit>km</unit>
                     <description>
                         The radius (absolute distance from Saturn's center) of Pandora at
-                        the time the image that supplied data for this corotating longitude was
-                        taken. This field will be the same for all corotating longitudes from a
-                        single image.
-                        This value is computed using the sat393.bsp SPICE kernel.
+                        the tabulated exposure mid-time. This field will be the same for all
+                        corotating longitudes from a single image. This value is computed using
+                        the sat393.bsp SPICE kernel.
                     </description>
                 </Field_Character>
             </Record_Character>

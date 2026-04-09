@@ -548,14 +548,15 @@ saturn_x_axis_in_j2000 = cspyce.ucrss((0,0,1), saturn_z_axis_in_j2000)
 J2000_TO_SATURN = cspyce.twovec(saturn_z_axis_in_j2000, 3,
                                 saturn_x_axis_in_j2000, 1)
 
-def saturn_to_prometheus(et):
+def saturn_to_prometheus_corot(et):
     et_arr = np.asarray(et, dtype=np.float64)
 
     def _one(t):
         (prometheus_j2000, lt) = cspyce.spkez(PROMETHEUS_ID, t, 'J2000', 'NONE', SATURN_ID)
         prometheus_sat = np.dot(J2000_TO_SATURN, prometheus_j2000[0:3])
         dist = np.sqrt(prometheus_sat[0]**2.+prometheus_sat[1]**2.+prometheus_sat[2]**2.)
-        longitude = np.degrees(math.atan2(prometheus_sat[1], prometheus_sat[0]))
+        longitude = np.degrees(math.atan2(prometheus_sat[1], prometheus_sat[0])) % 360
+        longitude = fring_inertial_to_corotating(longitude, t)
         return dist, longitude
 
     if et_arr.ndim == 0:
@@ -569,14 +570,15 @@ def saturn_to_prometheus(et):
     return dist_out.reshape(et_arr.shape), long_out.reshape(et_arr.shape)
 
 
-def saturn_to_pandora(et):
+def saturn_to_pandora_corot(et):
     et_arr = np.asarray(et, dtype=np.float64)
 
     def _one(t):
         (pandora_j2000, lt) = cspyce.spkez(PANDORA_ID, t, 'J2000', 'NONE', SATURN_ID)
         pandora_sat = np.dot(J2000_TO_SATURN, pandora_j2000[0:3])
         dist = np.sqrt(pandora_sat[0]**2.+pandora_sat[1]**2.+pandora_sat[2]**2.)
-        longitude = np.degrees(math.atan2(pandora_sat[1], pandora_sat[0]))
+        longitude = np.degrees(math.atan2(pandora_sat[1], pandora_sat[0])) % 360
+        longitude = fring_inertial_to_corotating(longitude, t)
         return dist, longitude
 
     if et_arr.ndim == 0:
@@ -809,16 +811,17 @@ def add_orbital_metadata(metadata):
     Parameters:
         metadata (dict): The metadata to mutate.
     """
-    longitudes = metadata['inertial_longitudes']
+    long_antimask = metadata['long_antimask']
+    longitudes = metadata['inertial_longitudes'][long_antimask]
     ETs = metadata['time']  # Scalar for reprojected images, array for mosaics
+    if isinstance(ETs, np.ndarray):
+        ETs = ETs[long_antimask]
     metadata['core_radius'] = fring_radius_at_longitude(longitudes, ETs)
     metadata['long_asc'] = fring_longitude_of_ascending_node(ETs)
     metadata['long_peri'] = fring_longitude_of_pericenter(ETs)
     metadata['true_anomaly'] = fring_true_anomaly(longitudes, ETs)  # Always an array
-    metadata['prometheus_dist'], metadata['prometheus_long'] = saturn_to_prometheus(ETs)
-    metadata['pandora_dist'], metadata['pandora_long'] = saturn_to_pandora(ETs)
-    metadata['prometheus_corot_long'] = fring_inertial_to_corotating(metadata['prometheus_long'], ETs)
-    metadata['pandora_corot_long'] = fring_inertial_to_corotating(metadata['pandora_long'], ETs)
+    metadata['prometheus_dist'], metadata['prometheus_corot_long'] = saturn_to_prometheus_corot(ETs)
+    metadata['pandora_dist'], metadata['pandora_corot_long'] = saturn_to_pandora_corot(ETs)
 
 
 def read_mosaic(data_path, metadata_path, *, bkg_sub=False, read_img=True):
@@ -933,17 +936,78 @@ def read_reproj(metadata_path):
                                             metadata['longitudes'],
                                             metadata['time'])
 
+    # Reprojected images are longitude-compressed, with only the valid lontitudes
+    # having image data. We expand to full size for later cropping.
+    old_img = metadata['img']
+    new_img = ma.zeros((old_img.shape[0], len(metadata['long_antimask'])),
+                       dtype=np.float32)
+    new_img[:, :] = ma.masked
+
+    new_img[:, metadata['long_antimask']] = old_img
+    metadata['img'] = new_img
+
     add_orbital_metadata(metadata)
     return metadata
 
 
-def mosaic_has_prometheus(obsid):
-    """Return True if Prometheus is present in the mosaic."""
+def _image_has_satellite(metadata, satellite_dist, satellite_long):
+    """Return True if the satellite is present in the image."""
+    long_antimask = metadata['long_antimask']
+    longitudes = metadata['longitudes'][long_antimask]  # Valid corotating longitudes
+    ETs = metadata['time']  # Scalar for reprojected images, array for mosaics
+    if isinstance(ETs, np.ndarray):
+        ETs = ETs[long_antimask]
+
+    # Find the closest longitude to the satellite longitude
+    long_diff = np.abs(longitudes - satellite_long)
+    closest_index = np.argmin(long_diff)
+    closest_diff = long_diff[closest_index]
+    if closest_diff > 0.04:  # Must be within 0.04 degrees of a valid longitude
+        return False
+    # Must have at least two valid longitudes on either side
+    # We don't account for wraparound; it's unlikely to matter
+    if closest_index < 2 or closest_index > len(longitudes) - 2:
+        return False
+
+    if isinstance(ETs, np.ndarray):
+        closest_ET = ETs[closest_index]
+        closest_sat_dist = satellite_dist[closest_index]
+    else:
+        closest_ET = ETs
+        closest_sat_dist = satellite_dist
+    closest_radius = fring_radius_at_longitude(longitudes[closest_index], closest_ET)
+    radius_sat_dist = closest_radius - closest_sat_dist
+    return ((radius_sat_dist < 0 and  # Pandora
+             radius_sat_dist > arguments.radius_outer_delta) or
+            (radius_sat_dist > 0 and  # Prometheus
+             radius_sat_dist < -arguments.radius_inner_delta))
+
+
+def image_has_prometheus(metadata):
+    """Return True if Prometheus is present in the mosaic/reproj imaged."""
+    ETs = metadata['time']
+    if isinstance(ETs, np.ndarray):
+        ETs = ETs[metadata['long_antimask']]
+    prometheus_dist, prometheus_corot_long = saturn_to_prometheus_corot(ETs)
+    return _image_has_satellite(metadata, prometheus_dist, prometheus_corot_long)
+
+
+def image_has_pandora(metadata):
+    """Return True if Pandora is present in the mosaic/reproj imaged."""
+    ETs = metadata['time']
+    if isinstance(ETs, np.ndarray):
+        ETs = ETs[metadata['long_antimask']]
+    pandora_dist, pandora_corot_long = saturn_to_pandora_corot(ETs)
+    return _image_has_satellite(metadata, pandora_dist, pandora_corot_long)
+
+
+def mosaic_has_visual_prometheus(obsid):
+    """Return True if Prometheus is visually present in the mosaic."""
     return OBSERVATION_INFO[obsid]['prometheus'] == 'Y'
 
 
-def mosaic_has_pandora(obsid):
-    """Return True if Pandora is present in the mosaic."""
+def mosaic_has_visual_pandora(obsid):
+    """Return True if Pandora is visually present in the mosaic."""
     return OBSERVATION_INFO[obsid]['pandora'] == 'Y'
 
 
@@ -971,6 +1035,7 @@ def remap_image_indexes(metadata):
     new_image_indexes = [number_map[x] for x in image_indexes]
     metadata['image_number'] = np.array(new_image_indexes)
 
+    # XXX Change for occultations? or all mosaics?
     # Only include images that we actually used in the name list
     new_image_name_list = [reformat_iss_name(image_name_list[number_map[x]])
                                for x in number_map.keys() if x != SENTINEL]
@@ -978,6 +1043,29 @@ def remap_image_indexes(metadata):
     new_image_path_list = [image_path_list[number_map[x]]
                                for x in number_map.keys() if x != SENTINEL]
     metadata['image_path_list'] = new_image_path_list
+
+
+def reslice_reproj_img(img, min_corotating_longitude, max_corotating_longitude):
+    """Reslice the reprojected image if necessary when min > max."""
+    min_corot_long_idx = int(np.round(min_corotating_longitude /
+                                      arguments.longitude_resolution))
+    max_corot_long_idx = int(np.round(max_corotating_longitude /
+                                      arguments.longitude_resolution))
+    if min_corotating_longitude < max_corotating_longitude:
+        img = img[:, min_corot_long_idx:max_corot_long_idx+1]
+
+    # If min > max, there is wraparound, so we need to put the image in
+    # the correct spot and then wrap around the end of the image to the
+    # beginning.
+    # 340 -> 30
+    num_long = (max_corot_long_idx - min_corot_long_idx + 1) % img.shape[1]
+    if num_long == 0:
+        return img  # It's the whole thing
+    ret_img = np.zeros((img.shape[0], num_long), dtype=np.float32)
+    slice1_size = img.shape[1] - min_corot_long_idx
+    ret_img[:, :slice1_size] = img[:, min_corot_long_idx:min_corot_long_idx+slice1_size]
+    ret_img[:, slice1_size:] = img[:, :max_corot_long_idx+1]
+    return ret_img
 
 
 def image_name_to_calib_lidvid(name):
@@ -1649,10 +1737,19 @@ def xml_metadata_for_image(obsid, metadata, bkgnd_metadata, img_type):
     else:
         radii = fring_radius_at_longitude(inertial_longitudes,
                                           metadata['time'][long_antimask])
-    ret['MIN_RING_RADIUS'] = f'{np.min(radii)+arguments.radius_inner_delta:.3f}'
-    ret['MIN_RING_RADIUS_FIXED'] = f'{np.min(radii)+arguments.radius_inner_delta:10.3f}'
-    ret['MAX_RING_RADIUS'] = f'{np.max(radii)+arguments.radius_outer_delta:.3f}'
-    ret['MAX_RING_RADIUS_FIXED'] = f'{np.max(radii)+arguments.radius_outer_delta:10.3f}'
+    min_radius = np.min(radii)
+    max_radius = np.max(radii)
+    mean_radius = np.mean(radii)
+    ret['MIN_CORE_RADIUS'] = f'{min_radius:.3f}'
+    ret['MIN_CORE_RADIUS_FIXED'] = f'{min_radius:10.3f}'
+    ret['MAX_CORE_RADIUS'] = f'{max_radius:.3f}'
+    ret['MAX_CORE_RADIUS_FIXED'] = f'{max_radius:10.3f}'
+    ret['MEAN_CORE_RADIUS'] = f'{mean_radius:.3f}'
+    ret['MEAN_CORE_RADIUS_FIXED'] = f'{mean_radius:10.3f}'
+    ret['MIN_RING_RADIUS'] = f'{min_radius+arguments.radius_inner_delta:.3f}'
+    ret['MIN_RING_RADIUS_FIXED'] = f'{mean_radius+arguments.radius_inner_delta:10.3f}'
+    ret['MAX_RING_RADIUS'] = f'{max_radius+arguments.radius_outer_delta:.3f}'
+    ret['MAX_RING_RADIUS_FIXED'] = f'{max_radius+arguments.radius_outer_delta:10.3f}'
 
     if img_type != 'r':
         image_name_list = metadata['image_name_list']
@@ -1686,7 +1783,6 @@ def xml_metadata_for_image(obsid, metadata, bkgnd_metadata, img_type):
 def xml_add_pds3_label_info(ret, obsid, min_image_path, max_image_path):
     """Add PDS3 label information to the XML metadata."""
     try:
-        # min_image_path = '/data/pdsdata/holdings/calibrated/COISS_2xxx/COISS_2076/data/1719817887_1720730045/W1720573566_3_CALIB.LBL'
         min_label = read_label(min_image_path)
     except FileNotFoundError:
         LOGGER.error(f'{obsid}: Failed to open label file {min_image_path}')
@@ -1758,7 +1854,7 @@ def xml_add_pds3_label_info(ret, obsid, min_image_path, max_image_path):
         julian.tdb_from_iso(min_label['IMAGE_MID_TIME'])),
         ymd=False, digits=3)
     ret['IMAGE_NUMBER'] = min_label['IMAGE_NUMBER']
-    ret['IMAGE_OBSERVATION_TYPE'] = str(min_label['IMAGE_OBSERVATION_TYPE']).strip('{}')
+    ret['IMAGE_OBSERVATION_TYPE'] = str(min_label['IMAGE_OBSERVATION_TYPE']).strip("{}'")
     ret['IMAGE_TIME'] = julian.iso_from_tai(julian.tai_from_tdb(
         julian.tdb_from_iso(min_label['IMAGE_TIME'])),
         ymd=False, digits=3)
@@ -1862,20 +1958,34 @@ def xml_add_comments(ret, img_type, obsid, metadata, bkgnd_metadata):
         ret['BROWSE_MOSAIC_COMMENT'] = """
             Browse images of the mosaic in multiple sizes in PNG format."""
 
+    target_id = ''
+    has_prometheus = image_has_prometheus(metadata)
+    has_pandora = image_has_pandora(metadata)
+    if img_type != 'r':
+        if has_prometheus != mosaic_has_visual_prometheus(obsid):
+            LOGGER.warning(f'{obsid}/{img_type}: Prometheus is {has_prometheus} in the image but {mosaic_has_visual_prometheus(obsid)} visually confirmed')
+        if has_pandora != mosaic_has_visual_pandora(obsid):
+            LOGGER.warning(f'{obsid}/{img_type}: Pandora is {has_pandora} in the image but {mosaic_has_visual_pandora(obsid)} visually confirmed')
+    if has_prometheus:
+        target_id += TARGET_PROMETHEUS
+    if has_pandora:
+        target_id += TARGET_PANDORA
+    ret['TARGET_IDENTIFICATION'] = target_id
+
     if img_type == 'r':
-        xml_add_reproj_comments(ret, metadata, root_obsid, start_date_time,
+        xml_add_reproj_comments(ret, metadata, root_obsid, obsid, start_date_time,
                                 deg_good_long,
                                 min_inertial, max_inertial, diff_inertial,
                                 min_corot_long, max_corot_long, diff_corot)
     else:
         xml_add_mosaic_comments(ret, metadata, bkgnd_metadata, img_type, root_obsid,
-                                start_date_time, stop_date_time, total_secs,
+                                obsid, start_date_time, stop_date_time, total_secs,
                                 deg_good_long,
                                 min_inertial, max_inertial, diff_inertial,
                                 min_corot_long, max_corot_long, diff_corot)
 
 
-def xml_add_reproj_comments(ret, metadata, root_obsid, start_date_time,
+def xml_add_reproj_comments(ret, metadata, root_obsid, obsid, start_date_time,
                             deg_good_long,
                             min_inertial, max_inertial, diff_inertial,
                             min_corot_long, max_corot_long, diff_corot):
@@ -1895,12 +2005,16 @@ Metadata for the Reprojected Version of Cassini ISS Calibrated Image
 
     ret['REPROJ_DESCRIPTION'] = f"""
 Reprojected version of Cassini ISS calibrated image {image_name} from
-observation {root_obsid}.
+Cassini observation {root_obsid}. This reprojected image was used to
+create mosaic {obsid.lower()}.
 
 This derived data product is part of bundle cassini_iss_fring_mosaics_rsfrench2025,
 created by Robert S. French et al., and archived at the Ring-Moon Systems Node.
 For full citation information, see collection or bundle labels.
 """
+
+    nav_qual_str = {'G': 'good', 'F': 'fair', 'P': 'poor'}[
+        OBSERVATION_INFO[obsid]['nav_qual']]
 
     ret['REPROJ_COMMENT'] = f"""
 This data file is an individual reprojected image of Saturn's F ring from Cassini ISS
@@ -1926,13 +2040,23 @@ longitudes were the same. This reprojected image contains valid data for a total
 
 Before reprojecting, the pointing specified by the available SPICE kernels was refined by
 using known features in the image. In some cases, manual intervention was required. The
-details of the navigation can be found in the supplemental file.
-
-
-Some reprojected F-ring images may include Prometheus and/or Pandora, but their presence
-has not been visually confirmed. <Target_Identification> lists only confirmed targets (the
-rings).
+details of the navigation can be found in the supplemental file. The subjective quality of
+the navigation for all of the images for mosaic {obsid.lower()} is "{nav_qual_str}".
 """
+    if 'Prometheus' in ret['TARGET_IDENTIFICATION']:
+        ret['REPROJ_COMMENT'] += """
+
+This reprojected F-ring image includes Prometheus within the valid data range, although
+its presence has not been visually confirmed.
+"""
+    if 'Pandora' in ret['TARGET_IDENTIFICATION']:
+        ret['REPROJ_COMMENT'] += """
+
+This reprojected F-ring image includes Pandora within the valid data range, although
+its presence has not been visually confirmed.
+"""
+
+
     ret['REPROJ_RINGS_DESCRIPTION'] = f"""
 The parameters in this class are derived as follows:
 
@@ -1976,7 +2100,7 @@ version of the Cassini ISS calibrated image {image_name} from {root_obsid} taken
 
 
 def xml_add_mosaic_comments(ret, metadata, bkgnd_metadata, img_type, root_obsid,
-                            start_date_time, stop_date_time, total_secs,
+                            obsid, start_date_time, stop_date_time, total_secs,
                             deg_good_long,
                             min_inertial, max_inertial, diff_inertial,
                             min_corot_long, max_corot_long, diff_corot):
@@ -1991,6 +2115,10 @@ def xml_add_mosaic_comments(ret, metadata, bkgnd_metadata, img_type, root_obsid,
     num_images = len(metadata['image_path_list'])
     min_image_name = ret['MIN_IMAGE_NAME']
     max_image_name = ret['MAX_IMAGE_NAME']
+    nav_qual_str = {'G': 'good', 'F': 'fair', 'P': 'poor'}[
+        OBSERVATION_INFO[full_obsid]['nav_qual']]
+    bkgnd_qual_str = {'G': 'good', 'F': 'fair', 'P': 'poor'}[
+        OBSERVATION_INFO[full_obsid]['bkgnd_qual']]
 
     total_hours = total_secs / 3600
 
@@ -2090,6 +2218,11 @@ consistency of the background-subtracted mosaic with other mosaics using the "st
 parameters and we do not expect the use of non-standard parameters to change the resulting
 data values by more than a few percent."""
 
+        bkg_comment += f"""
+
+The subjective quality of the background modeling and subtraction process for this
+mosaic is "{bkgnd_qual_str}"."""
+
         if 'B' in notes:
             additional_notes.append("""This background-subtracted mosaic contains
 substantially fewer valid longitudes than the original mosaic due to insufficient data
@@ -2158,7 +2291,13 @@ longitudes were the same. This mosaic image contains valid data for a total of
 {deg_good_long:.2f} degrees of co-rotating longitude spanning the (possibly discontinuous)
 {diff_corot:.2f} degrees from {min_corot_long:.2f} to {max_corot_long:.2f}. The source
 images were calibrated using CISSCAL 4.0 and the data values are in units of
-I/F.{bkg_comment}
+I/F.
+
+Before reprojecting, the pointing specified by the available SPICE kernels was refined by
+using known features in the image. In some cases, manual intervention was required. The
+details of the navigation can be found in the supplemental file for each source reprojected
+image. The subjective quality of the navigation for all of the images for this mosaic
+is "{nav_qual_str}".{bkg_comment}
 """
 
     if additional_notes:
@@ -2186,13 +2325,25 @@ the reprojection wraps around then they will be 0 and 359.98.
 ring core -1000km and +1000km at each inertial longitude containing valid data at the time
 of the observation.
 """
+    if 'Prometheus' in ret['TARGET_IDENTIFICATION']:
+        ret['MOSAIC_RINGS_DESCRIPTION'] += """
+
+This mosaic includes Prometheus within the valid data range, although its presence has not
+been visually confirmed.
+"""
+    if 'Pandora' in ret['TARGET_IDENTIFICATION']:
+        ret['MOSAIC_RINGS_DESCRIPTION'] += """
+
+This mosaic includes Pandora within the valid data range, although its presence has not
+been visually confirmed.
+"""
 
     ret['MOSAIC_IMG_FILENAME'] = f'{obsid.lower()}_mosaic{sfx}.img'
 
 
 def generate_image(obsid, output_dir, metadata, xml_metadata, global_index_fp,
                    img_type):
-    """Create mosaic images and labels and mosaic metadata tables and labels.
+    """Create mosaic/reproj images and labels and mosaic metadata tables and labels.
 
     Inputs:
         obsid               The observation name.
@@ -2265,13 +2416,6 @@ def generate_image(obsid, output_dir, metadata, xml_metadata, global_index_fp,
         image_indexes = metadata['image_number'][long_antimask]
         image_name_list = metadata['image_name_list']
 
-    target_id = ''
-    if mosaic_has_prometheus(obsid):
-        target_id += TARGET_PROMETHEUS
-    if mosaic_has_pandora(obsid):
-        target_id += TARGET_PANDORA
-    xml_metadata['TARGET_IDENTIFICATION'] = target_id
-
 
             ###############################
             ###     METADATA_TABLES     ###
@@ -2313,9 +2457,7 @@ def generate_image(obsid, output_dir, metadata, xml_metadata, global_index_fp,
                          'core_radius,'
                          'longitude_ascending_node,'
                          'longitude_pericenter,'
-                         'mean_true_anomaly,'
-                         'minimum_true_anomaly,'
-                         'maximum_true_anomaly,'
+                         'true_anomaly,'
                          'corotating_longitude_prometheus,'
                          'radius_prometheus,'
                          'corotating_longitude_pandora,'
@@ -2323,8 +2465,9 @@ def generate_image(obsid, output_dir, metadata, xml_metadata, global_index_fp,
                          '\n')
             else:
                 fp.write('rings:corotating_ring_longitude,'
-                         'rings:observed_event_tdb,'
                          'image_index,'
+                         'rings:observed_event_tdb,'
+                         'rings:inertial_ring_longitude,'
                          'rings:radial_resolution,'
                          'rings:longitudinal_resolution,'
                          'rings:incidence_angle,'
@@ -2333,9 +2476,7 @@ def generate_image(obsid, output_dir, metadata, xml_metadata, global_index_fp,
                          'core_radius,'
                          'longitude_ascending_node,'
                          'longitude_pericenter,'
-                         'mean_true_anomaly,'
-                         'minimum_true_anomaly,'
-                         'maximum_true_anomaly,'
+                         'true_anomaly,'
                          'corotating_longitude_prometheus,'
                          'radius_prometheus,'
                          'corotating_longitude_pandora,'
@@ -2352,24 +2493,23 @@ def generate_image(obsid, output_dir, metadata, xml_metadata, global_index_fp,
                     et = xml_metadata['MIDTIME_ET']
                 else:
                     et = ETs[idx]
-                radius = fring_radius_at_longitude(longitude, et)
+                core_radius = fring_radius_at_longitude(inertial, et)
                 long_asc = fring_longitude_of_ascending_node(et)
                 long_peri = fring_longitude_of_pericenter(et)
                 true_anomaly = fring_true_anomaly(inertial, et)
-                prometheus_dist, prometheus_long = saturn_to_prometheus(et)
-                pandora_dist, pandora_long = saturn_to_pandora(et)
-                prometheus_corot_long = fring_inertial_to_corotating(prometheus_long, et)
-                pandora_corot_long = fring_inertial_to_corotating(pandora_long, et)
-                
+                prometheus_dist, prometheus_corot_long = saturn_to_prometheus_corot(et)
+                pandora_dist, pandora_corot_long = saturn_to_pandora_corot(et)
+
                 row = f'{longitude:6.2f}, '
                 if img_type != 'r':
                     image_idx = image_indexes[idx]
-                    row += f'{image_idx:4d}, {et:13.3f}, '
-                row += f'{inertial:7.3f}, '
+                    row += f'{image_idx:4d}, '
+                row += f'{et:13.3f}, {inertial:7.3f}, '
                 row += (f'{rad_resolution:8.3f}, '
                         f'{ang_resolution:8.5f}, '
                         f'{incidence:7.3f}, {phase:7.3f}, {emission:7.3f}, ')
-                row += (f'{radius:10.3f}, {long_asc:7.3f}, {long_peri:7.3f}, {true_anomaly:7.3f}, '
+                row += (f'{core_radius:10.3f}, {long_asc:7.3f}, {long_peri:7.3f}, '
+                        f'{true_anomaly:7.3f}, '
                         f'{prometheus_corot_long:7.3f}, {prometheus_dist:10.3f}, '
                         f'{pandora_corot_long:7.3f}, {pandora_dist:10.3f}')
                 fp.write(row+'\n')
@@ -2378,7 +2518,7 @@ def generate_image(obsid, output_dir, metadata, xml_metadata, global_index_fp,
             # mosaic_metadata_src_imgs.tab
             LOGGER.info(f'Writing image list for mosaic {obsid} to {image_table_path}')
             with open(image_table_path, 'w') as fp:
-                fp.write('Source Image Index, LIDVID\n')
+                fp.write('image_index,LIDVID\n')
                 for idx in range(len(image_name_list)):
                     lidvid = image_name_to_reproj_lidvid(image_name_list[idx])
                     row = f'{idx:4d}, {lidvid}'
@@ -2390,9 +2530,16 @@ def generate_image(obsid, output_dir, metadata, xml_metadata, global_index_fp,
             ###############################
 
     img = ma.filled(metadata['img'], SENTINEL).astype('float32')
-    xml_metadata['IMG_NUM_SAMPLES'] = str(img.shape[1])
-    xml_metadata['IMG_NUM_LINES'] = str(img.shape[0])
     if img_type == 'r':
+        min_corot_long = float(xml_metadata['MIN_RING_COROTATING_LONG'])
+        max_corot_long = float(xml_metadata['MAX_RING_COROTATING_LONG'])
+        total_long = (max_corot_long - min_corot_long) % 360
+        total_long_idx = int(np.round(total_long / arguments.longitude_resolution)) + 1
+        img = reslice_reproj_img(img, min_corot_long, max_corot_long)
+        if total_long_idx != img.shape[1]:
+            LOGGER.error(
+                f'{obsid}/{image_name}: Total longitude index {total_long_idx} does not '
+                f'match image shape {img.shape[1]}')
         image_output_path = os.path.join(output_dir, xml_metadata['REPROJ_IMG_FILENAME'])
         label_output_path = os.path.join(output_dir,
                                          f'{image_name.lower()}_reproj_img.lblx')
@@ -2401,6 +2548,8 @@ def generate_image(obsid, output_dir, metadata, xml_metadata, global_index_fp,
         label_output_path = os.path.join(output_dir,
                                          f'{obsid.lower()}_mosaic{sfx}.lblx')
     xml_metadata['IMG_PATH'] = image_output_path
+    xml_metadata['IMG_NUM_SAMPLES'] = str(img.shape[1])
+    xml_metadata['IMG_NUM_LINES'] = str(img.shape[0])
 
     if ((img_type == 'r' and GENERATE_REPROJ_IMAGES) or
         (img_type != 'r' and GENERATE_MOSAIC_IMAGES)):
@@ -2463,6 +2612,9 @@ def generate_image(obsid, output_dir, metadata, xml_metadata, global_index_fp,
         sclk_start = xml_metadata['SPACECRAFT_CLOCK_START_COUNT']
         sclk_stop = xml_metadata['SPACECRAFT_CLOCK_STOP_COUNT']
         notes = OBSERVATION_INFO[obsid]['notes']
+        mean_core_radius = xml_metadata['MEAN_CORE_RADIUS_FIXED']
+        min_core_radius = xml_metadata['MIN_CORE_RADIUS_FIXED']
+        max_core_radius = xml_metadata['MAX_CORE_RADIUS_FIXED']
         long_asc = metadata['long_asc']
         long_peri = metadata['long_peri']
         true_anomaly = metadata['true_anomaly']
@@ -2471,6 +2623,9 @@ def generate_image(obsid, output_dir, metadata, xml_metadata, global_index_fp,
         prometheus_dist = metadata['prometheus_dist']
         pandora_corot_long = metadata['pandora_corot_long']
         pandora_dist = metadata['pandora_dist']
+        nav_qual_str = OBSERVATION_INFO[obsid]['nav_qual']
+        bkgnd_qual_str = OBSERVATION_INFO[obsid]['bkgnd_qual']
+
         if img_type == 'r':
             lid = xml_metadata['REPROJ_LID']
         else:
@@ -2502,15 +2657,13 @@ def generate_image(obsid, output_dir, metadata, xml_metadata, global_index_fp,
                f'{min_reproj_grid_ang_res},'
                f'{max_reproj_grid_ang_res},'
                f'{min_radius},'
-               f'{max_radius},')
-        
-        core_radius_arr = metadata['core_radius']
-        mean_core_radius = float(np.mean(core_radius_arr))
-        min_core_radius = float(np.min(core_radius_arr))
-        max_core_radius = float(np.max(core_radius_arr))
+               f'{max_radius},'
+               f'{mean_core_radius},'
+               f'{min_core_radius},'
+               f'{max_core_radius},')
+
         if img_type == 'r':
-            row += (f'{mean_core_radius:10.3f},'
-                    f'{long_asc:7.3f},'
+            row += (f'{long_asc:7.3f},'
                     f'{long_peri:7.3f},'
                     f'{min_true_anomaly:7.3f},'
                     f'{max_true_anomaly:7.3f},'
@@ -2531,10 +2684,7 @@ def generate_image(obsid, output_dir, metadata, xml_metadata, global_index_fp,
             min_pandora_corot_long, max_pandora_corot_long = wrapped_minmax(pandora_corot_long)
             mean_pandora_dist = np.mean(pandora_dist)
             min_pandora_dist, max_pandora_dist = wrapped_minmax(pandora_dist)
-            row += (f'{mean_core_radius:10.3f},'
-                    f'{min_core_radius:10.3f},'
-                    f'{max_core_radius:10.3f},'
-                    f'{mean_long_asc:7.3f},'
+            row += (f'{mean_long_asc:7.3f},'
                     f'{min_long_asc:7.3f},'
                     f'{max_long_asc:7.3f},'
                     f'{mean_long_peri:7.3f},'
@@ -2553,25 +2703,35 @@ def generate_image(obsid, output_dir, metadata, xml_metadata, global_index_fp,
                     f'{max_pandora_corot_long:7.3f},'
                     f'{mean_pandora_dist:10.3f},'
                     f'{min_pandora_dist:10.3f},'
-                    f'{max_pandora_dist:10.3f},'
-                    f'{current_date_time},'
-                    f'{notes:4}')
-            
+                    f'{max_pandora_dist:10.3f},')
+
+        row += (f'{current_date_time},'
+                f'{nav_qual_str:1},')
+
         if img_type == 'r' and GENERATE_REPROJ_GLOBAL_INDEX:
-            row += (f'{current_date_time},'
-                    f'{notes:4}')
+            row += (f'{notes:4}')
             global_index_fp.write(row+'\n')
+
         elif img_type in 'bm' and GENERATE_MOSAIC_GLOBAL_INDEX:
             min_image_name = xml_metadata['MIN_IMAGE_NAME']
             max_image_name = xml_metadata['MAX_IMAGE_NAME']
             num_images = xml_metadata['NUM_IMAGES']
-            row += (f',{num_images:4d},'
+            if img_type == 'm':
+                row += (
+                    f'{notes:4},'
+                    f'{num_images:4d},'
                     f'{min_image_name:11},'
                     f'{max_image_name:11}')
-            if img_type == 'b':
+
+            else:
                 lower_limit = -xml_metadata['BKGND_LOWER_LIMIT']
                 upper_limit = xml_metadata['BKGND_UPPER_LIMIT']
-                row += (f',{lower_limit:5d},'
+                row += (f'{bkgnd_qual_str:1},'
+                        f'{notes:4},'
+                        f'{num_images:4d},'
+                        f'{min_image_name:11},'
+                        f'{max_image_name:11},'
+                        f'{lower_limit:5d},'
                         f'{upper_limit:4d}')
             global_index_fp.write(row+'\n')
 
@@ -3196,7 +3356,7 @@ def generate_support_files():
     metadata['MISCELLANEOUS_COLLECTION_LID'] = MISCELLANEOUS_COLLECTION_LID
     metadata['COLLECTION_MISCELLANEOUS_CSV_NAME'] = csv_name
     metadata['COLLECTION_MISCELLANEOUS_CSV_PATH'] = csv_path
-    
+
     # spice_kernels/collection_spice_kernels.csv
     # spice_kernels/collection_spice_kernels.lblx
     metadata = BASIC_XML_METADATA.copy()
@@ -3243,6 +3403,14 @@ def generate_support_files():
     metadata['USERGUIDE_PDF_NAME'] = pdf_name
     metadata['USERGUIDE_PDF_PATH'] = pdf_path
     copy_file(pdf_name, pdf_path)
+
+    for example_name in ('display_reproj_img.py', 'plot_ews_ma.py', 'plot_ews_df.py',
+                         'mosaic_utils.py'):
+        example_path = os.path.join(user_guide_dir, example_name)
+        metadata[example_name.replace('.', '_').upper() + '_NAME'] = example_name
+        metadata[example_name.replace('.', '_').upper() + '_PATH'] = example_path
+        copy_file(f'examples/{example_name}', example_path)
+
     populate_template('f-ring-mosaics-user-guide.lblx', pdf_path.replace('.pdf', '.lblx'),
                       metadata)
 
@@ -3390,7 +3558,9 @@ BASE_INDEX_HDR = ('pds:logical_identifier,'
                   'rings:maximum_ring_radius,')
 
 GLOBAL_REPROJ_INDEX_HDR = BASE_INDEX_HDR + (
-                  'core_radius,'
+                  'mean_core_radius,'
+                  'minimum_core_radius,'
+                  'maximum_core_radius,'
                   'longitude_ascending_node,'
                   'longitude_pericenter,'
                   'minimum_true_anomaly,'
@@ -3400,6 +3570,7 @@ GLOBAL_REPROJ_INDEX_HDR = BASE_INDEX_HDR + (
                   'corotating_longitude_pandora,'
                   'radius_pandora,'
                   'pds:creation_date_time,'
+                  'nav_quality,'
                   'notes')
 
 GLOBAL_MOSAIC_INDEX_HDR_BASE = BASE_INDEX_HDR + (
@@ -3427,8 +3598,8 @@ GLOBAL_MOSAIC_INDEX_HDR_BASE = BASE_INDEX_HDR + (
                   'minimum_radius_pandora,'
                   'maximum_radius_pandora,'
                   'pds:creation_date_time,'
-                  'notes')
-    
+                  'nav_quality,')
+
 global_mosaic_index_fp = None
 global_bsm_index_fp = None
 if GENERATE_MOSAIC_GLOBAL_INDEX:
@@ -3436,7 +3607,8 @@ if GENERATE_MOSAIC_GLOBAL_INDEX:
                                                 'miscellaneous',
                                                 'global_mosaic_index.tab')
     global_mosaic_index_fp = open(global_mosaic_index_csv_path, 'w')
-    GLOBAL_MOSAIC_INDEX_HDR = GLOBAL_MOSAIC_INDEX_HDR_BASE + (',num_images,'
+    GLOBAL_MOSAIC_INDEX_HDR = GLOBAL_MOSAIC_INDEX_HDR_BASE + ('notes,'
+                                                              'num_images,'
                                                               'min_image_name,'
                                                               'max_image_name')
     global_mosaic_index_fp.write(GLOBAL_MOSAIC_INDEX_HDR+'\n')
@@ -3444,8 +3616,13 @@ if GENERATE_MOSAIC_GLOBAL_INDEX:
                                              'miscellaneous',
                                              'global_mosaic_bkg_sub_index.tab')
     global_bsm_index_fp = open(global_bsm_index_csv_path, 'w')
-    GLOBAL_BSM_INDEX_HDR = GLOBAL_MOSAIC_INDEX_HDR + (',bkgnd_lower_limit,'
-                                                      'bkgnd_upper_limit')
+    GLOBAL_BSM_INDEX_HDR = GLOBAL_MOSAIC_INDEX_HDR_BASE + ('bkgnd_quality,'
+                                                           'notes,'
+                                                           'num_images,'
+                                                           'min_image_name,'
+                                                           'max_image_name,'
+                                                           'bkgnd_lower_limit,'
+                                                           'bkgnd_upper_limit')
     global_bsm_index_fp.write(GLOBAL_BSM_INDEX_HDR+'\n')
 
 mosaic_collection_fp = None

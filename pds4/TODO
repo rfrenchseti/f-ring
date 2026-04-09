@@ -1,0 +1,43 @@
+- Change image data for reprojected images to handle new wraparound logic.
+
+- **FIXED FOR REPROJ AND MOSAIC BROWSE**
+For browse images say "The ORIGINAL mosaic data are in units of I/F."
+These browse images correspond to the F Ring mosaic created from
+reprojected, calibrated Cassini ISS images from observation
+IOSIC_276RB_COMPLITB4001_SI. The images used range from 1874525875w
+(2017-05-26T20:29:10Z) to 1874561901w (2017-05-27T06:29:36Z). The mosaic
+data are in units of I/F. The browse images map I/F to 8-bit greyscale and
+
+- **DONE** Fields to add:
+  'Core Radius, Longitude of Pericenter, Mean Anomaly, Longitude of Periapsis, '
+  'Corotating Longitude of Prometheus, Radius of Prometheus, '
+  'Co-rotating Longitude of Pandora, Radius of Pandora\n')
+
+- **IGNORE** Compare these to which observations are in the bundle
+•	AZSCAN: Azimuthal scan around the rings.
+•	EGAPMOVMP: Movie of the Encke Gap at moderate phase angle.
+•	FxxPHASE: Observe the F ring at xx degrees phase angle.
+•	FMOVIE: A stare in a fixed orientation to image F ring material passing through the NAC field of view.
+•	FRSTRCHAN: Prometheus & F ring streamer-channel movie. NAC tracks Prometheus to follow the evolution of the streamer-channel feature raised in the F ring by gravitational interaction with Prometheus at the satellite's apoapse passage.
+•	PROPRETRG: Re-targeting known "propeller" moons to track their orbits.
+•	SPK: Basically, any observation that starts with "SPK" is a spoke obs. They tend to have suffixes appended to them. Common ones are DF/LF for Dark Face/Lit Face, HP/LP for High Phase/Low Phase, and LR/MR/HR for Low Resolution/Medium Resolution/High Resolution.
+•	SPKMV: Spoke periodicity movies. These are 'point and stare' observations where we select a ring ansa and image at regular intervals (usually with the WAC) to watch spokes move through the field of view.
+
+
+- **VERIFIED** data_reproj_img/.../*.xml
+  - Each label has a lidvid_reference to a data_calibrated, e.g. urn:nasa:pds:cassini_iss_saturn:data_calibrated:1466448221n_calib::1.0
+  - Please ensure that this collection exists or will exist and that the Product LIDVIDs will match. EN has previously ingested bundle urn:nasa:pds:cassini_iss_saturn but it only has a data_raw collection, not a data_calibrated
+
+- **DONE** document/collection_document.lblx
+  - Suggestion: add the lid_references that f-ring-mosaics-user-guide.lblx has:
+    urn:nasa:pds:context:instrument:issna.co
+    urn:nasa:pds:context:instrument:isswa.co
+    urn:nasa:pds:context:instrument_host:spacecraft.co
+    urn:nasa:pds:context:investigation:mission.cassini-huygens
+    urn:nasa:pds:context:target:ring.saturn.f_ring
+    urn:nasa:pds:context:target:ring.saturn.rings
+    urn:nasa:pds:context:target:satellite.saturn.pandora
+    urn:nasa:pds:context:target:satellite.saturn.prometheus
+
+- **DONE** document/supplemental/*.lblx
+  - these are Product_Ancillary. but document/ is for Product_Document. Product_Ancillary belong in a **miscellaneous** or a geometry collection.

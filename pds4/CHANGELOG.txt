@@ -1,3 +1,5 @@
+- Major updates to the User Guide to improve thoroughness and clarity.
+
 - Added spacecraft, instrument, and targets to document/collection_document.csv
   (see below for removal of index files):
 
@@ -12,9 +14,12 @@
     S,urn:nasa:pds:context:target:satellite.saturn.pandora::1.2
     S,urn:nasa:pds:context:target:satellite.saturn.prometheus::1.2
 
-- Created "miscellaneous" collection
+- Added example Python scripts to the document collection and updated
+  f-ring-mosaics-user-guide.lblx.
+
+- Created "miscellaneous" collection to replace document/supplemental
   - LID urn:nasa:pds:cassini_iss_fring_mosaics_rsfrench2025:miscellaneous
-  - Added collection to bundle.lblx
+  - Added miscellaneous collection to bundle.lblx
 
     <Bundle_Member_Entry>
         <lid_reference>$MISCELLANEOUS_COLLECTION_LID$</lid_reference>
@@ -22,7 +27,7 @@
         <reference_type>bundle_has_miscellaneous_collection</reference_type>
     </Bundle_Member_Entry>
 
-  - Removed document/supplemental
+  - Removed the directory document/supplemental
   - Removed global index files from document/collection_document.csv
 
   - Added miscellaneous/collection_miscellaneous.csv; this file contains:
@@ -47,87 +52,113 @@
         <collection_type>Miscellaneous</collection_type>
     </Collection>
 
+- Added new columns and renamed existing columns in the
+  _mosaic[_bkg_sub]_src_imgs table and updated the associated label:
+
+    image_index
+    LIDVID
+
+- Added new columns and renamed existing columns in the
+  _reproj_img_metadata_params and _mosaic_[_bkg_sub]_metadata_params tables
+  and updated the associated labels:
+
+    rings:corotating_ring_longitude
+    image_index  (mosaics only)
+    rings:observed_event_tdb
+    rings:inertial_ring_longitude
+    rings:radial_resolution
+    rings:longitudinal_resolution
+    rings:incidence_angle
+    rings:phase_angle
+    rings:emission_angle
+    core_radius
+    longitude_ascending_node
+    longitude_pericenter
+    true_anomaly
+    corotating_longitude_prometheus
+    radius_prometheus
+    corotating_longitude_pandora
+    radius_pandora
+
+- Added new columns to global index files. For (bkg_sub) mosaics:
+
+    nav_quality
+    bkgnd_quality  (bkg_sub only)
+    mean_core_radius
+    minimum_core_radius
+    maximum_core_radius
+    mean_longitude_ascending_node
+    minimum_longitude_ascending_node
+    maximum_longitude_ascending_node
+    mean_longitude_pericenter
+    minimum_longitude_pericenter
+    maximum_longitude_pericenter
+    minimum_true_anomaly
+    maximum_true_anomaly
+    mean_corotating_longitude_prometheus
+    minimum_corotating_longitude_prometheus
+    maximum_corotating_longitude_prometheus
+    mean_radius_prometheus
+    minimum_radius_prometheus
+    maximum_radius_prometheus
+    mean_corotating_longitude_pandora
+    minimum_corotating_longitude_pandora
+    maximum_corotating_longitude_pandora
+    mean_radius_pandora
+    minimum_radius_pandora
+    maximum_radius_pandora
+
+  and for reproj_img (starting with core_radius):
+
+    nav_quality
+    mean_core_radius
+    minimum_core_radius
+    maximum_core_radius
+    longitude_ascending_node,
+    longitude_pericenter,
+    minimum_true_anomaly
+    maximum_true_anomaly
+    corotating_longitude_prometheus
+    radius_prometheus
+    corotating_longitude_pandora
+    radius_pandora
+
+- Fixed global index labels to have the proper <local_identifier> of:
+  global_reproj_img_index, global_mosaic_index, or global_mosaic_bkg_sub_index
+
+- Changed the meaning of "min" and "max" for all angles in all locations
+  (labels, metadata tables, global index files) to handle wraparound. For
+  example, if the range of longitudes is really 350 to 10, then instead of
+  0-360, which we used to do, it now says min=350 and max=10. Thus it is
+  possible for min > max.
+
+- Changed the image format of reprojected images to run from min_corot to
+  max_corot if min < max, or to run from min_corot to 359.98 then 0.00 to
+  max_corot if max < min (wraparound case). This means the reprojected image
+  is actually contiguous in corotating space, but isn't centered on 0-360.
+  The user is responsible for properly reslicing the image to place it within a
+  standard 18000x401 mosaic space. See example Python programs for how to do
+  this.
+
+- Also, the previous reprojected images were simply wrong in terms of their
+  size and longitude ranges. Fixed various bugs so they not contain the correct
+  data. No one caught this during the review.
+
+- Implemented identification of Prometheus and Pandora using predicted orbital
+  positions and the orbit of the F ring. In other words, if one of the
+  satellites is within 1000 km of the core location and also has an inertial
+  longitude that is present in the image/mosaic at the appropriate time, it is
+  assumed to be visible. In this case the appropriate <Target_Identification> is
+  added to the label. This is far superior to the previous method of relying on
+  my visual identification.
+
 - Added start/stop datetime to bundle.lblx:
 
     <description>
         This bundle contains F ring mosaics and reprojected versions of Cassini ISS
         calibrated images, along with associated metadata, documentation, and global
-        index files. The images and mosaics cover the period from 
+        index files. The images and mosaics cover the period from
         $EARLIEST_START_DATE_TIME$ to $LATEST_STOP_DATE_TIME$.
     </description>
-
-- Added new columns to _mosaic[_bkg_sub].lblx and _mosaic_[_bkg_sub]_metadata_params.tab
-  (starting with "Core Radius"):
-
-    <description>Corotating Longitude, Image Index, Mid-time SPICE ET,
-        Inertial Longitude, Radial Resolution, Angular Resolution, Incidence Angle,
-        Phase Angle, Emission Angle, Core Radius, Longitude of Ascending Node,
-        Longitude of Pericenter, True Anomaly, Corotating Longitude of Prometheus, 
-        Radius of Prometheus, Corotating Longitude of Pandora, Radius of Pandora
-    </description>
-
-- Added new columns to _reproj_img.lblx and _reproj_img_metadata_params.tab:
-  (starting with "Core Radius"):
-
-    <description>Corotating Longitude, Inertial Longitude, Radial Resolution, 
-        Angular Resolution, Phase Angle, Incidence Angle, Emission Angle, Core Radius,
-        Longitude of Ascending Node, Longitude of Pericenter, True Anomaly,
-        Corotating Longitude of Prometheus, Radius of Prometheus,
-        Corotating Longitude of Pandora, Radius of Pandora
-    </description>
-
-- Added new columns to global index files. For (bkg_sub) mosaics
-  (starting with mean_core_radius):
-
-    <description>pds:logical_identifier,cassini:observation_id,file_spec,pds:start_date_time,pds:stop_date_time,
-    cassini:spacecraft_clock_start_count,cassini:spacecraft_clock_stop_count,
-    num_valid_longitudes,percent_coverage,
-    rings:minimum_corotating_ring_longitude,rings:maximum_corotating_ring_longitude,
-    rings:minimum_inertial_ring_longitude,rings:maximum_inertial_ring_longitude,
-    rings:mean_phase_angle,rings:minimum_phase_angle,rings:maximum_phase_angle,
-    rings:mean_incidence_angle,
-    rings:mean_emission_angle,rings:minimum_emission_angle,rings:maximum_emission_angle,
-    rings:mean_radial_resolution,rings:minimum_radial_resolution,rings:maximum_radial_resolution,
-    rings:mean_longitudinal_resolution,rings:minimum_longitudinal_resolution,rings:maximum_longitudinal_resolution,
-    rings:minimum_ring_radius,rings:maximum_ring_radius,
-    mean_core_radius,minimum_core_radius,maximum_core_radius,
-    mean_longitude_ascending_node,minimum_longitude_ascending_node,maximum_longitude_ascending_node,
-    mean_longitude_pericenter,minimum_longitude_pericenter,maximum_longitude_pericenter,
-    minimum_true_anomaly,maximum_true_anomaly,
-    mean_corotating_longitude_prometheus,minimum_corotating_longitude_prometheus,maximum_corotating_longitude_prometheus,
-    mean_radius_prometheus,minimum_radius_prometheus,maximum_radius_prometheus,
-    mean_corotating_longitude_pandora,minimum_corotating_longitude_pandora,maximum_corotating_longitude_pandora,
-    mean_radius_pandora,minimum_radius_pandora,maximum_radius_pandora,
-    pds:creation_date_time,notes,
-    num_images,min_image_name,max_image_name,bkgnd_lower_limit,bkgnd_upper_limit</description>
-
-  and for reproj_img (starting with core_radius):
-
-    <description>pds:logical_identifier,cassini:observation_id,file_spec,pds:start_date_time,pds:stop_date_time,
-    cassini:spacecraft_clock_start_count,cassini:spacecraft_clock_stop_count,
-    num_valid_longitudes,percent_coverage,
-    rings:minimum_corotating_ring_longitude,rings:maximum_corotating_ring_longitude,
-    rings:minimum_inertial_ring_longitude,rings:maximum_inertial_ring_longitude,
-    rings:mean_phase_angle,rings:minimum_phase_angle,rings:maximum_phase_angle,
-    rings:mean_incidence_angle,
-    rings:mean_emission_angle,rings:minimum_emission_angle,rings:maximum_emission_angle,
-    rings:mean_radial_resolution,rings:minimum_radial_resolution,rings:maximum_radial_resolution,
-    rings:mean_longitudinal_resolution,rings:minimum_longitudinal_resolution,rings:maximum_longitudinal_resolution,rings:minimum_ring_radius,rings:maximum_ring_radius,
-    core_radius,
-    longitude_ascending_node,
-    longitude_pericenter,
-    minimum_true_anomaly,maximum_true_anomaly,
-    corotating_longitude_prometheus,
-    radius_prometheus,
-    corotating_longitude_pandora,
-    radius_pandora,
-    pds:creation_date_time,notes</description>
-
-- Fixed global index labels to have the proper <local_identifier> of:
-  global_reproj_img_index, global_mosaic_index, orglobal_mosaic_bkg_sub_index
-
-- Changed the meaning of "min" and "max" for all angles in all locations (labels, metadata tables, global index files)
-  to handle wraparound. For example, if the range of longitudes is really 350 to 10, then instead of 0-360, which we
-  used to do, it now says min=350 and max=10. Thus it is possible for min > max.
 
 - Minor wording changes to various descriptions and comments to improve clarity.

@@ -21,7 +21,7 @@
             <description>
                 This bundle contains F ring mosaics and reprojected versions of Cassini ISS
                 calibrated images, along with associated metadata, documentation, and global
-                index files. The images and mosaics cover the period from 
+                index files. The images and mosaics cover the period from
                 $EARLIEST_START_DATE_TIME$ to $LATEST_STOP_DATE_TIME$.
             </description>
             <List_Author>
@@ -144,7 +144,7 @@
             <description>
                 This bundle contains F ring mosaics and reprojected versions of Cassini ISS
                 calibrated images, along with associated metadata, documentation, and global
-                index files. The images and mosaics cover the period from 
+                index files. The images and mosaics cover the period from
                 $EARLIEST_START_DATE_TIME$ to $LATEST_STOP_DATE_TIME$.
             </description>
             <Science_Facets>
@@ -260,7 +260,7 @@
         <description>
             This bundle contains F ring mosaics and reprojected versions of Cassini ISS
             calibrated images, along with associated metadata, documentation, and global
-            index files. The images and mosaics cover the period from 
+            index files. The images and mosaics cover the period from
             $EARLIEST_START_DATE_TIME$ to $LATEST_STOP_DATE_TIME$.
         </description>
     </Bundle>
