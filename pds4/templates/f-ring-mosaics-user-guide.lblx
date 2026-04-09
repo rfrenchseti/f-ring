@@ -270,6 +270,12 @@
                 <md5_checksum>$FILE_MD5(PLOT_EWS_DF_PY_PATH)$</md5_checksum>
                 <document_standard_id>Python</document_standard_id>
             </Document_File>
+            <Document_File>
+                <file_name>$FIND_PROMETHEUS_CLOSEST_APPROACHES_PY_NAME$</file_name>
+                <creation_date_time>$FILE_ZULU(FIND_PROMETHEUS_CLOSEST_APPROACHES_PY_PATH)$</creation_date_time>
+                <md5_checksum>$FILE_MD5(FIND_PROMETHEUS_CLOSEST_APPROACHES_PY_PATH)$</md5_checksum>
+                <document_standard_id>Python</document_standard_id>
+            </Document_File>
         </Document_Edition>
         <List_Author>
             <Person>

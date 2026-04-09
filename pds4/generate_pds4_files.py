@@ -3405,7 +3405,7 @@ def generate_support_files():
     copy_file(pdf_name, pdf_path)
 
     for example_name in ('display_reproj_img.py', 'plot_ews_ma.py', 'plot_ews_df.py',
-                         'mosaic_utils.py'):
+                         'mosaic_utils.py', 'find_prometheus_closest_approaches.py'):
         example_path = os.path.join(user_guide_dir, example_name)
         metadata[example_name.replace('.', '_').upper() + '_NAME'] = example_name
         metadata[example_name.replace('.', '_').upper() + '_PATH'] = example_path
