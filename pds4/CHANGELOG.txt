@@ -52,6 +52,8 @@
         <collection_type>Miscellaneous</collection_type>
     </Collection>
 
+- Added missing element "cassini:pds3_target_desc" to reproj_img label.
+
 - Added new columns and renamed existing columns in the
   _mosaic[_bkg_sub]_src_imgs table and updated the associated label:
 
