@@ -1,9 +1,7 @@
 """General utilities for the mosaic viewer."""
 from __future__ import annotations
 
-import colorsys
 from datetime import datetime, timedelta
-from typing import Optional
 
 import numpy as np
 import numpy.ma as ma
@@ -55,7 +53,11 @@ def build_full_width_metadata(
         'corotating_longitude_pandora',
         'radius_pandora',
     ]
-    int_fields = ['image_index']
+    # Mosaics include per-column source image index; reprojected-image metadata does not.
+    names = metadata_params.dtype.names
+    if names is None:
+        names = ()
+    int_fields = ['image_index'] if 'image_index' in names else []
 
     result: dict[str, ma.MaskedArray] = {}
     for field in float_fields:
@@ -67,6 +69,9 @@ def build_full_width_metadata(
         arr = ma.masked_all(n_long, dtype=np.intp)
         arr[col_idx] = metadata_params[field].astype(np.intp)
         result[field] = arr
+
+    if 'image_index' not in result:
+        result['image_index'] = ma.masked_all(n_long, dtype=np.intp)
 
     return result
 
@@ -100,13 +105,13 @@ def show_radii_to_pixel_ys(
     In display coordinates, pixel_y=0 is outer (top) and pixel_y=n_radii-1
     is inner (bottom).  Out-of-range values are omitted.
     """
-    result = []
-    for rel in radii_rel_km:
-        arr_row = (n_radii - 1) / 2.0 + rel / radial_interval
-        pix_y = (n_radii - 1) - int(round(arr_row))
-        if 0 <= pix_y < n_radii:
-            result.append(pix_y)
-    return result
+    if n_radii < 1 or not radii_rel_km:
+        return []
+    rel = np.asarray(radii_rel_km, dtype=np.float64)
+    arr_row = (n_radii - 1) / 2.0 + rel / radial_interval
+    pix_y = (n_radii - 1) - np.round(arr_row).astype(np.intp)
+    mask = (pix_y >= 0) & (pix_y < n_radii)
+    return pix_y[mask].tolist()
 
 
 def _hsv1_to_rgb(hue_arr: np.ndarray) -> np.ndarray:

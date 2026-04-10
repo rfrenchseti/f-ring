@@ -28,7 +28,7 @@ class FilterCriteria:
     max_pandora_dist: Optional[float] = None
 
     def copy(self) -> FilterCriteria:
-        return copy.deepcopy(self)
+        return copy.copy(self)
 
 
 @dataclass
@@ -166,7 +166,7 @@ class MosaicCatalog:
         if criteria.bkgnd_quality_p:
             allowed_bkgnd.add('P')
 
-        def _check(val: Optional[float], lo: Optional[float], hi: Optional[float]) -> bool:
+        def _check(val: float, lo: Optional[float], hi: Optional[float]) -> bool:
             if lo is not None and val < lo:
                 return False
             if hi is not None and val > hi:

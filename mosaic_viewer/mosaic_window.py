@@ -1,10 +1,10 @@
 """MosaicWindow: main window for browsing F ring mosaics."""
 from __future__ import annotations
 
-import copy
+import logging
 import os
 from dataclasses import dataclass
-from typing import Optional, Any
+from typing import Any, ClassVar, Optional
 
 import numpy as np
 import numpy.ma as ma
@@ -32,6 +32,11 @@ from utils import (
     compute_ewmu, show_radii_to_pixel_ys, tdb_to_utc_str,
 )
 
+logger = logging.getLogger(__name__)
+
+# ``compute_default_stretch`` white-point ignore = 1 − percentile (e.g. 0.02 → ~98%).
+_STRETCH_BRIGHT_WHITE_IGNORE_FRAC = 0.02
+
 # User-defined EW radial bands: distinct from full-mosaic curve (steelblue).
 _EW_BAND_COLOR_CYCLE = (
     '#d62728', '#2ca02c', '#ff7f0e', '#9467bd', '#8c564b',
@@ -49,6 +54,22 @@ STATUS_BAR_HINT_REPROJ = (
     'Shift+Left to zoom to region, Left drag to pan, '
     'Ctrl+Left to set EW inner and outer radii.')
 
+# Color-by: meta field and optional fixed (lo, hi) for ``compute_color_column``.
+_COLORBY_REL_META_FIELD: dict[str, str] = {
+    'rel_rad_res': 'rings_radial_resolution',
+    'rel_ang_res': 'rings_longitudinal_resolution',
+    'rel_phase': 'rings_phase_angle',
+    'rel_emission': 'rings_emission_angle',
+    'rel_inertial': 'rings_inertial_ring_longitude',
+    'rel_true_anomaly': 'true_anomaly',
+}
+_COLORBY_ABS_RANGE: dict[str, tuple[str, float, float]] = {
+    'abs_phase': ('rings_phase_angle', 0.0, 180.0),
+    'abs_emission': ('rings_emission_angle', 0.0, 90.0),
+    'abs_inertial': ('rings_inertial_ring_longitude', 0.0, 360.0),
+    'abs_true_anomaly': ('true_anomaly', 0.0, 360.0),
+}
+
 # ======================================================================= #
 #  Loaded mosaic data                                                      #
 # ======================================================================= #
@@ -61,6 +82,9 @@ class MosaicData:
     meta: dict                    # full-width masked arrays per field
     image_table: dict             # image_index int -> LIDVID str
     obsid: str                    # e.g. iss_029rf_fmovie001_vims
+    # Parent directory name of the loaded .lblx (matches data_reproj_img/<this>/).
+    # Differs from ``obsid`` for browse products whose LID contains ``_browse_mosaic``.
+    bundle_host_dir: str
     long_interval: float
     radial_interval: float
     n_radii: int
@@ -81,6 +105,25 @@ class MosaicData:
     longitude_extent_hi_deg: Optional[float] = None
 
 
+def _mean_std_masked_1d(arr: ma.MaskedArray) -> tuple[float, float]:
+    valid = arr.compressed()
+    if valid.size == 0:
+        return 0.0, 0.0
+    return float(np.mean(valid)), float(np.std(valid))
+
+
+def _image_vmin_vmax(image_ma: ma.MaskedArray) -> tuple[float, float]:
+    valid_img = image_ma.compressed()
+    if valid_img.size > 0:
+        return float(np.min(valid_img)), float(np.max(valid_img))
+    return 0.0, 1.0
+
+
+def _bundle_host_dir_from_label_path(label_path: str) -> str:
+    """Directory name containing the product label (bundle-relative host folder)."""
+    return os.path.basename(os.path.dirname(os.path.abspath(label_path)))
+
+
 def load_mosaic(label_path: str) -> MosaicData:
     """Load a mosaic from its .lblx path and return a MosaicData instance."""
     label, image_ma, meta_params, img_table = read_mosaic_ma(
@@ -92,6 +135,7 @@ def load_mosaic(label_path: str) -> MosaicData:
         label, 'rings:reprojection_grid_radial_sampling_interval')
     n_radii, n_long = image_ma.shape
     obsid = get_mosaic_name_from_mosaic_label(label)
+    bundle_host_dir = _bundle_host_dir_from_label_path(label_path)
 
     meta = build_full_width_metadata(meta_params, n_long, long_interval)
 
@@ -103,20 +147,9 @@ def load_mosaic(label_path: str) -> MosaicData:
     emission_deg = meta['rings_emission_angle']
     ew_mu = compute_ewmu(ew, emission_deg)
 
-    valid_ew = ew.compressed()
-    ew_mean = float(np.mean(valid_ew)) if valid_ew.size > 0 else 0.0
-    ew_std = float(np.std(valid_ew)) if valid_ew.size > 0 else 0.0
-
-    valid_ewmu = ew_mu.compressed()
-    ewmu_mean = float(np.mean(valid_ewmu)) if valid_ewmu.size > 0 else 0.0
-    ewmu_std = float(np.std(valid_ewmu)) if valid_ewmu.size > 0 else 0.0
-
-    valid_img = image_ma.compressed()
-    if valid_img.size > 0:
-        image_vmin = float(np.min(valid_img))
-        image_vmax = float(np.max(valid_img))
-    else:
-        image_vmin, image_vmax = 0.0, 1.0
+    ew_mean, ew_std = _mean_std_masked_1d(ew)
+    ewmu_mean, ewmu_std = _mean_std_masked_1d(ew_mu)
+    image_vmin, image_vmax = _image_vmin_vmax(image_ma)
 
     return MosaicData(
         label=label,
@@ -124,6 +157,7 @@ def load_mosaic(label_path: str) -> MosaicData:
         meta=meta,
         image_table=img_table,
         obsid=obsid,
+        bundle_host_dir=bundle_host_dir,
         long_interval=long_interval,
         radial_interval=radial_interval,
         n_radii=n_radii,
@@ -151,6 +185,7 @@ def load_reproj(label_path: str) -> MosaicData:
         label, 'rings:reprojection_grid_radial_sampling_interval')
     n_radii, n_long = image_ma.shape
     obsid = get_mosaic_name_from_reproj_img_label(label)
+    bundle_host_dir = _bundle_host_dir_from_label_path(label_path)
     reproj_name = reproj_product_stem_from_label(label)
     meta = build_full_width_metadata(meta_params, n_long, long_interval)
     mean_core = float(np.mean(meta['core_radius'].compressed()))
@@ -160,19 +195,9 @@ def load_reproj(label_path: str) -> MosaicData:
     emission_deg = meta['rings_emission_angle']
     ew_mu = compute_ewmu(ew, emission_deg)
 
-    valid_ew = ew.compressed()
-    ew_mean = float(np.mean(valid_ew)) if valid_ew.size > 0 else 0.0
-    ew_std = float(np.std(valid_ew)) if valid_ew.size > 0 else 0.0
-    valid_ewmu = ew_mu.compressed()
-    ewmu_mean = float(np.mean(valid_ewmu)) if valid_ewmu.size > 0 else 0.0
-    ewmu_std = float(np.std(valid_ewmu)) if valid_ewmu.size > 0 else 0.0
-
-    valid_img = image_ma.compressed()
-    if valid_img.size > 0:
-        image_vmin = float(np.min(valid_img))
-        image_vmax = float(np.max(valid_img))
-    else:
-        image_vmin, image_vmax = 0.0, 1.0
+    ew_mean, ew_std = _mean_std_masked_1d(ew)
+    ewmu_mean, ewmu_std = _mean_std_masked_1d(ew_mu)
+    image_vmin, image_vmax = _image_vmin_vmax(image_ma)
 
     # Open longitude interval at 360° (matches display_reproj_img.py imshow extent).
     lon_hi = 360.0 - float(long_interval)
@@ -183,6 +208,7 @@ def load_reproj(label_path: str) -> MosaicData:
         meta=meta,
         image_table={},
         obsid=obsid,
+        bundle_host_dir=bundle_host_dir,
         long_interval=long_interval,
         radial_interval=radial_interval,
         n_radii=n_radii,
@@ -293,6 +319,22 @@ EW_PROFILE_LEFT_GUTTER_PX = 58
 class MosaicWindow(QMainWindow):
     """One independent mosaic viewer window."""
 
+    # Extra top-level windows (reproj / New Win) must stay referenced; otherwise
+    # Python's GC can collect them after the slot returns while Qt still shows them.
+    _retained_top_level_windows: ClassVar[list[QMainWindow]] = []
+
+    @staticmethod
+    def _retain_top_level_window(win: QMainWindow) -> None:
+        MosaicWindow._retained_top_level_windows.append(win)
+
+        def _release(*_args) -> None:
+            try:
+                MosaicWindow._retained_top_level_windows.remove(win)
+            except ValueError:
+                pass
+
+        win.destroyed.connect(_release)
+
     def __init__(
         self,
         catalog: Optional[MosaicCatalog] = None,
@@ -330,13 +372,16 @@ class MosaicWindow(QMainWindow):
         self._ew_first_py: float = 0.0
         # Remembered radial band ranges (array row indices) for corotating EW plot
         self._ew_radial_ranges: list[tuple[int, int]] = []
+        self._pending_fit: bool = False
         self._pending_reproj_fit: bool = False
         self._reproj_open_fit_pending: bool = False
+        self._is_loading: bool = False
         # Radial profile: reused Line2D (avoid ax.clear() every mouse move).
         self._radial_profile_line: Any = None
 
         self._setup_ui()
         if self._reproj_mode:
+            self.setWindowTitle('Reprojected image — loading…')
             self._load_reproj_label(reproj_label_path)
         else:
             self._update_filtered_list(initial_record)
@@ -377,12 +422,16 @@ class MosaicWindow(QMainWindow):
             from PyQt6 import sip
             if sip.isdeleted(c):
                 return
-        except Exception:
-            pass
+        except ImportError as e:
+            logger.debug('PyQt6 sip import failed: %s', e)
+        except ModuleNotFoundError as e:
+            logger.debug('PyQt6 sip module not found: %s', e)
+        except AttributeError as e:
+            logger.debug('sip.isdeleted unavailable: %s', e)
         try:
             c.draw()
-        except RuntimeError:
-            pass
+        except RuntimeError as e:
+            logger.debug('radial canvas draw failed: %s', e)
 
     # ------------------------------------------------------------------ #
     #  UI construction                                                     #
@@ -848,9 +897,12 @@ class MosaicWindow(QMainWindow):
         upper_h.setContentsMargins(0, 0, 0, 0)
         upper_h.setSpacing(6)
 
-        # Stretch group
+        # Stretch group: sliders + presets (Reset / Full / Bright)
         stretch_box = QGroupBox('Stretch')
-        stretch_form = QFormLayout(stretch_box)
+        stretch_outer = QHBoxLayout(stretch_box)
+        stretch_outer.setContentsMargins(4, 4, 4, 4)
+        stretch_outer.setSpacing(8)
+        stretch_form = QFormLayout()
         stretch_form.setHorizontalSpacing(4)
 
         def _make_stretch_row():
@@ -882,6 +934,28 @@ class MosaicWindow(QMainWindow):
             self._gamma_le, self._gamma_sl, 0.01, 5.0, '%.3f',
             on_change=lambda _: self._apply_stretch())
         self._gamma_sync.set_value(0.5)
+
+        stretch_btn_col = QVBoxLayout()
+        stretch_btn_col.setSpacing(4)
+        btn_stretch_reset = QPushButton('Reset')
+        btn_stretch_full = QPushButton('Full')
+        btn_stretch_bright = QPushButton('Bright')
+        btn_stretch_reset.setToolTip(
+            'Restore default stretch for this image (min black, ~99.5% white).')
+        btn_stretch_full.setToolTip(
+            'Set black and white to the min and max of valid image pixels.')
+        btn_stretch_bright.setToolTip(
+            'Same as default auto-stretch but clip the brightest 2% (~98% white).')
+        btn_stretch_reset.clicked.connect(self._on_stretch_preset_reset)
+        btn_stretch_full.clicked.connect(self._on_stretch_preset_full)
+        btn_stretch_bright.clicked.connect(self._on_stretch_preset_bright)
+        for b in (btn_stretch_reset, btn_stretch_full, btn_stretch_bright):
+            b.setMaximumWidth(72)
+            stretch_btn_col.addWidget(b)
+        stretch_btn_col.addStretch()
+
+        stretch_outer.addLayout(stretch_form, stretch=1)
+        stretch_outer.addLayout(stretch_btn_col)
         upper_h.addWidget(stretch_box, stretch=2)
 
         # Zoom group
@@ -942,7 +1016,6 @@ class MosaicWindow(QMainWindow):
         # orbit & moons | source & EW
         info_box = QGroupBox('Cursor Info')
         info_grid_widget = QWidget()
-        from PyQt6.QtWidgets import QGridLayout
         info_grid = QGridLayout(info_grid_widget)
         info_grid.setHorizontalSpacing(10)
         info_grid.setVerticalSpacing(0)
@@ -1073,20 +1146,23 @@ class MosaicWindow(QMainWindow):
         if self._catalog is None:
             return
         self._filtered = self._catalog.filter(self._criteria)
-        self._mosaic_list.blockSignals(True)
-        self._mosaic_list.clear()
+        mosaic_list = getattr(self, '_mosaic_list', None)
+        if mosaic_list is None:
+            return
+        mosaic_list.blockSignals(True)
+        mosaic_list.clear()
         for rec in self._filtered:
             item = QListWidgetItem(rec.name)
             item.setData(Qt.ItemDataRole.UserRole, rec)
-            self._mosaic_list.addItem(item)
-        self._mosaic_list.blockSignals(False)
+            mosaic_list.addItem(item)
+        mosaic_list.blockSignals(False)
 
         # Choose which record to show
         target = prefer_record
         if target is None and self._mosaic_data is not None:
             # Try to keep current mosaic
             for rec in self._filtered:
-                if rec.name == self._mosaic_data.obsid:
+                if rec.name == self._mosaic_data.bundle_host_dir:
                     target = rec
                     break
         if target is None and self._filtered:
@@ -1109,67 +1185,109 @@ class MosaicWindow(QMainWindow):
     def _refresh_list_selection(self) -> None:
         if self._catalog is None:
             return
-        self._mosaic_list.blockSignals(True)
-        for i in range(self._mosaic_list.count()):
-            item = self._mosaic_list.item(i)
+        mosaic_list = getattr(self, '_mosaic_list', None)
+        if mosaic_list is None:
+            return
+        mosaic_list.blockSignals(True)
+        for i in range(mosaic_list.count()):
+            item = mosaic_list.item(i)
             rec: MosaicRecord = item.data(Qt.ItemDataRole.UserRole)
             is_current = (self._mosaic_data is not None
-                          and rec.name == self._mosaic_data.obsid)
+                          and rec.name == self._mosaic_data.bundle_host_dir)
             font = item.font()
             font.setBold(is_current)
             item.setFont(font)
-        if 0 <= self._current_idx < self._mosaic_list.count():
-            self._mosaic_list.setCurrentRow(self._current_idx)
-            self._mosaic_list.scrollToItem(self._mosaic_list.currentItem())
-        self._mosaic_list.blockSignals(False)
+        if 0 <= self._current_idx < mosaic_list.count():
+            mosaic_list.setCurrentRow(self._current_idx)
+            mosaic_list.scrollToItem(mosaic_list.currentItem())
+        mosaic_list.blockSignals(False)
 
     def _update_nav_buttons(self) -> None:
         if self._catalog is None:
             return
+        btn_prev = getattr(self, '_btn_prev', None)
+        btn_next = getattr(self, '_btn_next', None)
+        if btn_prev is None or btn_next is None:
+            return
         n = len(self._filtered)
-        self._btn_prev.setEnabled(self._current_idx > 0)
-        self._btn_next.setEnabled(self._current_idx < n - 1)
+        btn_prev.setEnabled(self._current_idx > 0)
+        btn_next.setEnabled(self._current_idx < n - 1)
 
     # ------------------------------------------------------------------ #
     #  Mosaic loading                                                      #
     # ------------------------------------------------------------------ #
 
+    def _set_loading_ui(self, enabled: bool) -> None:
+        # Reproj-only windows omit the catalog sidebar; those widgets are absent.
+        mosaic_list = getattr(self, '_mosaic_list', None)
+        if mosaic_list is not None:
+            mosaic_list.setEnabled(enabled)
+        btn_filter = getattr(self, '_btn_filter', None)
+        if btn_filter is not None:
+            btn_filter.setEnabled(enabled)
+        btn_new_win = getattr(self, '_btn_new_win', None)
+        if btn_new_win is not None:
+            btn_new_win.setEnabled(enabled)
+        btn_prev = getattr(self, '_btn_prev', None)
+        btn_next = getattr(self, '_btn_next', None)
+        if enabled:
+            self._update_nav_buttons()
+        else:
+            if btn_prev is not None:
+                btn_prev.setEnabled(False)
+            if btn_next is not None:
+                btn_next.setEnabled(False)
+
     def _load_mosaic_record(self, record: MosaicRecord) -> None:
+        if self._is_loading:
+            return
+        self._is_loading = True
+        self._set_loading_ui(False)
         self.statusBar().showMessage(f'Loading {record.name} …')
         QApplication.setOverrideCursor(QCursor(Qt.CursorShape.WaitCursor))
-        QApplication.processEvents()
         try:
-            label_path = self._catalog.label_path(record)
-            md = load_mosaic(label_path)
-        except Exception as exc:
+            try:
+                label_path = self._catalog.label_path(record)
+                md = load_mosaic(label_path)
+            except Exception as exc:
+                self.statusBar().showMessage(f'Error loading {record.name}: {exc}')
+                return
+            mode = 'bkg-sub' if self._catalog.bkg_sub else 'no-bkg-sub'
+            n = len(self._filtered)
+            idx = self._current_idx + 1
+            ns = record.notes.strip()
+            head = f'{md.obsid} [{ns}]' if ns else md.obsid
+            title = f'{head} ({mode}) [{idx} of {n}]'
+            self._apply_loaded_mosaic(md, title=title, reproj_initial_zoom=False)
+            self._refresh_list_selection()
+            self._update_nav_buttons()
+        finally:
             QApplication.restoreOverrideCursor()
-            self.statusBar().showMessage(f'Error loading {record.name}: {exc}')
-            return
-        QApplication.restoreOverrideCursor()
-
-        mode = 'bkg-sub' if self._catalog.bkg_sub else 'no-bkg-sub'
-        n = len(self._filtered)
-        idx = self._current_idx + 1
-        ns = record.notes.strip()
-        head = f'{md.obsid} [{ns}]' if ns else md.obsid
-        title = f'{head} ({mode}) [{idx} of {n}]'
-        self._apply_loaded_mosaic(md, title=title, reproj_initial_zoom=False)
-        self._refresh_list_selection()
-        self._update_nav_buttons()
+            self._is_loading = False
+            self._set_loading_ui(True)
 
     def _load_reproj_label(self, label_path: str) -> None:
+        if self._is_loading:
+            return
+        self._is_loading = True
+        self._set_loading_ui(False)
         self.statusBar().showMessage('Loading reproj …')
         QApplication.setOverrideCursor(QCursor(Qt.CursorShape.WaitCursor))
-        QApplication.processEvents()
         try:
-            md = load_reproj(label_path)
-        except Exception as exc:
+            try:
+                md = load_reproj(label_path)
+            except Exception as exc:
+                self.statusBar().showMessage(f'Error loading reproj: {exc}')
+                QMessageBox.critical(
+                    self, 'Reprojected image',
+                    f'Could not load reprojected image:\n{exc}')
+                return
+            title = f'Reproj: {md.obsid} / {md.reproj_name}'
+            self._apply_loaded_mosaic(md, title=title, reproj_initial_zoom=True)
+        finally:
             QApplication.restoreOverrideCursor()
-            self.statusBar().showMessage(f'Error: {exc}')
-            return
-        QApplication.restoreOverrideCursor()
-        title = f'Reproj: {md.obsid} / {md.reproj_name}'
-        self._apply_loaded_mosaic(md, title=title, reproj_initial_zoom=True)
+            self._is_loading = False
+            self._set_loading_ui(True)
 
     def _apply_loaded_mosaic(
         self,
@@ -1207,6 +1325,13 @@ class MosaicWindow(QMainWindow):
         )
         self._image_widget.set_stretch(black, white, gamma)
 
+        if md.is_reproj:
+            # Full-ring grid is mostly masked at low column indices; default
+            # scroll (0) shows empty black until zoom-fit runs. Scroll to valid
+            # data immediately so the first paint is meaningful even if the
+            # viewport size is still 0 and zoom-fit defers to resize/show.
+            self._ensure_reproj_scroll_shows_data(md)
+
         pixel_ys = show_radii_to_pixel_ys(
             self._show_radii_rel_km,
             md.n_radii, md.radial_interval)
@@ -1228,6 +1353,10 @@ class MosaicWindow(QMainWindow):
         if reproj_initial_zoom:
             self._reproj_open_fit_pending = True
             self._fit_zoom_to_reproj_data()
+            # Second pass after the event loop lays out the viewport (first
+            # call often sees width/height 0 during __init__).
+            QTimer.singleShot(0, self._deferred_reproj_zoom_fit)
+            QTimer.singleShot(100, self._deferred_reproj_zoom_fit)
         else:
             self._fit_zoom_to_window()
         self._sync_axis_tick_options()
@@ -1244,6 +1373,15 @@ class MosaicWindow(QMainWindow):
     # ------------------------------------------------------------------ #
     #  Stretch                                                             #
     # ------------------------------------------------------------------ #
+
+    def _ensure_reproj_scroll_shows_data(self, md: MosaicData) -> None:
+        """Scroll so the viewport includes at least one unmasked longitude column."""
+        unmasked = np.where(~np.all(ma.getmaskarray(md.image_ma), axis=0))[0]
+        if unmasked.size == 0:
+            return
+        cx = (float(unmasked[0]) + float(unmasked[-1])) / 2.0
+        cy = (md.n_radii - 1) / 2.0
+        self._image_widget.scroll_to_pixel(cx, cy)
 
     def _fit_zoom_to_reproj_data(self) -> None:
         """Zoom and scroll to the unmasked longitude span (reproj on 360° grid)."""
@@ -1308,6 +1446,41 @@ class MosaicWindow(QMainWindow):
         g = self._gamma_sync.get_value()
         self._image_widget.set_stretch(b, w, g)
 
+    def _on_stretch_preset_reset(self) -> None:
+        """Auto defaults for this mosaic (``md.black`` / ``md.white``, 99.5% white)."""
+        md = self._mosaic_data
+        if md is None:
+            return
+        self._black_sync.set_value(md.black)
+        self._white_sync.set_value(md.white)
+        self._gamma_sync.set_value(self._default_gamma)
+        self._apply_stretch()
+
+    def _on_stretch_preset_full(self) -> None:
+        """Black / white = min / max over valid pixels."""
+        md = self._mosaic_data
+        if md is None:
+            return
+        b, w = md.image_vmin, md.image_vmax
+        if w <= b:
+            w = b + 1e-6
+        self._black_sync.set_value(b)
+        self._white_sync.set_value(w)
+        self._apply_stretch()
+
+    def _on_stretch_preset_bright(self) -> None:
+        """Auto stretch with a lower white point (~98% / clip top 2%)."""
+        md = self._mosaic_data
+        if md is None:
+            return
+        b, w = compute_default_stretch(
+            md.image_ma,
+            white_point_ignore_frac=_STRETCH_BRIGHT_WHITE_IGNORE_FRAC,
+        )
+        self._black_sync.set_value(b)
+        self._white_sync.set_value(w)
+        self._apply_stretch()
+
     # ------------------------------------------------------------------ #
     #  Color-by                                                            #
     # ------------------------------------------------------------------ #
@@ -1326,38 +1499,7 @@ class MosaicWindow(QMainWindow):
     ) -> Optional[np.ndarray]:
         if key == 'none':
             return None
-
         meta = md.meta
-        if key == 'rel_rad_res':
-            vals = meta['rings_radial_resolution']
-            valid = vals.compressed()
-            if valid.size == 0:
-                return None
-            return compute_color_column(vals, float(valid.min()), float(valid.max()))
-        if key == 'rel_ang_res':
-            vals = meta['rings_longitudinal_resolution']
-            valid = vals.compressed()
-            if valid.size == 0:
-                return None
-            return compute_color_column(vals, float(valid.min()), float(valid.max()))
-        if key == 'abs_phase':
-            vals = meta['rings_phase_angle']
-            return compute_color_column(vals, 0.0, 180.0)
-        if key == 'rel_phase':
-            vals = meta['rings_phase_angle']
-            valid = vals.compressed()
-            if valid.size == 0:
-                return None
-            return compute_color_column(vals, float(valid.min()), float(valid.max()))
-        if key == 'abs_emission':
-            vals = meta['rings_emission_angle']
-            return compute_color_column(vals, 0.0, 90.0)
-        if key == 'rel_emission':
-            vals = meta['rings_emission_angle']
-            valid = vals.compressed()
-            if valid.size == 0:
-                return None
-            return compute_color_column(vals, float(valid.min()), float(valid.max()))
         if key == 'image_no':
             if not self._colorby_include_image_number:
                 return None
@@ -1369,24 +1511,16 @@ class MosaicWindow(QMainWindow):
             return compute_color_column(
                 ma.array(vals_f, mask=ma.getmaskarray(vals)),
                 float(valid.min()), float(valid.max()))
-        if key == 'abs_inertial':
-            vals = meta['rings_inertial_ring_longitude']
-            return compute_color_column(vals, 0.0, 360.0)
-        if key == 'rel_inertial':
-            vals = meta['rings_inertial_ring_longitude']
+        if key in _COLORBY_REL_META_FIELD:
+            vals = meta[_COLORBY_REL_META_FIELD[key]]
             valid = vals.compressed()
             if valid.size == 0:
                 return None
             return compute_color_column(vals, float(valid.min()), float(valid.max()))
-        if key == 'abs_true_anomaly':
-            vals = meta['true_anomaly']
-            return compute_color_column(vals, 0.0, 360.0)
-        if key == 'rel_true_anomaly':
-            vals = meta['true_anomaly']
-            valid = vals.compressed()
-            if valid.size == 0:
-                return None
-            return compute_color_column(vals, float(valid.min()), float(valid.max()))
+        if key in _COLORBY_ABS_RANGE:
+            field, lo, hi = _COLORBY_ABS_RANGE[key]
+            vals = meta[field]
+            return compute_color_column(vals, lo, hi)
         return None
 
     # ------------------------------------------------------------------ #
@@ -1439,7 +1573,7 @@ class MosaicWindow(QMainWindow):
         if self._mosaic_data is None:
             return
         md = self._mosaic_data
-        stem = md.reproj_name if md.is_reproj else md.obsid
+        stem = md.reproj_name if md.is_reproj else md.bundle_host_dir
         path, _ = QFileDialog.getSaveFileName(
             self, 'Save Field of View',
             f'{stem}_fov.png',
@@ -1454,6 +1588,29 @@ class MosaicWindow(QMainWindow):
     # ------------------------------------------------------------------ #
     #  Mouse info panel                                                    #
     # ------------------------------------------------------------------ #
+
+    @staticmethod
+    def _format_meta_at_ix(
+        meta: dict, ix: int, field: str, fmt: str = '%.4f',
+    ) -> str:
+        arr = meta[field]
+        v = arr[ix]
+        if ma.is_masked(v):
+            return '---'
+        return fmt % float(v)
+
+    @staticmethod
+    def _fmt_deg(s: str) -> str:
+        return f'{s}°' if s != '---' else '---'
+
+    @staticmethod
+    def _rel_sat_to_core(radius_s: str, core_str: str) -> str:
+        if radius_s == '---' or core_str == '---':
+            return '---'
+        try:
+            return f'{float(radius_s) - float(core_str):.2f} km'
+        except ValueError:
+            return '---'
 
     def _on_mouse_moved(self, px: float, py: float, in_bounds: bool) -> None:
         if not in_bounds or self._mosaic_data is None:
@@ -1477,27 +1634,20 @@ class MosaicWindow(QMainWindow):
         # Metadata at this column
         meta = md.meta
 
-        def _get(field: str, fmt: str = '%.4f') -> str:
-            arr = meta[field]
-            v = arr[ix]
-            if ma.is_masked(v):
-                return '---'
-            return fmt % float(v)
-
-        inert = _get('rings_inertial_ring_longitude', '%.4f')
-        incid = _get('rings_incidence_angle', '%.3f')
-        phase = _get('rings_phase_angle', '%.3f')
-        emiss = _get('rings_emission_angle', '%.3f')
-        rad_r = _get('rings_radial_resolution', '%.3f')
-        lng_r = _get('rings_longitudinal_resolution', '%.5f')
-        core_s = _get('core_radius', '%.2f')
-        long_asc = _get('longitude_ascending_node', '%.4f')
-        long_peri = _get('longitude_pericenter', '%.4f')
-        true_anom = _get('true_anomaly', '%.4f')
-        prom_c = _get('corotating_longitude_prometheus', '%.4f')
-        prom_r = _get('radius_prometheus', '%.2f')
-        pand_c = _get('corotating_longitude_pandora', '%.4f')
-        pand_r = _get('radius_pandora', '%.2f')
+        inert = self._format_meta_at_ix(meta, ix, 'rings_inertial_ring_longitude', '%.4f')
+        incid = self._format_meta_at_ix(meta, ix, 'rings_incidence_angle', '%.3f')
+        phase = self._format_meta_at_ix(meta, ix, 'rings_phase_angle', '%.3f')
+        emiss = self._format_meta_at_ix(meta, ix, 'rings_emission_angle', '%.3f')
+        rad_r = self._format_meta_at_ix(meta, ix, 'rings_radial_resolution', '%.3f')
+        lng_r = self._format_meta_at_ix(meta, ix, 'rings_longitudinal_resolution', '%.5f')
+        core_s = self._format_meta_at_ix(meta, ix, 'core_radius', '%.2f')
+        long_asc = self._format_meta_at_ix(meta, ix, 'longitude_ascending_node', '%.4f')
+        long_peri = self._format_meta_at_ix(meta, ix, 'longitude_pericenter', '%.4f')
+        true_anom = self._format_meta_at_ix(meta, ix, 'true_anomaly', '%.4f')
+        prom_c = self._format_meta_at_ix(meta, ix, 'corotating_longitude_prometheus', '%.4f')
+        prom_r = self._format_meta_at_ix(meta, ix, 'radius_prometheus', '%.2f')
+        pand_c = self._format_meta_at_ix(meta, ix, 'corotating_longitude_pandora', '%.4f')
+        pand_r = self._format_meta_at_ix(meta, ix, 'radius_pandora', '%.2f')
 
         # Image name
         if md.is_reproj:
@@ -1525,42 +1675,31 @@ class MosaicWindow(QMainWindow):
         ew_str = f'{float(ew_v):.5f}' if not ma.is_masked(ew_v) else '---'
         ewmu_str = f'{float(ewmu_v):.5f}' if not ma.is_masked(ewmu_v) else '---'
 
-        def _fmt_deg(s: str) -> str:
-            return f'{s}°' if s != '---' else '---'
-
-        def _rel_sat_to_core(radius_s: str, core_str: str) -> str:
-            if radius_s == '---' or core_str == '---':
-                return '---'
-            try:
-                return f'{float(radius_s) - float(core_str):.2f} km'
-            except ValueError:
-                return '---'
-
         x_str = f'{px:8.2f}'
         y_str = f'{py:7.2f}'
         self._cursor_status_lbl.setText(
             f'X: {x_str}  Y: {y_str}  Value: {value_str}')
         self._info['rel_r'].setText(f'{rel_r:.2f} km')
         self._info['corot'].setText(f'{corot:.4f}°')
-        self._info['inert'].setText(_fmt_deg(inert))
-        self._info['incidence'].setText(_fmt_deg(incid))
-        self._info['phase'].setText(_fmt_deg(phase))
-        self._info['emission'].setText(_fmt_deg(emiss))
+        self._info['inert'].setText(self._fmt_deg(inert))
+        self._info['incidence'].setText(self._fmt_deg(incid))
+        self._info['phase'].setText(self._fmt_deg(phase))
+        self._info['emission'].setText(self._fmt_deg(emiss))
         self._info['rad_res'].setText(
             f'{rad_r} km/px' if rad_r != '---' else '---')
         self._info['long_res'].setText(
             f'{lng_r} deg/px' if lng_r != '---' else '---')
         self._info['core_r'].setText(
             f'{core_s} km' if core_s != '---' else '---')
-        self._info['true_anomaly'].setText(_fmt_deg(true_anom))
-        self._info['long_asc_node'].setText(_fmt_deg(long_asc))
-        self._info['long_pericenter'].setText(_fmt_deg(long_peri))
-        self._info['prom_corot'].setText(_fmt_deg(prom_c))
+        self._info['true_anomaly'].setText(self._fmt_deg(true_anom))
+        self._info['long_asc_node'].setText(self._fmt_deg(long_asc))
+        self._info['long_pericenter'].setText(self._fmt_deg(long_peri))
+        self._info['prom_corot'].setText(self._fmt_deg(prom_c))
         self._info['prom_rad'].setText(
-            _rel_sat_to_core(prom_r, core_s))
-        self._info['pand_corot'].setText(_fmt_deg(pand_c))
+            self._rel_sat_to_core(prom_r, core_s))
+        self._info['pand_corot'].setText(self._fmt_deg(pand_c))
         self._info['pand_rad'].setText(
-            _rel_sat_to_core(pand_r, core_s))
+            self._rel_sat_to_core(pand_r, core_s))
         self._info['image'].setText(img_name)
         self._info['date'].setText(date_str)
         self._info['long_ew'].setText(ew_str)
@@ -1601,18 +1740,19 @@ class MosaicWindow(QMainWindow):
         reproj_name = lidvid_to_reproj_name(lidvid)
         label_path = os.path.join(
             self._bundle_path, 'data_reproj_img',
-            md.obsid, f'{reproj_name}.lblx')
+            md.bundle_host_dir, f'{reproj_name}.lblx')
         if not os.path.isfile(label_path):
             self.statusBar().showMessage(
                 f'Reproj image not found: {label_path}')
             return
 
         win = MosaicWindow(
-            catalog=self._catalog,
+            catalog=None,
             bundle_path=self._bundle_path,
             reproj_label_path=label_path,
         )
         win.setAttribute(Qt.WidgetAttribute.WA_DeleteOnClose)
+        self._retain_top_level_window(win)
         win.show()
 
     # ------------------------------------------------------------------ #
@@ -1658,19 +1798,22 @@ class MosaicWindow(QMainWindow):
     def _on_new_window(self) -> None:
         if self._catalog is None:
             return
+        initial_record = None
+        if (self._filtered
+                and 0 <= self._current_idx < len(self._filtered)):
+            initial_record = self._filtered[self._current_idx]
         win = MosaicWindow(
             catalog=self._catalog,
             bundle_path=self._bundle_path,
             show_radii=list(self._show_radii_rel_km),
             criteria=self._criteria.copy(),
-            initial_record=(
-                self._filtered[self._current_idx]
-                if self._filtered else None),
+            initial_record=initial_record,
             initial_black=self._black_sync.get_value(),
             initial_white=self._white_sync.get_value(),
             initial_gamma=self._gamma_sync.get_value(),
         )
         win.setAttribute(Qt.WidgetAttribute.WA_DeleteOnClose)
+        self._retain_top_level_window(win)
         win.show()
 
     def _on_prev(self) -> None:

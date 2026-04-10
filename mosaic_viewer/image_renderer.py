@@ -195,6 +195,9 @@ class TiledImageWidget(QAbstractScrollArea):
         for full-ring reproj grids per ``display_reproj_img.py``). If None, uses
         ``n_long * long_interval``.
         """
+        if image_ma.ndim != 2:
+            raise ValueError(
+                f'image_ma must be 2-D, got ndim={image_ma.ndim}, shape={image_ma.shape}')
         self._image_ma = image_ma
         self._n_radii, self._n_long = image_ma.shape
         self._long_interval = long_interval
@@ -262,8 +265,32 @@ class TiledImageWidget(QAbstractScrollArea):
         return (float(vw) / float(self._n_long), float(vh) / float(self._n_radii))
 
     def set_color_column(self, color_column: Optional[np.ndarray]) -> None:
-        """Set per-column RGB tinting. Shape (n_long, 3) float in [0,1]."""
-        self._color_column = color_column
+        """Set per-column RGB tinting used by ``_do_paint``.
+
+        ``None`` disables tinting. Otherwise ``color_column`` must be a
+        ``numpy.ndarray`` with ``ndim == 2``, ``shape[1] == 3``, and first
+        dimension matching ``self._n_long`` when an image is loaded
+        (``self._n_long > 0``). Values are coerced to float and must lie in
+        [0, 1].
+        """
+        if color_column is None:
+            self._color_column = None
+            self.viewport().update()
+            return
+        if not isinstance(color_column, np.ndarray):
+            raise ValueError(
+                f'color_column must be None or numpy.ndarray, got {type(color_column)}')
+        if color_column.ndim != 2 or color_column.shape[1] != 3:
+            raise ValueError(
+                f'color_column must have shape (n_long, 3), got shape {color_column.shape}')
+        if self._n_long > 0 and color_column.shape[0] != self._n_long:
+            raise ValueError(
+                f'color_column length {color_column.shape[0]} does not match '
+                f'n_long={self._n_long} (expected by _do_paint)')
+        cc = np.asarray(color_column, dtype=np.float64)
+        if np.any(cc < 0.0) or np.any(cc > 1.0):
+            raise ValueError('color_column values must lie in [0, 1]')
+        self._color_column = cc.astype(np.float32)
         self.viewport().update()
 
     def set_show_radii(self, pixel_ys: list[int]) -> None:
@@ -299,8 +326,14 @@ class TiledImageWidget(QAbstractScrollArea):
         return corot, rel_r
 
     def pixel_y_to_arr_row(self, pixel_y: float) -> int:
-        """Convert display pixel_y (0=outer) to array row index (0=inner)."""
-        return (self._n_radii - 1) - int(pixel_y)
+        """Convert display pixel_y (0=outer) to array row index (0=inner).
+
+        ``pixel_y`` is clamped to [0, n_radii - 1] before conversion.
+        """
+        if self._n_radii < 1:
+            return 0
+        cy = float(np.clip(pixel_y, 0.0, float(self._n_radii - 1)))
+        return (self._n_radii - 1) - int(cy)
 
     def scroll_to_pixel(self, pixel_x: float, pixel_y: float) -> None:
         """Scroll so that the given image pixel is centred in the viewport."""
@@ -779,7 +812,9 @@ class TiledImageWidget(QAbstractScrollArea):
         self._update_scroll_range()
         hbar = self.horizontalScrollBar()
         vbar = self.verticalScrollBar()
-        hbar.setValue(min(int(px_l * new_xz), hbar.maximum()))
-        vbar.setValue(min(int(py_t * new_yz), vbar.maximum()))
+        hx = int(np.clip(px_l * new_xz, 0, hbar.maximum()))
+        hy = int(np.clip(py_t * new_yz, 0, vbar.maximum()))
+        hbar.setValue(hx)
+        vbar.setValue(hy)
         self.zoom_changed.emit(self._x_zoom, self._y_zoom)
         self.viewport().update()

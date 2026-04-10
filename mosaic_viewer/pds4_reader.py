@@ -22,7 +22,13 @@ def get_element(label, element_name: str, return_type=float):
     element = label.find(f'.//{element_name}')
     if element is None:
         raise ValueError(f"Element '{element_name}' not found in label")
-    return return_type(element.text)
+    text = element.text
+    if text is None:
+        raise ValueError(f"Element '{element_name}' has no text")
+    stripped = str(text).strip()
+    if not stripped:
+        raise ValueError(f"Element '{element_name}' has no text")
+    return return_type(stripped)
 
 
 def _extract_image_ma(pkg_data, struct_name: str) -> tuple[ma.MaskedArray, object]:
@@ -82,13 +88,18 @@ def read_reproj_img_ma(reproj_img_label_path: str) -> tuple:
 
     long_interval = get_element(
         label, 'rings:reprojection_grid_longitudinal_sampling_interval')
+    if long_interval is None or not np.isfinite(long_interval) or long_interval == 0.0:
+        raise ValueError(
+            'rings:reprojection_grid_longitudinal_sampling_interval must be '
+            f'finite and non-zero (got {long_interval!r})')
     num_long = int(np.round(360.0 / long_interval))
     min_corot = get_element(label, 'rings:minimum_corotating_ring_longitude')
     max_corot = get_element(label, 'rings:maximum_corotating_ring_longitude')
     min_idx = int(np.round(min_corot / long_interval))
     max_idx = int(np.round(max_corot / long_interval))
 
-    full_image = ma.masked_all((image_ma.shape[0], num_long))
+    full_image = ma.masked_all(
+        (image_ma.shape[0], num_long), dtype=image_ma.dtype)
     if min_idx <= max_idx:
         full_image[:, min_idx:max_idx + 1] = image_ma
     else:
@@ -116,7 +127,17 @@ def read_index_np(global_index_label_path: str, table_local_id: str) -> np.ndarr
 
 def get_mosaic_name_from_lid(lid: str) -> str:
     """Extract observation name from a mosaic LID string."""
-    return lid.split(':')[-1].split('_mosaic')[0]
+    if not lid or not isinstance(lid, str):
+        raise ValueError(f'Expected non-empty mosaic LID string, got {lid!r}')
+    s = lid.strip()
+    if ':' not in s or '_mosaic' not in s:
+        raise ValueError(
+            f'Malformed mosaic LID (expected ":" and "_mosaic"): {lid!r}')
+    tail = s.split(':')[-1]
+    if '_mosaic' not in tail:
+        raise ValueError(
+            f'Malformed mosaic LID (missing "_mosaic" in last segment): {lid!r}')
+    return tail.split('_mosaic')[0]
 
 
 def get_mosaic_name_from_mosaic_label(label) -> str:
@@ -144,12 +165,17 @@ def get_mosaic_name_from_reproj_img_label(label) -> str:
 
 
 def lidvid_to_reproj_name(lidvid: str) -> str:
-    """Extract reprojected image name from a LIDVID string.
+    """Extract reprojected image product stem from a LIDVID string.
 
-    E.g. 'urn:...:1538168640n_reproj_img::1.0' → '1538168640n_reproj_img'
+    E.g. 'urn:...:1538168640n_reproj_img::1.0' → '1538168640n_reproj_img'.
+    If the LID ends with only the image id (no ``_reproj_img``), that suffix
+    is appended so it matches on-disk ``*_reproj_img.lblx`` names.
     """
-    lid = lidvid.split('::')[0]
-    return lid.split(':')[-1]
+    lid = lidvid.split('::')[0].strip()
+    stem = lid.split(':')[-1]
+    if not stem.endswith('_reproj_img'):
+        stem = f'{stem}_reproj_img'
+    return stem
 
 
 def compute_default_stretch(

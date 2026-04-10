@@ -129,7 +129,8 @@ def main(argv=None) -> None:
     from catalog import MosaicCatalog
     from mosaic_window import MosaicWindow
 
-    app = QApplication(sys.argv)
+    qt_argv = sys.argv if argv is None else [sys.argv[0]] + list(argv)
+    app = QApplication(qt_argv)
     app.setApplicationName('Mosaic Viewer')
     app.setQuitOnLastWindowClosed(True)
 

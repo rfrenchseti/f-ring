@@ -3,11 +3,13 @@ from __future__ import annotations
 
 from typing import Optional
 
+from PyQt6.QtCore import QLocale
+from PyQt6.QtGui import QDoubleValidator
 from PyQt6.QtWidgets import (
     QCheckBox, QDialog, QDialogButtonBox, QFormLayout, QGroupBox,
-    QHBoxLayout, QLabel, QLineEdit, QPushButton, QVBoxLayout, QWidget,
+    QHBoxLayout, QLabel, QLineEdit, QMessageBox, QVBoxLayout,
+    QWidget,
 )
-from PyQt6.QtCore import Qt
 
 from catalog import FilterCriteria
 
@@ -72,6 +74,18 @@ class FilterDialog(QDialog):
         self._min_pand = QLineEdit()
         self._max_pand = QLineEdit()
 
+        for le in (
+            self._min_rad_res, self._max_rad_res,
+            self._min_long_res, self._max_long_res,
+            self._min_prom, self._max_prom,
+            self._min_pand, self._max_pand,
+        ):
+            v = QDoubleValidator()
+            v.setLocale(QLocale.c())
+            v.setNotation(QDoubleValidator.Notation.StandardNotation)
+            v.setRange(-1e15, 1e15, 12)
+            le.setValidator(v)
+
         form.addRow('Radial resolution (rel) (km):',
                     self._range_row(self._min_rad_res, self._max_rad_res))
         form.addRow('Longitudinal resolution (rel) (deg):',
@@ -92,7 +106,7 @@ class FilterDialog(QDialog):
         self._reset_btn = btn_box.addButton(
             'Reset', QDialogButtonBox.ButtonRole.ResetRole)
         btn_box.addButton(QDialogButtonBox.StandardButton.Cancel)
-        btn_box.accepted.connect(self.accept)
+        btn_box.accepted.connect(self._on_accept_clicked)
         btn_box.rejected.connect(self.reject)
         self._reset_btn.clicked.connect(self._reset)
         layout.addWidget(btn_box)
@@ -132,13 +146,38 @@ class FilterDialog(QDialog):
     def _reset(self) -> None:
         self._populate(FilterCriteria())
 
+    def _on_accept_clicked(self) -> None:
+        err = self._numeric_fields_error()
+        if err:
+            QMessageBox.warning(self, 'Filter', err)
+            return
+        self.accept()
+
+    def _numeric_fields_error(self) -> str:
+        fields = (
+            ('Min radial resolution', self._min_rad_res),
+            ('Max radial resolution', self._max_rad_res),
+            ('Min longitudinal resolution', self._min_long_res),
+            ('Max longitudinal resolution', self._max_long_res),
+            ('Min Prometheus distance', self._min_prom),
+            ('Max Prometheus distance', self._max_prom),
+            ('Min Pandora distance', self._min_pand),
+            ('Max Pandora distance', self._max_pand),
+        )
+        for label, w in fields:
+            txt = w.text().strip()
+            if not txt:
+                continue
+            try:
+                float(txt)
+            except ValueError:
+                return f'Invalid number in {label}.'
+        return ''
+
     def get_criteria(self) -> FilterCriteria:
         def _p(w: QLineEdit) -> Optional[float]:
             txt = w.text().strip()
-            try:
-                return float(txt) if txt else None
-            except ValueError:
-                return None
+            return float(txt) if txt else None
 
         c = FilterCriteria()
         c.nav_quality_g = self._nav_g.isChecked()
