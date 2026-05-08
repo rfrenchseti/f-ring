@@ -1891,6 +1891,7 @@ def xml_add_pds3_label_info(ret, obsid, min_image_path, max_image_path):
     ret['SHUTTER_MODE_ID'] = min_label['SHUTTER_MODE_ID']
     ret['SHUTTER_STATE_ID'] = min_label['SHUTTER_STATE_ID']
     ret['SOFTWARE_VERSION_ID'] = min_label['SOFTWARE_VERSION_ID']
+    ret['TARGET_DESC'] = min_label['TARGET_DESC']
     ret['TELEMETRY_FORMAT_ID'] = min_label['TELEMETRY_FORMAT_ID']
 
 
@@ -2679,11 +2680,13 @@ def generate_image(obsid, output_dir, metadata, xml_metadata, global_index_fp,
             mean_prometheus_corot_long = wrapped_mean(prometheus_corot_long)
             min_prometheus_corot_long, max_prometheus_corot_long = wrapped_minmax(prometheus_corot_long)
             mean_prometheus_dist = np.mean(prometheus_dist)
-            min_prometheus_dist, max_prometheus_dist = wrapped_minmax(prometheus_dist)
+            min_prometheus_dist = np.min(prometheus_dist)
+            max_prometheus_dist = np.max(prometheus_dist)
             mean_pandora_corot_long = wrapped_mean(pandora_corot_long)
             min_pandora_corot_long, max_pandora_corot_long = wrapped_minmax(pandora_corot_long)
             mean_pandora_dist = np.mean(pandora_dist)
-            min_pandora_dist, max_pandora_dist = wrapped_minmax(pandora_dist)
+            min_pandora_dist = np.min(pandora_dist)
+            max_pandora_dist = np.max(pandora_dist)
             row += (f'{mean_long_asc:7.3f},'
                     f'{min_long_asc:7.3f},'
                     f'{max_long_asc:7.3f},'
@@ -3555,12 +3558,13 @@ BASE_INDEX_HDR = ('pds:logical_identifier,'
                   'rings:minimum_longitudinal_resolution,'
                   'rings:maximum_longitudinal_resolution,'
                   'rings:minimum_ring_radius,'
-                  'rings:maximum_ring_radius,')
-
-GLOBAL_REPROJ_INDEX_HDR = BASE_INDEX_HDR + (
+                  'rings:maximum_ring_radius,'
                   'mean_core_radius,'
                   'minimum_core_radius,'
                   'maximum_core_radius,'
+                  )
+
+GLOBAL_REPROJ_INDEX_HDR = BASE_INDEX_HDR + (
                   'longitude_ascending_node,'
                   'longitude_pericenter,'
                   'minimum_true_anomaly,'
@@ -3574,9 +3578,6 @@ GLOBAL_REPROJ_INDEX_HDR = BASE_INDEX_HDR + (
                   'notes')
 
 GLOBAL_MOSAIC_INDEX_HDR_BASE = BASE_INDEX_HDR + (
-                  'mean_core_radius,'
-                  'minimum_core_radius,'
-                  'maximum_core_radius,'
                   'mean_longitude_ascending_node,'
                   'minimum_longitude_ascending_node,'
                   'maximum_longitude_ascending_node,'
@@ -3815,7 +3816,7 @@ if GENERATE_SUPPORT_FILES:
 # Earth Received Stop Time (YMDhms) - N/A
 
 #   Cassini ISS Constraints
-# Camera - N/A
+# Camera - N or W
 # Filter - CLEAR
 # Shutter Mode - N/A
 # Shutter State - Enabled

@@ -156,6 +156,7 @@
                     <cassini:optics_temperature_back unit="degC">$OPTICS_TEMPERATURE[1]$</cassini:optics_temperature_back>
                     <cassini:order_number>$ORDER_NUMBER$</cassini:order_number>
                     <cassini:parallel_clock_voltage_index>$PARALLEL_CLOCK_VOLTAGE_INDEX$</cassini:parallel_clock_voltage_index>
+                    <cassini:pds3_target_desc>$TARGET_DESC$</cassini:pds3_target_desc>
                     <cassini:prepare_cycle_index>$PREPARE_CYCLE_INDEX$</cassini:prepare_cycle_index>
                     <cassini:readout_cycle_index>$READOUT_CYCLE_INDEX$</cassini:readout_cycle_index>
                     <cassini:received_packets>$RECEIVED_PACKETS$</cassini:received_packets>
