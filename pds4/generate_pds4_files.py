@@ -3558,12 +3558,13 @@ BASE_INDEX_HDR = ('pds:logical_identifier,'
                   'rings:minimum_longitudinal_resolution,'
                   'rings:maximum_longitudinal_resolution,'
                   'rings:minimum_ring_radius,'
-                  'rings:maximum_ring_radius,')
-
-GLOBAL_REPROJ_INDEX_HDR = BASE_INDEX_HDR + (
+                  'rings:maximum_ring_radius,'
                   'mean_core_radius,'
                   'minimum_core_radius,'
                   'maximum_core_radius,'
+                  )
+
+GLOBAL_REPROJ_INDEX_HDR = BASE_INDEX_HDR + (
                   'longitude_ascending_node,'
                   'longitude_pericenter,'
                   'minimum_true_anomaly,'
@@ -3577,9 +3578,6 @@ GLOBAL_REPROJ_INDEX_HDR = BASE_INDEX_HDR + (
                   'notes')
 
 GLOBAL_MOSAIC_INDEX_HDR_BASE = BASE_INDEX_HDR + (
-                  'mean_core_radius,'
-                  'minimum_core_radius,'
-                  'maximum_core_radius,'
                   'mean_longitude_ascending_node,'
                   'minimum_longitude_ascending_node,'
                   'maximum_longitude_ascending_node,'

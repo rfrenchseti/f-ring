@@ -16,10 +16,13 @@
 #                           results for this slice. This can range from 1 to
 #                           slice_size / longitude_resolution.
 #
-#   *Date                   The date/time (ISO 8601 format) of the minimum ET for the
-#                           slice.
+#   *Start/End Date         The date/time (ISO 8601 format) of the minimum/maximum ET for
+#                           the slice.
 #
-#   *Min/*Max/Mean Long      The minimum/maximum/mean co-rotating longitude (degrees)
+#   *Mean Date              The date/time (ISO 8601 format) of the mean ET for
+#                           the slice.
+#
+#   *Min/*Max/Mean Long     The minimum/maximum/mean co-rotating longitude (degrees)
 #                           of valid data in the slice, relative to the epoch
 #                           2007-01-01T00:00:00.
 #
@@ -432,7 +435,7 @@ if arguments.output_csv_filename:
                 'Slice size must divide evenly into 360'
     csv_fp = open(arguments.output_csv_filename, 'w', newline='')
     writer = csv.writer(csv_fp)
-    hdr = ['Observation', 'Slice#', 'Num Data', 'Date',
+    hdr = ['Observation', 'Slice#', 'Num Data', 'Date', 'Start Date', 'End Date',
            'Min Long', 'Max Long']
     if not arguments.simple_columns:
         hdr += ['Mean Long',
@@ -807,7 +810,9 @@ for obs_id in f_ring.enumerate_obsids(arguments):
             slice_min_et = ma.min(slice_ETs)
             slice_max_et = ma.max(slice_ETs)
             slice_mean_et = ma.mean(slice_ETs)
-            slice_et_date = f_ring.et2utc(slice_min_et)
+            slice_min_et_date = f_ring.et2utc(slice_min_et)
+            slice_max_et_date = f_ring.et2utc(slice_max_et)
+            slice_mean_et_date = f_ring.et2utc(slice_mean_et)
 
             slice_min_em = ma.min(slice_emission_angles)
             slice_max_em = ma.max(slice_emission_angles)
@@ -871,66 +876,67 @@ for obs_id in f_ring.enumerate_obsids(arguments):
             #     print(obs_id, slice_num, 'EW Mean < 0')
             #     continue
 
-            row = [obs_id, slice_num, np.sum(~slice_bad_long), slice_et_date,
+            row = [obs_id, slice_num, np.sum(~slice_bad_long),
+                   slice_mean_et_date, slice_min_et_date, slice_max_et_date,
                    np.round(slice_min_long, 2),
                    np.round(slice_max_long, 2)]
             if not arguments.simple_columns:
                 row += [np.round(slice_mean_long, 2),
-                        np.round(slice_min_inertial_long, 3),
-                        np.round(slice_max_inertial_long, 3),
-                        np.round(slice_mean_inertial_long, 3),
-                        np.round(slice_min_long_of_peri, 3),
-                        np.round(slice_max_long_of_peri, 3),
-                        np.round(slice_mean_long_of_peri, 3),
-                        np.round(slice_min_true_anomaly, 3),
-                        np.round(slice_max_true_anomaly, 3),
-                        np.round(slice_mean_true_anomaly, 3),
-                        np.round(slice_min_rad_res, 8),
-                        np.round(slice_max_rad_res, 8)]
-            row += [np.round(slice_mean_rad_res, 8)]
+                        f'{np.round(slice_min_inertial_long, 3):.3f}',
+                        f'{np.round(slice_max_inertial_long, 3):.3f}',
+                        f'{np.round(slice_mean_inertial_long, 3):.3f}',
+                        f'{np.round(slice_min_long_of_peri, 3):.3f}',
+                        f'{np.round(slice_max_long_of_peri, 3):.3f}',
+                        f'{np.round(slice_mean_long_of_peri, 3):.3f}',
+                        f'{np.round(slice_min_true_anomaly, 3):.3f}',
+                        f'{np.round(slice_max_true_anomaly, 3):.3f}',
+                        f'{np.round(slice_mean_true_anomaly, 3):.3f}',
+                        f'{np.round(slice_min_rad_res, 8):.8f}',
+                        f'{np.round(slice_max_rad_res, 8):.8f}']
+            row += [f'{np.round(slice_mean_rad_res, 8):.8f}']
             if not arguments.simple_columns:
-                row += [np.round(slice_min_ang_res, 8),
-                        np.round(slice_max_ang_res, 8)]
-            row += [np.round(slice_mean_ang_res, 8)]
+                row += [f'{np.round(slice_min_ang_res, 8):.8f}',
+                        f'{np.round(slice_max_ang_res, 8):.8f}']
+            row += [f'{np.round(slice_mean_ang_res, 8):.8f}']
             if not arguments.simple_columns:
-                row += [np.round(np.degrees(slice_min_ph), 8),
-                        np.round(np.degrees(slice_max_ph), 8)]
-            row += [np.round(np.degrees(slice_mean_ph), 8)]
+                row += [f'{np.round(np.degrees(slice_min_ph), 8):.8f}',
+                        f'{np.round(np.degrees(slice_max_ph), 8):.8f}']
+            row += [f'{np.round(np.degrees(slice_mean_ph), 8):.8f}']
             if not arguments.simple_columns:
-                row += [np.round(np.degrees(slice_min_em), 8),
-                        np.round(np.degrees(slice_max_em), 8)]
-            row += [np.round(np.degrees(slice_mean_em), 8),
-                    np.round(np.degrees(incidence_angle), 8)]
+                row += [f'{np.round(np.degrees(slice_min_em), 8):.8f}',
+                        f'{np.round(np.degrees(slice_max_em), 8):.8f}']
+            row += [f'{np.round(np.degrees(slice_mean_em), 8):.8f}',
+                    f'{np.round(np.degrees(incidence_angle), 8):.8f}']
             if not arguments.simple_columns:
-                row += [np.round(percentage_ew_ok, 2),
-                        np.round(slice_ew_median, 8),
-                        np.round(slice_ew_mean, 8),
-                        np.round(slice_ew_std, 8),
-                        np.round(slice_ew_median_mu, 8)]
-            row += [np.round(slice_ew_mean_mu, 8),
-                    np.round(slice_ew_std_mu, 8)]
+                row += [f'{np.round(percentage_ew_ok, 2):.2f}',
+                        f'{np.round(slice_ew_median, 8):.8f}',
+                        f'{np.round(slice_ew_mean, 8):.8f}',
+                        f'{np.round(slice_ew_std, 8):.8f}',
+                        f'{np.round(slice_ew_median_mu, 8):.8f}']
+            row += [f'{np.round(slice_ew_mean_mu, 8):.8f}',
+                    f'{np.round(slice_ew_std_mu, 8):.8f}']
 
             if arguments.include_quantiles:
                 row += [np.round(slice_ew_mean_15, 8),
-                        np.round(slice_ew_std_15, 8),
-                        np.round(slice_ew_mean_mu_15, 8),
-                        np.round(slice_ew_std_mu_15, 8),
-                        np.round(slice_ew_mean_25, 8),
-                        np.round(slice_ew_std_25, 8),
-                        np.round(slice_ew_mean_mu_25, 8),
-                        np.round(slice_ew_std_mu_25, 8),
-                        np.round(slice_ew_mean_50, 8),
-                        np.round(slice_ew_std_50, 8),
-                        np.round(slice_ew_mean_mu_50, 8),
-                        np.round(slice_ew_std_mu_50, 8),
-                        np.round(slice_ew_mean_75, 8),
-                        np.round(slice_ew_std_75, 8),
-                        np.round(slice_ew_mean_mu_75, 8),
-                        np.round(slice_ew_std_mu_75, 8),
-                        np.round(slice_ew_mean_85, 8),
-                        np.round(slice_ew_std_85, 8),
-                        np.round(slice_ew_mean_mu_85, 8),
-                        np.round(slice_ew_std_mu_85, 8)]
+                        f'{np.round(slice_ew_std_15, 8):.8f}',
+                        f'{np.round(slice_ew_mean_mu_15, 8):.8f}',
+                        f'{np.round(slice_ew_std_mu_15, 8):.8f}',
+                        f'{np.round(slice_ew_mean_25, 8):.8f}',
+                        f'{np.round(slice_ew_std_25, 8):.8f}',
+                        f'{np.round(slice_ew_mean_mu_25, 8):.8f}',
+                        f'{np.round(slice_ew_std_mu_25, 8):.8f}',
+                        f'{np.round(slice_ew_mean_50, 8):.8f}',
+                        f'{np.round(slice_ew_std_50, 8):.8f}',
+                        f'{np.round(slice_ew_mean_mu_50, 8):.8f}',
+                        f'{np.round(slice_ew_std_mu_50, 8):.8f}',
+                        f'{np.round(slice_ew_mean_75, 8):.8f}',
+                        f'{np.round(slice_ew_std_75, 8):.8f}',
+                        f'{np.round(slice_ew_mean_mu_75, 8):.8f}',
+                        f'{np.round(slice_ew_std_mu_75, 8):.8f}',
+                        f'{np.round(slice_ew_mean_85, 8):.8f}',
+                        f'{np.round(slice_ew_std_85, 8):.8f}',
+                        f'{np.round(slice_ew_mean_mu_85, 8):.8f}',
+                        f'{np.round(slice_ew_std_mu_85, 8):.8f}']
 
             if three_zone:
                 slice_ew_profile1 = ew_profile1[slice_start:slice_end][slice_good_long]
@@ -941,10 +947,10 @@ for obs_id in f_ring.enumerate_obsids(arguments):
                 slice_ew_mean_mu1 = ma.mean(slice_ew_profile_mu1)
                 slice_ew_std_mu1 = ma.std(slice_ew_profile_mu1)
 
-                row += [np.round(slice_ew_mean1, 8),
-                        np.round(slice_ew_std1, 8),
-                        np.round(slice_ew_mean_mu1, 8),
-                        np.round(slice_ew_std_mu1, 8)]
+                row += [f'{np.round(slice_ew_mean1, 8):.8f}',
+                        f'{np.round(slice_ew_std1, 8):.8f}',
+                        f'{np.round(slice_ew_mean_mu1, 8):.8f}',
+                        f'{np.round(slice_ew_std_mu1, 8):.8f}']
 
                 slice_ew_profile2 = ew_profile2[slice_start:slice_end][slice_good_long]
                 slice_ew_mean2 = ma.mean(slice_ew_profile2)
@@ -954,10 +960,10 @@ for obs_id in f_ring.enumerate_obsids(arguments):
                 slice_ew_mean_mu2 = ma.mean(slice_ew_profile_mu2)
                 slice_ew_std_mu2 = ma.std(slice_ew_profile_mu2)
 
-                row += [np.round(slice_ew_mean2, 8),
-                        np.round(slice_ew_std2, 8),
-                        np.round(slice_ew_mean_mu2, 8),
-                        np.round(slice_ew_std_mu2, 8)]
+                row += [f'{np.round(slice_ew_mean2, 8):.8f}',
+                        f'{np.round(slice_ew_std2, 8):.8f}',
+                        f'{np.round(slice_ew_mean_mu2, 8):.8f}',
+                        f'{np.round(slice_ew_std_mu2, 8):.8f}']
 
                 slice_ew_profile3 = ew_profile3[slice_start:slice_end][slice_good_long]
                 slice_ew_mean3 = ma.mean(slice_ew_profile3)
@@ -967,10 +973,10 @@ for obs_id in f_ring.enumerate_obsids(arguments):
                 slice_ew_mean_mu3 = ma.mean(slice_ew_profile_mu3)
                 slice_ew_std_mu3 = ma.std(slice_ew_profile_mu3)
 
-                row += [np.round(slice_ew_mean3, 8),
-                        np.round(slice_ew_std3, 8),
-                        np.round(slice_ew_mean_mu3, 8),
-                        np.round(slice_ew_std_mu3, 8)]
+                row += [f'{np.round(slice_ew_mean3, 8):.8f}',
+                        f'{np.round(slice_ew_std3, 8):.8f}',
+                        f'{np.round(slice_ew_mean_mu3, 8):.8f}',
+                        f'{np.round(slice_ew_std_mu3, 8):.8f}']
 
                 # Sanity check the math
                 slice_ew_mean_threezone_total = (slice_ew_mean1 + slice_ew_mean2 +
@@ -984,10 +990,10 @@ for obs_id in f_ring.enumerate_obsids(arguments):
                     slice_ew_profile_3z_pn = ew_profile_3z_pn[slice_start:slice_end][slice_good_long]
                     slice_ew_mean_3z_pn = ma.mean(slice_ew_profile_3z_pn)
                     slice_ew_std_3z_pn = ma.std(slice_ew_profile_3z_pn)
-                    row += [np.round(slice_ew_mean_3z, 8),
-                            np.round(slice_ew_std_3z, 8),
-                            np.round(slice_ew_mean_3z_pn, 8),
-                            np.round(slice_ew_std_3z_pn, 8)]
+                    row += [f'{np.round(slice_ew_mean_3z, 8):.8f}',
+                            f'{np.round(slice_ew_std_3z, 8):.8f}',
+                            f'{np.round(slice_ew_mean_3z_pn, 8):.8f}',
+                            f'{np.round(slice_ew_std_3z_pn, 8):.8f}']
 
             if num_radial_steps is not None:
                 total_step_ew_mean = 0
@@ -1003,36 +1009,36 @@ for obs_id in f_ring.enumerate_obsids(arguments):
                     slice_step_ew_std_mu = ma.std(slice_step_ew_profile_mu)
                     total_step_ew_mean += slice_step_ew_mean
                     if not arguments.simple_columns:
-                        row += [np.round(slice_step_ew_mean, 8),
-                                np.round(slice_step_ew_std, 8)]
-                    row += [np.round(slice_step_ew_mean_mu, 8)]
+                        row += [f'{np.round(slice_step_ew_mean, 8):.8f}',
+                                f'{np.round(slice_step_ew_std, 8):.8f}']
+                    row += [f'{np.round(slice_step_ew_mean_mu, 8):.8f}']
                     if not arguments.simple_columns:
-                        row += [np.round(slice_step_ew_std_mu, 8)]
+                        row += [f'{np.round(slice_step_ew_std_mu, 8):.8f}']
 
             if arguments.compute_widths:
-                row += [np.round(ma.mean(slice_w1), 3),
-                        np.round(ma.std(slice_w1), 3),
-                        np.round(ma.mean(slice_w2), 3),
-                        np.round(ma.std(slice_w2), 3),
-                        np.round(ma.mean(slice_w3), 3),
-                        np.round(ma.std(slice_w3), 3),
-                        np.round(ma.mean(slice_w1i), 3),
-                        np.round(ma.std(slice_w1i), 3),
-                        np.round(ma.mean(slice_w1o), 3),
-                        np.round(ma.std(slice_w1o), 3),
-                        np.round(ma.mean(slice_w2i), 3),
-                        np.round(ma.std(slice_w2i), 3),
-                        np.round(ma.mean(slice_w2o), 3),
-                        np.round(ma.std(slice_w2o), 3),
-                        np.round(ma.mean(slice_w3i), 3),
-                        np.round(ma.std(slice_w3i), 3),
-                        np.round(ma.mean(slice_w3o), 3),
-                        np.round(ma.std(slice_w3o), 3)]
+                row += [f'{np.round(ma.mean(slice_w1), 3):.3f}',
+                        f'{np.round(ma.std(slice_w1), 3):.3f}',
+                        f'{np.round(ma.mean(slice_w2), 3):.3f}',
+                        f'{np.round(ma.std(slice_w2), 3):.3f}',
+                        f'{np.round(ma.mean(slice_w3), 3):.3f}',
+                        f'{np.round(ma.std(slice_w3), 3):.3f}',
+                        f'{np.round(ma.mean(slice_w1i), 3):.3f}',
+                        f'{np.round(ma.std(slice_w1i), 3):.3f}',
+                        f'{np.round(ma.mean(slice_w1o), 3):.3f}',
+                        f'{np.round(ma.std(slice_w1o), 3):.3f}',
+                        f'{np.round(ma.mean(slice_w2i), 3):.3f}',
+                        f'{np.round(ma.std(slice_w2i), 3):.3f}',
+                        f'{np.round(ma.mean(slice_w2o), 3):.3f}',
+                        f'{np.round(ma.std(slice_w2o), 3):.3f}',
+                        f'{np.round(ma.mean(slice_w3i), 3):.3f}',
+                        f'{np.round(ma.std(slice_w3i), 3):.3f}',
+                        f'{np.round(ma.mean(slice_w3o), 3):.3f}',
+                        f'{np.round(ma.std(slice_w3o), 3):.3f}']
 
             if arguments.compute_core_center:
-                row += [np.round(ma.median(slice_core_centers), 3),
-                        np.round(ma.mean(slice_core_centers), 3),
-                        np.round(ma.std(slice_core_centers), 3)]
+                row += [f'{np.round(ma.median(slice_core_centers), 3):.3f}',
+                        f'{np.round(ma.mean(slice_core_centers), 3):.3f}',
+                        f'{np.round(ma.std(slice_core_centers), 3):.3f}']
 
             if arguments.compute_moon_info:
                 def _is_in_close(val, arr):
@@ -1103,25 +1109,25 @@ for obs_id in f_ring.enumerate_obsids(arguments):
                     prometheus_dist = '--'
                     prometheus_long = '--'
                 row += [np.round(pandora_closest_dist, 3),
-                        np.round(pandora_closest_long, 3),
-                        np.round(pandora_closest_long_inertial, 3),
-                        np.round(pandora_closest_true_anomaly, 3),
-                        pandora_dist,
-                        pandora_long,
-                        np.round(pandora_earliest_dist, 3),
-                        np.round(pandora_earliest_long, 3),
-                        np.round(pandora_latest_dist, 3),
-                        np.round(pandora_latest_long, 3),
-                        np.round(prometheus_closest_dist, 3),
-                        np.round(prometheus_closest_long, 3),
-                        np.round(prometheus_closest_long_inertial, 3),
-                        np.round(prometheus_closest_true_anomaly, 3),
-                        prometheus_dist,
-                        prometheus_long,
-                        np.round(prometheus_earliest_dist, 3),
-                        np.round(prometheus_earliest_long, 3),
-                        np.round(prometheus_latest_dist, 3),
-                        np.round(prometheus_latest_long, 3)]
+                        f'{np.round(pandora_closest_long, 3):.3f}',
+                        f'{np.round(pandora_closest_long_inertial, 3):.3f}',
+                        f'{np.round(pandora_closest_true_anomaly, 3):.3f}',
+                        f'{pandora_dist:.3f}',
+                        f'{pandora_long:.3f}',
+                        f'{np.round(pandora_earliest_dist, 3):.3f}',
+                        f'{np.round(pandora_earliest_long, 3):.3f}',
+                        f'{np.round(pandora_latest_dist, 3):.3f}',
+                        f'{np.round(pandora_latest_long, 3):.3f}',
+                        f'{np.round(prometheus_closest_dist, 3):.3f}',
+                        f'{np.round(prometheus_closest_long, 3):.3f}',
+                        f'{np.round(prometheus_closest_long_inertial, 3):.3f}',
+                        f'{np.round(prometheus_closest_true_anomaly, 3):.3f}',
+                        f'{prometheus_dist:.3f}',
+                        f'{prometheus_long:.3f}',
+                        f'{np.round(prometheus_earliest_dist, 3):.3f}',
+                        f'{np.round(prometheus_earliest_long, 3):.3f}',
+                        f'{np.round(prometheus_latest_dist, 3):.3f}',
+                        f'{np.round(prometheus_latest_long, 3):.3f}']
 
             writer.writerow(row)
 
