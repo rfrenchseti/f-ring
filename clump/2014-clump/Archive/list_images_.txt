@@ -1,5 +1,0 @@
-/home/shannon/test_Movie/ISS_029RF_FMOVIE001_VIMS.png
-/home/shannon/test_Movie/ISS_029RF_FMOVIE002_VIMS.png
-/home/shannon/test_Movie/ISS_031RF_FMOVIE001_VIMS.png
-/home/shannon/test_Movie/ISS_032RF_FMOVIE001_VIMS.png
-/home/shannon/test_Movie/ISS_033RF_FMOVIE001_VIMS.png
