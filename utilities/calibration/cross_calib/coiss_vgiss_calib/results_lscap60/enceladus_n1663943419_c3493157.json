@@ -1,0 +1,169 @@
+{
+  "metadata": {
+    "file1": "/seti/research/f-ring/calibration/coiss_vgiss_cross_calib/coiss/ENCELADUS_N1663943419_1_CALIB_reproj.fits",
+    "file2": "/seti/research/f-ring/calibration/coiss_vgiss_cross_calib/vgiss/ENCELADUS_C3493157_GEOMED_reproj.fits",
+    "photometry": "lommel_seeliger",
+    "kind1": "body_reproj",
+    "kind2": "body_reproj",
+    "body_name": "ENCELADUS",
+    "shape_file1": [
+      1657,
+      3600
+    ],
+    "shape_file2": [
+      1657,
+      3600
+    ],
+    "analyze_all_pixels": false,
+    "stats_region": "overlap",
+    "max_pixel_incidence_deg": 60.0
+  },
+  "overlap": {
+    "same_shape": true,
+    "n_overlap": 1145216,
+    "n_only_file1": 311379,
+    "n_only_file2": 307506,
+    "n_overlap_before_inc_mask": 2502152,
+    "n_dropped_by_inc_mask": 1356936
+  },
+  "image_file1": {
+    "n": 1145216.0,
+    "min": 0.8463837379868792,
+    "p10": 0.9604299788179513,
+    "p25": 0.9995013068021481,
+    "p50": 1.0392948757127112,
+    "mean": 1.032136486779974,
+    "std": 0.049190424004353944,
+    "p75": 1.071121634307621,
+    "p90": 1.0911125125045535,
+    "max": 1.1359198972923885
+  },
+  "image_file2": {
+    "n": 1145216.0,
+    "min": 0.5936207740655707,
+    "p10": 0.8060321872846041,
+    "p25": 0.8855048168836126,
+    "p50": 0.9402048813025761,
+    "mean": 0.9202486871307486,
+    "std": 0.07774796504258517,
+    "p75": 0.9792645456908905,
+    "p90": 0.9991153929763918,
+    "max": 1.0389129385745544
+  },
+  "angle_deltas": [
+    {
+      "name": "phase",
+      "kind": "pixel",
+      "wraparound": false,
+      "units": "deg",
+      "stats": {
+        "n": 1145216.0,
+        "min": 9.308193753724424,
+        "p10": 9.310317088782652,
+        "p25": 9.3117356336959,
+        "p50": 9.313755662142931,
+        "mean": 9.31342900490876,
+        "std": 0.0020832924841968723,
+        "p75": 9.315315506594633,
+        "p90": 9.31594345711145,
+        "max": 9.316736185941995
+      }
+    },
+    {
+      "name": "emission",
+      "kind": "pixel",
+      "wraparound": false,
+      "units": "deg",
+      "stats": {
+        "n": 1145216.0,
+        "min": 9.391510108767532e-05,
+        "p10": 2.066043431469647,
+        "p25": 5.047994740070494,
+        "p50": 9.332937821540089,
+        "mean": 8.57548791262683,
+        "std": 4.262664436300077,
+        "p75": 12.431149195098307,
+        "p90": 13.579541343651108,
+        "max": 16.664606310604345
+      }
+    },
+    {
+      "name": "incidence",
+      "kind": "pixel",
+      "wraparound": false,
+      "units": "deg",
+      "stats": {
+        "n": 1145216.0,
+        "min": 5.8056607945108387e-05,
+        "p10": 0.62402998823446,
+        "p25": 1.5787879813646923,
+        "p50": 3.0096306502123236,
+        "mean": 2.8393252654669183,
+        "std": 1.5174439181153245,
+        "p75": 4.107214729076692,
+        "p90": 4.740086397191734,
+        "max": 7.427837552578037
+      }
+    },
+    {
+      "name": "sub_solar_lon",
+      "kind": "scalar",
+      "wraparound": true,
+      "units": "deg",
+      "value_file1_deg": 288.31726760905445,
+      "value_file2_deg": 284.2316489766699,
+      "delta_deg": 4.085618632384574
+    },
+    {
+      "name": "sub_solar_lat",
+      "kind": "scalar",
+      "wraparound": false,
+      "units": "deg",
+      "value_file1_deg": 6.133359930968065,
+      "value_file2_deg": 3.8701203701907603,
+      "delta_deg": 2.2632395607773046
+    },
+    {
+      "name": "sub_observer_lon",
+      "kind": "scalar",
+      "wraparound": true,
+      "units": "deg",
+      "value_file1_deg": 285.4168388215053,
+      "value_file2_deg": 275.06400299758803,
+      "delta_deg": 10.352835823917252
+    },
+    {
+      "name": "sub_observer_lat",
+      "kind": "scalar",
+      "wraparound": false,
+      "units": "deg",
+      "value_file1_deg": 2.5013004801848977,
+      "value_file2_deg": -6.6612521504317375,
+      "delta_deg": 9.162552630616634
+    }
+  ],
+  "ratio_of_stats": {
+    "n": 1.0,
+    "min": 1.4257987168983217,
+    "p10": 1.1915528858140134,
+    "p25": 1.1287361601484307,
+    "p50": 1.1053919165712627,
+    "mean": 1.1215843078223577,
+    "std": 0.6326908231927446,
+    "p75": 1.093802118151764,
+    "p90": 1.0920785728804556,
+    "max": 1.0933735206445048
+  },
+  "ratio_of_pixels": {
+    "n": 1145216.0,
+    "min": 0.9467844775349195,
+    "p10": 1.0521007914198475,
+    "p25": 1.07699068225466,
+    "p50": 1.1153833277399918,
+    "mean": 1.1269648113560575,
+    "std": 0.07418448252639234,
+    "p75": 1.160583931615886,
+    "p90": 1.2129478312931505,
+    "max": 1.6149089079956986
+  }
+}
