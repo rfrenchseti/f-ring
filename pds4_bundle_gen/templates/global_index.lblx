@@ -46,7 +46,7 @@
                     <display_full_name>Matthew M. Hedman</display_full_name>
                     <given_name>Matthew</given_name>
                     <family_name>Hedman</family_name>
-                    <person_orcid>http://orcid.org/0000-0002-8592-0812</person_orcid>
+                    <person_orcid>https://orcid.org/0000-0002-8592-0812</person_orcid>
                     <sequence_number>2</sequence_number>
                     <Affiliation>
                         <organization_name>University of Idaho</organization_name>
@@ -1028,7 +1028,7 @@
                     <field_length unit="byte">7</field_length>
                     <unit>deg</unit>
                     <description>
-                        Minimum true anomaly over the image mid-time span.
+                        Minimum true anomaly over valid longitudes in the reprojected image.
                     </description>
                 </Field_Character>
                 <Field_Character>
@@ -1039,7 +1039,7 @@
                     <field_length unit="byte">7</field_length>
                     <unit>deg</unit>
                     <description>
-                        Maximum true anomaly over the image mid-time span.
+                        Maximum true anomaly over valid longitudes in the reprojected image.
                     </description>
                 </Field_Character>
                 <Field_Character>

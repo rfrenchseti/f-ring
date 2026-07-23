@@ -1,6 +1,6 @@
-This bundle contains F ring mosaics and reprojected versions of Cassini ISS
-calibrated images, along with associated metadata, browse images, and
-documentation.
+This bundle contains F ring mosaics, background-subtracted mosaics, and
+reprojected versions of Cassini ISS calibrated images, along with associated
+metadata, browse images, and documentation.
 
 The document collection contains a detailed, comprehensive User Guide which
 provides an overview of the contents of this bundle and how to use it, along

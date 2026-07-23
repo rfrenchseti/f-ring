@@ -19,6 +19,7 @@
             $FOR(KEYWORD=KEYWORDS_MOSAIC)
             <keyword>$KEYWORD$</keyword>
             $END_FOR
+            <keyword>browse products</keyword>
             <description>
                 $WRAP(16,91,BROWSE_MOSAIC_DESCRIPTION,preserve_single_newlines=False)$
             </description>

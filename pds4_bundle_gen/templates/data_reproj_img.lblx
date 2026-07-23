@@ -74,7 +74,7 @@
             </Internal_Reference>
         </Investigation_Area>
         <Observing_System>
-            <name>Cassini Orbiter Imaging Science Subsystem</name>
+            <name>Cassini Imaging Science Subsystem - $CAMERA_WIDTH$ Angle Camera</name>
             <Observing_System_Component>
                 <name>Cassini Orbiter</name>
                 <type>Host</type>
@@ -206,7 +206,7 @@
             <rings:Ring_Moon_Systems>
                 <rings:Ring_Reprojection>
                     <Local_Internal_Reference>
-                        <local_identifier_reference>image</local_identifier_reference>
+                        <local_identifier_reference>reproj_image</local_identifier_reference>
                         <local_reference_type>reprojection_to_array</local_reference_type>
                     </Local_Internal_Reference>
                     <rings:Reprojection_Geometry>

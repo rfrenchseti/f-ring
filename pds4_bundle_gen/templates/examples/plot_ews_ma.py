@@ -6,8 +6,8 @@ Requirements:
     numpy
     pds4_tools
 
-This program must be run from the ``examples`` directory so mosaic_utils is
-available.
+This program must be run from the ``document/user_guide`` directory so
+mosaic_utils is available.
 
 Usage: python plot_ews_ma.py <mosaic_label_path>
 """
@@ -72,7 +72,7 @@ def compute_ews(image_ma_data, long_interval, radial_interval,
 
     # Compute "mu", abs(cos(emission_angle)), to photometrically adjust the
     # equivalent widths for viewing angle.
-    mu = np.abs(np.cos(mosaic_emission))
+    mu = np.abs(np.cos(np.radians(mosaic_emission)))
 
     # Make an image array adjusted for viewing angle.
     adj_image_ma_data = image_ma_data * mu

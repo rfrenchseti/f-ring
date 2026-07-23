@@ -60,3 +60,5 @@ Mia's current tasks (8/7/25):
   <rings:description>
 
 - Consider using wrap-around longitude limits.
+
+- Verify that the sentinel values are present in the background mosaics from the original mosaic's bad pixels.
