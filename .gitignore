@@ -166,3 +166,32 @@ plots*
 bundle/
 logs/
 *#
+
+# LaTeX build artifacts (e.g. user_guide/)
+*.aux
+*.bbl
+*.bcf
+*.blg
+*.fdb_latexmk
+*.fls
+*.idx
+*.ilg
+*.ind
+*.lof
+*.lot
+*.nav
+*.out
+*.run.xml
+*.snm
+*.synctex.gz
+*.toc
+*.vrb
+*.xdv
+user_guide/main.pdf
+# ...but the guide's figure assets are source, not generated plots
+!user_guide/figures/
+!user_guide/figures/*.png
+
+# PDS4 bundle-generation outputs (symlinks into /data/fring-bundles)
+pds4_bundle_gen/bundle
+pds4_bundle_gen/logs
