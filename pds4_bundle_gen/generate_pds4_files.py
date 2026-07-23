@@ -867,12 +867,16 @@ def read_reproj(metadata_path):
             metadata = fixup_byte_to_str(metadata)
 
     if 'mean_resolution' in metadata: # Old format
-        metadata['mean_radial_resolution'] = res = metadata['mean_resolution']
-        del metadata['mean_resolution']
-        metadata['mean_angular_resolution'] = np.zeros(res.shape)
+        LOGGER.error(f'{obsid}: Old format metadata found for {metadata_path}')
+        raise ObsIdFailedException
+        # metadata['mean_radial_resolution'] = res = metadata['mean_resolution']
+        # del metadata['mean_resolution']
+        # metadata['mean_angular_resolution'] = np.zeros(res.shape)
     if 'long_mask' in metadata: # Old format
-        metadata['long_antimask'] = metadata['long_mask']
-        del metadata['long_mask']
+        LOGGER.error(f'{obsid}: Old format metadata found for {metadata_path}')
+        raise ObsIdFailedException
+        # metadata['long_antimask'] = metadata['long_mask']
+        # del metadata['long_mask']
 
     long_antimask = metadata['long_antimask']
     longitudes = (np.arange(len(long_antimask)) * arguments.longitude_resolution)
@@ -903,12 +907,14 @@ def _image_has_satellite(metadata, satellite_dist, satellite_long):
     if isinstance(ETs, np.ndarray):
         ETs = ETs[long_antimask]
 
-    # Find the closest longitude to the satellite longitude
-    long_diff = np.abs(longitudes - satellite_long)
+    # Find the closest longitude to the satellite longitude, accounting for
+    # the wraparound at 0/360 degrees.
+    long_diff = np.abs((longitudes - satellite_long + 180.) % 360. - 180.)
     closest_index = np.argmin(long_diff)
     closest_diff = long_diff[closest_index]
-    if closest_diff > 0.04:  # Must be within 0.04 degrees of a valid longitude
-        # This gives us a little leeway for missing data
+    # Must be within two longitude bins of a valid longitude; this gives us a
+    # little leeway for missing data.
+    if closest_diff > 2 * arguments.longitude_resolution:
         return False
     # Must have at least two valid longitudes on either side
     # We don't account for wraparound; it's unlikely to matter
@@ -3388,7 +3394,6 @@ def generate_support_files():
         metadata['LATEST_STOP_DATE_TIME'] = 'N/A'
     else:
         metadata['LATEST_STOP_DATE_TIME'] = et_to_datetime(LATEST_STOP_DATE_TIME)
-    metadata['LATEST_STOP_DATE_TIME'] = et_to_datetime(LATEST_STOP_DATE_TIME)
     metadata['BROWSE_MOSAIC_COLLECTION_LID'] = BROWSE_MOSAIC_COLLECTION_LID
     metadata['BROWSE_MOSAIC_BKG_SUB_COLLECTION_LID'] = BROWSE_MOSAIC_BKG_SUB_COLLECTION_LID
     metadata['BROWSE_REPROJ_COLLECTION_LID'] = BROWSE_REPROJ_COLLECTION_LID
