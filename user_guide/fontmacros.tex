@@ -1,0 +1,64 @@
+% ---------------------------------------------------------------------------
+% Font macros for the F Ring User's Guide
+%
+% The Word original uses several distinctive fonts that are not generally
+% available to LaTeX.  Each is wrapped in a macro here so the font choice can
+% be changed in ONE place.  Current substitutions:
+%
+%   Word font           Used for                          LaTeX substitute
+%   ------------------  --------------------------------  -----------------------
+%   Times New Roman     body text, title                  Times (mathptmx)
+%   Calibri (bold)      headings                          Helvetica (phv)
+%   Cascadia Code       file names, program constants,    Courier (pcr)
+%                       code blocks, directory listings
+%   Courier New         "Literal" style (rarely used)     Courier (pcr)
+%   Lucida Sans         (label listings in older drafts;  Helvetica (phv)
+%                       retained for completeness)
+%
+% If you compile on a full TeX system you may prefer, e.g.:
+%   \renewcommand{\codefontfamily}{\fontfamily{zi4}\selectfont}   % Inconsolata
+% or with LuaLaTeX/XeLaTeX + fontspec, set these to the real fonts.
+% ---------------------------------------------------------------------------
+
+% --- inline font for file names / program constants (Word: Cascadia Code)
+\newcommand{\codefontfamily}{\fontfamily{pcr}\selectfont}
+\newcommand{\code}[1]{{\codefontfamily #1}}
+
+% --- inline font for the Word "Literal" character style (Word: Courier New)
+\newcommand{\literalfontfamily}{\fontfamily{pcr}\selectfont}
+\newcommand{\literal}[1]{{\literalfontfamily #1}}
+
+% --- inline font for XML label excerpts in older drafts (Word: Lucida Sans)
+\newcommand{\labelxmlfontfamily}{\fontfamily{phv}\selectfont}
+\newcommand{\labelxml}[1]{{\labelxmlfontfamily #1}}
+
+% --- heading font (Word: Calibri bold)
+\newcommand{\headingfont}{\sffamily\bfseries}
+
+% --- title font (Word: Times New Roman 18 pt bold)
+\newcommand{\usgtitlefont}{\rmfamily\bfseries\fontsize{18pt}{22pt}\selectfont}
+
+% --- Zotero citation placeholder.
+% The Word document manages citations with Zotero.  Until the bibliography is
+% converted to BibTeX (second pass), \zcite simply prints the plain citation
+% text captured from the Word field.  The full CSL JSON data for every
+% citation was extracted to citations/zotero-citations.json.
+\newcommand{\zcite}[1]{#1}
+
+% --- verbatim environments for code blocks --------------------------------
+% CodeBlock    : Word "Code" style paragraphs (Cascadia Code)
+% LiteralBlock : Word "Literal" style paragraphs (Courier New)
+% LabelBlock   : XML label listings (Lucida Sans in older drafts)
+% A [fontsize=...] option is emitted by the converter where the Word source
+% used a smaller point size (e.g. the long XML label listings).
+% breaklines wraps lines too long for the page, as Word does; the
+% continuation line is indented and unmarked (set breaksymbolleft to change).
+\DefineVerbatimEnvironment{CodeBlock}{Verbatim}%
+  {fontsize=\small,formatcom=\codefontfamily,xleftmargin=1.5em,
+   breaklines=true,breakanywhere=true,breaksymbolleft={},breakindent=2em}
+\DefineVerbatimEnvironment{LiteralBlock}{Verbatim}%
+  {fontsize=\small,formatcom=\literalfontfamily,xleftmargin=1.5em,
+   breaklines=true,breakanywhere=true,breaksymbolleft={},breakindent=2em}
+\DefineVerbatimEnvironment{LabelBlock}{Verbatim}%
+  {fontsize=\small,formatcom=\labelxmlfontfamily,xleftmargin=1.5em,
+   breaklines=true,breakanywhere=true,breaksymbolleft={},breakindent=2em}

@@ -1,0 +1,74 @@
+% Section 2: Quick start
+
+\section{Quick start}
+\label{sec:quick-start}
+
+The data set described here is archived using the PDS4 standard. While deep knowledge of PDS4 is not required to make use of the data, some familiarity is useful. Specifications, tools, and training are available from the main PDS website at \href{https://pds.nasa.gov}{https://pds.nasa.gov}.\footnote{Refer to the documents in Section \ref{sec:pds4-standards-and-documentation} for further information on the PDS4 concepts of \textit{bundle}, \textit{collection}, and \textit{data product}.}
+
+This data is archived as a single PDS4 \textit{bundle}, which consists of multiple \textit{collections}. Each collection represents one particular type of data (reprojected images, mosaics, browse images, \textit{etc}.). Within a collection, individual data products are described by a \textit{label} (suffix \code{.\allowbreak{}lblx}), which contains substantial information about the data product, including details of any associated binary image (\code{.\allowbreak{}img}), graphical image (\code{.\allowbreak{}png}), metadata table (\code{.\allowbreak{}tab}), or supplemental (\code{.\allowbreak{}txt}) files.
+
+Data product files are best read by first processing the associated label file, extracting the needed metadata about the data product, and then using the information in the label to identify the file(s) to read and the details of their format. Special software is available in a variety of programming languages for processing labels and reading the associated data products (Section \ref{sec:reading-labels-and-data-product-files}).
+
+Below is a summary of the collections related to reprojected images and the files contained within each.
+
+\begingroup\small
+\begin{longtable}{|>{\raggedright\arraybackslash}p{0.186\linewidth}|>{\raggedright\arraybackslash}p{0.405\linewidth}|>{\raggedright\arraybackslash}p{0.329\linewidth}|}
+\hline
+Collection & Filename(s) & Description \\
+\hline
+\code{browse\_\allowbreak{}reproj\_\allowbreak{}img} (Section \ref{sec:browse-reproj-img}) & \code{IMGID\_\allowbreak{}browse\_\allowbreak{}reproj\_\allowbreak{}img.\allowbreak{}lblx} & PDS4 label describing the four types of browse images for reprojected image data. \\
+\hline
+ & \code{IMGID\_\allowbreak{}browse\_\allowbreak{}reproj\_\allowbreak{}img\_\allowbreak{}full.\allowbreak{}png}\newline \code{IMGID\_\allowbreak{}browse\_\allowbreak{}reproj\_\allowbreak{}img\_\allowbreak{}med.\allowbreak{}png} \newline \code{IMGID\_\allowbreak{}browse\_\allowbreak{}reproj\_\allowbreak{}img\_\allowbreak{}small.\allowbreak{}png} \newline \code{IMGID\_\allowbreak{}browse\_\allowbreak{}reproj\_\allowbreak{}img\_\allowbreak{}thumb.\allowbreak{}png} & Human-viewable versions of reprojected images in four sizes in standard PNG format. Images are contrast-stretched and not calibrated for scientific use. \\
+\hline
+\code{data\_\allowbreak{}reproj\_\allowbreak{}img} (Section \ref{sec:data-reproj-img}) & \code{IMGID\_\allowbreak{}reproj\_\allowbreak{}img.\allowbreak{}lblx} & PDS4 label describing the reprojected image and the three associated data files. \\
+\hline
+ & \code{IMGID\_\allowbreak{}reproj\_\allowbreak{}img.\allowbreak{}img} & Binary file containing an \textit{N}×401 array of 32-bit floating point values calibrated as I/F. The array represents a grid of corotating longitude in 0.02° increments (\textit{x}) and radius in increments of 5 km (\textit{y}). The longitudes are restricted to the range containing valid data. \\
+\hline
+ & \code{IMGID\_\allowbreak{}reproj\_\allowbreak{}img\_\allowbreak{}metadata\_\allowbreak{}params.\allowbreak{}tab} & Fixed-width comma-delimited table containing metadata for each valid corotating longitude in the \code{reproj\_\allowbreak{}img}. \\
+\hline
+ & \code{IMGID\_\allowbreak{}reproj\_\allowbreak{}img\_\allowbreak{}suppl.\allowbreak{}txt} & Text file containing a description of the navigation results for the original Cassini ISS image and the resulting SPICE C matrix. \\
+\hline
+\end{longtable}
+\endgroup
+
+Below is a summary of the collections related to mosaics [and background-subtracted mosaics] and the files contained within each.
+
+\begingroup\small
+\begin{longtable}{|>{\raggedright\arraybackslash}p{0.222\linewidth}|>{\raggedright\arraybackslash}p{0.444\linewidth}|>{\raggedright\arraybackslash}p{0.254\linewidth}|}
+\hline
+Collection & Filename(s) & Description \\
+\hline
+\code{browse\_\allowbreak{}mosaic} [original] \code{browse\_\allowbreak{}mosaic\_\allowbreak{}bkg\_\allowbreak{}sub}\newline [background gradient removed] (Section \ref{sec:browse-mosaic-and-browse-mosaic-bkg-sub}) & \code{OBSID\_\allowbreak{}browse\_\allowbreak{}mosaic[\_\allowbreak{}bkg\_\allowbreak{}sub].\allowbreak{}lblx} & PDS4 label describing the four types of browse images for mosaic data. \\
+\hline
+ & \code{OBSID\_\allowbreak{}browse\_\allowbreak{}mosaic[\_\allowbreak{}bkg\_\allowbreak{}sub]\_\allowbreak{}full.\allowbreak{}png}\newline \code{OBSID\_\allowbreak{}browse\_\allowbreak{}mosaic[\_\allowbreak{}bkg\_\allowbreak{}sub]\_\allowbreak{}med.\allowbreak{}png} \newline \code{OBSID\_\allowbreak{}browse\_\allowbreak{}mosaic[\_\allowbreak{}bkg\_\allowbreak{}sub]\_\allowbreak{}small.\allowbreak{}png} \newline \code{OBSID\_\allowbreak{}browse\_\allowbreak{}mosaic[\_\allowbreak{}bkg\_\allowbreak{}sub]\_\allowbreak{}thumb.\allowbreak{}png} & Human-viewable versions of mosaics in four sizes in standard PNG format. Images are contrast-stretched and not calibrated for scientific use. \\
+\hline
+\code{data\_\allowbreak{}mosaic} [original]\newline \code{data\_\allowbreak{}mosaic\_\allowbreak{}bkg\_\allowbreak{}sub}\newline [background gradient removed] (Section \ref{sec:data-mosaic-and-data-mosaic-bkg-sub}) & \code{OBSID\_\allowbreak{}mosaic[\_\allowbreak{}bkg\_\allowbreak{}sub].\allowbreak{}lblx} & PDS4 label describing the mosaic and the three associated data files. \\
+\hline
+ & \code{OBSID\_\allowbreak{}mosaic[\_\allowbreak{}bkg\_\allowbreak{}sub].\allowbreak{}img} & Binary file containing an 18000×401 array of 32-bit floating point values calibrated as I/F. The array represents a grid of corotating longitude in 0.02° increments (\textit{x}) and radius in increments of 5 km (\textit{y}). \\
+\hline
+ & \code{OBSID\_\allowbreak{}mosaic[\_\allowbreak{}bkg\_\allowbreak{}sub]\_\allowbreak{}metadata\_\allowbreak{}params.\allowbreak{}tab} & Fixed-width comma-delimited table containing metadata for each valid corotating longitude in the mosaic. \\
+\hline
+ & \code{OBSID\_\allowbreak{}mosaic[\_\allowbreak{}bkg\_\allowbreak{}sub]\_\allowbreak{}metadata\_\allowbreak{}src\_\allowbreak{}imgs.\allowbreak{}tab} & Fixed-width comma-delimited table containing a map of image numbers from the \code{metadata\_\allowbreak{}params} table to the associated reprojected image name. \\
+\hline
+\end{longtable}
+\endgroup
+
+Other collections are provided in the bundle, including a document collection containing this User Guide and a miscellaneous bundle containing global index files. All collections and support files are described in the sections below.
+
+The remainder of this User Guide provides detailed guidance on the use of the bundle:
+
+\begin{itemize}
+\item Section \ref{sec:image-selection-and-processing} describes the selection and processing of Cassini ISS images and the creation of the mosaics, including the steps:
+\begin{itemize}
+\item Image selection (Section \ref{sec:image-selection})
+\item Image calibration (Section \ref{sec:calibration})
+\item Image navigation (pointing correction) (Section \ref{sec:navigation})
+\item Image reprojection (Section \ref{sec:reprojection})
+\item Mosaic creation (Section \ref{sec:mosaic-creation})
+\item Mosaic background gradient modeling and subtraction (Section \ref{sec:background-modeling})
+\end{itemize}
+\item Section \ref{sec:bundle-organization-and-directory-structure} describes the bundle organization and directory structure, including the details of all files included
+\item Section \ref{sec:reading-labels-and-data-product-files} discusses techniques for reading label and data product files
+\item Section \ref{sec:external-references-and-further-reading} contains useful external references
+\item Section \ref{sec:metadata-and-global-index-file-fields} provides an itemized list of all metadata fields and their meaning
+\end{itemize}
