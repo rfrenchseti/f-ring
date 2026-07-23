@@ -220,7 +220,7 @@ browse_reproj_img/
 └── ...
 \end{CodeBlock}
 
-Four sizes of browse images are provided. “Thumb” images are always 100×100 pixels and are downsampled as necessary from the reprojected image. “Small” images are always 200×200 pixels and are similarly downsampled and padded. “Med” images are downsampled by 10 in the X dimension and are always 400 pixels in the Y dimension, thus having a maximum size of 1800×401. “Full” images are always the same size as the reprojected image (with a minimum of 800 pixels in the X dimension) and guaranteed to be 401 pixels in the Y dimension. All image types are contrast-stretched to use the full available greyscale and are not calibrated for scientific use. Missing data in the reprojected image is indicated by black.
+Four sizes of browse images are provided. “Thumb” images are always 100×100 pixels and are downsampled as necessary from the reprojected image. “Small” images are always 200×200 pixels and are similarly downsampled. “Med” images are downsampled by 10 in the X dimension and are always 400 pixels in the Y dimension, thus having a maximum size of 1800×400. “Full” images are always the same size as the reprojected image (with a minimum of 800 pixels in the X dimension) and guaranteed to be 401 pixels in the Y dimension. All image types are contrast-stretched to use the full available greyscale and are not calibrated for scientific use. Missing data in the reprojected image is indicated by black.
 
 
 \subsubsection{data\_mosaic and data\_mosaic\_bkg\_sub}
@@ -293,7 +293,7 @@ These directories contain browse images for the corresponding mosaics. Browse im
 \begin{itemize}
 \item Thumb: 100×100 pixels
 \item Small: 200×200 pixels
-\item Medium: 1800×401 pixels
+\item Medium: 1800×400 pixels
 \item Full: 18000×401 pixels
 \end{itemize}
 Each mosaic is downsampled as necessary to make the browse images. Each browse image is contrast-stretched to use the full available greyscale and is not calibrated for scientific use. Missing data in the mosaic is indicated by black.
@@ -313,6 +313,7 @@ document/
     ├── f-ring-mosaics-user-guide.lblx
     ├── f-ring-mosaics-user-guide.pdf
     ├── find_prometheus_closest_approaches.py
+    ├── mosaic_utils.py
     ├── plot_ews_df.py
     └── plot_ews_ma.py
 \end{CodeBlock}
