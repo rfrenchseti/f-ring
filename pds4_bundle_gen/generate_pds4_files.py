@@ -903,6 +903,7 @@ def _image_has_satellite(metadata, satellite_dist, satellite_long):
     """Return True if the satellite is present in the image."""
     long_antimask = metadata['long_antimask']
     longitudes = metadata['longitudes'][long_antimask]  # Valid corotating longitudes
+    inertial_longitudes = metadata['inertial_longitudes'][long_antimask]
     ETs = metadata['time']  # Scalar for reprojected images, array for mosaics
     if isinstance(ETs, np.ndarray):
         ETs = ETs[long_antimask]
@@ -927,7 +928,9 @@ def _image_has_satellite(metadata, satellite_dist, satellite_long):
     else:
         closest_ET = ETs
         closest_sat_dist = satellite_dist
-    closest_radius = fring_radius_at_longitude(longitudes[closest_index], closest_ET)
+    # fring_radius_at_longitude expects an inertial longitude, not corotating.
+    closest_radius = fring_radius_at_longitude(inertial_longitudes[closest_index],
+                                               closest_ET)
     radius_sat_dist = closest_radius - closest_sat_dist  # + Prometheus, - Pandora
     return ((radius_sat_dist < 0 and  # Pandora
              radius_sat_dist > -arguments.radius_outer_delta) or
