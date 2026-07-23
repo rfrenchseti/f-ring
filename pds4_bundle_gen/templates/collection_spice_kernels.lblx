@@ -13,7 +13,7 @@
         <information_model_version>$INFORMATION_MODEL_VERSION$</information_model_version>
         <product_class>Product_Collection</product_class>
         <Citation_Information>
-            <publication_year>2025</publication_year>
+            <publication_year>$PUBLICATION_YEAR$</publication_year>
             $FOR(KEYWORD=KEYWORDS)
             <keyword>$KEYWORD$</keyword>
             $END_FOR
@@ -167,7 +167,7 @@
     <File_Area_Inventory>
         <File>
             <file_name>$COLLECTION_SPICE_KERNELS_CSV_NAME$</file_name>
-            <creation_date_time>2025-08-21T14:18:39</creation_date_time>
+            <creation_date_time>$FILE_ZULU(COLLECTION_SPICE_KERNELS_CSV_PATH)$</creation_date_time>
             <file_size unit="byte">$FILE_BYTES(COLLECTION_SPICE_KERNELS_CSV_PATH)$</file_size>
             <records>$FILE_RECORDS(COLLECTION_SPICE_KERNELS_CSV_PATH)$</records>
             <md5_checksum>$FILE_MD5(COLLECTION_SPICE_KERNELS_CSV_PATH)$</md5_checksum>

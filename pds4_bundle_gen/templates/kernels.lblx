@@ -52,11 +52,11 @@
             <type>Mission</type>
             <Internal_Reference>
                 <lid_reference>urn:nasa:pds:context:investigation:mission.cassini-huygens</lid_reference>
-                <reference_type>collection_to_investigation</reference_type>
+                <reference_type>data_to_investigation</reference_type>
             </Internal_Reference>
         </Investigation_Area>
         <Observing_System>
-            <name>Cassini Orbiter Imaging Science Subsystem - Wide Angle Camera</name>
+            <name>Cassini Orbiter Imaging Science Subsystem</name>
             <Observing_System_Component>
                 <name>Cassini Orbiter</name>
                 <type>Host</type>

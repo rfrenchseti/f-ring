@@ -144,7 +144,7 @@
         <Inventory>
             <offset unit="byte">0</offset>
             <parsing_standard_id>PDS DSV 1</parsing_standard_id>
-            <records>5</records>
+            <records>$FILE_RECORDS(COLLECTION_MISCELLANEOUS_CSV_PATH)$</records>
             <record_delimiter>Line-Feed</record_delimiter>
             <field_delimiter>Comma</field_delimiter>
             <Record_Delimited>
