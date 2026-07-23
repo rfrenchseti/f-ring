@@ -1,0 +1,1389 @@
+[
+ {
+  "citationID": "rzHXjZT2",
+  "properties": {
+   "formattedCitation": "(Gehrels et al. 1980)",
+   "plainCitation": "(Gehrels et al. 1980)",
+   "noteIndex": 0
+  },
+  "citationItems": [
+   {
+    "id": 163,
+    "uris": [
+     "http://zotero.org/users/39129/items/6HEXTTD9"
+    ],
+    "itemData": {
+     "id": 163,
+     "type": "article-journal",
+     "abstract": "Results of Pioneer 11 imaging photopolarimeter observations of Saturn,\nits rings, and Titan are presented. The imaging photopolarimeter is a\npointable telescope with an aperture of 2.5 cm and passbands of 390 to\n500 to 720 nm which uses the spin of the spacecraft to scan across an\nobject. Images of the Saturn system and of the rings are presented, and\nthe absence of a D ring, structures in the C, B and A rings and the\nCassini division and the discoveries of the F ring and the provisionally\nnamed Pioneer division separating it from the A ring are reported. A\nmean particle size less than 15 meters is estimated from estimates of\ntotal ring mass and the optical depth of the B ring. The discovery of\nthe satellite 1979 S 1 at 2.53 Saturn radii is also noted. Models of the\nvertical aerosol structure of Saturn's atmosphere are compared with the\npolarization data, and it is indicated that the density of cloud\nparticles decreases with altitude with a scale height about one fourth\nthat of the gas, and that an optical depth of one is to be found at 750\nmbar.",
+     "container-title": "Science",
+     "page": "434-439",
+     "source": "NASA ADS",
+     "title": "Imaging photopolarimeter on Pioneer Saturn",
+     "volume": "207",
+     "author": [
+      {
+       "family": "Gehrels",
+       "given": "T."
+      },
+      {
+       "family": "Baker",
+       "given": "L. R."
+      },
+      {
+       "family": "Beshore",
+       "given": "E."
+      },
+      {
+       "family": "Blenman",
+       "given": "C."
+      },
+      {
+       "family": "Burke",
+       "given": "J. J."
+      },
+      {
+       "family": "Castillo",
+       "given": "N. D."
+      },
+      {
+       "family": "Dacosta",
+       "given": "B."
+      },
+      {
+       "family": "Degewij",
+       "given": "J."
+      },
+      {
+       "family": "Doose",
+       "given": "L. R."
+      },
+      {
+       "family": "Fountain",
+       "given": "J. W."
+      },
+      {
+       "family": "Gotobed",
+       "given": "J."
+      },
+      {
+       "family": "Kenknight",
+       "given": "C. E."
+      },
+      {
+       "family": "Kingston",
+       "given": "R."
+      },
+      {
+       "family": "McLaughlin",
+       "given": "G."
+      },
+      {
+       "family": "McMillan",
+       "given": "R."
+      },
+      {
+       "family": "Murphy",
+       "given": "R."
+      },
+      {
+       "family": "Smith",
+       "given": "P. H."
+      },
+      {
+       "family": "Stoll",
+       "given": "C. P."
+      },
+      {
+       "family": "Strickland",
+       "given": "R. N."
+      },
+      {
+       "family": "Tomasko",
+       "given": "M. G."
+      },
+      {
+       "family": "Wijesinghe",
+       "given": "M. P."
+      },
+      {
+       "family": "Coffeen",
+       "given": "D. L."
+      },
+      {
+       "family": "Esposito",
+       "given": "L. W."
+      }
+     ],
+     "issued": {
+      "date-parts": [
+       [
+        "1980",
+        1,
+        1
+       ]
+      ]
+     }
+    }
+   }
+  ],
+  "schema": "https://github.com/citation-style-language/schema/raw/master/csl-citation.json"
+ },
+ {
+  "citationID": "31exkH2W",
+  "properties": {
+   "formattedCitation": "(Knowles 2018; Porco et al. 2004)",
+   "plainCitation": "(Knowles 2018; Porco et al. 2004)",
+   "noteIndex": 0
+  },
+  "citationItems": [
+   {
+    "id": 12,
+    "uris": [
+     "http://zotero.org/users/39129/items/2C5E8BEE"
+    ],
+    "itemData": {
+     "id": 12,
+     "type": "article-journal",
+     "abstract": "The Cassini Imaging Science Subsystem (ISS) is the highest-resolution\ntwo-dimensional imaging device on the Cassini Orbiter and has been\ndesigned for investigations of the bodies and phenomena found within the\nSaturnian planetary system. It consists of two framing cameras: a narrow\nangle, reflecting telescope with a 2-m focal length and a square field\nof view (FOV) 0.35\u2218 across, and a wide-angle refractor\nwith a 0.2-m focal length and a FOV 3.5\u2218 across. At the\nheart of each camera is a charged coupled device (CCD) detector\nconsisting of a 1024 square array of pixels, each 12 \u03bc on a side. The\ndata system allows many options for data collection, including choices\nfor on-chip summing, rapid imaging and data compression. Each camera is\noutfitted with a large number of spectral filters which, taken together,\nspan the electromagnetic spectrum from 200 to 1100 nm. These were chosen\nto address a multitude of Saturn-system scientific objectives: sounding\nthe three-dimensional cloud structure and meteorology of the Saturn and\nTitan atmospheres, capturing lightning on both bodies, imaging the\nsurfaces of Saturn\u2019s many icy satellites, determining the\nstructure of its enormous ring system, searching for previously\nundiscovered Saturnian moons (within and exterior to the rings), peering\nthrough the hazy Titan atmosphere to its yet-unexplored surface, and in\ngeneral searching for temporal variability throughout the system on a\nvariety of time scales. The ISS is also the optical navigation\ninstrument for the Cassini mission. We describe here the capabilities\nand characteristics of the Cassini ISS, determined from both ground\ncalibration data and in-flight data taken during cruise, and the\nSaturn-system investigations that will be conducted with it. At the time\nof writing, Cassini is approaching Saturn and the images returned to\nEarth thus far are both breathtaking and promising.",
+     "container-title": "Space Science Reviews",
+     "DOI": "https://doi.org/10.1007/s11214-004-1456-7",
+     "journalAbbreviation": "Space Sci. Rev.",
+     "page": "363-497",
+     "source": "NASA ADS",
+     "title": "Cassini imaging science: Instrument characteristics and anticipated scientific investigations at Saturn",
+     "title-short": "Cassini Imaging Science",
+     "volume": "115",
+     "author": [
+      {
+       "family": "Porco",
+       "given": "Carolyn C."
+      },
+      {
+       "family": "West",
+       "given": "Robert A."
+      },
+      {
+       "family": "Squyres",
+       "given": "Steven"
+      },
+      {
+       "family": "McEwen",
+       "given": "Alfred"
+      },
+      {
+       "family": "Thomas",
+       "given": "Peter"
+      },
+      {
+       "family": "Murray",
+       "given": "Carl D."
+      },
+      {
+       "family": "Delgenio",
+       "given": "Anthony"
+      },
+      {
+       "family": "Ingersoll",
+       "given": "Andrew P."
+      },
+      {
+       "family": "Johnson",
+       "given": "Torrence V."
+      },
+      {
+       "family": "Neukum",
+       "given": "Gerhard"
+      },
+      {
+       "family": "Veverka",
+       "given": "Joseph"
+      },
+      {
+       "family": "Dones",
+       "given": "Luke"
+      },
+      {
+       "family": "Brahic",
+       "given": "Andre"
+      },
+      {
+       "family": "Burns",
+       "given": "Joseph A."
+      },
+      {
+       "family": "Haemmerle",
+       "given": "Vance"
+      },
+      {
+       "family": "Knowles",
+       "given": "Benjamin"
+      },
+      {
+       "family": "Dawson",
+       "given": "Douglas"
+      },
+      {
+       "family": "Roatsch",
+       "given": "Thomas"
+      },
+      {
+       "family": "Beurle",
+       "given": "Kevin"
+      },
+      {
+       "family": "Owen",
+       "given": "William"
+      }
+     ],
+     "issued": {
+      "date-parts": [
+       [
+        "2004",
+        12,
+        1
+       ]
+      ]
+     }
+    }
+   },
+   {
+    "id": 3476,
+    "uris": [
+     "http://zotero.org/users/39129/items/FQBC582B"
+    ],
+    "itemData": {
+     "id": 3476,
+     "type": "report",
+     "note": "https://doi.org/10.17189/1504135",
+     "title": "Cassini Imaging Science Subsystem (ISS) Data User's Guide",
+     "URL": "https://pds.nasa.gov/data/pds4/releases/rings/cassini_docs-20210211/iss-data-user-guide.pdf",
+     "author": [
+      {
+       "family": "Knowles",
+       "given": "Ben"
+      }
+     ],
+     "issued": {
+      "date-parts": [
+       [
+        "2018",
+        9,
+        16
+       ]
+      ]
+     }
+    }
+   }
+  ],
+  "schema": "https://github.com/citation-style-language/schema/raw/master/csl-citation.json"
+ },
+ {
+  "citationID": "pjBFxsEW",
+  "properties": {
+   "formattedCitation": "(Porco et al. 2004)",
+   "plainCitation": "(Porco et al. 2004)",
+   "noteIndex": 0
+  },
+  "citationItems": [
+   {
+    "id": 12,
+    "uris": [
+     "http://zotero.org/users/39129/items/2C5E8BEE"
+    ],
+    "itemData": {
+     "id": 12,
+     "type": "article-journal",
+     "abstract": "The Cassini Imaging Science Subsystem (ISS) is the highest-resolution\ntwo-dimensional imaging device on the Cassini Orbiter and has been\ndesigned for investigations of the bodies and phenomena found within the\nSaturnian planetary system. It consists of two framing cameras: a narrow\nangle, reflecting telescope with a 2-m focal length and a square field\nof view (FOV) 0.35\u2218 across, and a wide-angle refractor\nwith a 0.2-m focal length and a FOV 3.5\u2218 across. At the\nheart of each camera is a charged coupled device (CCD) detector\nconsisting of a 1024 square array of pixels, each 12 \u03bc on a side. The\ndata system allows many options for data collection, including choices\nfor on-chip summing, rapid imaging and data compression. Each camera is\noutfitted with a large number of spectral filters which, taken together,\nspan the electromagnetic spectrum from 200 to 1100 nm. These were chosen\nto address a multitude of Saturn-system scientific objectives: sounding\nthe three-dimensional cloud structure and meteorology of the Saturn and\nTitan atmospheres, capturing lightning on both bodies, imaging the\nsurfaces of Saturn\u2019s many icy satellites, determining the\nstructure of its enormous ring system, searching for previously\nundiscovered Saturnian moons (within and exterior to the rings), peering\nthrough the hazy Titan atmosphere to its yet-unexplored surface, and in\ngeneral searching for temporal variability throughout the system on a\nvariety of time scales. The ISS is also the optical navigation\ninstrument for the Cassini mission. We describe here the capabilities\nand characteristics of the Cassini ISS, determined from both ground\ncalibration data and in-flight data taken during cruise, and the\nSaturn-system investigations that will be conducted with it. At the time\nof writing, Cassini is approaching Saturn and the images returned to\nEarth thus far are both breathtaking and promising.",
+     "container-title": "Space Science Reviews",
+     "DOI": "https://doi.org/10.1007/s11214-004-1456-7",
+     "journalAbbreviation": "Space Sci. Rev.",
+     "page": "363-497",
+     "source": "NASA ADS",
+     "title": "Cassini imaging science: Instrument characteristics and anticipated scientific investigations at Saturn",
+     "title-short": "Cassini Imaging Science",
+     "volume": "115",
+     "author": [
+      {
+       "family": "Porco",
+       "given": "Carolyn C."
+      },
+      {
+       "family": "West",
+       "given": "Robert A."
+      },
+      {
+       "family": "Squyres",
+       "given": "Steven"
+      },
+      {
+       "family": "McEwen",
+       "given": "Alfred"
+      },
+      {
+       "family": "Thomas",
+       "given": "Peter"
+      },
+      {
+       "family": "Murray",
+       "given": "Carl D."
+      },
+      {
+       "family": "Delgenio",
+       "given": "Anthony"
+      },
+      {
+       "family": "Ingersoll",
+       "given": "Andrew P."
+      },
+      {
+       "family": "Johnson",
+       "given": "Torrence V."
+      },
+      {
+       "family": "Neukum",
+       "given": "Gerhard"
+      },
+      {
+       "family": "Veverka",
+       "given": "Joseph"
+      },
+      {
+       "family": "Dones",
+       "given": "Luke"
+      },
+      {
+       "family": "Brahic",
+       "given": "Andre"
+      },
+      {
+       "family": "Burns",
+       "given": "Joseph A."
+      },
+      {
+       "family": "Haemmerle",
+       "given": "Vance"
+      },
+      {
+       "family": "Knowles",
+       "given": "Benjamin"
+      },
+      {
+       "family": "Dawson",
+       "given": "Douglas"
+      },
+      {
+       "family": "Roatsch",
+       "given": "Thomas"
+      },
+      {
+       "family": "Beurle",
+       "given": "Kevin"
+      },
+      {
+       "family": "Owen",
+       "given": "William"
+      }
+     ],
+     "issued": {
+      "date-parts": [
+       [
+        "2004",
+        12,
+        1
+       ]
+      ]
+     }
+    }
+   }
+  ],
+  "schema": "https://github.com/citation-style-language/schema/raw/master/csl-citation.json"
+ },
+ {
+  "citationID": "XHoavVVN",
+  "properties": {
+   "formattedCitation": "(Knowles 2018)",
+   "plainCitation": "(Knowles 2018)",
+   "noteIndex": 0
+  },
+  "citationItems": [
+   {
+    "id": 3476,
+    "uris": [
+     "http://zotero.org/users/39129/items/FQBC582B"
+    ],
+    "itemData": {
+     "id": 3476,
+     "type": "report",
+     "note": "https://doi.org/10.17189/1504135",
+     "title": "Cassini Imaging Science Subsystem (ISS) Data User's Guide",
+     "URL": "https://pds.nasa.gov/data/pds4/releases/rings/cassini_docs-20210211/iss-data-user-guide.pdf",
+     "author": [
+      {
+       "family": "Knowles",
+       "given": "Ben"
+      }
+     ],
+     "issued": {
+      "date-parts": [
+       [
+        "2018",
+        9,
+        16
+       ]
+      ]
+     }
+    }
+   }
+  ],
+  "schema": "https://github.com/citation-style-language/schema/raw/master/csl-citation.json"
+ },
+ {
+  "citationID": "XBMdioMq",
+  "properties": {
+   "formattedCitation": "(Knowles 2018)",
+   "plainCitation": "(Knowles 2018)",
+   "noteIndex": 0
+  },
+  "citationItems": [
+   {
+    "id": 3476,
+    "uris": [
+     "http://zotero.org/users/39129/items/FQBC582B"
+    ],
+    "itemData": {
+     "id": 3476,
+     "type": "report",
+     "note": "https://doi.org/10.17189/1504135",
+     "title": "Cassini Imaging Science Subsystem (ISS) Data User's Guide",
+     "URL": "https://pds.nasa.gov/data/pds4/releases/rings/cassini_docs-20210211/iss-data-user-guide.pdf",
+     "author": [
+      {
+       "family": "Knowles",
+       "given": "Ben"
+      }
+     ],
+     "issued": {
+      "date-parts": [
+       [
+        "2018",
+        9,
+        16
+       ]
+      ]
+     }
+    }
+   }
+  ],
+  "schema": "https://github.com/citation-style-language/schema/raw/master/csl-citation.json"
+ },
+ {
+  "citationID": "ummtcEa8",
+  "properties": {
+   "formattedCitation": "(Attree et al. 2014, 2012; Beurle et al. 2010; French et al. 2014a; Murray et al. 2008, 2005)",
+   "plainCitation": "(Attree et al. 2014, 2012; Beurle et al. 2010; French et al. 2014a; Murray et al. 2008, 2005)",
+   "noteIndex": 0
+  },
+  "citationItems": [
+   {
+    "id": 32,
+    "uris": [
+     "http://zotero.org/users/39129/items/HFEAIXZ7"
+    ],
+    "itemData": {
+     "id": 32,
+     "type": "article-journal",
+     "abstract": "Small (\u21e0 50km scale), irregular features seen in Cassini images to be emanating from Saturn\u2019s F ring have\nbeen termed mini-jets by Attree et al. (2012). One particular mini-jet was tracked over half an orbital period,\nrevealing its evolution with time and suggesting a collision with a local moonlet as its origin. Here we present\na much more detailed analysis of the full catalogue of over 800 F ring mini-jets, examining their distribution,\nmorphology and lifetimes in order to place constraints on the underlying moonlet population. We find minijets\nrandomly located in longitude around the ring, with little correlation to the moon Prometheus, and\nrandomly distributed in time, over the full Cassini tour to date. They have a tendency to cluster together,\nforming complicated \u2018multiple\u2019 structures, and have typical lifetimes of \u21e0 1d. Repeated observations of some\nfeatures show significant evolution, including the creation of new mini-jets, implying repeated collisions by\nthe same object. This suggests a population of . 1km radius objects with some internal strength and orbits\nspread over \u00b1100km in semi-major axis relative to the F ring but with the majority within 20km. These\nobjects likely formed in the ring under the perturbing action of Prometheus. This reinforces the idea of the\nF ring as a region with a complex balance between collisions, disruption and accretion.",
+     "container-title": "Icarus",
+     "page": "56-66",
+     "title": "A Survey of Low-Velocity Collisional Features in Saturn's F Ring",
+     "volume": "227",
+     "author": [
+      {
+       "family": "Attree",
+       "given": "N. O."
+      },
+      {
+       "family": "Murray, C. D.",
+       "given": ""
+      },
+      {
+       "family": "Williams, G. A.",
+       "given": ""
+      },
+      {
+       "family": "Cooper, N. J.",
+       "given": ""
+      }
+     ],
+     "issued": {
+      "date-parts": [
+       [
+        "2014"
+       ]
+      ]
+     }
+    }
+   },
+   {
+    "id": 4366,
+    "uris": [
+     "http://zotero.org/users/39129/items/VZEP3HBW"
+    ],
+    "itemData": {
+     "id": 4366,
+     "type": "article-journal",
+     "abstract": "Mini-jets are small, (~50 km) linear features observed in Cassini images to be emanating from Saturn's F ring; they are believed to be produced by collisions with a local population of moonlets. An analysis of one such feature, observed over the course of a ~7.5 h sequence as its length changed from ~75 km to ~250 km while it simultaneously appeared to collapse back into the core, supports the collisional theory of their origin [1]. Orbit determination suggests that this mini-jet consisted of ring material displaced by a ~1 m/s collision with a nearby object, resulting in paths relative to the core that are due to a combination of keplerian shear and epicyclic motion. The colliding object itself is likely to be too small to resolve in these images but represents just one member of a population of F ring moonlets. Such a population has been investigated by UVIS occultations [2], and other methods, but generally remains unresolved in Cassini images. Collisional features such as this mini-jet therefore provide an additional tracer for the region's moonlet population. In this talk we will present the results of recent work in measuring and describing a subset of ~350 catalogued mini-jets, applying knowledge gained from the original mini-jet feature. Their distribution in space and time, proximity to Prometheus and evolution are all examined in an effort to place constraints on the properties of the underlying population of colliding objects. References [1] N. O. Attree, C. D. Murray, N. J. Cooper, and G. A. Williams. Detection of low velocity collisions in Saturn's F ring. Ap. J. Lett. (In press). [1] B. K. Meinke, L. W. Esposito, N. Albers, and M. Sremevi. Classification of F ring features observed in cassini UVIS occultations. Icarus, 218(1):545 - 554, 2012.",
+     "container-title": "AGU Fall Meeting Abstracts",
+     "journalAbbreviation": "AGU Fall Meeting Abstracts",
+     "page": "P54B-02",
+     "source": "NASA ADS",
+     "title": "F Ring Mini-Jets",
+     "volume": "54",
+     "author": [
+      {
+       "family": "Attree",
+       "given": "N."
+      },
+      {
+       "family": "Murray",
+       "given": "C."
+      },
+      {
+       "family": "Cooper",
+       "given": "N. J."
+      },
+      {
+       "family": "Williams",
+       "given": "G."
+      }
+     ],
+     "issued": {
+      "date-parts": [
+       [
+        "2012",
+        12,
+        1
+       ]
+      ]
+     }
+    }
+   },
+   {
+    "id": 459,
+    "uris": [
+     "http://zotero.org/users/39129/items/FNAS2594"
+    ],
+    "itemData": {
+     "id": 459,
+     "type": "article-journal",
+     "abstract": "New images from the Cassini spacecraft reveal optically thick clumps,\ncapable of casting shadows, and associated structures in regions of\nSaturn's F ring that have recently experienced close passage by the\nadjacent moon Prometheus. Using these images and modeling, we show that\nPrometheus' perturbations create regions of enhanced density and low\nrelative velocity that are susceptible to gravitational instability and\nthe formation of distended, yet long-lived, gravitationally coherent\nclumps. Subsequent collisional damping of these low-density clumps may\nfacilitate their collapse into ~10-20 km contiguous moonlets. The\nobserved behavior of the F ring is analogous to the case of a marginally\nstable gas disk being driven to instability and collapse via\nperturbations from an embedded gas giant planet.",
+     "container-title": "The Astrophysical Journal",
+     "journalAbbreviation": "Astrophys. J.",
+     "page": "L176-180",
+     "source": "NASA ADS",
+     "title": "Direct evidence for gravitational instability and moonlet formation in Saturn's rings",
+     "volume": "718",
+     "author": [
+      {
+       "family": "Beurle",
+       "given": "K."
+      },
+      {
+       "family": "Murray",
+       "given": "C. D."
+      },
+      {
+       "family": "Williams",
+       "given": "G. A."
+      },
+      {
+       "family": "Evans",
+       "given": "M. W."
+      },
+      {
+       "family": "Cooper",
+       "given": "N. J."
+      },
+      {
+       "family": "Agnor",
+       "given": "C. B."
+      }
+     ],
+     "issued": {
+      "date-parts": [
+       [
+        "2010",
+        8,
+        1
+       ]
+      ]
+     }
+    }
+   },
+   {
+    "id": 3502,
+    "uris": [
+     "http://zotero.org/users/39129/items/HXTKC6PT"
+    ],
+    "itemData": {
+     "id": 3502,
+     "type": "article-journal",
+     "abstract": "Saturn's F ring is subject to dynamic structural changes over short periods. Among the observed phenomena are diffuse extended bright clumps (ECs) ~3-40\u00b0 in longitudinal extent. These ECs appear, evolve,\nand disappear over a span of days to months. ECs have been seen by the two Voyager spacecraft, the Cassini Orbiter, and various ground- and space-based telescopes. Showalter (Showalter, M.R. [2004]. Icarus 171, 356-371) analyzed all Voyager images of the F ring and found that there were 2-3 major and 20-40 minor ECs present in the ring at any given time. We expand upon these results by comparing the ECs seen by Voyager to those seen by Cassini in 2004-2010. We find that the number of minor ECs has stayed roughly constant and the ECs have similar distributions of angular width, absolute brightness, and semimajor axis. However, the common exceptionally bright ECs seen by Voyager are now exceedingly rare, with only two instances seen by Cassini in the 6 years, and they are now also much dimmer relative to the mean ring background. We hypothesize that these bright ECs are caused by the repeated impacts of small moonlets with the F ring core, and that these moonlets have decreased in number in the 25 years between missions.",
+     "container-title": "Icarus",
+     "DOI": "10.1016/j.icarus.2014.06.035",
+     "ISSN": "0019-1035",
+     "journalAbbreviation": "Icarus",
+     "page": "200-220",
+     "source": "NASA ADS",
+     "title": "Analysis of clumps in Saturn's F ring from Voyager and Cassini",
+     "volume": "241",
+     "author": [
+      {
+       "family": "French",
+       "given": "Robert S."
+      },
+      {
+       "family": "Hicks",
+       "given": "Shannon K."
+      },
+      {
+       "family": "Showalter",
+       "given": "Mark R."
+      },
+      {
+       "family": "Antonsen",
+       "given": "Adrienne K."
+      },
+      {
+       "family": "Packard",
+       "given": "Douglas R."
+      }
+     ],
+     "issued": {
+      "date-parts": [
+       [
+        "2014",
+        10,
+        1
+       ]
+      ]
+     }
+    }
+   },
+   {
+    "id": 287,
+    "uris": [
+     "http://zotero.org/users/39129/items/AN5IIRTQ"
+    ],
+    "itemData": {
+     "id": 287,
+     "type": "article-journal",
+     "abstract": "Saturn's narrow F ring exhibits several unusual features that vary on\ntimescales of hours to years. These include transient clumps, a central\ncore surrounded by a multistranded structure and a regular series of\nlongitudinal channels associated with Prometheus, one of the ring's two\n`shepherding' satellites. Several smaller moonlets and clumps have been\ndetected in the ring's immediate vicinity, and a population of embedded\nobjects has been inferred. Here we report direct evidence of moonlets\nembedded in the ring's bright core, and show that most of the F ring's\nmorphology results from the continual gravitational and collisional\neffects of small satellites, often combined with the perturbing effect\nof Prometheus. The F-ring region is perhaps the only location in the\nSolar System where large-scale collisional processes are occurring on an\nalmost daily basis.",
+     "container-title": "Nature",
+     "DOI": "https://doi.org/10.1038/nature06999",
+     "page": "739-744",
+     "source": "NASA ADS",
+     "title": "The determination of the structure of Saturn's F ring by nearby moonlets",
+     "volume": "453",
+     "author": [
+      {
+       "family": "Murray",
+       "given": "Carl D."
+      },
+      {
+       "family": "Beurle",
+       "given": "Kevin"
+      },
+      {
+       "family": "Cooper",
+       "given": "Nicholas J."
+      },
+      {
+       "family": "Evans",
+       "given": "Michael W."
+      },
+      {
+       "family": "Williams",
+       "given": "Gareth A."
+      },
+      {
+       "family": "Charnoz",
+       "given": "Sebastien"
+      }
+     ],
+     "issued": {
+      "date-parts": [
+       [
+        "2008",
+        6,
+        1
+       ]
+      ]
+     }
+    }
+   },
+   {
+    "id": 336,
+    "uris": [
+     "http://zotero.org/users/39129/items/BT3UWUM6"
+    ],
+    "itemData": {
+     "id": 336,
+     "type": "article-journal",
+     "abstract": "Images of Saturn's narrow and contorted F ring returned by the Cassini\nspacecraft have revealed phenomena not previously detected in any\nplanetary ring system. The perturbing effect of the inner shepherding\nsatellite, Prometheus, seems to introduce channels through the F ring\nand a `streamer'-a line of particles that link the ring to the\nsatellite. The detailed mechanism for the formation of these features\nhas been lacking an explanation. Here we show that these phenomena can\nbe understood in terms of a simple gravitational interaction as\nPrometheus approaches and recedes from the F ring every 14.7hours. Our\nnumerical models show that as Prometheus recedes from its closest\napproach to the F ring, it draws out ring material; one orbital period\nlater, this affected region has undergone keplerian shear and is visible\nas a channel, in excellent agreement with structures seen in the Cassini\nimages. Prometheus' periodic disruption of the F ring will become more\npronounced as the two orbits approach their minimum separation in 2009.\nThe model predicts that the appearance of streamers and the associated\nchannels will vary in a regular fashion on a timescale of one orbital\nperiod.",
+     "container-title": "Nature",
+     "page": "1326-1329",
+     "source": "NASA ADS",
+     "title": "How Prometheus creates structure in Saturn's F ring",
+     "volume": "437",
+     "author": [
+      {
+       "family": "Murray",
+       "given": "Carl D."
+      },
+      {
+       "family": "Chavez",
+       "given": "Carlos"
+      },
+      {
+       "family": "Beurle",
+       "given": "Kevin"
+      },
+      {
+       "family": "Cooper",
+       "given": "Nick"
+      },
+      {
+       "family": "Evans",
+       "given": "Michael W."
+      },
+      {
+       "family": "Burns",
+       "given": "Joseph A."
+      },
+      {
+       "family": "Porco",
+       "given": "Carolyn C."
+      }
+     ],
+     "issued": {
+      "date-parts": [
+       [
+        "2005",
+        10,
+        1
+       ]
+      ]
+     }
+    }
+   }
+  ],
+  "schema": "https://github.com/citation-style-language/schema/raw/master/csl-citation.json"
+ },
+ {
+  "citationID": "RC12TOZq",
+  "properties": {
+   "formattedCitation": "(Knowles 2018)",
+   "plainCitation": "(Knowles 2018)",
+   "noteIndex": 0
+  },
+  "citationItems": [
+   {
+    "id": 3476,
+    "uris": [
+     "http://zotero.org/users/39129/items/FQBC582B"
+    ],
+    "itemData": {
+     "id": 3476,
+     "type": "report",
+     "note": "https://doi.org/10.17189/1504135",
+     "title": "Cassini Imaging Science Subsystem (ISS) Data User's Guide",
+     "URL": "https://pds.nasa.gov/data/pds4/releases/rings/cassini_docs-20210211/iss-data-user-guide.pdf",
+     "author": [
+      {
+       "family": "Knowles",
+       "given": "Ben"
+      }
+     ],
+     "issued": {
+      "date-parts": [
+       [
+        "2018",
+        9,
+        16
+       ]
+      ]
+     }
+    }
+   }
+  ],
+  "schema": "https://github.com/citation-style-language/schema/raw/master/csl-citation.json"
+ },
+ {
+  "citationID": "HJiwfSkg",
+  "properties": {
+   "formattedCitation": "(French et al. 2012)",
+   "plainCitation": "(French et al. 2012)",
+   "noteIndex": 1
+  },
+  "citationItems": [
+   {
+    "id": 3122,
+    "uris": [
+     "http://zotero.org/users/39129/items/3AZJET3C"
+    ],
+    "itemData": {
+     "id": 3122,
+     "type": "article-journal",
+     "container-title": "Icarus",
+     "DOI": "https://doi.org/10.1016/j.icarus.2012.02.020",
+     "ISSN": "00191035",
+     "issue": "1",
+     "page": "181-193",
+     "source": "CrossRef",
+     "title": "The brightening of Saturn\u2019s F ring",
+     "volume": "219",
+     "author": [
+      {
+       "family": "French",
+       "given": "Robert S."
+      },
+      {
+       "family": "Showalter",
+       "given": "Mark R."
+      },
+      {
+       "family": "Sfair",
+       "given": "Rafael"
+      },
+      {
+       "family": "Arg\u00fcelles",
+       "given": "Carlos A."
+      },
+      {
+       "family": "Pajuelo",
+       "given": "Myriam"
+      },
+      {
+       "family": "Becerra",
+       "given": "Patricio"
+      },
+      {
+       "family": "Hedman",
+       "given": "Matthew M."
+      },
+      {
+       "family": "Nicholson",
+       "given": "Philip D."
+      }
+     ],
+     "issued": {
+      "date-parts": [
+       [
+        "2012",
+        5
+       ]
+      ]
+     }
+    }
+   }
+  ],
+  "schema": "https://github.com/citation-style-language/schema/raw/master/csl-citation.json"
+ },
+ {
+  "citationID": "GmD3RBpt",
+  "properties": {
+   "formattedCitation": "(French et al. 2014b, 2016)",
+   "plainCitation": "(French et al. 2014b, 2016)",
+   "noteIndex": 0
+  },
+  "citationItems": [
+   {
+    "id": 3522,
+    "uris": [
+     "http://zotero.org/users/39129/items/PHZ6MA4M"
+    ],
+    "itemData": {
+     "id": 3522,
+     "type": "article-journal",
+     "abstract": "Analysis of optical remote sensing (ORS) data from the Cassini \nspacecraft is a complicated and labor-intensive process. First, small\nerrors in Cassini's pointing information (up to ~40 pixels for the\nImaging Science Subsystem Narrow Angle Camera) must be corrected so that\nthe line of sight vector for each pixel is known. This process involves\nmatching the image contents with known features such as stars, ring\nedges, or moon limbs. Second, metadata for each pixel must be computed.\nDepending on the object under observation, this metadata may include\nlighting geometry, moon or planet latitude and longitude, and/or ring\nradius and longitude. Both steps require mastering the SPICE toolkit, a\nhighly capable piece of software with a steep learning curve. Only after\nthese steps are completed can the actual scientific investigation\nbegin.We are embarking on a three-year project to perform these steps\nfor all 300,000+ Cassini ISS images as well as images taken by the VIMS,\nUVIS, and CIRS instruments. The result will be a series of SPICE kernels\nthat include accurate pointing information and a series of backplanes\nthat include precomputed metadata for each pixel. All data will be made\npublic through the PDS Rings Node (http://www.pds-rings.seti.org). We\nexpect this project to dramatically decrease the time required for\nscientists to analyze Cassini data. In this poster we discuss the\nproject, our current status, and our plans for the next three years.",
+     "container-title": "AAS/Division for Planetary Sciences Meeting Abstracts #46",
+     "source": "NASA ADS",
+     "title": "Precision Pointing Reconstruction and Geometric Metadata Generation for Cassini Images",
+     "URL": "http://adsabs.harvard.edu/abs/2014DPS....4642201F",
+     "volume": "46",
+     "author": [
+      {
+       "family": "French",
+       "given": "Robert S."
+      },
+      {
+       "family": "Showalter",
+       "given": "Mark R."
+      },
+      {
+       "family": "Gordon",
+       "given": "Mitchell K."
+      }
+     ],
+     "accessed": {
+      "date-parts": [
+       [
+        "2014",
+        12,
+        5
+       ]
+      ]
+     },
+     "issued": {
+      "date-parts": [
+       [
+        "2014",
+        11,
+        1
+       ]
+      ]
+     }
+    }
+   },
+   {
+    "id": 3840,
+    "uris": [
+     "http://zotero.org/users/39129/items/6TWM7DTQ"
+    ],
+    "itemData": {
+     "id": 3840,
+     "type": "article-journal",
+     "abstract": "Before images from the Cassini spacecraft can be analyzed, errors in the published pointing information (up to ~110 pixels for the Imaging Science Subsystem Narrow Angle Camera) must be corrected so that the line of sight vector for each pixel is known. This complicated and labor-intensive process involves matching the image contents with known features such as stars, rings, or moons. Metadata, such as lighting geometry or ring radius and longitude, must be computed for each pixel as well. Both steps require mastering the SPICE toolkit, a highly capable piece of software with a steep learning curve. Only after these steps are completed can the actual scientific investigation begin.We have embarked on a three-year project to perform these steps for all 400,000+ Cassini ISS images as well as images taken by the VIMS, UVIS, and CIRS instruments. The result will be a series of SPICE kernels that include accurate pointing information and a series of backplanes that include precomputed metadata for each pixel. All data will be made public through the PDS Ring-Moon Systems Node (http://www.pds-rings.seti.org). We expect this project to dramatically decrease the time required for scientists to analyze Cassini data.In a previous poster (French et al. 2014, DPS #46, 422.01) we discussed our progress navigating images using stars, simple ring models, and well-defined icy bodies. In this poster we will report on our current progress including the use of more sophisticated ring models, navigation of \"fuzzy\" bodies such as Titan and Saturn, and use of crater matching on high-resolution images of the icy satellites.",
+     "container-title": "AAS/Division for Planetary Sciences Meeting Abstracts #48",
+     "language": "en",
+     "page": "121.14",
+     "source": "ui.adsabs.harvard.edu",
+     "title": "Precision Navigation of Cassini Images Using Rings, Icy Satellites, and Fuzzy Bodies",
+     "author": [
+      {
+       "family": "French",
+       "given": "Robert S."
+      },
+      {
+       "family": "Showalter",
+       "given": "Mark R."
+      },
+      {
+       "family": "Gordon",
+       "given": "Mitchell K."
+      }
+     ],
+     "issued": {
+      "date-parts": [
+       [
+        "2016",
+        10
+       ]
+      ]
+     }
+    }
+   }
+  ],
+  "schema": "https://github.com/citation-style-language/schema/raw/master/csl-citation.json"
+ },
+ {
+  "citationID": "6sthQXfn",
+  "properties": {
+   "formattedCitation": "(Albers et al. 2012; Cooper et al. 2013; Cuzzi et al. 2024)",
+   "plainCitation": "(Albers et al. 2012; Cooper et al. 2013; Cuzzi et al. 2024)",
+   "noteIndex": 0
+  },
+  "citationItems": [
+   {
+    "id": 2539,
+    "uris": [
+     "http://zotero.org/users/39129/items/4BGFKQNT"
+    ],
+    "itemData": {
+     "id": 2539,
+     "type": "article-journal",
+     "abstract": "We present a new orbital model of Saturn's F ring core based on 93 occultations by the Cassini Ultraviolet Imaging Spectrograph (UVIS) and the Voyager radio and stellar occultations. We demonstrate that the core, despite its intrinsic variability, is well-described as an inclined, freely precessing ellipse. We find that post-fit residuals with a root-mean-square of 24 km are genuine, representing the well-known non-Keplerian features observed in the ring. Over the nearly 4 years of UVIS observations we find the residual variance to increase, coincident with the apse anti-alignment of Prometheus and F ring core in December 2009. This increase in dynamical F ring core temperature most likely reflects the ever-stronger perturbations by Prometheus. Our results are in good agreement with Earth-based and HST observations as well as Voyager imaging.Cassini UVIS stellar occultations resolve the F ring at unprecedented resolutions of a few meters and we identify the F ring core and inner and outer strands. We infer their normal optical depth and full width at half maximum (FWHM) and show that core and strands form distinct morphological groups. Typically, a strand is about ten times wider than the core (average FWHM is \u02dc10 km) while having a ten times smaller optical depth. Unlike in pre-Cassini occultations the F ring core displays significant optical depth with in some cases >3. In many cases we find a narrow optically thick component (\u02dc few km and \u03c4 > 0.5) embedded in the F ring core. Entertaining the possibility that this is the actual, \"true\" F ring core then UVIS results suggest that this \"true\" core is highly non-continuous. In addition, we report the detection of a previously unknown structure - dubbed the \"secondary\" as it visually resembles the F ring core. Its morphology is similar to that of the core in optical depth and FWHM and it displays individual opaque features. Despite its core-like appearance, we show that its kinematics is consistent with that of strands. We conclude that it is the most prominent strand seen to date. It represents a striking example of strand creation resulting in what could be called a morphological \"small-scale\" version of the F ring core. This extraordinary object should be one of the prime targets of future F ring studies.",
+     "container-title": "Icarus",
+     "DOI": "https://doi.org/10.1016/j.icarus.2011.11.016",
+     "page": "367-388",
+     "source": "NASA ADS",
+     "title": "Saturn's F ring as seen by Cassini UVIS: Kinematics and statistics",
+     "title-short": "Saturn's F ring as seen by Cassini UVIS",
+     "volume": "217",
+     "author": [
+      {
+       "family": "Albers",
+       "given": "Nicole"
+      },
+      {
+       "family": "Srem\u010devi\u0107",
+       "given": "Miodrag"
+      },
+      {
+       "family": "Colwell",
+       "given": "Joshua E."
+      },
+      {
+       "family": "Esposito",
+       "given": "Larry W."
+      }
+     ],
+     "issued": {
+      "date-parts": [
+       [
+        "2012",
+        1,
+        1
+       ]
+      ]
+     }
+    }
+   },
+   {
+    "id": 3307,
+    "uris": [
+     "http://zotero.org/users/39129/items/ZNPRMZ9E"
+    ],
+    "itemData": {
+     "id": 3307,
+     "type": "article-journal",
+     "abstract": "We present an analysis of the orbit of Saturn\u2019s F ring using images recorded by the\nImaging Science Subsystem of the Cassini spacecraft. A total of 9805 observations have\nbeen made from ten image sequences obtained between 2006 November 23 and 2009 July\n28. Each sequence of up to 200 images spans a single orbit of the F ring, allowing ten\nindependent high-precision snapshots of the ring orbit to be estimated over this  3 year\nperiod. The ring has been modelled as an inclined uniformly-precessing ellipse. The results\nshow a variability in the orbital elements with, for example, the semi-major axis scattered\nbetween 140211.2\u00b10.1 km and 140232.9\u00b10.4 km and the fitted periapses locked to the\nvalue obtained from a combined fit using the entire three-year span of observations. We\nshow that the observed scatter between the individual snapshots of the ring orbit reflect the\ndiffering past histories of the particular segments of ring being fitted and that the values\nare scattered within the limits expected from a single gravitational encounter with the\nnearby moon, Prometheus. In the combined fit, the scatter averages out to reveal a small\nsystematic bias with respect to the results of Bosh et al. (2002); Albers et al. (2012). We\nbelieve this is a consequence of the close proximity of Prometheus to the ring in the image\nsequences chosen for this analysis. Finally, we note a close empirical commensurability\nbetween the apsidal precession rate, \u031f\u02d9 , of the F ring and the synodic period between\nPrometheus and the F ring, such that nProm\u2212nFring   2\u031f\u02d9 Fring, where nProm and nFring are\nthe mean motions, and discuss its implications.",
+     "container-title": "Astronomical Journal",
+     "issue": "6",
+     "page": "161",
+     "title": "Local Variability in the Orbit of Saturn's F Ring",
+     "volume": "145",
+     "author": [
+      {
+       "family": "Cooper",
+       "given": "N. J."
+      },
+      {
+       "family": "Murray, C. D.",
+       "given": ""
+      },
+      {
+       "family": "Williams, G. A.",
+       "given": ""
+      }
+     ],
+     "issued": {
+      "date-parts": [
+       [
+        "2013",
+        6
+       ]
+      ]
+     }
+    }
+   },
+   {
+    "id": 4687,
+    "uris": [
+     "http://zotero.org/users/39129/items/6HW2UHRY"
+    ],
+    "itemData": {
+     "id": 4687,
+     "type": "article-journal",
+     "abstract": "One of the stranger planetary rings is Saturn\u2019s narrow, clumpy F ring, lying just outside the main rings, in a region disturbed by chaotic orbital dynamics. We show that the F ring has a stable \u201ctrue core\u201d that dominates its mass and is confined into discontinuous short arcs of particles larger than a few millimeters in radius. The more obvious micron-size particles seen in images, outlining and obscuring the true core, contribute only a small fraction of its mass. We found that these arcs of large particles orbit Saturn in a specific corotational resonance with the nearby 100-kilometer diameter ringmoon Prometheus, which stabilizes the F ring material and allows it to persist within the disturbed region for decades or longer. Toward the end of the observing period, a small chaotic glitch in the orbit of Prometheus temporarily disrupted the confinement, but the arcs seem to be able to adapt.",
+     "container-title": "Science Advances",
+     "DOI": "10.1126/sciadv.adl6601",
+     "issue": "19",
+     "page": "eadl6601",
+     "publisher": "American Association for the Advancement of Science",
+     "source": "science.org (Atypon)",
+     "title": "Saturn\u2019s F ring is intermittently shepherded by Prometheus",
+     "volume": "10",
+     "author": [
+      {
+       "family": "Cuzzi",
+       "given": "Jeffrey N."
+      },
+      {
+       "family": "Marouf",
+       "given": "Essam A."
+      },
+      {
+       "family": "French",
+       "given": "Richard G."
+      },
+      {
+       "family": "Murray",
+       "given": "Carl D."
+      },
+      {
+       "family": "Cooper",
+       "given": "Nicholas J."
+      }
+     ],
+     "issued": {
+      "date-parts": [
+       [
+        "2024",
+        5,
+        10
+       ]
+      ]
+     }
+    }
+   }
+  ],
+  "schema": "https://github.com/citation-style-language/schema/raw/master/csl-citation.json"
+ },
+ {
+  "citationID": "YmImReuo",
+  "properties": {
+   "formattedCitation": "(Albers et al. 2012)",
+   "plainCitation": "(Albers et al. 2012)",
+   "noteIndex": 0
+  },
+  "citationItems": [
+   {
+    "id": 2539,
+    "uris": [
+     "http://zotero.org/users/39129/items/4BGFKQNT"
+    ],
+    "itemData": {
+     "id": 2539,
+     "type": "article-journal",
+     "abstract": "We present a new orbital model of Saturn's F ring core based on 93 occultations by the Cassini Ultraviolet Imaging Spectrograph (UVIS) and the Voyager radio and stellar occultations. We demonstrate that the core, despite its intrinsic variability, is well-described as an inclined, freely precessing ellipse. We find that post-fit residuals with a root-mean-square of 24 km are genuine, representing the well-known non-Keplerian features observed in the ring. Over the nearly 4 years of UVIS observations we find the residual variance to increase, coincident with the apse anti-alignment of Prometheus and F ring core in December 2009. This increase in dynamical F ring core temperature most likely reflects the ever-stronger perturbations by Prometheus. Our results are in good agreement with Earth-based and HST observations as well as Voyager imaging.Cassini UVIS stellar occultations resolve the F ring at unprecedented resolutions of a few meters and we identify the F ring core and inner and outer strands. We infer their normal optical depth and full width at half maximum (FWHM) and show that core and strands form distinct morphological groups. Typically, a strand is about ten times wider than the core (average FWHM is \u02dc10 km) while having a ten times smaller optical depth. Unlike in pre-Cassini occultations the F ring core displays significant optical depth with in some cases >3. In many cases we find a narrow optically thick component (\u02dc few km and \u03c4 > 0.5) embedded in the F ring core. Entertaining the possibility that this is the actual, \"true\" F ring core then UVIS results suggest that this \"true\" core is highly non-continuous. In addition, we report the detection of a previously unknown structure - dubbed the \"secondary\" as it visually resembles the F ring core. Its morphology is similar to that of the core in optical depth and FWHM and it displays individual opaque features. Despite its core-like appearance, we show that its kinematics is consistent with that of strands. We conclude that it is the most prominent strand seen to date. It represents a striking example of strand creation resulting in what could be called a morphological \"small-scale\" version of the F ring core. This extraordinary object should be one of the prime targets of future F ring studies.",
+     "container-title": "Icarus",
+     "DOI": "https://doi.org/10.1016/j.icarus.2011.11.016",
+     "page": "367-388",
+     "source": "NASA ADS",
+     "title": "Saturn's F ring as seen by Cassini UVIS: Kinematics and statistics",
+     "title-short": "Saturn's F ring as seen by Cassini UVIS",
+     "volume": "217",
+     "author": [
+      {
+       "family": "Albers",
+       "given": "Nicole"
+      },
+      {
+       "family": "Srem\u010devi\u0107",
+       "given": "Miodrag"
+      },
+      {
+       "family": "Colwell",
+       "given": "Joshua E."
+      },
+      {
+       "family": "Esposito",
+       "given": "Larry W."
+      }
+     ],
+     "issued": {
+      "date-parts": [
+       [
+        "2012",
+        1,
+        1
+       ]
+      ]
+     }
+    }
+   }
+  ],
+  "schema": "https://github.com/citation-style-language/schema/raw/master/csl-citation.json"
+ },
+ {
+  "citationID": "SaqxgwOe",
+  "properties": {
+   "formattedCitation": "(Murray et al. 2008)",
+   "plainCitation": "(Murray et al. 2008)",
+   "dontUpdate": true,
+   "noteIndex": 0
+  },
+  "citationItems": [
+   {
+    "id": 287,
+    "uris": [
+     "http://zotero.org/users/39129/items/AN5IIRTQ"
+    ],
+    "itemData": {
+     "id": 287,
+     "type": "article-journal",
+     "abstract": "Saturn's narrow F ring exhibits several unusual features that vary on\ntimescales of hours to years. These include transient clumps, a central\ncore surrounded by a multistranded structure and a regular series of\nlongitudinal channels associated with Prometheus, one of the ring's two\n`shepherding' satellites. Several smaller moonlets and clumps have been\ndetected in the ring's immediate vicinity, and a population of embedded\nobjects has been inferred. Here we report direct evidence of moonlets\nembedded in the ring's bright core, and show that most of the F ring's\nmorphology results from the continual gravitational and collisional\neffects of small satellites, often combined with the perturbing effect\nof Prometheus. The F-ring region is perhaps the only location in the\nSolar System where large-scale collisional processes are occurring on an\nalmost daily basis.",
+     "container-title": "Nature",
+     "DOI": "https://doi.org/10.1038/nature06999",
+     "page": "739-744",
+     "source": "NASA ADS",
+     "title": "The determination of the structure of Saturn's F ring by nearby moonlets",
+     "volume": "453",
+     "author": [
+      {
+       "family": "Murray",
+       "given": "Carl D."
+      },
+      {
+       "family": "Beurle",
+       "given": "Kevin"
+      },
+      {
+       "family": "Cooper",
+       "given": "Nicholas J."
+      },
+      {
+       "family": "Evans",
+       "given": "Michael W."
+      },
+      {
+       "family": "Williams",
+       "given": "Gareth A."
+      },
+      {
+       "family": "Charnoz",
+       "given": "Sebastien"
+      }
+     ],
+     "issued": {
+      "date-parts": [
+       [
+        "2008",
+        6,
+        1
+       ]
+      ]
+     }
+    }
+   }
+  ],
+  "schema": "https://github.com/citation-style-language/schema/raw/master/csl-citation.json"
+ },
+ {
+  "citationID": "sDUZWM1L",
+  "properties": {
+   "formattedCitation": "(French et al. 2012)",
+   "plainCitation": "(French et al. 2012)",
+   "dontUpdate": true,
+   "noteIndex": 0
+  },
+  "citationItems": [
+   {
+    "id": 3122,
+    "uris": [
+     "http://zotero.org/users/39129/items/3AZJET3C"
+    ],
+    "itemData": {
+     "id": 3122,
+     "type": "article-journal",
+     "container-title": "Icarus",
+     "DOI": "https://doi.org/10.1016/j.icarus.2012.02.020",
+     "ISSN": "00191035",
+     "issue": "1",
+     "page": "181-193",
+     "source": "CrossRef",
+     "title": "The brightening of Saturn\u2019s F ring",
+     "volume": "219",
+     "author": [
+      {
+       "family": "French",
+       "given": "Robert S."
+      },
+      {
+       "family": "Showalter",
+       "given": "Mark R."
+      },
+      {
+       "family": "Sfair",
+       "given": "Rafael"
+      },
+      {
+       "family": "Arg\u00fcelles",
+       "given": "Carlos A."
+      },
+      {
+       "family": "Pajuelo",
+       "given": "Myriam"
+      },
+      {
+       "family": "Becerra",
+       "given": "Patricio"
+      },
+      {
+       "family": "Hedman",
+       "given": "Matthew M."
+      },
+      {
+       "family": "Nicholson",
+       "given": "Philip D."
+      }
+     ],
+     "issued": {
+      "date-parts": [
+       [
+        "2012",
+        5
+       ]
+      ]
+     }
+    }
+   }
+  ],
+  "schema": "https://github.com/citation-style-language/schema/raw/master/csl-citation.json"
+ },
+ {
+  "citationID": "Kq7Eb8aD",
+  "properties": {
+   "formattedCitation": "(French et al. 2014a)",
+   "plainCitation": "(French et al. 2014a)",
+   "dontUpdate": true,
+   "noteIndex": 0
+  },
+  "citationItems": [
+   {
+    "id": 3502,
+    "uris": [
+     "http://zotero.org/users/39129/items/HXTKC6PT"
+    ],
+    "itemData": {
+     "id": 3502,
+     "type": "article-journal",
+     "abstract": "Saturn's F ring is subject to dynamic structural changes over short periods. Among the observed phenomena are diffuse extended bright clumps (ECs) ~3-40\u00b0 in longitudinal extent. These ECs appear, evolve,\nand disappear over a span of days to months. ECs have been seen by the two Voyager spacecraft, the Cassini Orbiter, and various ground- and space-based telescopes. Showalter (Showalter, M.R. [2004]. Icarus 171, 356-371) analyzed all Voyager images of the F ring and found that there were 2-3 major and 20-40 minor ECs present in the ring at any given time. We expand upon these results by comparing the ECs seen by Voyager to those seen by Cassini in 2004-2010. We find that the number of minor ECs has stayed roughly constant and the ECs have similar distributions of angular width, absolute brightness, and semimajor axis. However, the common exceptionally bright ECs seen by Voyager are now exceedingly rare, with only two instances seen by Cassini in the 6 years, and they are now also much dimmer relative to the mean ring background. We hypothesize that these bright ECs are caused by the repeated impacts of small moonlets with the F ring core, and that these moonlets have decreased in number in the 25 years between missions.",
+     "container-title": "Icarus",
+     "DOI": "10.1016/j.icarus.2014.06.035",
+     "ISSN": "0019-1035",
+     "journalAbbreviation": "Icarus",
+     "page": "200-220",
+     "source": "NASA ADS",
+     "title": "Analysis of clumps in Saturn's F ring from Voyager and Cassini",
+     "volume": "241",
+     "author": [
+      {
+       "family": "French",
+       "given": "Robert S."
+      },
+      {
+       "family": "Hicks",
+       "given": "Shannon K."
+      },
+      {
+       "family": "Showalter",
+       "given": "Mark R."
+      },
+      {
+       "family": "Antonsen",
+       "given": "Adrienne K."
+      },
+      {
+       "family": "Packard",
+       "given": "Douglas R."
+      }
+     ],
+     "issued": {
+      "date-parts": [
+       [
+        "2014",
+        10,
+        1
+       ]
+      ]
+     }
+    }
+   }
+  ],
+  "schema": "https://github.com/citation-style-language/schema/raw/master/csl-citation.json"
+ }
+]

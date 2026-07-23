@@ -1,0 +1,41 @@
+% ===========================================================================
+% Cassini ISS F Ring Mosaics User Guide
+% Converted to LaTeX from users-guide-draft-phase2-6.docx
+%
+% Build:  make            (or: pdflatex main.tex, three times)
+% See README.md for notes on font substitutions and the pending
+% bibliography (Zotero -> BibTeX) pass.
+% ===========================================================================
+\documentclass[12pt,letterpaper]{article}
+
+\input{preamble}
+\input{fontmacros}
+
+\begin{document}
+
+% --- title block (Word title page, which flows into the TOC) ---------------
+\input{frontmatter-body}
+
+\tableofcontents
+\clearpage
+
+\input{sections/01-introduction}
+\clearpage
+\input{sections/02-quick-start}
+\clearpage
+\input{sections/03-image-selection-and-processing}
+\clearpage
+\input{sections/04-bundle-organization-and-directory-structure}
+\clearpage
+\input{sections/05-reading-labels-and-data-product-files}
+\clearpage
+\input{sections/06-external-references-and-further-reading}
+\clearpage
+
+% Section 7 is a landscape section in the Word original (its three metadata
+% tables are wider than a portrait page).
+\begin{rotatedlandscape}
+\input{sections/07-metadata-and-global-index-file-fields}
+\end{rotatedlandscape}
+
+\end{document}

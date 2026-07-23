@@ -7,8 +7,8 @@ Requirements:
     pandas
     pds4_tools
 
-This program must be run from the ``examples`` directory so mosaic_utils is
-available.
+This program must be run from the ``document/user_guide`` directory so
+mosaic_utils is available.
 
 Usage: python plot_ews_df.py <mosaic_label_path>
 """
@@ -61,7 +61,7 @@ def add_equivalent_width(metadata_df, image_ma_data, long_interval,
     # Compute "mu", abs(cos(emission_angle)), to photometrically adjust the
     # equivalent widths for viewing angle.
     emission = metadata_df['rings_emission_angle'].to_numpy()
-    mu = np.abs(np.cos(emission))
+    mu = np.abs(np.cos(np.radians(emission)))
 
     # Extract the good longitudes from the mosaic image.
     mosaic_img_good_long = image_ma_data[:, long_idx]

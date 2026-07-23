@@ -5,8 +5,8 @@ Requirements:
     numpy
     pds4_tools
 
-This program must be run from the ``examples`` directory so mosaic_utils is
-available.
+This program must be run from the ``document/user_guide`` directory so
+mosaic_utils is available.
 
 Usage: python display_reproj_img.py <reproj_img_label_path>
 """

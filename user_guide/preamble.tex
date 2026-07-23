@@ -1,0 +1,120 @@
+% ---------------------------------------------------------------------------
+% Preamble for the Cassini ISS F Ring Mosaics User Guide
+% Converted from users-guide-draft-phase2-6.docx
+% ---------------------------------------------------------------------------
+
+\usepackage[utf8]{inputenc}
+\usepackage[T1]{fontenc}
+\usepackage{textcomp}
+
+% Base fonts: Times body (Word: Times New Roman/Minion), Helvetica for
+% headings (Word: Calibri), Courier for code (Word: Cascadia Code).
+\usepackage{mathptmx}
+\usepackage[scaled=0.92]{helvet}
+\usepackage{courier}
+
+% Page geometry matches the Word original (US Letter,
+% margins: left/right/top 0.75 in, bottom 1.25 in).
+\usepackage[letterpaper,left=0.75in,right=0.75in,top=0.75in,bottom=1.25in,
+            footskip=0.5in]{geometry}
+
+\usepackage{graphicx}
+\usepackage{longtable}
+\usepackage{array}
+\usepackage{amsmath}
+\usepackage{amssymb}
+\usepackage{fancyvrb}
+\usepackage{fvextra}     % adds automatic line breaking to verbatim blocks
+\usepackage{float}
+\usepackage{enumitem}
+\usepackage{titlesec}
+\usepackage{caption}
+\usepackage{fancyhdr}
+\usepackage{pmboxdraw}      % box-drawing characters in directory listings
+\usepackage{newunicodechar}
+\usepackage{lscape}         % Section 7 is landscape, as in the Word original
+\usepackage{lastpage}
+
+% Rotate the physical PDF pages of landscape sections (equivalent to
+% pdflscape, but implemented directly for maximum portability).
+\ifdefined\pdfpageattr
+  \newenvironment{rotatedlandscape}
+    {\clearpage\global\pdfpageattr{/Rotate 90}\begin{landscape}}
+    {\end{landscape}\clearpage\global\pdfpageattr{}}
+\else
+  \newenvironment{rotatedlandscape}
+    {\begin{landscape}}{\end{landscape}}
+\fi
+
+% --- characters used in the Word source ------------------------------------
+\newunicodechar{°}{\textdegree}
+\newunicodechar{−}{\ensuremath{-}}
+\newunicodechar{×}{\ensuremath{\times}}
+\newunicodechar{Δ}{\ensuremath{\Delta}}
+\newunicodechar{ϖ}{\ensuremath{\varpi}}
+\newunicodechar{Ω}{\ensuremath{\Omega}}
+\newunicodechar{λ}{\ensuremath{\lambda}}
+\newunicodechar{θ}{\ensuremath{\theta}}
+\newunicodechar{≈}{\ensuremath{\approx}}
+
+% --- paragraph layout: 0.25 in first-line indent, no inter-paragraph skip,
+% as in the Word original
+\setlength{\parindent}{0.25in}
+\setlength{\parskip}{0pt}
+\emergencystretch=1em
+
+% --- headings: numbered to 4 levels (Word Heading 1-4); TOC to 3 levels ----
+\setcounter{secnumdepth}{4}
+\setcounter{tocdepth}{3}
+
+% Sizes/weights follow the Word styles:
+%   Heading 1: 16 pt bold;  Heading 2: 13 pt bold;
+%   Heading 3 and 4: 12 pt bold italic
+\titleformat{\section}
+  {\headingfont\fontsize{16pt}{19pt}\selectfont}{\thesection}{0.6em}{}
+\titlespacing*{\section}{0pt}{6pt}{12pt}
+\titleformat{\subsection}
+  {\headingfont\fontsize{13pt}{16pt}\selectfont}{\thesubsection}{0.6em}{}
+\titlespacing*{\subsection}{0pt}{12pt}{6pt}
+\titleformat{\subsubsection}
+  {\headingfont\itshape\fontsize{12pt}{14pt}\selectfont}{\thesubsubsection}{0.6em}{}
+\titlespacing*{\subsubsection}{0pt}{12pt}{6pt}
+\titleformat{\paragraph}[hang]
+  {\headingfont\itshape\fontsize{12pt}{14pt}\selectfont}{\theparagraph}{0.6em}{}
+\titlespacing*{\paragraph}{0pt}{6pt}{6pt}
+
+% --- captions: "Figure N: ..." in italics, as in the Word Caption style ----
+\captionsetup{labelsep=colon,font={it},skip=6pt}
+
+% --- lists: compact spacing similar to Word --------------------------------
+\setlist{itemsep=2pt,topsep=4pt,parsep=0pt}
+
+% --- tables ----------------------------------------------------------------
+\setlength{\LTpre}{8pt}
+\setlength{\LTpost}{8pt}
+\renewcommand{\arraystretch}{1.15}
+
+% --- footer: "Page N of M" centered, as in the Word original ---------------
+\pagestyle{fancy}
+\fancyhf{}
+\fancyfoot[C]{\small Page \thepage\ of \pageref{LastPage}}
+\renewcommand{\headrulewidth}{0pt}
+\fancypagestyle{plain}{\fancyhf{}%
+  \fancyfoot[C]{\small Page \thepage\ of \pageref{LastPage}}}
+
+% --- hyperlinks ------------------------------------------------------------
+% hyperref last; URLs blue as in Word, internal cross-references black
+\usepackage[colorlinks=true,urlcolor=blue,linkcolor=black,citecolor=black,
+            pdftitle={Cassini ISS F Ring Mosaics User Guide},
+            pdfauthor={Robert S. French}]{hyperref}
+
+% allow URLs to break more freely and stretch slightly
+\Urlmuskip=0mu plus 2mu
+% \allowbreak appears in some heading code tokens; ignore it in PDF bookmarks
+\pdfstringdefDisableCommands{\let\allowbreak\relax}
+
+% long URLs (e.g. in the References section) may break after any character
+\expandafter\def\expandafter\UrlBreaks\expandafter{\UrlBreaks%
+  \do\a\do\b\do\c\do\d\do\e\do\f\do\g\do\h\do\i\do\j\do\k\do\l\do\m%
+  \do\n\do\o\do\p\do\q\do\r\do\s\do\t\do\u\do\v\do\w\do\x\do\y\do\z%
+  \do\0\do\1\do\2\do\3\do\4\do\5\do\6\do\7\do\8\do\9\do\-\do\_}
