@@ -476,7 +476,7 @@ def callback_move_mosaic(x, y, mosaicdata):
         mosaicdispdata.label_rad_resolution.config(text=
                     ('%7.3f'%mosaicdata.radial_resolutions[x]))
         mosaicdispdata.label_ang_resolution.config(text=
-                    ('%7.3f'%np.degrees(mosaicdata.angular_resolutions[x])))
+                    ('%7.3f'%mosaicdata.angular_resolutions[x]))
         mosaicdispdata.label_image.config(text=
                     mosaicdata.image_name_list[mosaicdata.image_numbers[x]] +
                     ' ('+str(mosaicdata.image_numbers[x])+')')
