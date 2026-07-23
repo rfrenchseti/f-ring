@@ -7,7 +7,7 @@ Mia's current tasks (8/7/25):
 
 - Add bundle.xml
 
-- Deal with Prometheus and Pandora in reprojected images.
+DONE - Deal with Prometheus and Pandora in reprojected images.
 
 - Detect which stars are visible in reproj images and mosaics (probably only for
   occultations) and add them as targets in the labels and collections.
@@ -59,6 +59,10 @@ Mia's current tasks (8/7/25):
 - Once the rings dictionary is cleaned up, update the description for
   <rings:description>
 
-- Consider using wrap-around longitude limits.
+DONE - Consider using wrap-around longitude limits.
 
 - Verify that the sentinel values are present in the background mosaics from the original mosaic's bad pixels.
+
+DONE - Put example Python files in user guide label file?
+
+- Compare cassini: fields between what I generate and the PDS4 bundle
