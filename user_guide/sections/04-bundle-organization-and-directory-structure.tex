@@ -30,7 +30,7 @@ For reference, the following types of data products and support files are availa
 \item \textbf{Reprojected images:} These files contain rectangular reprojections of calibrated image files. Like the calibrated files, they are in units of I/F. Associated table files provide information about each longitude. These files are in the \code{data\_\allowbreak{}reproj\_\allowbreak{}img} directory. See Section \ref{sec:data-reproj-img}.
 \item \textbf{Mosaics:} These files contain mosaics stitched together from multiple reprojected images. Like the reprojected images, they are in units of I/F. Associated table files provide information about each longitude. These files are in the \code{data\_\allowbreak{}mosaic} directory. See Section \ref{sec:data-mosaic-and-data-mosaic-bkg-sub}.
 \item \textbf{Background-subtracted mosaics:} These files contain the same mosaics as above, but each mosaic has had a linear background model subtracted for each longitude. They are in units of I/F. Associated table files provide information about each longitude. These files are in the \code{data\_\allowbreak{}mosaic\_\allowbreak{}bkg\_\allowbreak{}sub} directory. See Section \ref{sec:data-mosaic-and-data-mosaic-bkg-sub}.
-\item \textbf{Browse images: }Browse images in four sizes are available for each of the reprojected images, mosaics, and background-subtracted mosaics. These are \textit{not} meant for scientific analysis and are only meant for visual examination of the contents of the data file. The original I/F data has been mapped to integers from 0 to 255 and non-linearly stretched to make dim features easier to see. The details of the stretching process are not provided. These files are in the three \code{browse\_\allowbreak{}*} directories. See Sections \ref{sec:browse-reproj-img} and \ref{sec:browse-mosaic-and-browse-mosaic-bkg-sub}.
+\item \textbf{Browse images: }Browse images in four sizes are available for each of the reprojected images, mosaics, and background-subtracted mosaics. These are \textit{not} meant for scientific analysis and are only meant for visual examination of the contents of the data file. The original I/F data has been mapped to integers from 0 to 255 and non-linearly stretched to make dim features easier to see. As documented in each browse label, the stretch uses a blackpoint at the minimum valid value, a whitepoint at the 99.8th-percentile value, and a gamma of 0.5. These files are in the three \code{browse\_\allowbreak{}*} directories. See Sections \ref{sec:browse-reproj-img} and \ref{sec:browse-mosaic-and-browse-mosaic-bkg-sub}.
 \item \textbf{Documentation: }This User Guide is available in PDF format in the \code{document} directory. See Section \ref{sec:user-guide}.
 \item \textbf{Global index files: }These files provide a list of all reprojected images and mosaics in the bundle, along with tabulated metadata for each. They allow for easy programmatic searching on fields such as date and viewing geometry. These files are in the \code{miscellaneous} directory. See Section \ref{sec:the-global-index-files}
 \item \textbf{SPICE kernels:} A SPICE metakernel specifying the kernels that were used during navigation and data processing is provided in the \code{spice\_\allowbreak{}kernels} directory. These files are not expected to be needed for most scientific users. See Section \ref{sec:the-spice-kernels-directory}.
@@ -91,16 +91,16 @@ The file \code{IMGID\_\allowbreak{}reproj\_\allowbreak{}img.\allowbreak{}lblx} c
 <rings:epoch_reprojection_basis_utc>2007-01-01T00:00:00.000Z</rings:epoch_reprojection_basis_utc>
 <rings:reprojection_plane>Equator</rings:reprojection_plane>
 <rings:corotating_flag>Y</rings:corotating_flag>
-<rings:corotation_rate unit="deg/s">0.006735694444</rings:corotation_rate> <-- 581.964 deg/day -->
+<rings:corotation_rate unit="deg/s">0.006735694444</rings:corotation_rate> <!-- 581.964 deg/day -->
 <rings:mean_phase_angle unit="deg">36.119</rings:mean_phase_angle>
 <rings:minimum_phase_angle unit="deg">35.990</rings:minimum_phase_angle>
 <rings:maximum_phase_angle unit="deg">36.182</rings:maximum_phase_angle>
+<rings:mean_incidence_angle unit="deg">88.821</rings:mean_incidence_angle>
+<rings:minimum_incidence_angle unit="deg">88.821</rings:minimum_incidence_angle>
+<rings:maximum_incidence_angle unit="deg">88.821</rings:maximum_incidence_angle>
 <rings:mean_emission_angle unit="deg">97.421</rings:mean_emission_angle>
 <rings:minimum_emission_angle unit="deg">97.200</rings:minimum_emission_angle>
 <rings:maximum_emission_angle unit="deg">97.651</rings:maximum_emission_angle>
-<rings:mean_incidence_angle unit="deg">88.821387</rings:mean_incidence_angle>
-<rings:minimum_incidence_angle unit="deg">88.821387</rings:minimum_incidence_angle>
-<rings:maximum_incidence_angle unit="deg">88.821387</rings:maximum_incidence_angle>
 <rings:minimum_corotating_ring_longitude unit="deg">286.14</rings:minimum_corotating_ring_longitude>
 <rings:maximum_corotating_ring_longitude unit="deg">308.60</rings:maximum_corotating_ring_longitude>
 <rings:minimum_ring_radius unit="km">138894.242</rings:minimum_ring_radius>
@@ -130,9 +130,9 @@ and the details of the image file, IMGID\_\allowbreak{}reproj\_\allowbreak{}img.
         <file_size unit="byte">1050620</file_size>
         <md5_checksum>ad24ba420a8705285effa703a950b61e</md5_checksum>
     </File>
-    <-- The calibrated, reprojected single image -->
+    <!-- The calibrated, reprojected single image -->
     <Array_2D_Image>
-        <local_identifier>reproj_img</local_identifier>
+        <local_identifier>reproj_image</local_identifier>
         <offset unit="byte">0</offset>
         <axes>2</axes>
         <axis_index_order>Last Index Fastest</axis_index_order>
@@ -141,17 +141,17 @@ and the details of the image file, IMGID\_\allowbreak{}reproj\_\allowbreak{}img.
             <unit>I/F</unit>
         </Element_Array>
         <Axis_Array>
-            <axis_name>Line</axis_name> <-- vertical (radial) -->
+            <axis_name>Line</axis_name> <!-- vertical (radial) -->
             <elements>401</elements>
             <sequence_number>1</sequence_number>
         </Axis_Array>
         <Axis_Array>
-            <axis_name>Sample</axis_name> <-- horizontal (longitude) -->
+            <axis_name>Sample</axis_name> <!-- horizontal (longitude) -->
             <elements>655</elements>
             <sequence_number>2</sequence_number>
         </Axis_Array>
         <Special_Constants>
-            <-- Data was missing or corrupted in the original image (either because it was off
+            <!-- Data was missing or corrupted in the original image (either because it was off
                 the edge of the FOV or because of a transmission error resulting in a partial or
                 corrupted image) -->
             <missing_constant>-999</missing_constant>
@@ -173,7 +173,7 @@ rings:corotating_ring_longitude,rings:observed_event_tdb,rings:inertial_ring_lon
 320.16, 558091398.772, 101.809,    5.233,  0.00010,  63.312, 129.707,  67.479, 140188.160, 293.578, 186.171, 275.638, 177.733, 139483.579,  23.223, 141253.549[...]
 \end{CodeBlock}
 
-where each line refers, in sequence, to an X index in the image array. This table gives the actual corotating longitude that is defined by that index as well as additional useful information such as the inertial longitude, radial resolution, angular (longitudinal) resolution, phase angle, emission angle, and various orbital parameters. See Sections \ref{sec:reprojection} and \ref{sec:metadata-and-global-index-file-fields} for details about these fields and Section \ref{sec:reading-labels-and-data-product-files} for information on how to read these files with software.
+where the rows are in ascending corotating-longitude order and cover only the longitudes that contain valid data. Because a reprojected image that wraps around at 360° is stored with its two sections reordered (see Section \ref{sec:reprojection}), and because the image may retain sentinel-filled columns at longitudes with no valid data, the rows do \textit{not} necessarily correspond one-to-one, in sequence, to the X indices of the image array; to associate a row with an image column, match on the corotating ring longitude field rather than on row position. This table gives the actual corotating longitude for each row as well as additional useful information such as the inertial longitude, radial resolution, angular (longitudinal) resolution, phase angle, emission angle, and various orbital parameters. See Sections \ref{sec:reprojection} and \ref{sec:metadata-and-global-index-file-fields} for details about these fields and Section \ref{sec:reading-labels-and-data-product-files} for information on how to read these files with software.
 
 Finally, a supplemental information file, \code{IMGID1\_\allowbreak{}reproj\_\allowbreak{}img\_\allowbreak{}suppl.\allowbreak{}txt}, describes the navigation process and the derived pointing for the image (see Section \ref{sec:navigation}):
 
@@ -220,7 +220,7 @@ browse_reproj_img/
 └── ...
 \end{CodeBlock}
 
-Four sizes of browse images are provided. “Thumb” images are always 100×100 pixels and are downsampled as necessary from the reprojected image. “Small” images are always 200×200 pixels and are similarly downsampled. “Med” images are downsampled by 10 in the X dimension and are always 400 pixels in the Y dimension, thus having a maximum size of 1800×400. “Full” images are always the same size as the reprojected image (with a minimum of 800 pixels in the X dimension) and guaranteed to be 401 pixels in the Y dimension. All image types are contrast-stretched to use the full available greyscale and are not calibrated for scientific use. Missing data in the reprojected image is indicated by black.
+Four sizes of browse images are provided. “Thumb” images are always 100×100 pixels and are downsampled as necessary from the reprojected image. “Small” images are always 200×200 pixels and are similarly downsampled. “Med” images are downsampled by 10 in the X dimension (with a minimum of 400 pixels in the X dimension) and are always 400 pixels in the Y dimension, thus having a maximum size of 1800×400; because most reprojected images are narrow, the typical Med image is 400 pixels wide. “Full” images are always the same size as the reprojected image (with a minimum of 800 pixels in the X dimension) and guaranteed to be 401 pixels in the Y dimension. All image types are contrast-stretched to use the full available greyscale and are not calibrated for scientific use. Missing data in the reprojected image is indicated by black.
 
 
 \subsubsection{data\_mosaic and data\_mosaic\_bkg\_sub}

@@ -242,7 +242,7 @@ The occultation observations are marked with “O”. The following mosaics have
 \subsection{Calibration}
 \label{sec:calibration}
 
-Calibrated images were retrieved from the PDS Ring-Moon Systems Node archive\footnote{\href{https://pds-rings.seti.org/holdings/calibrated/COISS_2xxx/}{https://pds-rings.seti.org/holdings/calibrated/COISS\_\allowbreak{}2xxx/}}. Each image was calibrated by the Node using the CISSCAL 4.0 pipeline \zcite{(Knowles 2018)} into units of I/F\footnote{I/F is a dimensionless value that gives the ratio of the observed intensity to the incoming flux from the light source, assuming a perfect Lambert surface illuminated at normal incidence. See \zcite{(French et al. 2012)} for more details.}. The calibrated files at the time of writing are being migrated to the PDS4 standard, and those will be archived as collections within the \textbf{cassini\_\allowbreak{}iss\_\allowbreak{}cruise} and \textbf{cassini\_\allowbreak{}iss\_\allowbreak{}saturn} bundles.\footnote{\href{../customXml/item1.xml}{https://pds-rings.seti.org/pds4/bundles/cassini\_\allowbreak{}iss}}
+Calibrated images were retrieved from the PDS Ring-Moon Systems Node archive\footnote{\href{https://pds-rings.seti.org/holdings/calibrated/COISS_2xxx/}{https://pds-rings.seti.org/holdings/calibrated/COISS\_\allowbreak{}2xxx/}}. Each image was calibrated by the Node using the CISSCAL 4.0 pipeline \zcite{(Knowles 2018)} into units of I/F\footnote{I/F is a dimensionless value that gives the ratio of the observed intensity to the incoming flux from the light source, assuming a perfect Lambert surface illuminated at normal incidence. See \zcite{(French et al. 2012)} for more details.}. The calibrated files at the time of writing are being migrated to the PDS4 standard, and those will be archived as collections within the \textbf{cassini\_\allowbreak{}iss\_\allowbreak{}cruise} and \textbf{cassini\_\allowbreak{}iss\_\allowbreak{}saturn} bundles.\footnote{\href{https://pds-rings.seti.org/pds4/bundles/cassini_iss}{https://pds-rings.seti.org/pds4/bundles/cassini\_\allowbreak{}iss}}
 
 
 \subsection{Navigation}
@@ -290,7 +290,9 @@ Note that the choice of epoch is arbitrary and when comparing absolute corotatin
 
 To determine the radius of the F ring core, we use the standard formula:
 
-\begin{equation*}r_{\mathrm{core}}=\ \frac{a(1-e^{2})}{1+e\cos \left(\varpi _{0}+\dot{\varpi }\frac{ET}{86400}\right)}\end{equation*}
+\begin{equation*}r_{\mathrm{core}}=\ \frac{a(1-e^{2})}{1+e\cos \left(\lambda -\left(\varpi _{0}+\dot{\varpi }\frac{ET}{86400}\right)\right)}\end{equation*}
+
+where \textit{λ} is the inertial longitude (converted from the corotating longitude as described above), so that the argument of the cosine is the true anomaly.
 
 
 \subsubsection{Reprojection process}
@@ -315,7 +317,7 @@ For each corotating longitude, the mean of each of these parameters for that rad
 \item Core Radius (distance from Saturn in km, computed using the formula above)
 \item Longitude of Ascending Node (°)
 \item Longitude of Pericenter (°)
-\item Min and Max True Anomaly (°)
+\item True Anomaly (°)
 \item Corotating Longitude of Prometheus (°) in the same corotating frame used for the F ring
 \item Radius (distance from Saturn) of Prometheus (km)
 \item Corotating Longitude of Pandora (°) in the same corotating frame used for the F ring
