@@ -31,35 +31,40 @@ import julian
 #   longitude_resolution    A floating point number indicating the longitude
 #                           resolution (radians/pixel)
 #
-#   incidence_angle         A floating point number indicating the incidence
-#                           angle (in radians) at the time of the mosaic.
+#   mean_incidence          A floating point number indicating the mean
+#                           incidence angle (in radians) at the time of the
+#                           mosaic.
 #
 # All following metadata keys contain an array with one entry per co-rotating
 # longitude (there are 2PI / longitude_resolution entries).
 #
-#   long_mask               True if this co-rotating longitude contains any
+#   long_antimask           True if this co-rotating longitude contains any
 #                           valid data.
 #
-#   ETs                     Ephemeris time (in seconds since noon on
+#   time                    Ephemeris time (in seconds since noon on
 #                           January 1, 2000) of the image used to create
 #                           each co-rotating longitude.
 #
-#   emission_angles         Mean emission angle (in radians) of all the
+#   mean_emission           Mean emission angle (in radians) of all the
 #                           emission angles for the radial positions in the
 #                           source image for each co-rotating longitude.
 #
-#   phase_angles            Mean phase angle (in radians) of all the
+#   mean_phase              Mean phase angle (in radians) of all the
 #                           phase angles for the radial positions in the
 #                           source image for each co-rotating longitude.
 #
-#   resolutions             Mean radial resolution (in km/pixel) of all the
+#   mean_radial_resolution  Mean radial resolution (in km/pixel) of all the
 #                           radial resolutions for the radial positions in the
 #                           source image for each co-rotating longitude.
+#
+#   mean_angular_resolution Mean angular resolution (in radians/pixel) of all
+#                           the angular resolutions for the radial positions in
+#                           the source image for each co-rotating longitude.
 #
 #   longitudes              The co-rotating longitude for each longitude
 #                           position. <0 means invalid data.
 #
-#   image_numbers           Integers indicating which source image this
+#   image_number            Integers indicating which source image this
 #                           longitude's data came from. These integers are
 #                           indexes into the following four arrays.
 #     image_name_list       The base names of the images used to create the
@@ -274,7 +279,7 @@ def bkgnd_sub_mosaic_paths(arguments, obsid):
     return (data_path, metadata_path)
 
 
-def polar_png_path(arguments, obsid):
+def polar_png_path(arguments, obsid, make_dirs=False):
     """"Return path for polar-projected PNG.
 
     This is POLAR_PNG_DIR/...-POLAR.png
@@ -287,6 +292,8 @@ def polar_png_path(arguments, obsid):
                     arguments.longitude_resolution,
                     arguments.radial_zoom_amount,
                     arguments.longitude_zoom_amount))
+    if make_dirs:
+        os.makedirs(POLAR_PNG_DIR, exist_ok=True)
     data_path = file_clean_join(POLAR_PNG_DIR,
                                 obsid+png_res_data+'-POLAR.png')
     return data_path
@@ -306,7 +313,6 @@ def polar_png_path(arguments, obsid):
 
 # F ring orbit from Albers 2012
 FRING_ROTATING_ET = utc2et('2007-01-01')
-FRING_ORBIT_EPOCH = utc2et('2000-01-01T12:00:00')  # J2000
 FRING_MEAN_MOTION = 581.964  # deg/day
 FRING_A = 140221.3
 FRING_E = 0.00235
@@ -470,11 +476,12 @@ def fit_hg_phase_function(n_hg, nstd, data, col_tau=('Normal EW Mean', None),
         bounds2.append(1000.)
     while True:
         phase_degrees = phasedata[phase_col].to_numpy()
+        ystd = None
         if std_col is not None:
-            std_col = phasedata[std_col].to_numpy()
+            ystd = phasedata[std_col].to_numpy()
         params = sciopt.least_squares(hg_fit_func, initial_guess,
                                       bounds=(bounds1, bounds2),
-                                      args=(phase_degrees, normal_ew, std_col))
+                                      args=(phase_degrees, normal_ew, ystd))
         params = params['x']
         phase_model = hg_func(params, phase_degrees)
         ratio = np.log10(normal_ew) - np.log10(phase_model)
@@ -483,10 +490,9 @@ def fit_hg_phase_function(n_hg, nstd, data, col_tau=('Normal EW Mean', None),
             print('Ratio min', ratio.min(), 'Max', ratio.max(), 'Sigma', std)
         if nstd is None:
             break
-        else:
-            assert False # Think about ratio and log space XXX
+        # ratio is the log-space residual, matching the log-space fit above
         oldlen = len(phasedata)
-        keep = ratio.abs() < nstd*std
+        keep = np.abs(ratio) < nstd*std
         phasedata = phasedata[keep]
         normal_ew = normal_ew[keep]
         if len(phasedata) == oldlen:

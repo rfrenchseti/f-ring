@@ -59,12 +59,12 @@ if False:
     long_list = []
     for et in np.arange(start_et, start_et+15*60*60, 60):
         if arguments.pandora:
-            dist = moons.pandora_close_approach(et)
+            dist, longitude = moons.pandora_close_approach(et)[:2]
         else:
-            dist = moons.prometheus_close_approach(et)
+            dist, longitude = moons.prometheus_close_approach(et)[:2]
         et_list.append(et)
         dist_list.append(dist)
-        long_list.append(np.degrees(long))
+        long_list.append(longitude)  # Already in degrees
     # plt.plot(et_list, dist_list)
     plt.plot(et_list, long_list)
     plt.show()
@@ -87,9 +87,9 @@ if arguments.historical_csv_filename:
     et2 = f_ring.utc2et(arguments.historical_end_date)
     for et in np.arange(et1, et2, arguments.historical_step*86400):
         if arguments.pandora:
-            min_dist, min_long = moons.pandora_close_approach(et)
+            min_dist = moons.pandora_close_approach(et)[0]
         else:
-            min_dist, min_long = moons.prometheus_close_approach(et)
+            min_dist = moons.prometheus_close_approach(et)[0]
         date = f_ring.et2utc(et)
         print(date)
         if arguments.plot_results:
@@ -127,16 +127,21 @@ for obs_id in f_ring.enumerate_obsids(arguments):
         metadata = msgpack.unpackb(bkgnd_metadata_fp.read(),
                                    max_str_len=40*1024*1024,
                                    object_hook=msgpack_numpy.decode)
+        if 'long_mask' in metadata: # Old format
+            metadata['long_antimask'] = metadata['long_mask']
+            del metadata['long_mask']
 
     longitudes = metadata['longitudes']
-    good_long = metadata['long_mask']
+    good_long = metadata['long_antimask']
     mean_et = np.mean(metadata['time'][good_long])
     min_et = np.min(metadata['time'][good_long])
 
     if arguments.pandora:
-        min_dist, min_long = moons.pandora_close_approach(mean_et)
+        (min_dist, min_long,
+         min_long_corot, min_true_anomaly) = moons.pandora_close_approach(mean_et)
     else:
-        min_dist, min_long = moons.prometheus_close_approach(mean_et)
+        (min_dist, min_long,
+         min_long_corot, min_true_anomaly) = moons.prometheus_close_approach(mean_et)
     date_str = f_ring.et2utc(min_et)
     print(f'{obs_id:30s}: {date_str} {min_dist:.3f}')
 
@@ -144,7 +149,7 @@ for obs_id in f_ring.enumerate_obsids(arguments):
         row = [obs_id,
                date_str,
                np.round(min_dist, 3),
-               np.round(np.degrees(min_long), 3)]
+               np.round(min_long, 3)]  # Already in degrees
 
         writer.writerow(row)
 
