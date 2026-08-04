@@ -91,10 +91,10 @@ class FilterDialog(QDialog):
         form.addRow('Longitudinal resolution (deg):',
                     self._range_row(self._min_long_res, self._max_long_res))
         form.addRow(
-            'Prometheus to core (km):',
+            'Prometheus closest approach to core (km):',
             self._range_row(self._min_prom, self._max_prom))
         form.addRow(
-            'Pandora to core (km):',
+            'Pandora closest approach to core (km):',
             self._range_row(self._min_pand, self._max_pand))
 
         layout.addWidget(numeric_box)
