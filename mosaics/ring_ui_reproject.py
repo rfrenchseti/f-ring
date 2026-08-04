@@ -85,7 +85,7 @@ parser = argparse.ArgumentParser()
 ##
 ## General options
 ##
-parser.add_argument('--allow-exception', action='store_true', default=True,
+parser.add_argument('--allow-exception', action='store_true', default=False,
                     help="Allow exceptions to be thrown")
 parser.add_argument('--profile', action='store_true', default=False,
                     help="Do performance profiling")
@@ -484,6 +484,8 @@ def reproject_one_image(offrepdata, option_no, option_no_update,
         # if arguments.verbose:
         #     print('NO OFFSET FILE - ABORTING')
         # return
+        print(f'WARNING: {offrepdata.obsid}/{offrepdata.image_name} has no '
+              f'offset file - reprojecting UNNAVIGATED with zero offset')
         offrepdata.the_offset = (0., 0.)
         offrepdata.manual_offset = None
 
@@ -553,7 +555,8 @@ def draw_repro_overlay(offrepdata, offrepdispdata):
 
     # Mark the F ring core
     repro_overlay = np.zeros(offrepdata.repro_img.shape + (3,))
-    y = int(float(arguments.radius_outer_delta)/
+    # Radius 0 (the core) sits -inner_delta above the bottom of the range
+    y = int(-float(arguments.radius_inner_delta)/
             (arguments.radius_outer_delta-arguments.radius_inner_delta)*
             offrepdata.repro_img.shape[0])
     y = repro_overlay.shape[0]-1-y
@@ -573,8 +576,8 @@ def draw_offset_overlay(offrepdata, offrepdispdata):
         offset_overlay = offrepdata.off_metadata['overlay'].copy()
         if offset_overlay.shape[:2] != offrepdata.obs.data.shape:
             # Correct for the expanded size of extdata
-            diff_y = (offset_overlay.shape[0]-offrepdata.obs.data.shape[0])/2
-            diff_x = (offset_overlay.shape[1]-offrepdata.obs.data.shape[1])/2
+            diff_y = (offset_overlay.shape[0]-offrepdata.obs.data.shape[0])//2
+            diff_x = (offset_overlay.shape[1]-offrepdata.obs.data.shape[1])//2
             offset_overlay = offset_overlay[diff_y:diff_y+
                                                 offrepdata.obs.data.shape[0],
                                             diff_x:diff_x+
@@ -1180,7 +1183,8 @@ def callback_repro(x, y, offrepdata, offrepdispdata):
     offrepdispdata.label_corot_longitude.config(text=('%7.3f'%corot_long))
     offrepdispdata.label_inertial_longitude.config(text=('%7.3f'%inertial_long))
     offrepdispdata.label_radius.config(text='%7.3f' % rel_radius)
-    offrepdispdata.label_abs_radius.config(text='%7.3f' % (rel_radius + abs_radius))
+    offrepdispdata.label_abs_radius.config(
+        text='%7.3f' % (arguments.ring_radius + rel_radius))
     offrepdispdata.label_true_anomaly.config(text='%7.3f' % true_anomaly)
     offrepdispdata.label_radial_resolution.config(text=
                 ('%7.3f'%offrepdispdata.repro_radial_resolutions[x]))
@@ -1244,7 +1248,7 @@ for obsid, image_name, image_path in ring_enumerate_files(arguments):
         pr = cProfile.Profile()
         pr.enable()
 
-    offrepdata.image_log_filehander = None
+    offrepdata.image_log_filehandler = None
 
     # if arguments.verbose:
     #     print('Processing', obsid, '/', image_name)

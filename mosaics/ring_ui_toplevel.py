@@ -401,11 +401,14 @@ def cmdline_arguments(guidata, subprocesses=False):
            '--ring-radius', str(ring_radius),
            '--radius-inner-delta', str(radius_inner),
            '--radius-outer-delta', str(radius_outer),
-           '--radius-resolution', '%.3f'%radius_resolution,
-           '--longitude-resolution', '%.3f'%longitude_resolution,
+           '--radius-resolution', '%.10g'%radius_resolution,
+           '--longitude-resolution', '%.10g'%longitude_resolution,
            '--radial-zoom-amount', '%d'%radial_zoom_amount,
            '--longitude-zoom-amount', '%d'%longitude_zoom_amount,
-           '--instrument-host', arguments.instrument_host]
+           '--instrument-host', arguments.instrument_host,
+           '--planet', arguments.planet]
+    if arguments.verbose:
+        ret += ['--verbose']
     if subprocesses:
         ret += ['--max-subprocesses', '4']
 
@@ -425,17 +428,23 @@ def offrep_obsid_list_buttonrelease_handler(event, guidata):
 #
 # Update image list based on current obsid
 #
+IMG_LIST_FORMAT = '[%2s] [%s] %s'
+# char_skip for update_one_list - the index of the image-name field
+# (offset status is two characters, repro status is one)
+IMG_LIST_NAME_INDEX = len(IMG_LIST_FORMAT % ('', ' ', ''))
+
 def offrep_update_img_list(guidata):
     cache_offset_status_for_obsid(guidata.obsid_db, guidata.obsid_selection)
     guidata.img_selection = None
     guidata.cur_img_list = []
     if guidata.obsid_selection is not None:
         for data in guidata.obsid_db[guidata.obsid_selection][2]:
-            img_string = '[%2s] [%s] %s' % (data.offset_status,
+            img_string = IMG_LIST_FORMAT % (data.offset_status,
                                             data.repro_status,
                                             data.image_name)
             guidata.cur_img_list.append(img_string)
-    update_one_list(guidata.listbox_img, guidata.cur_img_list, 16)
+    update_one_list(guidata.listbox_img, guidata.cur_img_list,
+                    IMG_LIST_NAME_INDEX)
     if guidata.obsid_selection is None:
         guidata.label_images.config(text='Images:')
     else:
@@ -446,7 +455,7 @@ def offrep_update_img_list(guidata):
 #
 def offrep_img_list_buttonrelease_handler(event, guidata):
     img_selections = guidata.listbox_img.listbox.curselection()
-    if guidata.obsid_selection is None:
+    if guidata.obsid_selection is None or len(img_selections) == 0:
         return
     guidata.img_selection = guidata.obsid_db[
                          guidata.obsid_selection][2][int(img_selections[0])]
@@ -936,7 +945,8 @@ def offrep_update_obs_lists(guidata):
     update_one_list(guidata.listbox_obsid,
                     mosaic_background_status_names(guidata.obsid_db))
     if guidata.cur_img_list is not None:
-        update_one_list(guidata.listbox_img, guidata.cur_img_list, 16)
+        update_one_list(guidata.listbox_img, guidata.cur_img_list,
+                        IMG_LIST_NAME_INDEX)
 
 ###############################################
 

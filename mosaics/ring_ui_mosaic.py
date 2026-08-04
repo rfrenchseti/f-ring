@@ -587,7 +587,6 @@ def callback_move_mosaic(x, y, mosaicdata):
 
     mosaicdispdata.label_longitude.config(text=
                 ('%7.3f'%corot_long))
-    mosaicdispdata.label_abs_radius.config(text='%7.3f'%abs_radius)
     mosaicdispdata.label_true_anomaly.config(text='%7.3f'%true_anomaly)
 
     y = int(y)
@@ -595,7 +594,8 @@ def callback_move_mosaic(x, y, mosaicdata):
         return
 
     mosaicdispdata.label_radius.config(text='%7.3f'%rel_radius)
-    mosaicdispdata.label_abs_radius.config(text='%7.3f'%(rel_radius + abs_radius))
+    mosaicdispdata.label_abs_radius.config(
+        text='%7.3f'%(arguments.ring_radius + rel_radius))
 
 # The command for Mosaic button press - rerun offset/reproject
 def callback_b1press_mosaic(x, y, mosaicdata):
@@ -612,14 +612,14 @@ def callback_b1press_mosaic(x, y, mosaicdata):
                       mosaicdata.image_name_list[image_number]] +
                      ring_basic_cmd_line(arguments))
 
-def command_show_longitudes(mosicdata, mosaicdispdata):
+def command_show_longitudes(mosaicdata, mosaicdispdata):
     plt.figure()
     for i, repro_path in enumerate(mosaicdata.repro_path_list):
         repro_metadata = read_repro(repro_path)
         repro_good_long_antimask = repro_metadata['long_antimask']
         scale = int(len(repro_good_long_antimask) / 360)
         for x in range(len(repro_good_long_antimask)):
-            if np.any(repro_good_long_antimask[x*scale:(x+1)*scale-1]):
+            if np.any(repro_good_long_antimask[x*scale:(x+1)*scale]):
                 plt.plot(x, i, '.', color='black', mec='black')
     plt.show()
 

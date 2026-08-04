@@ -26,6 +26,16 @@ for ring_type in ('FMOVIE',
                   #'FMOVIE_BAD', 'FMOVIE_LOW_COV', 'FMOVIE_LOW_RES'
                   ):
     arguments.ring_type = ring_type
+    # ring_init only fills in unset (zero/empty) geometry arguments, so reset
+    # them before each call or the previous ring type's defaults would stick
+    arguments.corot_type = ''
+    arguments.ring_radius = 0
+    arguments.radius_inner_delta = 0
+    arguments.radius_outer_delta = 0
+    arguments.radius_resolution = 0.
+    arguments.longitude_resolution = 0.
+    arguments.radial_zoom_amount = 0
+    arguments.longitude_zoom_amount = 0
     ring_init(arguments)
     for obsid, image_name, image_path in ring_enumerate_files(arguments,
                                                               yield_obsid_only=True):
