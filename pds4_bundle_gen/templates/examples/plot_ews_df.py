@@ -68,6 +68,13 @@ def add_equivalent_width(metadata_df, image_ma_data, long_interval,
     # Compute the sum of the I/F values for the good longitudes, replacing any
     # masked (sentinel) values with NaN because that's what pandas likes.
     integral = ma.filled(ma.sum(mosaic_img_good_long, axis=0), np.nan)
+    # Exclude longitudes with incomplete radial coverage: masked interior
+    # pixels shrink the integral, giving spuriously low EWs at coverage edges.
+    # Require at least 99% valid radial pixels, mirroring the pipeline's
+    # default --maximum-bad-pixels-percentage of 1%.
+    valid_frac = (mosaic_img_good_long.count(axis=0) /
+                  mosaic_img_good_long.shape[0])
+    integral[valid_frac < 0.99] = np.nan
     # Convert the integral to equivalent width by multiplying by the viewing
     # angle correction factor and the radial sampling interval.
     metadata_df['equivalent_width'] = integral * mu * radial_interval

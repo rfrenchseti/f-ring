@@ -250,31 +250,31 @@
                 <file_name>$MOSAIC_UTILS_PY_NAME$</file_name>
                 <creation_date_time>$FILE_ZULU(MOSAIC_UTILS_PY_PATH)$</creation_date_time>
                 <md5_checksum>$FILE_MD5(MOSAIC_UTILS_PY_PATH)$</md5_checksum>
-                <document_standard_id>Python</document_standard_id>
+                <document_standard_id>7-Bit ASCII Text</document_standard_id>
             </Document_File>
             <Document_File>
                 <file_name>$DISPLAY_REPROJ_IMG_PY_NAME$</file_name>
                 <creation_date_time>$FILE_ZULU(DISPLAY_REPROJ_IMG_PY_PATH)$</creation_date_time>
                 <md5_checksum>$FILE_MD5(DISPLAY_REPROJ_IMG_PY_PATH)$</md5_checksum>
-                <document_standard_id>Python</document_standard_id>
+                <document_standard_id>7-Bit ASCII Text</document_standard_id>
             </Document_File>
             <Document_File>
                 <file_name>$PLOT_EWS_MA_PY_NAME$</file_name>
                 <creation_date_time>$FILE_ZULU(PLOT_EWS_MA_PY_PATH)$</creation_date_time>
                 <md5_checksum>$FILE_MD5(PLOT_EWS_MA_PY_PATH)$</md5_checksum>
-                <document_standard_id>Python</document_standard_id>
+                <document_standard_id>UTF-8 Text</document_standard_id>
             </Document_File>
             <Document_File>
                 <file_name>$PLOT_EWS_DF_PY_NAME$</file_name>
                 <creation_date_time>$FILE_ZULU(PLOT_EWS_DF_PY_PATH)$</creation_date_time>
                 <md5_checksum>$FILE_MD5(PLOT_EWS_DF_PY_PATH)$</md5_checksum>
-                <document_standard_id>Python</document_standard_id>
+                <document_standard_id>UTF-8 Text</document_standard_id>
             </Document_File>
             <Document_File>
                 <file_name>$FIND_PROMETHEUS_CLOSEST_APPROACHES_PY_NAME$</file_name>
                 <creation_date_time>$FILE_ZULU(FIND_PROMETHEUS_CLOSEST_APPROACHES_PY_PATH)$</creation_date_time>
                 <md5_checksum>$FILE_MD5(FIND_PROMETHEUS_CLOSEST_APPROACHES_PY_PATH)$</md5_checksum>
-                <document_standard_id>Python</document_standard_id>
+                <document_standard_id>7-Bit ASCII Text</document_standard_id>
             </Document_File>
         </Document_Edition>
         <List_Author>

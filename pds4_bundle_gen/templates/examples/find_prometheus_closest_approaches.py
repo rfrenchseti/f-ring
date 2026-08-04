@@ -3,7 +3,9 @@
 Selects reprojected images whose global-index Prometheus longitude lies in each
 product's valid corotating-longitude range (including 360 degree wrap), then
 plots the ten smallest separations ``mean_core_radius - radius_prometheus``
-(km). A red circle marks the Prometheus position on the image.
+(km); the ranking uses the image-mean core radius as an approximation. A red
+circle marks the Prometheus position on the image, placed using the core
+radius at the corotating longitude closest to Prometheus.
 
 Requirements:
     matplotlib
@@ -94,13 +96,15 @@ def format_corot_longitude_ticks(ax):
     ax.xaxis.set_major_formatter(mticker.FuncFormatter(corot_lon_tick_label))
 
 
-def add_prometheus_marker(ax, row, min_long, max_long, x0, x1,
-                          radial_min_km, radial_max_km):
+def add_prometheus_marker(ax, row, core_radius_at_prom, min_long, max_long,
+                          x0, x1, radial_min_km, radial_max_km):
     """Draw a hollow red circle at Prometheus.
 
     Arguments:
         ax (matplotlib.axes.Axes): The axes to draw on.
         row (pandas.Series): The row from the global index DataFrame.
+        core_radius_at_prom (float): The core radius (km) at the corotating
+            longitude closest to Prometheus.
         min_long (float): The minimum corotating longitude.
         max_long (float): The maximum corotating longitude.
         x0 (float): The minimum corotating longitude X limit used for plotting.
@@ -116,8 +120,9 @@ def add_prometheus_marker(ax, row, min_long, max_long, x0, x1,
     if min_long > max_long and xp < min_long:
         xp = xp + 360.0
 
-    # Get the Y position as an offset (in km) from the core radius.
-    yp = row['radius_prometheus'] - row['mean_core_radius']
+    # Get the Y position as an offset (in km) from the core radius at
+    # Prometheus's corotating longitude.
+    yp = row['radius_prometheus'] - core_radius_at_prom
 
     # Compute the width and height of the plot in pixels.
     p0 = np.asarray(ax.transData.transform((x0, yp)))
@@ -165,7 +170,9 @@ def main():
         print('No rows left after longitude filter (check index / columns).')
         sys.exit(1)
 
-    # Sort by increasing distance of Prometheus from the core.
+    # Sort by increasing distance of Prometheus from the core. The ranking uses
+    # the image-mean core radius as an approximation; the plotted marker uses
+    # the core radius at Prometheus's longitude.
     diff_km = (df_in_range['mean_core_radius'].astype(float)
                - df_in_range['radius_prometheus'].astype(float))
     df_in_range_10 = (
@@ -192,7 +199,7 @@ def main():
         # Note that contrary to the metadata_params table or index file, when
         # reading from the label we use "rings:" instead of "rings_" for the
         # prefix.
-        label, full_image_ma, _meta = read_reproj_img_ma(lbl_path)
+        label, full_image_ma, meta = read_reproj_img_ma(lbl_path)
         long_iv = get_element(
             label, 'rings:reprojection_grid_longitudinal_sampling_interval')
         rad_iv = get_element(
@@ -201,6 +208,14 @@ def main():
             label, 'rings:minimum_corotating_ring_longitude')
         max_long = get_element(
             label, 'rings:maximum_corotating_ring_longitude')
+
+        # Look up the core radius at the metadata row whose corotating
+        # longitude is closest to Prometheus (handling 0/360 wraparound).
+        dlong = ((meta['rings_corotating_ring_longitude']
+                  - row['corotating_longitude_prometheus']
+                  + 180.0) % 360.0 - 180.0)
+        core_radius_at_prom = float(
+            meta['core_radius'][np.argmin(np.abs(dlong))])
 
         # Crop the image to the corotating longitude range.
         cropped_image_ma = crop_reproj_to_corot_window(
@@ -236,7 +251,7 @@ def main():
             origin='lower',
         )
         add_prometheus_marker(
-            ax, row, min_long, max_long, x0, x1,
+            ax, row, core_radius_at_prom, min_long, max_long, x0, x1,
             radial_min_km, radial_max_km)
         if min_long > max_long:
             # Custom tick value display function.

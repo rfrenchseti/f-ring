@@ -82,6 +82,13 @@ def compute_ews(image_ma_data, long_interval, radial_interval,
     # interval.
     ews = np.sum(adj_image_ma_data * radial_interval, axis=0)
 
+    # Exclude longitudes with incomplete radial coverage: masked interior
+    # pixels shrink the integral, giving spuriously low EWs at coverage edges.
+    # Require at least 99% valid radial pixels, mirroring the pipeline's
+    # default --maximum-bad-pixels-percentage of 1%.
+    valid_frac = image_ma_data.count(axis=0) / image_ma_data.shape[0]
+    ews = ma.masked_where(valid_frac < 0.99, ews)
+
     return ews
 
 
