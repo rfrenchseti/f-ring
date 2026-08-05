@@ -16,9 +16,10 @@ every critical/major claim against the source (and, where marked, numerically or
 > `code_review_fixes` — commits `52cb449` (mosaics), `115574b` (f_ring_util + photometry),
 > `fe4f8f5` (generator), `7f47619` (templates + examples), `ba555cb` (viewer),
 > `1a85209` (user guide) — **except** the items explicitly marked **NOT FIXED** below:
-> the `mean_incidence` item in §5 (upstream in `/seti/nav/rms-csmithing`; §2.2, also upstream,
-> was subsequently fixed there on branch `fix_mosaic_time_float64`, commit `f156fdb`),
-> and three deliberate deferrals
+> §2.2 (upstream in `/seti/nav/rms-csmithing`) was subsequently fixed there on branch
+> `fix_mosaic_time_float64` (commit `f156fdb`); the `mean_incidence` item in §5 was withdrawn
+> (the incidence angle is assumed constant over one mosaic, per user confirmation);
+> and three deliberate deferrals remain
 > (INST_CMPRS_PARAM/dead-key content decisions, collection-CSV context-member styling,
 > and the stale `mosaics/obs_list.csv` snapshot, which needs a data run to regenerate).
 > One additional bug was found and fixed during the fix pass; see the addendum at the
@@ -356,10 +357,11 @@ it varying. Drop the annotation.
   tuple.
 - `ring_model_bkgnd.py:420-421`: `model.mask = image.mask` aliases and then mutates the caller's
   mask in place (`|=`) — harmless today, a trap for any future caller reusing the input.
-- **NOT FIXED (upstream `rms-nav`, separate repository)** — `nav/ring_mosaic.py:1143`: `mean_incidence` is overwritten by *each added image*, so
+- **NOT A BUG (withdrawn)** — `nav/ring_mosaic.py:1143`: `mean_incidence` is overwritten by *each added image*, so
   the stored value is the last image in the list — even one contributing zero columns — not a
-  mean. Readers archive it as `MEAN_INCIDENCE_ANGLE`. Small effect (incidence varies slowly), but
-  the labeled semantics are wrong.
+  mean. Readers archive it as `MEAN_INCIDENCE_ANGLE`. Withdrawn per user confirmation: the
+  incidence angle is assumed constant over one mosaic (the same simplification the labels
+  document), so which image supplies the stored value is immaterial.
 - `ring_ui_bkgnd.py:193-210`: `write_bkgnd` runs *before* the ring-limit sliders are re-read,
   `write_bkgnd_sub_mosaic` after — moving a slider and pressing Commit without Recalc makes the
   two metadata files disagree, and the archived limits (`generate_pds4_files.py:2165-2167` reads
