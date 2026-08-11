@@ -5,7 +5,7 @@ Mia's current tasks (8/7/25):
 
 - Check navigation of iss_199rf_fmovie002_prime
 
-- Add bundle.xml
+DONE - Add bundle.lblx
 
 DONE - Deal with Prometheus and Pandora in reprojected images.
 
