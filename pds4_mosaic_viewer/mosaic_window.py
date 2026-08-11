@@ -65,7 +65,7 @@ _COLORBY_REL_META_FIELD: dict[str, str] = {
 }
 _COLORBY_ABS_RANGE: dict[str, tuple[str, float, float]] = {
     'abs_phase': ('rings_phase_angle', 0.0, 180.0),
-    'abs_emission': ('rings_emission_angle', 0.0, 90.0),
+    'abs_emission': ('rings_emission_angle', 0.0, 180.0),
     'abs_inertial': ('rings_inertial_ring_longitude', 0.0, 360.0),
     'abs_true_anomaly': ('true_anomaly', 0.0, 360.0),
 }
@@ -660,7 +660,7 @@ class MosaicWindow(QMainWindow):
     def _init_radial_axes(self) -> None:
         ax = self._radial_ax
         ax.set_xlabel(
-            'Radius offset from mean core at corotating longitude —° (km)',
+            'Radius offset from local core at corotating longitude —° (km)',
             fontsize=8)
         ax.set_ylabel('I/F', fontsize=8)
         ax.tick_params(labelsize=7)
@@ -868,7 +868,7 @@ class MosaicWindow(QMainWindow):
         ax.set_autoscaley_on(False)
         corot_lon = MosaicWindow._corot_longitude_for_column(md, ix)
         ax.set_xlabel(
-            f'Radius offset from mean core at corotating longitude '
+            f'Radius offset from local core at corotating longitude '
             f'{corot_lon:.2f}° (km)',
             fontsize=8)
         self._safe_radial_canvas_draw()
@@ -1374,12 +1374,49 @@ class MosaicWindow(QMainWindow):
     #  Stretch                                                             #
     # ------------------------------------------------------------------ #
 
+    @staticmethod
+    def _reproj_valid_col_span(
+        image_ma: ma.MaskedArray,
+    ) -> Optional[tuple[float, float]]:
+        """Return (center_col, span_cols) of the valid-longitude span.
+
+        Wrap-aware: when valid data touches both edges of the 360° grid with a
+        masked gap between (the reprojection wraps corot 0°), the data span is
+        the complement of the largest masked run. The pixmap is a fixed 0-360
+        grid with no wrap scrolling, so wrapped data is split on screen: the
+        returned center is that of the larger on-screen segment while
+        span_cols is the full across-wrap data width.
+        """
+        col_masked = np.all(ma.getmaskarray(image_ma), axis=0)
+        valid = np.where(~col_masked)[0]
+        if valid.size == 0:
+            return None
+        n_long = col_masked.size
+        if valid[0] == 0 and valid[-1] == n_long - 1 and col_masked.any():
+            masked = np.where(col_masked)[0]
+            breaks = np.where(np.diff(masked) > 1)[0]
+            starts = np.concatenate(([0], breaks + 1))
+            ends = np.concatenate((breaks, [masked.size - 1]))
+            k = int(np.argmax(ends - starts))
+            gap_lo = int(masked[starts[k]])
+            gap_hi = int(masked[ends[k]])
+            span = float(n_long - (gap_hi - gap_lo + 1))
+            # On-screen segments: [gap_hi+1, n_long-1] and [0, gap_lo-1]
+            # (both non-empty since columns 0 and n_long-1 are valid).
+            if n_long - 1 - gap_hi >= gap_lo:
+                center = (float(gap_hi + 1) + float(n_long - 1)) / 2.0
+            else:
+                center = float(gap_lo - 1) / 2.0
+            return center, span
+        return ((float(valid[0]) + float(valid[-1])) / 2.0,
+                float(valid[-1] - valid[0] + 1))
+
     def _ensure_reproj_scroll_shows_data(self, md: MosaicData) -> None:
         """Scroll so the viewport includes at least one unmasked longitude column."""
-        unmasked = np.where(~np.all(ma.getmaskarray(md.image_ma), axis=0))[0]
-        if unmasked.size == 0:
+        span = self._reproj_valid_col_span(md.image_ma)
+        if span is None:
             return
-        cx = (float(unmasked[0]) + float(unmasked[-1])) / 2.0
+        cx, _ = span
         cy = (md.n_radii - 1) / 2.0
         self._image_widget.scroll_to_pixel(cx, cy)
 
@@ -1394,18 +1431,16 @@ class MosaicWindow(QMainWindow):
             self._pending_reproj_fit = True
             return
         self._pending_reproj_fit = False
-        non_masked_cols = np.where(
-            ~np.all(ma.getmaskarray(md.image_ma), axis=0))[0]
-        if non_masked_cols.size == 0:
+        span = self._reproj_valid_col_span(md.image_ma)
+        if span is None:
             self._fit_zoom_to_window()
             self._sync_zoom_ui()
             return
+        center_col, col_range = span
         vw = max(vw0, 400)
         vh = max(vh0, 300)
-        col_range = float(non_masked_cols[-1] - non_masked_cols[0] + 1)
         x_zoom = float(np.clip(vw / max(col_range * 1.1, 1.0), 0.05, 100.0))
         y_zoom = float(np.clip(vh / max(md.n_radii * 1.05, 1.0), 0.05, 100.0))
-        center_col = (non_masked_cols[0] + non_masked_cols[-1]) / 2.0
         center_row = md.n_radii / 2.0
         iw.set_zoom(x_zoom, y_zoom)
         iw.scroll_to_pixel(center_col, center_row)

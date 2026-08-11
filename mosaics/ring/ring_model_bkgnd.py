@@ -197,7 +197,7 @@ def model_background(image, ring_rows=0.2, cutoff_sigmas=4, degree=2,
         #
         # Perform a quadratic regression on the un-masked pixels in each column
         #
-        # We seek a function y = a x^2 + bx + c
+        # We seek a function y = a + b x + c x^2
         #
         # Solve:
         #   Sum[y]    = a N        + b Sum[x]   + c Sum[x^2]
@@ -266,7 +266,7 @@ def model_background(image, ring_rows=0.2, cutoff_sigmas=4, degree=2,
         gc.collect()
 
         # Return model
-        model = a*x*x + b*x + c
+        model = a + b*x + c*x*x
 
         del a
         a = None
@@ -284,27 +284,27 @@ def model_background(image, ring_rows=0.2, cutoff_sigmas=4, degree=2,
     ringless.mask = ma.getmaskarray(image).copy() # But we are modifying the mask
 #    print ring_rows
     #  Mask out the specified ring rows
-    if ring_rows is not None:
+    # None means no ring band - use an empty band centered on the array
+    if ring_rows is None:
+        rmin = rmax = ringless.shape[0] // 2
 
-        # A single int is the number of rows to mask, centered
-        if type(ring_rows) == type(0):
-            rmin = ringless.shape[0] - ring_rows/2
-            rmax = ringless.shape[0] + ring_rows/2
+    # A single int is the number of rows to mask, centered
+    elif type(ring_rows) == type(0):
+        rmin = ringless.shape[0]//2 - ring_rows//2
+        rmax = ringless.shape[0]//2 + ring_rows//2
 
-        # A single float is the fractional height of the row to mask
-        elif type(ring_rows) == type(0.):
-            rmin = int(ringless.shape[0] * (1. - ring_rows)/2. + 0.5)
-            rmax = int(ringless.shape[0] * (1. + ring_rows)/2. + 0.5)
+    # A single float is the fractional height of the row to mask
+    elif type(ring_rows) == type(0.):
+        rmin = int(ringless.shape[0] * (1. - ring_rows)/2. + 0.5)
+        rmax = int(ringless.shape[0] * (1. + ring_rows)/2. + 0.5)
 
-        # Otherwise it had better be a tuple of ints
-        else:
-            rmin = ring_rows[0]
-            rmax = ring_rows[1]
-
-        ringless[rmin:rmax,:] = ma.masked
-        center_row = (rmin + rmax) / 2
+    # Otherwise it had better be a tuple of ints
     else:
-        center_row = image.shape[0]/2
+        rmin = ring_rows[0]
+        rmax = ring_rows[1]
+
+    ringless[rmin:rmax,:] = ma.masked
+    center_row = (rmin + rmax) / 2
 
     # Interpret the background pixel count
     # Interpret a tuple or list as the values for inside and outside
@@ -348,14 +348,14 @@ def model_background(image, ring_rows=0.2, cutoff_sigmas=4, degree=2,
     image_mask = ma.getmaskarray(image)
     print(rmin, rmax, image.shape)
     print(np.sum(~image_mask[0:rmin,:], axis=0))
-    print(np.sum(~image_mask[rmax+1:, :], axis=0))
+    print(np.sum(~image_mask[rmax:, :], axis=0))
     print(below, above)
     reject = ((np.sum(~image_mask[0:rmin,:], axis=0) < below) |
-              (np.sum(~image_mask[rmax+1:, :], axis=0) < above))
+              (np.sum(~image_mask[rmax:, :], axis=0) < above))
 
     if debug:
         print('Reject col', np.sum(reject), 'Debug col', debug_col, ': #MaskBelow', np.sum(~image_mask[0:rmin, debug_col], axis=0), end=' ')
-        print('#MaskAbove', np.sum(~image_mask[rmax+1:, debug_col], axis=0), end=' ')
+        print('#MaskAbove', np.sum(~image_mask[rmax:, debug_col], axis=0), end=' ')
         print('Reject', reject[debug_col])
 
     ringless[:,reject] = ma.masked
@@ -396,10 +396,13 @@ def model_background(image, ring_rows=0.2, cutoff_sigmas=4, degree=2,
         if debug:
             print("Columns changed = ", np.sum(column_active))
 
-        # Reject columns that now have too few unmasked pixels
+        # Reject columns that now have too few unmasked pixels; count the
+        # accumulated mask, not the original image mask, so progressively
+        # deweighted columns get rejected
         print(rmin, rmax)
-        reject = ((np.sum(~image_mask[0:rmin,:], axis=0) < below) |
-                  (np.sum(~image_mask[rmax+1: ,:], axis=0) < above))
+        ringless_mask = ma.getmaskarray(ringless)
+        reject = ((np.sum(~ringless_mask[0:rmin,:], axis=0) < below) |
+                  (np.sum(~ringless_mask[rmax: ,:], axis=0) < above))
 
         ringless.mask[:,reject] = True
         resid.mask[:,reject] = True
@@ -417,7 +420,8 @@ def model_background(image, ring_rows=0.2, cutoff_sigmas=4, degree=2,
     # Always mask out the pixels masked in the mosaic, as well as all columns
     # that have too few unmasked pixels
     else:
-        model.mask = image.mask
+        # Copy so the |= below doesn't mutate the caller's mask in place
+        model.mask = ma.getmaskarray(image).copy()
         model.mask[:,:] |= column_sigmas.mask[:]
 
     return model

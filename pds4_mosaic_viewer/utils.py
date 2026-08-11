@@ -100,7 +100,10 @@ def show_radii_to_pixel_ys(
     n_radii: int,
     radial_interval: float,
 ) -> list[int]:
-    """Convert radii relative to mean core (km) to display pixel Y values.
+    """Convert radial offsets from the local core (km) to display pixel Y values.
+
+    The radial grid is core-following: offsets are measured from the F ring
+    core at each longitude, not from the mean core radius.
 
     In display coordinates, pixel_y=0 is outer (top) and pixel_y=n_radii-1
     is inner (bottom).  Out-of-range values are omitted.

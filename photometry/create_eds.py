@@ -591,7 +591,7 @@ for pd_index, row in data_pd.iterrows():
             greyscale_img[suffix] = grey
 
     if arguments.output_csv_filename:
-        prometheus_dist = moons.prometheus_close_approach(ed_mid_time, 0)[0]
+        prometheus_dist = moons.prometheus_close_approach(ed_mid_time)[0]
         row = [root,
                f_ring.et2utc(np.min(full_date_data)),
                f_ring.et2utc(np.max(full_date_data)),

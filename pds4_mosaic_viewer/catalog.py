@@ -42,8 +42,8 @@ class MosaicRecord:
     bkgnd_quality: str  # G / F / P / '' (empty for non-bkg-sub)
     radial_res: float
     long_res: float
-    prometheus_dist: float  # |mean core − min Prometheus orbital r| (km)
-    pandora_dist: float     # |mean core − max Pandora orbital r| (km)
+    prometheus_dist: float  # closest approach |mean core − max Prometheus orbital r| (km)
+    pandora_dist: float     # closest approach |mean core − min Pandora orbital r| (km)
     notes: str = ''         # free-text from global index ``notes`` column
 
 
@@ -123,11 +123,13 @@ class MosaicCatalog:
                 str(row['bkgnd_quality']).strip() if bkg_sub else ''
             )
 
+            # Prometheus orbits inside the core, Pandora outside, so closest
+            # approach to the core is max Prometheus / min Pandora radius.
             mean_core = row['mean_core_radius']
-            min_prom_moon_r = row['minimum_radius_prometheus']
-            max_pand_moon_r = row['maximum_radius_pandora']
-            prom_sep = abs(mean_core - min_prom_moon_r)
-            pand_sep = abs(mean_core - max_pand_moon_r)
+            max_prom_moon_r = row['maximum_radius_prometheus']
+            min_pand_moon_r = row['minimum_radius_pandora']
+            prom_sep = abs(mean_core - max_prom_moon_r)
+            pand_sep = abs(mean_core - min_pand_moon_r)
 
             notes_s = str(row['notes']).strip()
 

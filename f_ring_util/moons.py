@@ -48,7 +48,9 @@ def saturn_to_prometheus(et):
     return dist_out.reshape(et_arr.shape), long_out.reshape(et_arr.shape)
 
 
-def saturn_to_prometheus_corot(et):
+def core_to_prometheus_corot(et):
+    """Return (distance from the F ring core to Prometheus [km, positive since
+    Prometheus is interior to the core], corotating longitude [deg])."""
     dist, longitude = saturn_to_prometheus(et)
     dist = f_ring.fring_radius_at_longitude(longitude, et) - dist
     longitude = f_ring.fring_inertial_to_corotating(longitude, et)
@@ -76,7 +78,9 @@ def saturn_to_pandora(et):
     return dist_out.reshape(et_arr.shape), long_out.reshape(et_arr.shape)
 
 
-def saturn_to_pandora_corot(et):
+def core_to_pandora_corot(et):
+    """Return (distance from the F ring core to Pandora [km, positive since
+    Pandora is exterior to the core], corotating longitude [deg])."""
     dist, longitude = saturn_to_pandora(et)
     dist = dist - f_ring.fring_radius_at_longitude(longitude, et)
     longitude = f_ring.fring_inertial_to_corotating(longitude, et)
@@ -86,9 +90,13 @@ def saturn_to_pandora_corot(et):
 def _close_approach(min_et, max_et, dist_func):
     if max_et is None:
         max_et = min_et + 360 / f_ring.FRING_MEAN_MOTION * 86400
+    et_list = np.arange(min_et, max_et+59, 60) # Step by minute
+    if len(et_list) == 0:
+        raise ValueError(
+            f'Empty close-approach search window: min_et {min_et} max_et {max_et}')
     # Find the longitude and distance at the point of closest approach
     min_dist = 1e38
-    for et in np.arange(min_et, max_et+59, 60): # Step by minute
+    for et in et_list:
         saturn_dist, longitude = dist_func(et)
         fring_r = f_ring.fring_radius_at_longitude(longitude, et)
         if abs(fring_r - saturn_dist) < min_dist:
@@ -101,7 +109,10 @@ def _close_approach(min_et, max_et, dist_func):
 
 
 def pandora_close_approach(min_et, max_et=None):
-    """Find the distance and longitude of Pandora's closest approach.
+    """Find Pandora's closest approach to the F ring core.
+
+    Returns a 4-tuple (min_dist, inertial longitude, corotating longitude,
+    true anomaly) at the point of closest approach.
 
     If max_et is not specified, we use one entire orbit starting at min_et.
     """
@@ -109,7 +120,10 @@ def pandora_close_approach(min_et, max_et=None):
 
 
 def prometheus_close_approach(min_et, max_et=None):
-    """Find the distance and longitude of Prometheus's closest approach.
+    """Find Prometheus's closest approach to the F ring core.
+
+    Returns a 4-tuple (min_dist, inertial longitude, corotating longitude,
+    true anomaly) at the point of closest approach.
 
     If max_et is not specified, we use one entire orbit starting at min_et.
     """

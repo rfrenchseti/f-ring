@@ -68,7 +68,8 @@ def _build_parser() -> argparse.ArgumentParser:
     )
     p.add_argument(
         '--show-radii', metavar='R1,R2,...', default='',
-        help=('Comma-separated radii relative to mean core (km) to highlight '
+        help=('Comma-separated radial offsets from the F ring core (km, the '
+              'core radius varies with longitude) to highlight '
               'as green horizontal lines. '
               'Use --show-radii=-100 or --show-radii -100 for negative values.'),
     )

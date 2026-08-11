@@ -31,7 +31,7 @@ ring_util.ring_init(arguments)
 
 nav.logging_setup.set_main_module_name('plot_offsets')
 
-def plot_one_obsid(image_paths):
+def plot_one_obsid(obsid, image_paths):
     fig, ax1 = plt.subplots(1, 1, figsize=(9,3))
     all_xs = []
     all_ys = []
@@ -72,10 +72,10 @@ def plot_one_obsid(image_paths):
     }
     pxs = []
     pys = []
-    for winner in symbol_by_winner:
+    for winner in xs_by_winner:
         print(winner, len(num_by_winner[winner]))
-        symbol = symbol_by_winner[winner]
-        label = label_by_winner[winner]
+        symbol = symbol_by_winner.get(winner, ('s', 6))
+        label = label_by_winner.get(winner, str(winner))
         px, = ax1.plot(num_by_winner[winner], xs_by_winner[winner],
                        symbol[0], ms=symbol[1], mec='black', mfc='none')
         py, = ax1.plot(num_by_winner[winner], ys_by_winner[winner],
@@ -88,7 +88,7 @@ def plot_one_obsid(image_paths):
     plt.xlabel('Image number')
     plt.ylabel('Offset (Cassini ISS NAC pixels)')
     plt.tight_layout()
-    plt.savefig('figure.png')
+    plt.savefig(f'offsets_{obsid}.png')
     plt.show()
 
 
@@ -98,11 +98,11 @@ def plot_all_obsids():
     for obsid, image_name, image_path in ring_util.ring_enumerate_files(arguments):
         if obsid != prev_obsid:
             if len(image_paths):
-                plot_one_obsid(image_paths)
+                plot_one_obsid(prev_obsid, image_paths)
             prev_obsid = obsid
             image_paths = []
         image_paths.append(image_path)
     if len(image_paths):
-        plot_one_obsid(image_paths)
+        plot_one_obsid(prev_obsid, image_paths)
 
 plot_all_obsids()

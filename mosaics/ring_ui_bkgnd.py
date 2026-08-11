@@ -139,7 +139,7 @@ def _update_metadata(bkgnddata, metadata):
     full_longitudes = rings_generate_longitudes(
                 longitude_resolution=np.radians(arguments.longitude_resolution))
     full_longitudes[np.logical_not(bkgnddata.long_antimask)] = -999
-    bkgnddata.longitudes = full_longitudes
+    metadata['longitudes'] = full_longitudes
     metadata['obsid_list'] = bkgnddata.obsid_list
     metadata['image_name_list'] = bkgnddata.image_name_list
     metadata['image_path_list'] = bkgnddata.image_path_list
@@ -185,12 +185,19 @@ def read_bkgnd_mosaic(bkgnddata):
 #
 def all_bkgnd_files_exist(bkgnddata):
     return (os.path.exists(bkgnddata.bkgnd_model_filename) and
-            os.path.exists(bkgnddata.bkgnd_metadata_filename))
+            os.path.exists(bkgnddata.bkgnd_metadata_filename) and
+            os.path.exists(bkgnddata.bkgnd_sub_mosaic_filename) and
+            os.path.exists(bkgnddata.bkgnd_sub_mosaic_metadata_filename))
 
 #
 # Commit the current results
 #
 def save_bkgnd_results(bkgnddata):
+    # Read the sliders first so both metadata files record the same limits
+    if bkgnddispdata.var_ring_lower_limit is not None:
+        bkgnddata.ring_lower_limit = bkgnddispdata.var_ring_lower_limit.get()
+        bkgnddata.ring_upper_limit = bkgnddispdata.var_ring_upper_limit.get()
+
     write_bkgnd(bkgnddata.bkgnd_model_filename,
                 bkgnddata.bkgnd_model,
                 bkgnddata.bkgnd_metadata_filename,
@@ -199,10 +206,6 @@ def save_bkgnd_results(bkgnddata):
     write_mosaic_pngs(bkgnddata.full_png_path,
                       bkgnddata.small_png_path,
                       bkgnddata.corrected_mosaic_img)
-
-    if bkgnddispdata.var_ring_lower_limit is not None:
-        bkgnddata.ring_lower_limit = bkgnddispdata.var_ring_lower_limit.get()
-        bkgnddata.ring_upper_limit = bkgnddispdata.var_ring_upper_limit.get()
 
     write_bkgnd_sub_mosaic(bkgnddata.bkgnd_sub_mosaic_filename,
                            bkgnddata.corrected_mosaic_img,
@@ -235,7 +238,10 @@ def make_bkgnd(bkgnddata, option_no, option_no_update, option_recompute,
                 os.stat(bkgnddata.mosaic_data_filename+'.npy').st_mtime,
                 os.stat(bkgnddata.mosaic_metadata_filename).st_mtime)
             if (os.stat(bkgnddata.bkgnd_model_filename).st_mtime > max_mosaic_mtime and
-                os.stat(bkgnddata.bkgnd_metadata_filename).st_mtime > max_mosaic_mtime):
+                os.stat(bkgnddata.bkgnd_metadata_filename).st_mtime > max_mosaic_mtime and
+                os.stat(bkgnddata.bkgnd_sub_mosaic_filename).st_mtime > max_mosaic_mtime and
+                os.stat(bkgnddata.bkgnd_sub_mosaic_metadata_filename).st_mtime >
+                    max_mosaic_mtime):
                 # The mosaic file exists and is more recent than the reprojected images,
                 # and we're not forcing a recompute
                 if arguments.verbose:
@@ -340,7 +346,7 @@ def command_commit_changes(offrepdata, offrepdispdata):
 #
 def callback_radial1(x, y, bkgnddata, bkgnddispdata):
     longitude_num = x
-    if longitude_num < 0 or longitude_num > bkgnddata.mosaic_img.shape[1]:
+    if longitude_num < 0 or longitude_num >= bkgnddata.mosaic_img.shape[1]:
         return
     if bkgnddata.bkgnd_model is None:
         return
@@ -353,7 +359,7 @@ def callback_radial1(x, y, bkgnddata, bkgnddispdata):
 #
 def callback_radial2(x, y, bkgnddata, bkgnddispdata):
     longitude_num = x
-    if longitude_num < 0 or longitude_num > bkgnddata.mosaic_img.shape[1]:
+    if longitude_num < 0 or longitude_num >= bkgnddata.mosaic_img.shape[1]:
         return
     if bkgnddata.bkgnd_model is None:
         return
@@ -540,7 +546,7 @@ def setup_bkgnd_window(bkgnddata, bkgnddispdata):
     bkgnddispdata.mask_overlay = np.zeros((bkgnddata.mosaic_img.shape[0],
                                            bkgnddata.mosaic_img.shape[1], 3))
     if bkgnddata.bkgnd_model_mask is not None:
-        bkgnddispdata.mask_overlay[bkgnddata.bkgnd_model_mask, 0] = 1
+        bkgnddispdata.mask_overlay[bkgnddata.bkgnd_model_mask, 0] = 255
         bkgnddispdata.mask_overlay[bkgnddata.bkgnd_model_mask, 1] = 0
         bkgnddispdata.mask_overlay[bkgnddata.bkgnd_model_mask, 2] = 0
 
@@ -551,7 +557,11 @@ def setup_bkgnd_window(bkgnddata, bkgnddispdata):
     clean_img1[mask] = 0
     bkgnddispdata.mask_overlay[mask, 1] = 192
 
-    clean_img2 = bkgnddata.corrected_mosaic_img.copy()
+    # No background model yet - fall back to displaying the raw mosaic
+    if bkgnddata.corrected_mosaic_img is None:
+        clean_img2 = bkgnddata.mosaic_img.copy()
+    else:
+        clean_img2 = bkgnddata.corrected_mosaic_img.copy()
     mask = (clean_img2 == -999)
     clean_img2[mask] = 0
     overlay = np.zeros((clean_img2.shape[0], clean_img2.shape[1], 3))

@@ -190,7 +190,9 @@ parser.add_argument('--generate-reproj-metadata-tables',
                     help='Generate reproj tables')
 parser.add_argument('--generate-reproj-metadata',
                     action='store_true', default=False,
-                    help='Generate reproj tables and labels')
+                    help='Generate reproj metadata tables only; labels must be '
+                         'regenerated separately to refresh their embedded '
+                         'checksums')
 
 parser.add_argument('--generate-reproj-browse-labels',
                     action='store_true', default=False,
@@ -232,7 +234,9 @@ parser.add_argument('--generate-mosaic-metadata-tables',
                     help='Generate mosaic and bkgnd-sub metadata tables')
 parser.add_argument('--generate-mosaic-metadata',
                     action='store_true', default=False,
-                    help='Generate mosaic and bkgnd-sub metadata tables and labels')
+                    help='Generate mosaic and bkgnd-sub metadata tables only; '
+                         'labels must be regenerated separately to refresh '
+                         'their embedded checksums')
 
 parser.add_argument('--generate-mosaic-browse-labels',
                     action='store_true', default=False,
@@ -1007,7 +1011,7 @@ def reslice_reproj_img(img, min_corotating_longitude, max_corotating_longitude):
     max_corot_long_idx = int(np.round(max_corotating_longitude /
                                       arguments.longitude_resolution))
     if min_corotating_longitude < max_corotating_longitude:
-        img = img[:, min_corot_long_idx:max_corot_long_idx+1]
+        return img[:, min_corot_long_idx:max_corot_long_idx+1]
 
     # If min > max, there is wraparound, so we need to put the image in
     # the correct spot and then wrap around the end of the image to the
@@ -1015,7 +1019,9 @@ def reslice_reproj_img(img, min_corotating_longitude, max_corotating_longitude):
     # 340 -> 30
     num_long = (max_corot_long_idx - min_corot_long_idx + 1) % img.shape[1]
     if num_long == 0:
-        return img  # It's the whole thing
+        # Full 360-degree coverage; rotate so that column 0 is at the
+        # minimum longitude
+        return np.roll(img, -min_corot_long_idx, axis=1)
     ret_img = np.zeros((img.shape[0], num_long), dtype=np.float32)
     slice1_size = img.shape[1] - min_corot_long_idx
     ret_img[:, :slice1_size] = img[:, min_corot_long_idx:min_corot_long_idx+slice1_size]
@@ -1113,18 +1119,21 @@ def obsid_to_mosaic_browse_lidvid(obsid, bkg_sub):
     return obsid_to_mosaic_browse_lid(obsid, bkg_sub)+'::1.0'
 
 
+TOUR_PRE_HUYGENS_END_ET = utc2et('2004-359T00:00:00.000')
+TOUR_END_ET = utc2et('2008-183T00:00:00.000')
+EQUINOX_MISSION_END_ET = utc2et('2010-273T00:00:00.000')
+
 def et_to_tour(et):
     """Convert ET to PDS4 Cassini Tour name.
 
     See https://github.com/pds-data-dictionaries/ldd-cassini/blob/main/src/
         PDS4_CASSINI_IngestLDD.xml
     """
-    datetime = et_to_datetime(et)
-    if datetime < '2004-359T00:00:00.000':
+    if et < TOUR_PRE_HUYGENS_END_ET:
         return 'TOUR PRE-HUYGENS'
-    if datetime < '2008-183T00:00:00.000':
+    if et < TOUR_END_ET:
         return 'TOUR'
-    if datetime < '2010-273T00:00:00.000':
+    if et < EQUINOX_MISSION_END_ET:
         return 'EQUINOX MISSION'
     return 'SOLSTICE MISSION'
 
@@ -1897,7 +1906,8 @@ def xml_add_comments(ret, img_type, obsid, metadata, bkgnd_metadata):
         # Mosaics are always written out to their full extent even if not all
         # longitudes are populated.
         ret['MIN_RING_COROTATING_LONG'] = '0.00'
-        ret['MAX_RING_COROTATING_LONG'] = '359.98'
+        ret['MAX_RING_COROTATING_LONG'] = \
+            f'{360 - arguments.longitude_resolution:.2f}'
     ret['MIN_RING_COROTATING_LONG_FIXED'] = f'{min_corot_long:6.2f}'
     ret['MAX_RING_COROTATING_LONG_FIXED'] = f'{max_corot_long:6.2f}'
     ret['MIN_RING_INERTIAL_LONG'] = f'{min_inertial:.3f}'
@@ -2038,8 +2048,9 @@ corotation_rate is the mean corotation rate of the F ring core taken from Albers
 (2012), Table 3, fit #2.
 
 
-The minimum, maximum, and mean values for phase angle and observed_ring_elevation are
-computed by looking at every longitude that contains valid data.
+The minimum, maximum, and mean values for phase angle and emission angle are computed by
+looking at every longitude that contains valid data. Because the incidence angle changes
+very slowly, the minimum and maximum incidence angle are set to the mean incidence angle.
 
 
 The minimum and maximum co-rotating longitude are the limits that contain valid data. If
@@ -2160,11 +2171,16 @@ other available observation chunks.
 
     bkg_comment = ''
     if img_type == 'b':
-        # TODO These magic numbers should be fixed if the resolution or mosaic size
-        # changes.
-        lower_limit = 1000-bkgnd_metadata['ring_lower_limit']*5
+        # The background limits are stored as mosaic row numbers, so each row
+        # spans one radial resolution element.
+        radial_res = arguments.radius_resolution
+        lower_limit = int(-arguments.radius_inner_delta -
+                          bkgnd_metadata['ring_lower_limit']*radial_res)
         ret['BKGND_LOWER_LIMIT'] = lower_limit
-        upper_limit = 1000-(400-bkgnd_metadata['ring_upper_limit'])*5
+        num_limit_rows = int((arguments.radius_outer_delta -
+                              arguments.radius_inner_delta) // radial_res)
+        upper_limit = int(arguments.radius_outer_delta -
+                          (num_limit_rows-bkgnd_metadata['ring_upper_limit'])*radial_res)
         ret['BKGND_UPPER_LIMIT'] = upper_limit
         bkg_comment = f"""
 
@@ -2285,11 +2301,13 @@ arrival at Saturn and is the same for all reprojected images.
 - corotation_rate is the mean corotation rate of the F ring core taken from Albers et al.
 (2012), Table 3, fit #2.
 
-- The minimum, maximum, and mean values for phase angle and observed_ring_elevation are
-computed by looking at every longitude that contains valid data.
+- The minimum, maximum, and mean values for phase angle and emission angle are computed
+by looking at every longitude that contains valid data. Because the incidence angle
+changes very slowly, the minimum and maximum incidence angle are set to the mean
+incidence angle.
 
-- The minimum and maximum co-rotating longitude are the limits that contain valid data. If
-the reprojection wraps around then the minimum will be greater than the maximum.
+- The minimum and maximum co-rotating longitude always span the full extent of the
+mosaic, even if not all longitudes contain valid data.
 
 - The minimum and maximum ring radius are the actual radii (distance from Saturn) of the F
 ring core -1000km and +1000km at each inertial longitude containing valid data at the time
@@ -2530,11 +2548,22 @@ def generate_image(obsid, output_dir, metadata, xml_metadata, global_index_fp,
             ###  REPROJ IMG SUPPL FILE  ###
             ###############################
 
-    if img_type == 'r' and GENERATE_REPROJ_SUPPL_FILES:
+    if img_type == 'r':
         suppl_output_path = os.path.join(output_dir, xml_metadata['REPROJ_IMG_SUPPL_FILENAME'])
         xml_metadata['SUPPL_PATH'] = suppl_output_path
-        hdr_length = write_suppl_file(suppl_output_path, metadata, xml_metadata)
-        xml_metadata['SUPPL_HEADER_LENGTH'] = hdr_length
+        if GENERATE_REPROJ_SUPPL_FILES:
+            hdr_length = write_suppl_file(suppl_output_path, metadata, xml_metadata)
+            xml_metadata['SUPPL_HEADER_LENGTH'] = hdr_length
+        elif os.path.exists(suppl_output_path):
+            # The C-matrix table is exactly 3 records of 49 bytes at the end of
+            # the file; everything before it is the header
+            xml_metadata['SUPPL_HEADER_LENGTH'] = (
+                os.path.getsize(suppl_output_path) - 3*49)
+        elif GENERATE_REPROJ_IMAGE_LABELS:
+            LOGGER.error(f'{obsid}/{image_name}: Cannot generate reproj label '
+                         f'because supplemental file {suppl_output_path} does '
+                         f'not exist; generate the supplemental files first')
+            raise ObsIdFailedException
 
 
             ###############################
@@ -2774,7 +2803,12 @@ def generate_browse(obsid, browse_dir, metadata, xml_metadata, img_type):
     cap_bkg = 'Background-subtracted ' if img_type == 'b' else ''
     title_bkg = 'Background-Subtracted ' if img_type == 'b' else ''
 
+    # The browse sizes below are hardcoded for the standard mosaic geometry.
+    # A data set with a different geometry has to be handled explicitly.
+    num_rad, num_long = metadata['img'].shape
+    assert num_rad == 401, f'Unexpected number of radial rows: {num_rad}'
     if img_type != 'r':
+        assert num_long == 18000, f'Unexpected number of longitudes: {num_long}'
         sfx = '_bkg_sub' if img_type == 'b' else ''
         sizes = (('full',  401, 18000),
                  ('med',   400,  1800),
@@ -2794,8 +2828,9 @@ def generate_browse(obsid, browse_dir, metadata, xml_metadata, img_type):
 
     if ((img_type == 'r' and GENERATE_BROWSE_REPROJ_IMAGES) or
         (img_type != 'r' and GENERATE_BROWSE_MOSAIC_IMAGES)):
-        img = ma.filled(metadata['img'], 0)
-        valid_cols = np.sum(img, axis=0) != 0
+        img = ma.filled(metadata['img'], SENTINEL)
+        valid_antimask = img != SENTINEL
+        valid_cols = np.any(valid_antimask, axis=0)
         if not np.any(valid_cols):
             if img_type == 'r':
                 LOGGER.error(f'No valid columns in reprojected image {image_name}')
@@ -2803,9 +2838,10 @@ def generate_browse(obsid, browse_dir, metadata, xml_metadata, img_type):
                 LOGGER.error(f'No valid columns in mosaic {obsid}')
             raise ObsIdFailedException
         subimg = img[:, valid_cols].copy()  # Make contiguous
-        blackpoint = max(np.min(subimg), 0)
+        valid_pixels = subimg[valid_antimask[:, valid_cols]]
+        blackpoint = max(np.min(valid_pixels), 0)
         whitepoint_ignore_frac = 0.998
-        img_sorted = sorted(list(subimg.flatten()))
+        img_sorted = sorted(list(valid_pixels.flatten()))
         whitepoint = img_sorted[np.clip(int(len(img_sorted)*
                                             whitepoint_ignore_frac),
                                         0, len(img_sorted)-1)]
@@ -2887,8 +2923,10 @@ These browse images correspond to the reprojected, calibrated Cassini ISS image
 reprojected image is in units of I/F. The browse images map I/F to 8-bit
 greyscale and are contrast-stretched for easier viewing, using a blackpoint at
 the minimum image value, a whitepoint at the 99.8% maximum image value, and a
-gamma of 0.5. Browse images are available in four sizes: full (equal in size to
-the reprojected image, with a minimum width of 800 pixels), med (downsampled by
+gamma of 0.5. Browse images are available in four sizes: full (containing only
+the longitudes with valid data at full resolution, and thus possibly narrower
+than the reprojected image data array when the coverage is discontinuous, with a
+minimum width of 800 pixels), med (downsampled by
 10 in longitude, with a minimum width of 400 pixels and a height of 400 pixels),
 small (200x200), and thumb (100x100). The browse images omit longitudes that
 have no data available; if the available longitudes are discontinuous, the
@@ -2981,7 +3019,7 @@ def generate_mosaic(obsid,
     # Do plain mosaics first
     xml_metadata = xml_metadata_for_image(obsid, mosaic_metadata, bkgnd_metadata, 'm')
     if (GENERATE_MOSAIC_METADATA_TABLES or GENERATE_MOSAIC_IMAGES or
-        GENERATE_MOSAIC_IMAGE_LABELS):
+        GENERATE_MOSAIC_IMAGE_LABELS or GENERATE_MOSAIC_GLOBAL_INDEX):
         generate_image(obsid, mosaic_dir, mosaic_metadata, xml_metadata,
                        global_mosaic_index_fp, 'm')
     if GENERATE_BROWSE_MOSAIC_IMAGES or GENERATE_BROWSE_MOSAIC_LABELS:
@@ -2991,7 +3029,7 @@ def generate_mosaic(obsid,
     # Now do BSM
     xml_metadata = xml_metadata_for_image(obsid, bsm_metadata, bkgnd_metadata, 'b')
     if (GENERATE_MOSAIC_METADATA_TABLES or GENERATE_MOSAIC_IMAGES or
-        GENERATE_MOSAIC_IMAGE_LABELS):
+        GENERATE_MOSAIC_IMAGE_LABELS or GENERATE_MOSAIC_GLOBAL_INDEX):
         generate_image(obsid, bsm_dir, bsm_metadata, xml_metadata,
                        global_bsm_index_fp, 'b')
     if GENERATE_BROWSE_MOSAIC_IMAGES or GENERATE_BROWSE_MOSAIC_LABELS:
@@ -3012,7 +3050,8 @@ def generate_reproj(obsid, reproj_dir, reproj_browse_dir, reproj_metadata,
     """
     xml_metadata = xml_metadata_for_image(obsid, reproj_metadata, None, 'r')
     if (GENERATE_REPROJ_METADATA_TABLES or GENERATE_REPROJ_IMAGES or
-        GENERATE_REPROJ_IMAGE_LABELS or GENERATE_REPROJ_SUPPL_FILES):
+        GENERATE_REPROJ_IMAGE_LABELS or GENERATE_REPROJ_SUPPL_FILES or
+        GENERATE_REPROJ_GLOBAL_INDEX):
         generate_image(obsid, reproj_dir, reproj_metadata, xml_metadata,
                        global_reproj_index_fp, 'r')
     if GENERATE_BROWSE_REPROJ_IMAGES or GENERATE_BROWSE_REPROJ_LABELS:
@@ -3029,6 +3068,11 @@ def generate_reproj(obsid, reproj_dir, reproj_browse_dir, reproj_metadata,
 def handle_one_obsid(obsid, reproj_collection_fp, browse_reproj_collection_fp,
                      global_mosaic_index_fp, global_bsm_index_fp,
                      global_reproj_index_fp):
+    """Process one obsid.
+
+    Returns True if the mosaic products were processed successfully; the caller
+    uses this to decide whether to write the mosaic collection inventory rows.
+    """
     mosaic_dir = os.path.join(arguments.output_dir, 'data_mosaic',
                               obsid.lower())
     bsm_dir = os.path.join(arguments.output_dir, 'data_mosaic_bkg_sub',
@@ -3038,19 +3082,19 @@ def handle_one_obsid(obsid, reproj_collection_fp, browse_reproj_collection_fp,
     (mosaic_path, mosaic_metadata_path) = f_ring.mosaic_paths(arguments, obsid)
     if not os.path.exists(mosaic_path):
         LOGGER.error(f'File not found: {mosaic_path}')
-        return
+        return False
     if not os.path.exists(mosaic_metadata_path):
         LOGGER.error(f'File not found: {mosaic_metadata_path}')
-        return
+        return False
 
     # Paths for the background-subtracted-mosaic image and metadata
     (bsm_path, bsm_metadata_path) = f_ring.bkgnd_sub_mosaic_paths(arguments, obsid)
     if not os.path.exists(bsm_path):
         LOGGER.error(f'File not found: {bsm_path}')
-        return
+        return False
     if not os.path.exists(bsm_metadata_path):
         LOGGER.error(f'File not found: {bsm_metadata_path}')
-        return
+        return False
 
     mosaic_metadata = None
     bsm_metadata = None
@@ -3067,10 +3111,10 @@ def handle_one_obsid(obsid, reproj_collection_fp, browse_reproj_collection_fp,
         (bkgnd_model_path, bkgnd_metadata_path) = f_ring.bkgnd_paths(arguments, obsid)
         if not os.path.exists(bkgnd_model_path):
             LOGGER.error(f'File not found: {bkgnd_model_path}')
-            return
+            return False
         if not os.path.exists(bkgnd_metadata_path):
             LOGGER.error(f'File not found: {bkgnd_metadata_path}')
-            return
+            return False
 
         mosaic_metadata = read_mosaic(mosaic_path, mosaic_metadata_path, bkg_sub=False)
         bsm_metadata = read_mosaic(bsm_path, bsm_metadata_path, bkg_sub=True)
@@ -3078,10 +3122,10 @@ def handle_one_obsid(obsid, reproj_collection_fp, browse_reproj_collection_fp,
 
         if not all(obsid == x for x in mosaic_metadata['obsid_list']):
             LOGGER.error(f'Not all mosaic OBSIDs are {obsid}')
-            return
+            return False
         if not all(obsid == x for x in bsm_metadata['obsid_list']):
             LOGGER.error(f'Not all background-sub mosaic OBSIDs are {obsid}')
-            return
+            return False
 
         remap_image_indexes(mosaic_metadata)
         remap_image_indexes(bsm_metadata)
@@ -3106,12 +3150,22 @@ def handle_one_obsid(obsid, reproj_collection_fp, browse_reproj_collection_fp,
         reproj_browse_dir = os.path.join(arguments.output_dir, 'browse_reproj_img',
                                          obsid.lower())
         for image_path in mosaic_metadata['image_path_list']:
-            reproj_path = img_to_repro_path(image_path)
-            reproj_metadata = read_reproj(reproj_path)
-            reproj_metadata['image_path'] = image_path
-            reproj_metadata['image_name'] = image_name = \
-                reformat_iss_name(image_path.split('/')[-1].replace('_CALIB.IMG', ''))
+            try:
+                reproj_path = img_to_repro_path(image_path)
+                reproj_metadata = read_reproj(reproj_path)
+                reproj_metadata['image_path'] = image_path
+                reproj_metadata['image_name'] = image_name = \
+                    reformat_iss_name(image_path.split('/')[-1].replace('_CALIB.IMG', ''))
 
+                generate_reproj(obsid, reproj_dir, reproj_browse_dir, reproj_metadata,
+                                global_reproj_index_fp)
+            except ObsIdFailedException:
+                # Already logged; skip this image's inventory rows without
+                # losing the mosaic products generated above
+                continue
+
+            # Only list products in the inventories once they have actually
+            # been generated
             if GENERATE_REPROJ_COLLECTIONS:
                 reproj_lidvid = image_name_to_reproj_lidvid(image_name)
                 reproj_collection_fp.write(f'P,{reproj_lidvid}\n')
@@ -3119,8 +3173,7 @@ def handle_one_obsid(obsid, reproj_collection_fp, browse_reproj_collection_fp,
                 browse_reproj_lidvid = image_name_to_reproj_browse_lidvid(image_name)
                 browse_reproj_collection_fp.write(f'P,{browse_reproj_lidvid}\n')
 
-            generate_reproj(obsid, reproj_dir, reproj_browse_dir, reproj_metadata,
-                            global_reproj_index_fp)
+    return True
 
 
 ##########################################################################################
@@ -3134,14 +3187,12 @@ def generate_mosaic_collection_xml(coll_data_mosaic_csv_path,
     """Generate the data_mosaic and data_mosaic_bkg_sub collection xml files."""
     metadata = BASIC_XML_METADATA.copy()
 
-    if EARLIEST_START_DATE_TIME is None:
-        metadata['EARLIEST_START_DATE_TIME'] = 'N/A'
-    else:
-        metadata['EARLIEST_START_DATE_TIME'] = et_to_datetime(EARLIEST_START_DATE_TIME)
-    if LATEST_STOP_DATE_TIME is None:
-        metadata['LATEST_STOP_DATE_TIME'] = 'N/A'
-    else:
-        metadata['LATEST_STOP_DATE_TIME'] = et_to_datetime(LATEST_STOP_DATE_TIME)
+    if EARLIEST_START_DATE_TIME is None or LATEST_STOP_DATE_TIME is None:
+        LOGGER.error('Cannot generate data_mosaic collection labels without '
+                     'traversing products; run with product generation enabled')
+        return
+    metadata['EARLIEST_START_DATE_TIME'] = et_to_datetime(EARLIEST_START_DATE_TIME)
+    metadata['LATEST_STOP_DATE_TIME'] = et_to_datetime(LATEST_STOP_DATE_TIME)
 
     coll_data_mosaic_xml_path = coll_data_mosaic_csv_path.replace('.csv', '.lblx')
     coll_bsm_data_mosaic_xml_path = coll_bsm_data_mosaic_csv_path.replace('.csv', '.lblx')
@@ -3211,14 +3262,12 @@ def generate_reproj_collection_xml(coll_data_reproj_csv_path):
     """Generate the data_reproj collection xml file."""
     metadata = BASIC_XML_METADATA.copy()
 
-    if EARLIEST_START_DATE_TIME is None:
-        metadata['EARLIEST_START_DATE_TIME'] = 'N/A'
-    else:
-        metadata['EARLIEST_START_DATE_TIME'] = et_to_datetime(EARLIEST_START_DATE_TIME)
-    if LATEST_STOP_DATE_TIME is None:
-        metadata['LATEST_STOP_DATE_TIME'] = 'N/A'
-    else:
-        metadata['LATEST_STOP_DATE_TIME'] = et_to_datetime(LATEST_STOP_DATE_TIME)
+    if EARLIEST_START_DATE_TIME is None or LATEST_STOP_DATE_TIME is None:
+        LOGGER.error('Cannot generate data_reproj_img collection label without '
+                     'traversing products; run with product generation enabled')
+        return
+    metadata['EARLIEST_START_DATE_TIME'] = et_to_datetime(EARLIEST_START_DATE_TIME)
+    metadata['LATEST_STOP_DATE_TIME'] = et_to_datetime(LATEST_STOP_DATE_TIME)
     coll_data_reproj_xml_path = coll_data_reproj_csv_path.replace('.csv', '.lblx')
 
     metadata['DATA_REPROJ_COLLECTION_LID'] = DATA_REPROJ_COLLECTION_LID
@@ -3384,19 +3433,17 @@ def generate_support_files():
                       metadata)
 
     # bundle.lblx
+    if EARLIEST_START_DATE_TIME is None or LATEST_STOP_DATE_TIME is None:
+        LOGGER.error('Cannot generate bundle.lblx without traversing products; '
+                     'run with product generation enabled')
+        return
     metadata = BASIC_XML_METADATA.copy()
     bundle_dir = arguments.output_dir
     bundle_name = 'bundle.lblx'
     bundle_path = os.path.join(bundle_dir, bundle_name)
     metadata['BUNDLE_LID'] = f'urn:nasa:pds:{BUNDLE_NAME}'
-    if EARLIEST_START_DATE_TIME is None:
-        metadata['EARLIEST_START_DATE_TIME'] = 'N/A'
-    else:
-        metadata['EARLIEST_START_DATE_TIME'] = et_to_datetime(EARLIEST_START_DATE_TIME)
-    if LATEST_STOP_DATE_TIME is None:
-        metadata['LATEST_STOP_DATE_TIME'] = 'N/A'
-    else:
-        metadata['LATEST_STOP_DATE_TIME'] = et_to_datetime(LATEST_STOP_DATE_TIME)
+    metadata['EARLIEST_START_DATE_TIME'] = et_to_datetime(EARLIEST_START_DATE_TIME)
+    metadata['LATEST_STOP_DATE_TIME'] = et_to_datetime(LATEST_STOP_DATE_TIME)
     metadata['BROWSE_MOSAIC_COLLECTION_LID'] = BROWSE_MOSAIC_COLLECTION_LID
     metadata['BROWSE_MOSAIC_BKG_SUB_COLLECTION_LID'] = BROWSE_MOSAIC_BKG_SUB_COLLECTION_LID
     metadata['BROWSE_REPROJ_COLLECTION_LID'] = BROWSE_REPROJ_COLLECTION_LID
@@ -3665,7 +3712,8 @@ read_observation_list()
 for obsid in f_ring.enumerate_obsids(arguments):
     with LOGGER.open(f'OBSID {obsid}'):
         try:
-            handle_one_obsid(obsid, reproj_collection_fp, browse_reproj_collection_fp,
+            mosaic_ok = handle_one_obsid(
+                             obsid, reproj_collection_fp, browse_reproj_collection_fp,
                              global_mosaic_index_fp, global_bsm_index_fp,
                              global_reproj_index_fp)
         except ObsIdFailedException:
@@ -3680,6 +3728,12 @@ for obsid in f_ring.enumerate_obsids(arguments):
         except:
             # Anything else
             LOGGER.error(f'{obsid}: Uncaught exception:\n' + traceback.format_exc())
+            continue
+
+        if not mosaic_ok:
+            # Don't list the mosaic products in the inventories if they weren't
+            # processed successfully
+            continue
 
         if GENERATE_MOSAIC_COLLECTIONS:
             mosaic_lidvid = obsid_to_mosaic_lidvid(obsid, False)

@@ -1062,18 +1062,18 @@ for obs_id in f_ring.enumerate_obsids(arguments):
                  prometheus_closest_true_anomaly) = moons.prometheus_close_approach(slice_min_et)
 
                 (pandora_earliest_dist,
-                 pandora_earliest_long) = moons.saturn_to_pandora_corot(slice_min_et)
+                 pandora_earliest_long) = moons.core_to_pandora_corot(slice_min_et)
                 (pandora_latest_dist,
-                 pandora_latest_long) = moons.saturn_to_pandora_corot(slice_max_et)
+                 pandora_latest_long) = moons.core_to_pandora_corot(slice_max_et)
                 (prometheus_earliest_dist,
-                 prometheus_earliest_long) = moons.saturn_to_prometheus_corot(slice_min_et)
+                 prometheus_earliest_long) = moons.core_to_prometheus_corot(slice_min_et)
                 (prometheus_latest_dist,
-                 prometheus_latest_long) = moons.saturn_to_prometheus_corot(slice_max_et)
+                 prometheus_latest_long) = moons.core_to_prometheus_corot(slice_max_et)
 
                 # Find the position of the moon in this slice, if it's there at all
                 unique_ets = set(slice_ETs)
                 for unique_et in unique_ets:
-                    pandora_dist, pandora_long = moons.saturn_to_pandora_corot(unique_et)
+                    pandora_dist, pandora_long = moons.core_to_pandora_corot(unique_et)
                     longs_for_et = [slice_orig_longitudes[i]
                                         for i in range(len(slice_longitudes))
                                             if slice_ETs[i] == unique_et]
@@ -1090,7 +1090,7 @@ for obs_id in f_ring.enumerate_obsids(arguments):
                     pandora_dist = '--'
                     pandora_long = '--'
                 for unique_et in sorted(unique_ets):
-                    prometheus_dist, prometheus_long = moons.saturn_to_prometheus_corot(unique_et)
+                    prometheus_dist, prometheus_long = moons.core_to_prometheus_corot(unique_et)
                     longs_for_et = [slice_orig_longitudes[i]
                                         for i in range(len(slice_longitudes))
                                             if slice_ETs[i] == unique_et]
