@@ -48,11 +48,9 @@ def saturn_to_prometheus(et):
     return dist_out.reshape(et_arr.shape), long_out.reshape(et_arr.shape)
 
 
-def saturn_to_prometheus_corot(et):
-    """Return (core radius - Prometheus's Saturn distance [positive; core-relative,
-    Prometheus is interior], corotating longitude); the same-named function in
-    pds4_bundle_gen/generate_pds4_files.py returns the absolute Saturn-centered
-    distance instead."""
+def core_to_prometheus_corot(et):
+    """Return (distance from the F ring core to Prometheus [km, positive since
+    Prometheus is interior to the core], corotating longitude [deg])."""
     dist, longitude = saturn_to_prometheus(et)
     dist = f_ring.fring_radius_at_longitude(longitude, et) - dist
     longitude = f_ring.fring_inertial_to_corotating(longitude, et)
@@ -80,11 +78,9 @@ def saturn_to_pandora(et):
     return dist_out.reshape(et_arr.shape), long_out.reshape(et_arr.shape)
 
 
-def saturn_to_pandora_corot(et):
-    """Return (Pandora's Saturn distance - core radius [positive; core-relative,
-    Pandora is exterior], corotating longitude); the same-named function in
-    pds4_bundle_gen/generate_pds4_files.py returns the absolute Saturn-centered
-    distance instead."""
+def core_to_pandora_corot(et):
+    """Return (distance from the F ring core to Pandora [km, positive since
+    Pandora is exterior to the core], corotating longitude [deg])."""
     dist, longitude = saturn_to_pandora(et)
     dist = dist - f_ring.fring_radius_at_longitude(longitude, et)
     longitude = f_ring.fring_inertial_to_corotating(longitude, et)

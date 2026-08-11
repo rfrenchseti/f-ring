@@ -133,10 +133,6 @@
         </Modification_History>
     </Identification_Area>
     <Context_Area>
-        <Time_Coordinates>
-            <start_date_time>2004-01-01T00:00:00Z</start_date_time>
-            <stop_date_time>2017-09-01T00:00:00Z</stop_date_time>
-        </Time_Coordinates>
         <Primary_Result_Summary>
             <purpose>Observation Geometry</purpose>
             <processing_level>Derived</processing_level>

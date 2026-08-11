@@ -85,7 +85,7 @@ parser = argparse.ArgumentParser()
 ##
 ## General options
 ##
-parser.add_argument('--allow-exception', action='store_true', default=False,
+parser.add_argument('--allow-exception', action='store_true', default=True,
                     help="Allow exceptions to be thrown")
 parser.add_argument('--profile', action='store_true', default=False,
                     help="Do performance profiling")

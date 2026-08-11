@@ -3,9 +3,7 @@
 Selects reprojected images whose global-index Prometheus longitude lies in each
 product's valid corotating-longitude range (including 360 degree wrap), then
 plots the ten smallest separations ``mean_core_radius - radius_prometheus``
-(km); the ranking uses the image-mean core radius as an approximation. A red
-circle marks the Prometheus position on the image, placed using the core
-radius at the corotating longitude closest to Prometheus.
+(km). A red circle marks the Prometheus position on the image.
 
 Requirements:
     matplotlib
@@ -170,9 +168,7 @@ def main():
         print('No rows left after longitude filter (check index / columns).')
         sys.exit(1)
 
-    # Sort by increasing distance of Prometheus from the core. The ranking uses
-    # the image-mean core radius as an approximation; the plotted marker uses
-    # the core radius at Prometheus's longitude.
+    # Sort by increasing distance of Prometheus from the core.
     diff_km = (df_in_range['mean_core_radius'].astype(float)
                - df_in_range['radius_prometheus'].astype(float))
     df_in_range_10 = (

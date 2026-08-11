@@ -892,11 +892,6 @@ def read_reproj(metadata_path):
     # Reprojected images are longitude-compressed, with only the valid lontitudes
     # having image data. We expand to full size for later cropping.
     old_img = metadata['img']
-    # For Cassini (the only instrument host this bundle contains), zero means
-    # invalid or missing pixel in older reprojected files, so convert to the
-    # current invalid pixel value as the mosaic builder does
-    old_img = old_img.copy()
-    old_img[old_img == 0] = SENTINEL
     new_img = ma.zeros((old_img.shape[0], len(metadata['long_antimask'])),
                        dtype=np.float32)
     new_img[:, :] = ma.masked
@@ -2176,15 +2171,16 @@ other available observation chunks.
 
     bkg_comment = ''
     if img_type == 'b':
-        # The background limits are always stored as row numbers in units of
-        # 5 km regardless of the mosaic's radial resolution.
-        lower_limit = (-arguments.radius_inner_delta -
-                       bkgnd_metadata['ring_lower_limit']*5)
+        # The background limits are stored as mosaic row numbers, so each row
+        # spans one radial resolution element.
+        radial_res = arguments.radius_resolution
+        lower_limit = int(-arguments.radius_inner_delta -
+                          bkgnd_metadata['ring_lower_limit']*radial_res)
         ret['BKGND_LOWER_LIMIT'] = lower_limit
-        num_limit_rows = (arguments.radius_outer_delta -
-                          arguments.radius_inner_delta) // 5
-        upper_limit = (arguments.radius_outer_delta -
-                       (num_limit_rows-bkgnd_metadata['ring_upper_limit'])*5)
+        num_limit_rows = int((arguments.radius_outer_delta -
+                              arguments.radius_inner_delta) // radial_res)
+        upper_limit = int(arguments.radius_outer_delta -
+                          (num_limit_rows-bkgnd_metadata['ring_upper_limit'])*radial_res)
         ret['BKGND_UPPER_LIMIT'] = upper_limit
         bkg_comment = f"""
 
@@ -2807,19 +2803,21 @@ def generate_browse(obsid, browse_dir, metadata, xml_metadata, img_type):
     cap_bkg = 'Background-subtracted ' if img_type == 'b' else ''
     title_bkg = 'Background-Subtracted ' if img_type == 'b' else ''
 
-    # The 'med' size drops one radial row (e.g. 401 -> 400) and downsamples the
-    # longitudes by 10
+    # The browse sizes below are hardcoded for the standard mosaic geometry.
+    # A data set with a different geometry has to be handled explicitly.
     num_rad, num_long = metadata['img'].shape
+    assert num_rad == 401, f'Unexpected number of radial rows: {num_rad}'
     if img_type != 'r':
+        assert num_long == 18000, f'Unexpected number of longitudes: {num_long}'
         sfx = '_bkg_sub' if img_type == 'b' else ''
-        sizes = (('full',  num_rad,   num_long),
-                 ('med',   num_rad-1, num_long//10),
+        sizes = (('full',  401, 18000),
+                 ('med',   400,  1800),
                  ('small', 200,   200),
                  ('thumb', 100,   100))
     else:
         image_name = metadata['image_name']
-        sizes = (('full',  num_rad,    None),
-                 ('med',   num_rad-1,  None),
+        sizes = (('full',  401,  None),
+                 ('med',   400,  None),
                  ('small', 200,   200),
                  ('thumb', 100,   100))
 
