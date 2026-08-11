@@ -26,7 +26,8 @@ generation: the generated bundle at `pds4_bundle_gen/bundle` (→
 
 **Supersedes** the 2026-07-19 and 2026-07-21 critiques (moved to
 `critiques/archive/`) and complements `critiques/code-review-2026-08-04.md`,
-which lives on the **unmerged** `code_review_fixes` branch.
+which lived on the `code_review_fixes` branch (merged to main 2026-08-11 as
+`9fc7045`, *after* this bundle was generated).
 
 Accepted non-issues (per prior user feedback) are not re-flagged: hardcoded
 paths; `metadata['time']` = image midtime; imshow half-pixel extent; signed
@@ -40,17 +41,22 @@ constant per mosaic (min/max = mean).
 The single most important fact: **today's bundle was built from pre-fix code
 against pre-fix data.**
 
-1. **`code_review_fixes` is not merged.** main is at `9612b2e`; the branch
-   carries 9 commits (52cb449 … a279009) containing every fix from the
-   2026-08-04 review — including the PDS4 label-validation fixes
+1. **`code_review_fixes` was not merged when this bundle was built.**
+   *(Update 2026-08-11: merged to main as `9fc7045`, together with the
+   review-feedback revisions in `c1168cb`.)* The branch carried every fix from
+   the 2026-08-04 review — the PDS4 label-validation fixes
    (`vertical_display_direction`, `document_standard_id`, mission-phase
    boundaries, inventory-integrity gating, template/example fixes) and the
-   guide corrections (1a85209). None of it is in this bundle.
-2. **The rms-csmithing float64 time fix is not merged and the data was never
-   rebuilt.** `/seti/nav/rms-csmithing` has `fix_mosaic_time_float64`
-   (f156fdb) checked out but unmerged/unpushed, and every mosaic/bkgnd file
-   under `/data/cb-results/fring/ring_mosaic/` is dated **Jul 23** — before
-   the fix. The bundle therefore inherits float32-quantized times (§3.2).
+   guide corrections (1a85209). **None of it is in this bundle**, which was
+   generated from `9612b2e`; a regeneration is required for any of it to
+   appear in the archive.
+2. **The rms-csmithing float64 time fix is still not merged and the data was
+   never rebuilt.** `/seti/nav/rms-csmithing` has `fix_mosaic_time_float64`
+   (f156fdb) pushed and open as PR #5, but `origin/main` is still at
+   `460488f`, and every mosaic/bkgnd file under
+   `/data/cb-results/fring/ring_mosaic/` is dated **Jul 23** — before the fix.
+   The bundle therefore inherits float32-quantized times (§3.2).
+   *(Status re-verified 2026-08-11.)*
 3. Working tree: only the user's uncommitted `pds4_bundle_gen/TODO.txt` edit
    (which now also contains a pasted copy of today's crash traceback).
 4. Generation logs for today's run: 1 uncaught exception (§3.1) and 73
@@ -69,7 +75,7 @@ In recommended fix order (details in the cited sections):
 
 | # | Blocker | Where fixed |
 |---|---------|-------------|
-| B1 | `code_review_fixes` unmerged → all known label-validation errors present in this build | merge branch (§6) |
+| B1 | ~~`code_review_fixes` unmerged~~ → **merged 2026-08-11 (`9fc7045`)**; all known label-validation errors are still present in *this build*, which predates the merge, so a regeneration is required | done — regenerate (§6) |
 | B2 | float32-quantized `rings:observed_event_tdb` in all mosaic params tables (±8–32 s → up to ~0.2° derived-longitude error) | merge rms-csmithing fix, **rebuild mosaics + bkgnd** (not reproject), regenerate (§3.2) |
 | B3 | 299/305 bkgnd-sub mosaics archive masked/bad pixels as valid-looking I/F instead of −999 | new generator (or bkgnd-writer) fix (§3.3) |
 | B4 | `ISS_287RI_PROPRETRG001_PRIME` incomplete: 6 reproj products missing, 1 phantom inventory row ×2 collections, 6 dangling src_imgs LIDVIDs ×2 tables | new generator fix (duplicate-keyword tolerance) + regenerate obsid (§3.1) |
@@ -405,10 +411,11 @@ already does) or confirm exact LIDVIDs with EN/RMS.
 
 ---
 
-## 6. Status of the 2026-08-04 review — all fixes still unmerged
+## 6. Status of the 2026-08-04 review — merged 2026-08-11, bundle predates it
 
-Everything below is **already fixed on `code_review_fixes`** and confirmed
-still present in this build (not re-reported above): mission_phase_name wrong
+Everything below is **fixed in the code** (`code_review_fixes`, merged to main
+2026-08-11 as `9fc7045`) but confirmed **still present in this build**, which
+was generated before the merge (not re-reported above): mission_phase_name wrong
 across boundary-year second halves (verified live: all 2008-07…12 mosaics say
 `TOUR`); `vertical_display_direction` "Top to Bottom" in all data labels;
 `document_standard_id` "Python" ×5; `collection_document.lblx` Inventory
@@ -418,14 +425,22 @@ term; stale 302/20,303 counts; broken quick-start commands; `<--` comments;
 excerpt field order; `local_identifier` mismatch; `core_radius "(constant)"`;
 dead customXml href; B3001/B4001 mixed example pairing; "Min and Max True
 Anomaly"; src_imgs "name" → LIDVID; med-browse 400-px note; stretch
-description. **Merging the branch is the first step of any path to final** —
-but note §3.1: the branch's per-image guard needs strengthening, and §4.11:
-the branch's re-captured guide numbers must themselves be re-checked against
-the final bundle (intended reproj count 20,441, mosaics 305).
+description. **None of this reaches the archive until the bundle is
+regenerated** — and note §3.1: the merged per-image guard still needs
+strengthening, and §4.11: the merged guide numbers must themselves be
+re-checked against the final bundle (intended reproj count 20,441,
+mosaics 305).
 
-Also unmerged and load-bearing: rms-csmithing `fix_mosaic_time_float64`
-(§3.2), and the f-ring branch's quadratic-bkgnd-fit fix (52cb449 — confirmed
-harmless to current data: all 305 production backgrounds are degree 1).
+Still unmerged and load-bearing: rms-csmithing `fix_mosaic_time_float64`
+(§3.2, open as PR #5). Also merged with the branch: the quadratic-bkgnd-fit
+fix (52cb449 — confirmed harmless to current data: all 305 production
+backgrounds are degree 1), and the review-feedback revisions in `c1168cb`
+(moons `core_to_*_corot` rename, `--allow-exception` default restored to
+True, dead zero-to-sentinel conversion removed after verifying no
+reprojected file on disk uses 0, background limits keyed to the radial
+resolution, browse sizes re-hardcoded behind geometry asserts, example
+scripts simplified, SPICE `Time_Coordinates` removed — which also resolves
+§5.1).
 
 ---
 
@@ -480,13 +495,15 @@ harmless to current data: all 305 production backgrounds are degree 1).
 
 ## 9. Recommended path to a final bundle
 
-1. **Merge** `code_review_fixes` into main; merge rms-csmithing
-   `fix_mosaic_time_float64` into its main.
+1. ~~**Merge** `code_review_fixes` into main~~ — **done 2026-08-11**
+   (`9fc7045`). Still to do: merge rms-csmithing `fix_mosaic_time_float64`
+   (PR #5) into its main.
 2. **New code fixes** (this critique): duplicate-keyword-tolerant PDS3 lookup +
    `KeyError` backstop + stronger per-image guard (§3.1); bkgnd-sub mask →
    sentinel (§3.3); moon window/disclaimer (§4.4); `iss-data-user-guide::1.1`
-   (§4.2); xml_schema LIDVID style (§4.12); SPICE Time_Coordinates (§5.1);
-   `__pycache__` prune (§4.1); small template/text items (§5).
+   (§4.2); xml_schema LIDVID style (§4.12); ~~SPICE Time_Coordinates (§5.1)~~
+   (done in `c1168cb`); `__pycache__` prune (§4.1); small template/text
+   items (§5).
 3. **Decisions:** `data_calibrated` forward reference (§4.3); source-product
    VIDs for v2–v9 images (§4.5); stars-as-targets and 'R'-obsid completeness;
    cassini: dead-key fields (§5.14); `iss_199rf_fmovie002_prime` navigation
@@ -495,7 +512,7 @@ harmless to current data: all 305 production backgrounds are degree 1).
    obsids (reprojection does NOT need rerunning), so mosaic times become
    float64.
 5. **Guide edits:** §4.7–4.10 concept fixes + §5 minors (on top of the
-   branch's 1a85209).
+   already-merged 1a85209).
 6. **Regenerate the bundle**; verify ERRORS.log empty; then **re-capture the
    guide's §4 excerpts and counts from this final bundle**, rebuild the PDF,
    and re-run (or re-copy) the document collection.
