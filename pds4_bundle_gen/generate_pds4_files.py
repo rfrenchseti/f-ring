@@ -1147,7 +1147,7 @@ def read_label(image_name):
     components = image_name.split('/')[-5:]
     image_path = os.path.join(CALIBRATED_DIR, *components)
     label_path = image_path.replace('.IMG', '.LBL')
-    return Pds3Label(label_path, method='fast')
+    return Pds3Label(label_path, method='fast', first_suffix=False)
 
 
 def compute_mid_sclk(start_sclk, stop_sclk):
