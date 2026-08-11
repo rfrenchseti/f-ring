@@ -5,7 +5,7 @@ Mia's current tasks (8/7/25):
 
 - Check navigation of iss_199rf_fmovie002_prime
 
-- Add bundle.xml
+DONE - Add bundle.lblx
 
 DONE - Deal with Prometheus and Pandora in reprojected images.
 
@@ -66,3 +66,22 @@ DONE - Consider using wrap-around longitude limits.
 DONE - Put example Python files in user guide label file?
 
 - Compare cassini: fields between what I generate and the PDS4 bundle
+
+2026-08-10 16:05:18.731878 | pds.fring.pds4 |-| ERROR | ISS_287RI_PROPRETRG001_PRIME: Uncaught exception:
+Traceback (most recent call last):
+  File "/seti/research/f-ring/f-ring/pds4_bundle_gen/generate_pds4_files.py", line 3668, in <module>
+    handle_one_obsid(obsid, reproj_collection_fp, browse_reproj_collection_fp,
+  File "/seti/research/f-ring/f-ring/pds4_bundle_gen/generate_pds4_files.py", line 3122, in handle_one_obsid
+    generate_reproj(obsid, reproj_dir, reproj_browse_dir, reproj_metadata,
+  File "/seti/research/f-ring/f-ring/pds4_bundle_gen/generate_pds4_files.py", line 3013, in generate_reproj
+    xml_metadata = xml_metadata_for_image(obsid, reproj_metadata, None, 'r')
+                   ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/seti/research/f-ring/f-ring/pds4_bundle_gen/generate_pds4_files.py", line 1630, in xml_metadata_for_image
+    xml_add_pds3_label_info(ret, obsid, min_image_path, max_image_path)
+  File "/seti/research/f-ring/f-ring/pds4_bundle_gen/generate_pds4_files.py", line 1748, in xml_add_pds3_label_info
+    ret['SPACECRAFT_CLOCK_START_COUNT'] = str(min_label['SPACECRAFT_CLOCK_START_COUNT'])
+                                              ~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/seti/research/f-ring/venv_fring/lib/python3.12/site-packages/pdsparser/__init__.py", line 491, in __getitem__
+    return self.dict[key]
+           ~~~~~~~~~^^^^^
+KeyError: 'SPACECRAFT_CLOCK_START_COUNT'
