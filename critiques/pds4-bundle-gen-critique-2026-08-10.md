@@ -22,7 +22,7 @@ generation: the generated bundle at `pds4_bundle_gen/bundle` (→
   (listings, field tables, counts, verbatim excerpts, example scripts)
   re-executed or re-derived against the actual bundle.
 - Key claims independently re-verified by the orchestrator (float32 ET
-  quantization, bkgnd-sub mask discard, phantom inventory row).
+  quantization, background mask handling, phantom inventory row).
 
 **Supersedes** the 2026-07-19 and 2026-07-21 critiques (moved to
 `critiques/archive/`) and complements `critiques/code-review-2026-08-04.md`,
@@ -81,8 +81,8 @@ In recommended fix order (details in the cited sections):
 |---|---------|-------------|
 | B1 | ~~`code_review_fixes` unmerged~~ → **merged 2026-08-11 (`9fc7045`)**; all known label-validation errors are still present in *this build*, which predates the merge, so a regeneration is required | done — regenerate (§6) |
 | B2 | float32-quantized `rings:observed_event_tdb` in all mosaic params tables (±8–32 s → up to ~0.2° derived-longitude error) | ~~merge rms-csmithing fix~~, ~~rebuild mosaics + bkgnd~~ — **both done 2026-08-11 and verified**; regenerate the bundle to pick them up (§3.2) |
-| B3 | 299/305 bkgnd-sub mosaics archive masked/bad pixels as valid-looking I/F instead of −999 | new generator (or bkgnd-writer) fix (§3.3) |
-| B4 | `ISS_287RI_PROPRETRG001_PRIME` incomplete: 6 reproj products missing, 1 phantom inventory row ×2 collections, 6 dangling src_imgs LIDVIDs ×2 tables | new generator fix (duplicate-keyword tolerance) + regenerate obsid (§3.1) |
+| ~~B3~~ | ~~bkgnd-sub mosaics archive masked pixels as valid I/F~~ — **withdrawn, not a bug** (§3.3): the mask marks gradient-fit exclusions, which are real data | none |
+| B4 | `ISS_287RI_PROPRETRG001_PRIME` incomplete: 6 reproj products missing, 1 phantom inventory row ×2 collections, 6 dangling src_imgs LIDVIDs ×2 tables | ~~duplicate-keyword tolerance~~ **fixed 2026-08-11 and verified (all 19 products, clean inventory)**; regenerate to clear it from the archive (§3.1) |
 | B5 | `__pycache__` with 5 `.pyc` files inside `document/user_guide/` | delete; prune in packaging (§4.1) |
 | B6 | Dangling external LIDVID `iss-data-user-guide::1.0` (only `::1.1` exists) | one-character template/CSV fix (§4.2) |
 | B7 | Guide: missing core concepts (array axis direction, inertial-longitude definition, bkgnd-limit semantics, IMGID convention) | guide edits (§4.7–4.10; §4.6 withdrawn) |
@@ -141,17 +141,25 @@ and `pyparsing.ParseException`, so the `KeyError` escapes to the top-level bare
 *mosaic* inventory rows even though the mosaic products were written — the
 inverse validate failure (orphan products). Required fix:
 
-1. Duplicate-tolerant PDS3 lookup: if `key` missing, fall back to `f'{key}_1'`
-   (log a warning; optionally assert `_1 == _2`). Fixing only the SCLK line is
-   insufficient — `START_TIME`, `STOP_TIME`, `SEQUENCE_TITLE`, `SHUTTER_*`,
-   `TARGET_DESC`, `TELEMETRY_FORMAT_ID`, `SOFTWARE_VERSION_ID` are read a few
-   lines later and are all suffixed in this label.
+1. ~~Duplicate-tolerant PDS3 lookup~~ — **FIXED 2026-08-11** by reading the
+   label with `Pds3Label(..., first_suffix=False)`, which keeps the first
+   occurrence of a duplicated keyword under its plain name. This covers the
+   whole duplicated block at once, which matters because `START_TIME`,
+   `STOP_TIME`, `SEQUENCE_TITLE`, `TARGET_DESC`, `TELEMETRY_FORMAT_ID`, and
+   `SOFTWARE_VERSION_ID` are read a few lines later and were all suffixed in
+   this label. Verified: all eight affected keys now resolve, the `_1`/`_2`
+   values agree, normal labels are unaffected, and regenerating
+   `ISS_287RI_PROPRETRG001_PRIME` produces all **19** reprojected products
+   (was 13) with 19 inventory rows, 19 products on disk, and zero dangling or
+   orphan entries.
 2. Backstop: convert unexpected exceptions in `xml_add_pds3_label_info` (at
-   minimum `KeyError`) into `ObsIdFailedException`.
-3. On the branch: make the per-image guard survive unexpected exceptions
-   without aborting the obsid's inventory bookkeeping.
+   minimum `KeyError`) into `ObsIdFailedException`. **Still to do** — the
+   duplicate-keyword case is fixed, but any other unexpected exception would
+   still abort an obsid mid-stream.
+3. Make the per-image guard survive unexpected exceptions without aborting the
+   obsid's inventory bookkeeping. **Still to do.**
 4. Regenerate the obsid (products, both collection CSVs, all three global
-   indexes).
+   indexes) — covered by the full regeneration.
 
 ### 3.2 float32-quantized times contaminate every mosaic params table — data rebuild required (verified numerically)
 
@@ -181,30 +189,29 @@ all 305 mosaics and backgrounds rebuilt). Verified in the new metadata:
 a shift of several seconds per column, as predicted. The archive itself still
 carries the old quantized values until the bundle is regenerated.
 
-### 3.3 Background-subtracted mosaics archive masked "bad" pixels as valid I/F — NEW (verified; resolves TODO line 64 in the negative)
+### 3.3 NOT A BUG (withdrawn) — background-subtracted mosaics and the npz mask
 
-`generate_pds4_files.py:800–806` discards the npz mask
-(`metadata['img'].mask = False`) on the assumption that all missing data was
-already converted to −999. That assumption is false: in **299 of 305**
-production `*-BKGND-SUB-MOSAIC.npz` files there are masked pixels whose stored
-value is *not* −999 — e.g. `ISS_007RI_AZSCNLOPH001`: 6,019 of 11,633 masked
-pixels carry values −0.0006…0.144 (plausible I/F; independently re-verified).
-Mechanism (`mosaics/ring_ui_bkgnd.py:148–153`): `corrected = mosaic_img −
-bkgnd_model.data` uses the raw `.data` of the masked background model
-(garbage/unfit values at masked pixels); −999 is applied only where the
-original pixel was −999 or the entire column is masked. Partially-masked
-columns keep unsubtracted/garbage values, which the bundle then archives as
-valid data — undetectable by users via `Special_Constants`.
+The original finding claimed that `generate_pds4_files.py` wrongly discards the
+background-subtracted mosaic's mask (`metadata['img'].mask = False`), archiving
+"bad" pixels as valid I/F. **That was a misreading of what the mask means.**
 
-Fix options: honor the mask in `read_mosaic` (masked → SENTINEL) at bundle
-time (simplest, no data rebuild needed beyond §3.2's), and/or sentinel them in
-the bkgnd writer. The photometry pipeline reads the mask via `f_ring_util` and
-is unaffected; only the archive is wrong.
+Per user confirmation, the mask marks only the pixels that were excluded when
+*fitting the background gradient* — stars, moons, and similar contaminants.
+Those pixels are real data and belong in the archive; discarding the mask is
+the correct behavior, and sentinelling them would destroy valid science data.
 
-*(Re-verified 2026-08-11 against the freshly rebuilt backgrounds: still
-**299 of 305** files, 236,915 masked-but-not-sentinel pixels in total. The
-data rebuild does not address this — the defect is in how the generator reads
-the mask, so it must be fixed in code before regenerating.)*
+The requirement that does matter — **pixels missing from the original mosaic
+must be sentinels, not merely masked** — was checked directly and **holds**:
+across all 305 mosaic/background-subtracted pairs, every pixel that is −999 in
+the original mosaic is also −999 in the background-subtracted data, with zero
+exceptions. `mosaics/ring_ui_bkgnd.py:150` guarantees this
+(`corrected[mosaic_img == -999] = -999`), and line 152 additionally sentinels
+whole columns whose background model is entirely masked. Mosaics represent
+missing data as −999 (254 of 305 files contain it; the other 51 have complete
+coverage), so nothing is lost at the reprojection-limited mosaic edges.
+
+TODO line 64 ("verify that the sentinel values are present in the background
+mosaics from the original mosaic's bad pixels") is therefore **satisfied**.
 
 ---
 
@@ -358,7 +365,7 @@ already does) or confirm exact LIDVIDs with EN/RMS.
    `data_reproj_img.lblx:329–333` describes only reproj semantics ("off the
    edge of the FOV / transmission error"); for mosaics the dominant meaning is
    "no image covered this longitude", and for bkg_sub also "background model
-   invalid" (esp. once §3.3 is fixed).
+   invalid".
 7. `spacecraft_clock_count_partition` hardcoded `1` in both data templates
    while the generator parses the real `SPACECRAFT_CLOCK_CNT_PARTITION` (dead
    key). Always 1 for Cassini; still, use the variable.
@@ -471,7 +478,7 @@ scripts simplified, SPICE `Time_Coordinates` removed — which also resolves
 | Limit cameras/targets to those present | Largely satisfied (labels are per-camera; collections genuinely contain both moons/cameras). Optional. |
 | Cassini field diffs vs original bundle | Content decisions; two "FROM WHERE?" answers found — see §5 item 14. |
 | `rings:description` update | Blocked on external dictionary cleanup; defer. |
-| Verify sentinels in bkgnd mosaics | **Done — FAILS (§3.3). Must fix.** |
+| Verify sentinels in bkgnd mosaics | **Done — PASSES** (§3.3): all 305 pairs check out. |
 | Wrap-around limits / example labels / bundle.lblx / moons | Marked DONE; consistent with code. |
 
 ---
@@ -514,9 +521,11 @@ scripts simplified, SPICE `Time_Coordinates` removed — which also resolves
 
 1. ~~**Merge** `code_review_fixes` into main (`9fc7045`); merge rms-csmithing
    `fix_mosaic_time_float64` (`365621c`)~~ — **both done 2026-08-11.**
-2. **New code fixes** (this critique): duplicate-keyword-tolerant PDS3 lookup +
-   `KeyError` backstop + stronger per-image guard (§3.1); bkgnd-sub mask →
-   sentinel (§3.3); moon window/disclaimer (§4.4); `iss-data-user-guide::1.1`
+2. **New code fixes** (this critique): ~~duplicate-keyword-tolerant PDS3
+   lookup (§3.1)~~ (done — `Pds3Label(..., first_suffix=False)`, verified: the
+   287RI obsid now produces all 19 reproj products with no dangling or orphan
+   inventory rows); still to do: `KeyError` backstop + stronger per-image
+   guard (§3.1); moon window/disclaimer (§4.4); `iss-data-user-guide::1.1`
    (§4.2); xml_schema LIDVID style (§4.12); ~~SPICE Time_Coordinates (§5.1)~~
    (done in `c1168cb`); `__pycache__` prune (§4.1); small template/text
    items (§5).
@@ -527,9 +536,7 @@ scripts simplified, SPICE `Time_Coordinates` removed — which also resolves
 4. ~~**Rebuild data:** `ring_ui_mosaic.py` then `ring_ui_bkgnd.py` for all 305
    obsids (reprojection does NOT need rerunning), so mosaic times become
    float64.~~ — **done 2026-08-11**, all 305 rebuilt and the float64 times
-   verified. Note this rebuild does **not** fix §3.3: the masked-pixel
-   sentinel problem is in how the bundle generator reads the npz mask, so it
-   persists in the rebuilt background-subtracted mosaics.
+   verified.
 5. **Guide edits:** §4.7–4.10 concept fixes + §5 minors (on top of the
    already-merged 1a85209).
 6. **Regenerate the bundle**; verify ERRORS.log empty; then **re-capture the
