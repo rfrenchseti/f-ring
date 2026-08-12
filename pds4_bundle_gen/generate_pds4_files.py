@@ -804,9 +804,11 @@ def read_mosaic(data_path, metadata_path, *, bkg_sub=False, read_img=True):
         if bkg_sub:
             with np.load(data_path) as npz:
                 metadata['img'] = ma.MaskedArray(**npz)
-                # The background image mask shows the "bad pixels"
-                # The missing data in the original mosaic has already been
-                # converted to the sentinel value.
+                # The mask marks the pixels that were excluded when fitting
+                # the background gradient (stars, moons, and the like). Those
+                # are real data and belong in the archive, so the mask is
+                # dropped. Pixels missing from the original mosaic are already
+                # the sentinel value.
                 metadata['img'].mask = False
         else:
             metadata['img'] = ma.MaskedArray(np.load(data_path))
