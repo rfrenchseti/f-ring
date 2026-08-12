@@ -83,7 +83,7 @@ In recommended fix order (details in the cited sections):
 | B2 | float32-quantized `rings:observed_event_tdb` in all mosaic params tables (±8–32 s → up to ~0.2° derived-longitude error) | ~~merge rms-csmithing fix~~, ~~rebuild mosaics + bkgnd~~ — **both done 2026-08-11 and verified**; regenerate the bundle to pick them up (§3.2) |
 | ~~B3~~ | ~~bkgnd-sub mosaics archive masked pixels as valid I/F~~ — **withdrawn, not a bug** (§3.3): the mask marks gradient-fit exclusions, which are real data | none |
 | B4 | `ISS_287RI_PROPRETRG001_PRIME` incomplete: 6 reproj products missing, 1 phantom inventory row ×2 collections, 6 dangling src_imgs LIDVIDs ×2 tables | ~~duplicate-keyword tolerance~~ **fixed 2026-08-11 and verified (all 19 products, clean inventory)**; regenerate to clear it from the archive (§3.1) |
-| B5 | `__pycache__` with 5 `.pyc` files inside `document/user_guide/` | delete; prune in packaging (§4.1) |
+| ~~B5~~ | ~~`__pycache__` with 5 `.pyc` files inside `document/user_guide/`~~ — **resolved**; it was created by this review running the example scripts in place, not by the generator, and the user has deleted it (§4.1) | none |
 | B6 | Dangling external LIDVID `iss-data-user-guide::1.0` (only `::1.1` exists) | one-character template/CSV fix (§4.2) |
 | B7 | Guide: missing core concepts (array axis direction, inertial-longitude definition, bkgnd-limit semantics, IMGID convention) | guide edits (§4.7–4.10; §4.6 withdrawn) |
 | B8 | Guide: every §4 verbatim numeric excerpt and the product counts disagree with the real bundle | re-capture from the **final** bundle, rebuild PDF (§4.11) |
@@ -152,12 +152,16 @@ inverse validate failure (orphan products). Required fix:
    `ISS_287RI_PROPRETRG001_PRIME` produces all **19** reprojected products
    (was 13) with 19 inventory rows, 19 products on disk, and zero dangling or
    orphan entries.
-2. Backstop: convert unexpected exceptions in `xml_add_pds3_label_info` (at
-   minimum `KeyError`) into `ObsIdFailedException`. **Still to do** — the
-   duplicate-keyword case is fixed, but any other unexpected exception would
-   still abort an obsid mid-stream.
-3. Make the per-image guard survive unexpected exceptions without aborting the
-   obsid's inventory bookkeeping. **Still to do.**
+2. ~~Backstop: convert unexpected exceptions in `xml_add_pds3_label_info` into
+   `ObsIdFailedException`~~ — **FIXED 2026-08-11**; it now logs an error naming
+   the label file first.
+3. ~~Make the per-image guard survive unexpected exceptions without aborting
+   the obsid's inventory bookkeeping~~ — **FIXED 2026-08-11**. A
+   `sys.excepthook` was also added so that a failure anywhere outside the
+   per-OBSID loop is logged as an error instead of dying silently.
+   Fault-injection verified: one forced exception yields one logged error, 18
+   of 19 products, and consistent inventories with no dangling or orphan
+   rows.
 4. Regenerate the obsid (products, both collection CSVs, all three global
    indexes) — covered by the full regeneration.
 
@@ -217,12 +221,16 @@ mosaics from the original mosaic's bad pixels") is therefore **satisfied**.
 
 ## 4. Major findings
 
-### 4.1 `__pycache__` inside the document collection — NEW
-`document/user_guide/__pycache__/` contains five `.cpython-312.pyc` files
-(mtime 20:19, i.e. created *after* generation by running the example scripts in
-place). Unlabeled, non-archival → `validate` errors. Delete before delivery and
-make the generator/packaging prune `__pycache__` (and never execute the shipped
-scripts inside the bundle tree).
+### 4.1 RESOLVED, self-inflicted — `__pycache__` inside the document collection
+`document/user_guide/__pycache__/` held five `.cpython-312.pyc` files. **This
+was an artifact of this review, not of the generator**: the mtime (20:19) is
+hours after generation finished (16:06), and it matches the point at which
+the review agents ran the shipped example scripts in place inside the bundle
+to check that they work. The generator never creates these files.
+
+**Deleted by the user 2026-08-11.** No code change is needed. The only lasting
+lesson is procedural: run the shipped example scripts from a copy, never from
+inside the bundle tree, and check for stray files before delivery.
 
 ### 4.2 Dangling external LIDVID: `iss-data-user-guide::1.0` — NEW
 `document/collection_document.csv:2` and
@@ -522,13 +530,12 @@ scripts simplified, SPICE `Time_Coordinates` removed — which also resolves
 1. ~~**Merge** `code_review_fixes` into main (`9fc7045`); merge rms-csmithing
    `fix_mosaic_time_float64` (`365621c`)~~ — **both done 2026-08-11.**
 2. **New code fixes** (this critique): ~~duplicate-keyword-tolerant PDS3
-   lookup (§3.1)~~ (done — `Pds3Label(..., first_suffix=False)`, verified: the
-   287RI obsid now produces all 19 reproj products with no dangling or orphan
-   inventory rows); still to do: `KeyError` backstop + stronger per-image
-   guard (§3.1); moon window/disclaimer (§4.4); `iss-data-user-guide::1.1`
-   (§4.2); xml_schema LIDVID style (§4.12); ~~SPICE Time_Coordinates (§5.1)~~
-   (done in `c1168cb`); `__pycache__` prune (§4.1); small template/text
-   items (§5).
+   lookup, `KeyError` backstop, and a stronger per-image
+   guard (§3.1)~~ (all done — see §3.1); still to do: moon window/disclaimer
+   (§4.4); `iss-data-user-guide::1.1` (§4.2); xml_schema LIDVID style
+   (§4.12); ~~SPICE Time_Coordinates (§5.1)~~ (done in `c1168cb`);
+   ~~`__pycache__` prune (§4.1)~~ (not a generator issue); small
+   template/text items (§5).
 3. **Decisions:** `data_calibrated` forward reference (§4.3); source-product
    VIDs for v2–v9 images (§4.5); stars-as-targets and 'R'-obsid completeness;
    cassini: dead-key fields (§5.14); `iss_199rf_fmovie002_prime` navigation
