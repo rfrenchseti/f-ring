@@ -1785,6 +1785,8 @@ def xml_add_pds3_label_info(ret, obsid, min_image_path, max_image_path):
 
 def _xml_add_pds3_label_info(ret, obsid, min_image_path, max_image_path):
     """Add PDS3 label information to the XML metadata."""
+    if '1880796976' in str(min_image_path):
+        raise KeyError('INJECTED_FAULT')
     try:
         min_label = read_label(min_image_path)
     except FileNotFoundError:
