@@ -87,7 +87,7 @@ In recommended fix order (details in the cited sections):
 | B6 | Dangling external LIDVID `iss-data-user-guide::1.0` (only `::1.1` exists) | one-character template/CSV fix (§4.2) |
 | B7 | Guide: missing core concepts (array axis direction, inertial-longitude definition, bkgnd-limit semantics, IMGID convention) | guide edits (§4.7–4.10; §4.6 withdrawn) |
 | B8 | Guide: every §4 verbatim numeric excerpt and the product counts disagree with the real bundle | re-capture from the **final** bundle, rebuild PDF (§4.11) |
-| B9 | Moon `Target_Identification` wrong for the 12+8 "visually confirmed but geometrically rejected" mosaics; "not visually confirmed" disclaimer emitted even when confirmed | new generator fix / policy decision (§4.4) |
+| ~~B9~~ | ~~Moon `Target_Identification` wrong for the "visually confirmed but geometrically rejected" mosaics; disclaimer emitted even when confirmed~~ — **fixed 2026-08-11 (`160af03`)**; 50 km tolerance, wrap-aware edge check, conditional label text; warnings 73 → 63, all remaining genuine | done (§4.4) |
 | B10 | Decisions required: `data_calibrated` forward references (§4.3), source-product VIDs `::1.0` vs PDS3 versions 2–9 (§4.5), xml_schema LIDVIDs (§4.12), open TODO items (§7) | user |
 
 ---
@@ -271,10 +271,30 @@ False + 12 geo-False/vis-True; Pandora 7 + 8.
 - Latent: the edge check (:922) uses compressed-array indices with no
   wraparound — a moon near corot 0° in a full-360° mosaic is wrongly rejected.
 
-Suggested: widen the window by moon radius + model tolerance (or let the
-visual flag override for mosaics), and condition the disclaimer sentence on
-the flag. (Commit 83b46eb's inertial-longitude core radius was verified
-correct; residual error ~0.05 km.)
+**FIXED 2026-08-11** (`160af03`). A moon that is geometrically present but not
+visually confirmed is still listed, with a warning, as before. A moon that is
+visually confirmed but geometrically absent is now accepted when it is within
+**50 km** of the radial limits — inside the error budget of an orbit model good
+to a few tens of km for satellites tens of km across. Otherwise it is dropped
+and the warning states the reason, distinguishing a radial miss from a
+longitude with no valid data. Both decisions are computed from each product's own valid
+longitudes, so a mosaic and its background-subtracted version are evaluated
+separately. The edge check now treats the ends of the valid-longitude array as
+adjacent when the coverage wraps through 0/360, and requires at least five
+valid longitudes. Mosaic labels no longer assert "has not been visually
+confirmed" when the log says it was; reprojected-image labels keep the original
+wording since they carry no per-image visual check.
+
+Measured over all 305 observations: warnings drop from 73 to **63**. The 10
+remaining are genuine — 6 are 73–277 km beyond the radial limit
+(`ISS_082RI_FMONITOR003_PRIME` 276.5 km, `ISS_207RF_FMOVIE001_PRIME` 159.0 km,
+`ISS_087RF_FMOVIE003_PRIME` 73.4 km, each in both variants) and 4 sit at
+longitudes with no valid data in the background-subtracted mosaic
+(`ISS_007RI_LPHRLFMOV001_PRIME` 0.320°, `ISS_172RI_SPOKEMOV001_PRIME` 0.148°,
+`ISS_105RI_TMAPN45LP001_CIRS_6` 0.070°, `ISS_105RI_TMAPN45LP001_CIRS_4`
+0.044°). The last of those is a near-miss against the 2-bin (0.04°) longitude
+tolerance and may be worth a second look. (Commit 83b46eb's inertial-longitude
+core radius was verified correct; residual error ~0.05 km.)
 
 ### 4.5 `Source_Product_Internal` hardcodes `::1.0` while 165 source images are PDS3 versions 2–9 — VERIFY EXTERNALLY
 `image_name_to_calib_lidvid` (:1026–1033) always emits `::1.0`. The mosaics use
