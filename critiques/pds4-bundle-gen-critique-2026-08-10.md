@@ -84,11 +84,11 @@ In recommended fix order (details in the cited sections):
 | ~~B3~~ | ~~bkgnd-sub mosaics archive masked pixels as valid I/F~~ — **withdrawn, not a bug** (§3.3): the mask marks gradient-fit exclusions, which are real data | none |
 | B4 | `ISS_287RI_PROPRETRG001_PRIME` incomplete: 6 reproj products missing, 1 phantom inventory row ×2 collections, 6 dangling src_imgs LIDVIDs ×2 tables | ~~duplicate-keyword tolerance~~ **fixed 2026-08-11 and verified (all 19 products, clean inventory)**; regenerate to clear it from the archive (§3.1) |
 | ~~B5~~ | ~~`__pycache__` with 5 `.pyc` files inside `document/user_guide/`~~ — **resolved**; it was created by this review running the example scripts in place, not by the generator, and the user has deleted it (§4.1) | none |
-| B6 | Dangling external LIDVID `iss-data-user-guide::1.0` (only `::1.1` exists) | one-character template/CSV fix (§4.2) |
+| ~~B6~~ | ~~Dangling external LIDVID `iss-data-user-guide::1.0`~~ — **fixed 2026-08-11 (`56ce1d3`)**: the correct version is `::2.0` (user-supplied); forward reference until the new ISS delivery is published (§4.2) | done |
 | B7 | Guide: missing core concepts (array axis direction, inertial-longitude definition, bkgnd-limit semantics, IMGID convention) | guide edits (§4.7–4.10; §4.6 withdrawn) |
 | B8 | Guide: every §4 verbatim numeric excerpt and the product counts disagree with the real bundle | re-capture from the **final** bundle, rebuild PDF (§4.11) |
 | ~~B9~~ | ~~Moon `Target_Identification` wrong for the "visually confirmed but geometrically rejected" mosaics; disclaimer emitted even when confirmed~~ — **fixed 2026-08-11 (`160af03`)**; 50 km tolerance, wrap-aware edge check, conditional label text; warnings 73 → 63, all remaining genuine | done (§4.4) |
-| B10 | Decisions required: `data_calibrated` forward references (§4.3), source-product VIDs `::1.0` vs PDS3 versions 2–9 (§4.5), xml_schema LIDVIDs (§4.12), open TODO items (§7) | user |
+| B10 | Decisions: ~~`data_calibrated` forward references (§4.3)~~ and ~~source-product VIDs (§4.5)~~ **both resolved 2026-08-11**; still open: xml_schema LIDVIDs (§4.12), open TODO items (§7) | user |
 
 ---
 
@@ -232,23 +232,29 @@ to check that they work. The generator never creates these files.
 lesson is procedural: run the shipped example scripts from a copy, never from
 inside the bundle tree, and check for stray files before delivery.
 
-### 4.2 Dangling external LIDVID: `iss-data-user-guide::1.0` — NEW
-`document/collection_document.csv:2` and
-`miscellaneous/collection_miscellaneous.csv:4` (sources:
-`templates/collection_document.csv`, `templates/collection_miscellaneous.csv`)
-reference `urn:nasa:pds:cassini_iss_saturn:document:iss-data-user-guide::1.0`.
-The PDS registry and the live RMS inventory have only **`::1.1`**; `::1.0`
-does not exist → referential-integrity error at ingestion. Change to `::1.1`
-(or drop the VID). `bundle.lblx` is safe (LID-only reference).
+### 4.2 FIXED — dangling external LIDVID `iss-data-user-guide::1.0`
+`templates/collection_document.csv:2` and
+`templates/collection_miscellaneous.csv:4` referenced
+`urn:nasa:pds:cassini_iss_saturn:document:iss-data-user-guide::1.0`, which does
+not exist. `bundle.lblx` was never affected (LID-only reference).
 
-### 4.3 All 20,435 reproj labels reference `cassini_iss_saturn:data_calibrated` — DECISION NEEDED
+**Fixed 2026-08-11 (`56ce1d3`)**: the correct version is **`::2.0`**
+(user-supplied). Note that the published RMS holdings currently list `::1.1`,
+so like §4.3 this is a forward reference that resolves when the new ISS
+delivery is published — `validate` will flag it against today's holdings.
+
+### 4.3 RESOLVED — reproj labels reference `cassini_iss_saturn:data_calibrated`
 Every reproj label's `Source_Product_Internal` points at
-`urn:nasa:pds:cassini_iss_saturn:data_calibrated:<img>_calib::1.0`, but the
-archived `cassini_iss_saturn::1.1` bundle contains no `data_calibrated`
-collection (only browse_raw/context/data_raw/document/xml_schema; registry
-lookups return not-found). If a calibrated-ISS delivery is coordinated with
-RMS this is a deliberate forward reference; otherwise every reproj label ships
-a dangling source-product LIDVID. Confirm with RMS before final.
+`urn:nasa:pds:cassini_iss_saturn:data_calibrated:<img>_calib::1.0`, which the
+published `cassini_iss_saturn::1.1` bundle does not yet contain (it holds only
+browse_raw/context/data_raw/document/xml_schema, and registry lookups return
+not-found).
+
+**Confirmed correct by the user 2026-08-11**: the calibrated collection is
+`urn:nasa:pds:cassini_iss_saturn:data_calibrated::1.0`. These are deliberate
+forward references to a coordinated ISS delivery, not dangling LIDVIDs. They
+will not resolve against the currently published holdings, so expect
+`validate` to flag them until that delivery lands.
 
 ### 4.4 Moon `Target_Identification` policy: geometric test overrides the human "visually confirmed" flags — NEW
 `generate_pds4_files.py:1929–1941` warns on disagreement but the geometric
@@ -296,13 +302,16 @@ longitudes with no valid data in the background-subtracted mosaic
 tolerance and may be worth a second look. (Commit 83b46eb's inertial-longitude
 core radius was verified correct; residual error ~0.05 km.)
 
-### 4.5 `Source_Product_Internal` hardcodes `::1.0` while 165 source images are PDS3 versions 2–9 — VERIFY EXTERNALLY
-`image_name_to_calib_lidvid` (:1026–1033) always emits `::1.0`. The mosaics use
-165 source images with PDS3 version suffix ≥ 2 (v2:37 … v9:2). If the migrated
-calibrated bundle assigns VIDs per PDS3 version (RMS convention), those 165
-reproj labels reference superseded versions. Check against the actual
-`cassini_iss_saturn` calibrated delivery (not resolvable from this machine);
-combine with the §4.3 decision.
+### 4.5 RESOLVED — `Source_Product_Internal` emits `::1.0` for every source image
+`image_name_to_calib_lidvid` always emits `::1.0`, while 165 of the source
+images carry a PDS3 version suffix of 2 or higher (v2:37 … v9:2). The concern
+was that the migrated collection might version products to match.
+
+**Resolved by §4.3**: the calibrated collection is at `::1.0`, and the PDS4
+product LID (`1880796883n_calib`) is keyed on the spacecraft clock count and
+does not carry the PDS3 file version at all, so `::1.0` is right for every
+image regardless of its PDS3 version. Worth one confirmation with RMS when the
+delivery lands, since a mismatch would affect 165 labels.
 
 ### 4.6 NOT A BUG (withdrawn) — guide's "emission < 90° = lit side" statement
 The original finding assumed a north-based emission convention. Per user
