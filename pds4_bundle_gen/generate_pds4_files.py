@@ -284,6 +284,8 @@ f_ring.init(arguments)
 
 # These hardcoded paths are for the machine ringlet
 CALIBRATED_DIR = '/data/pdsdata/holdings/calibrated'
+# A few keywords the labels need, like VALID_MAXIMUM, live only in the raw labels.
+VOLUMES_DIR = '/data/pdsdata/holdings/volumes'
 REPROJ_DIR = '/data/cb-results/fring/ring_mosaic/ring_repro'
 OFFSETS_DIR = '/data/cb-results/fring/offsets'
 
@@ -1302,6 +1304,19 @@ def read_label(image_name):
     return Pds3Label(label_path, method='fast', first_suffix=False)
 
 
+def read_raw_label(image_name):
+    """Return the PDS3 label of the raw image the calibrated image came from.
+
+    A handful of keywords, notably VALID_MAXIMUM, appear only in the raw labels.
+    The raw label sits at the same place under the volumes tree, without the
+    _CALIB in its name.
+    """
+    components = image_name.split('/')[-5:]
+    image_path = os.path.join(VOLUMES_DIR, *components)
+    label_path = image_path.replace('_CALIB.IMG', '.LBL')
+    return Pds3Label(label_path, method='fast', first_suffix=False)
+
+
 def compute_mid_sclk(start_sclk, stop_sclk):
     """Compute the mid-time SCLK from the start and stop SCLKs.
 
@@ -2046,6 +2061,20 @@ def _xml_add_pds3_label_info(ret, obsid, min_image_path, max_image_path):
     ret['SOFTWARE_VERSION_ID'] = min_label['SOFTWARE_VERSION_ID']
     ret['TARGET_DESC'] = min_label['TARGET_DESC']
     ret['TELEMETRY_FORMAT_ID'] = min_label['TELEMETRY_FORMAT_ID']
+
+    # VALID_MAXIMUM is not carried over into the calibrated label, so it has to
+    # come from the raw one.
+    try:
+        ret['VALID_MAXIMUM'] = read_raw_label(min_image_path)['VALID_MAXIMUM']
+    except FileNotFoundError:
+        LOGGER.error(f'{obsid}: Failed to open the raw label for {min_image_path}')
+        raise ObsIdFailedException
+    except pyparsing.exceptions.ParseException:
+        LOGGER.error(f'{obsid}: Failed to parse the raw label for {min_image_path}')
+        raise ObsIdFailedException
+    except KeyError:
+        LOGGER.error(f'{obsid}: The raw label for {min_image_path} has no VALID_MAXIMUM')
+        raise ObsIdFailedException
 
 
 def xml_add_comments(ret, img_type, obsid, metadata, bkgnd_metadata):

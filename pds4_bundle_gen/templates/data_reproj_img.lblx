@@ -170,6 +170,8 @@
                     <cassini:start_time_doy>$START_TIME_DOY$</cassini:start_time_doy>
                     <cassini:stop_time_doy>$STOP_TIME_DOY$</cassini:stop_time_doy>
                     <cassini:telemetry_format_id>$TELEMETRY_FORMAT_ID$</cassini:telemetry_format_id>
+                    <cassini:valid_maximum_full_well>$VALID_MAXIMUM[0]$</cassini:valid_maximum_full_well>
+                    <cassini:valid_maximum_DN_sat>$VALID_MAXIMUM[1]$</cassini:valid_maximum_DN_sat>
                 </cassini:ISS_Specific_Attributes>
             </cassini:Cassini>
         </Mission_Area>
