@@ -113,7 +113,7 @@
             <cassini:Cassini>
                 <cassini:ISS_Specific_Attributes>
                     <cassini:mission_phase_name>$TOUR$</cassini:mission_phase_name>
-                    <cassini:spacecraft_clock_count_partition>1</cassini:spacecraft_clock_count_partition>
+                    <cassini:spacecraft_clock_count_partition>$SPACECRAFT_CLOCK_CNT_PARTITION$</cassini:spacecraft_clock_count_partition>
                     <cassini:spacecraft_clock_start_count>$SPACECRAFT_CLOCK_START_COUNT$</cassini:spacecraft_clock_start_count>
                     <cassini:spacecraft_clock_stop_count>$SPACECRAFT_CLOCK_STOP_COUNT$</cassini:spacecraft_clock_stop_count>
                     <cassini:antiblooming_state_flag>$ANTIBLOOMING_STATE_FLAG$</cassini:antiblooming_state_flag>
@@ -137,6 +137,7 @@
                     <cassini:filter_temperature unit="degC">$FILTER_TEMPERATURE$</cassini:filter_temperature>
                     <cassini:flight_software_version_id>$FLIGHT_SOFTWARE_VERSION_ID$</cassini:flight_software_version_id>
                     <cassini:gain_mode_id unit="electron/DN">$GAIN_MODE_ID$</cassini:gain_mode_id>
+                    <cassini:ground_software_version_id>$SOFTWARE_VERSION_ID$</cassini:ground_software_version_id>
                     <cassini:image_mid_time>$IMAGE_MID_TIME$</cassini:image_mid_time>
                     <cassini:image_number>$IMAGE_NUMBER$</cassini:image_number>
                     <cassini:image_time>$IMAGE_TIME$</cassini:image_time>

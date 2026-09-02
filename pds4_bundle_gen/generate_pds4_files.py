@@ -87,6 +87,8 @@ OBSERVATION_LIST_PATH = 'observation_list.csv'
 #     OBSID/
 #       IMG_browse_reproj_img.lblx                 +[template reproj-browse-image.lblx]
 #       IMG_browse_reproj_img_full.png             +[generated]
+#       IMG_browse_reproj_img_med.png              +[generated]
+#       IMG_browse_reproj_img_small.png            +[generated]
 #       IMG_browse_reproj_img_thumb.png            +[generated]
 #   context/
 #     collection_context.csv                        [RMS - boilerplate]
@@ -784,10 +786,11 @@ def add_orbital_metadata(metadata):
     metadata['pandora_dist'], metadata['pandora_corot_long'] = saturn_to_pandora_corot(ETs)
 
 
-def read_mosaic(data_path, metadata_path, *, bkg_sub=False, read_img=True):
+def read_mosaic(obsid, data_path, metadata_path, *, bkg_sub=False, read_img=True):
     """Read a main or background-subtracted mosaic and associated metadata.
 
     Parameters:
+        obsid (str): the observation name, used only in error messages
         data_path (str): path to the mosaic data file
         metadata_path (str): path to the mosaic metadata file
         bkg_sub (bool): whether to read a background-subtracted mosaic
@@ -871,10 +874,11 @@ def read_bkgnd_metadata(model_path, metadata_path):
     return metadata
 
 
-def read_reproj(metadata_path):
+def read_reproj(obsid, metadata_path):
     """Read reprojected image metadata.
 
     Parameters:
+        obsid (str): the observation name, used only in error messages
         metadata_path (str): path to the reprojected image metadata file
 
     Returns:
@@ -1153,7 +1157,7 @@ def obsid_to_mosaic_lid(obsid, bkg_sub):
     urn:nasa:pds:cassini_iss_fring_mosaics_rsfrench2025:data_mosaic:
     iosic_276rb_complitb4001_si_mosaic
         or
-    urn:nasa:pds:cassini_iss_fring_mosaics_rsfrench2025_mosaic_rsfrench2025:data_mosaic_bkg_sub:iosic_276rb_complitb4001_si_mosaic_bkg_sub
+    urn:nasa:pds:cassini_iss_fring_mosaics_rsfrench2025:data_mosaic_bkg_sub:iosic_276rb_complitb4001_si_mosaic_bkg_sub
     """
     sfx = '_bkg_sub' if bkg_sub else ''
     obsid = obsid.lower()
@@ -1165,7 +1169,7 @@ def obsid_to_mosaic_lidvid(obsid, bkg_sub):
 
     urn:nasa:pds:cassini_iss_fring_mosaics_rsfrench2025:data_mosaic:iosic_276rb_complitb4001_si_mosaic::1.0
         or
-    urn:nasa:pds:cassini_iss_fring_mosaics_rsfrench2025_mosaic_rsfrench2025:data_mosaic_bkg_sub:iosic_276rb_complitb4001_si_mosaic_bkg_sub::1.0
+    urn:nasa:pds:cassini_iss_fring_mosaics_rsfrench2025:data_mosaic_bkg_sub:iosic_276rb_complitb4001_si_mosaic_bkg_sub::1.0
     """
     return obsid_to_mosaic_lid(obsid, bkg_sub)+'::1.0'
 
@@ -1175,7 +1179,7 @@ def obsid_to_mosaic_browse_lid(obsid, bkg_sub):
 
     urn:nasa:pds:cassini_iss_fring_mosaics_rsfrench2025:browse_mosaic:iosic_276rb_complitb4001_si_browse_mosaic
         or
-    urn:nasa:pds:cassini_iss_fring_mosaics_rsfrench2025_mosaic_rsfrench2025:browse_mosaic_bkg_sub:
+    urn:nasa:pds:cassini_iss_fring_mosaics_rsfrench2025:browse_mosaic_bkg_sub:
     iosic_276rb_complitb4001_si_browse_mosaic_bkg_sub
     """
     sfx = '_bkg_sub' if bkg_sub else ''
@@ -1803,9 +1807,11 @@ def xml_metadata_for_image(obsid, metadata, bkgnd_metadata, img_type):
     if img_type != 'r':
         for image_name in image_name_list:
             if image_name[-1] != camera:
+                # The label can only name one camera, so a mixed-camera mosaic
+                # would be archived under whichever camera image 0 happened to use.
                 LOGGER.error(f'{obsid}: Inconsistent cameras for images '
-                            f'{image_name0} and {image_name}')
-                break
+                             f'{image_name0} and {image_name}')
+                raise ObsIdFailedException
     if camera == 'n':
         ret['CAMERA_WIDTH'] = 'Narrow'
         ret['CAMERA_WN_UC'] = 'N'
@@ -2196,6 +2202,17 @@ def xml_add_mosaic_comments(ret, metadata, bkgnd_metadata, img_type, root_obsid,
         OBSERVATION_INFO[full_obsid]['bkgnd_qual']]
 
     total_hours = total_secs / 3600
+
+    # A sentinel in a mosaic overwhelmingly means "no image covered this longitude",
+    # which is not what it means in a reprojected image, and a background-subtracted
+    # mosaic has one further cause of its own.
+    ret['SENTINEL_DESCRIPTION'] = """No data are available for this pixel, either because no
+                 image covered this longitude, or because the data were missing or corrupted
+                 in the source image (off the edge of the FOV, or a transmission error
+                 resulting in a partial or corrupted image)"""
+    if img_type == 'b':
+        ret['SENTINEL_DESCRIPTION'] += """, or because no valid background model
+                 could be fit at this longitude"""
 
     ret['MIN_IMAGE_NAME'] = min_image_name
     ret['MAX_IMAGE_NAME'] = max_image_name
@@ -2849,12 +2866,12 @@ def generate_image(obsid, output_dir, metadata, xml_metadata, global_index_fp,
 
 
 def generate_browse(obsid, browse_dir, metadata, xml_metadata, img_type):
-    """Create mosaic browse images.
+    """Create browse images for a mosaic or a reprojected image.
 
     Inputs:
         obsid           The observation name.
         browse_dir      The directory in which to put all browse files.
-        metadata        The metadata for a background-subtracted mosaic.
+        metadata        The metadata for the mosaic or reprojected image.
         xml_metadata    The XML substitutions.
         img_type        The img_type of data being provided:
                             'm' = Mosaic
@@ -2886,7 +2903,7 @@ def generate_browse(obsid, browse_dir, metadata, xml_metadata, img_type):
 
     img_type == 'r':
 
-      browse_mosaic/
+      browse_reproj_img/
         OBSID/
           IMG_browse_reproj_img_full.png
           IMG_browse_reproj_img_med.png
@@ -3226,8 +3243,8 @@ def handle_one_obsid(obsid, reproj_collection_fp, browse_reproj_collection_fp,
             LOGGER.error(f'File not found: {bkgnd_metadata_path}')
             return False
 
-        mosaic_metadata = read_mosaic(mosaic_path, mosaic_metadata_path, bkg_sub=False)
-        bsm_metadata = read_mosaic(bsm_path, bsm_metadata_path, bkg_sub=True)
+        mosaic_metadata = read_mosaic(obsid, mosaic_path, mosaic_metadata_path, bkg_sub=False)
+        bsm_metadata = read_mosaic(obsid, bsm_path, bsm_metadata_path, bkg_sub=True)
         bkgnd_metadata = read_bkgnd_metadata(bkgnd_model_path, bkgnd_metadata_path)
 
         if not all(obsid == x for x in mosaic_metadata['obsid_list']):
@@ -3252,7 +3269,7 @@ def handle_one_obsid(obsid, reproj_collection_fp, browse_reproj_collection_fp,
         GENERATE_BROWSE_REPROJ_LABELS or GENERATE_REPROJ_SUPPL_FILES or
         GENERATE_REPROJ_GLOBAL_INDEX):
         if mosaic_metadata is None:
-            mosaic_metadata = read_mosaic(mosaic_path, mosaic_metadata_path,
+            mosaic_metadata = read_mosaic(obsid, mosaic_path, mosaic_metadata_path,
                                           bkg_sub=False, read_img=False)
             remap_image_indexes(mosaic_metadata)
         reproj_dir = os.path.join(arguments.output_dir, 'data_reproj_img',
@@ -3262,7 +3279,7 @@ def handle_one_obsid(obsid, reproj_collection_fp, browse_reproj_collection_fp,
         for image_path in mosaic_metadata['image_path_list']:
             try:
                 reproj_path = img_to_repro_path(image_path)
-                reproj_metadata = read_reproj(reproj_path)
+                reproj_metadata = read_reproj(obsid, reproj_path)
                 reproj_metadata['image_path'] = image_path
                 reproj_metadata['image_name'] = image_name = \
                     reformat_iss_name(image_path.split('/')[-1].replace('_CALIB.IMG', ''))

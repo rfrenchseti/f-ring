@@ -1,27 +1,27 @@
 <?xml version="1.0" encoding="UTF-8"?>
-  <!-- PDS4 XML/Schema for Name Space Id:rings  Version:1.13.0.0 - Mon Jun 02 18:07:20 UTC 2025 -->
+  <!-- PDS4 XML/Schema for Name Space Id:rings  Version:1.14.0.0 - Tue Sep 02 19:53:11 UTC 2025 -->
   <!-- Generated from the PDS4 Information Model Version 1.24.0.0 - System Build 15.1 -->
   <!-- *** This PDS4 product schema is an operational deliverable. *** -->
   <!--                                                                           -->
   <!--               Dictionary Stack                                            -->
   <!-- 1.24.0.0 - pds: - Common Dictionary                                       -->
-  <!-- 1.9.10.0 - geom: - Geometry Dictionary Full                               -->
   <!-- 1.5.1.0 - disp: - Display                                                 -->
-  <!-- 1.13.0.0 - rings: - Rings Dictionary                                      -->
+  <!-- 1.9.11.0 - geom: - Geometry Dictionary Full                               -->
+  <!-- 1.14.0.0 - rings: - Rings Dictionary                                      -->
   <!--                                                                           -->
   <xs:schema xmlns:xs="http://www.w3.org/2001/XMLSchema"
     targetNamespace="http://pds.nasa.gov/pds4/rings/v1"
     xmlns:rings="http://pds.nasa.gov/pds4/rings/v1"
     xmlns:pds="http://pds.nasa.gov/pds4/pds/v1"
-    xmlns:geom="http://pds.nasa.gov/pds4/geom/v1"
     xmlns:disp="http://pds.nasa.gov/pds4/disp/v1"
+    xmlns:geom="http://pds.nasa.gov/pds4/geom/v1"
     elementFormDefault="qualified"
     attributeFormDefault="unqualified"
-    version="1.13.0.0">
+    version="1.14.0.0">
  
     <xs:import namespace="http://pds.nasa.gov/pds4/pds/v1" schemaLocation="https://pds.nasa.gov/pds4/pds/v1/PDS4_PDS_1O00.xsd"/>
-    <xs:import namespace="http://pds.nasa.gov/pds4/geom/v1" schemaLocation="https://pds.nasa.gov/pds4/geom/v1/PDS4_GEOM_1O00_19A0.xsd"/>
     <xs:import namespace="http://pds.nasa.gov/pds4/disp/v1" schemaLocation="https://pds.nasa.gov/pds4/disp/v1/PDS4_DISP_1O00_1510.xsd"/>
+    <xs:import namespace="http://pds.nasa.gov/pds4/geom/v1" schemaLocation="https://pds.nasa.gov/pds4/geom/v1/PDS4_GEOM_1O00_19B0.xsd"/>
  
   <xs:annotation>
     <xs:documentation>
@@ -396,6 +396,12 @@
       <xs:element name="mean_phase_angle" type="rings:mean_phase_angle" minOccurs="0" maxOccurs="1"> </xs:element>
       <xs:element name="minimum_phase_angle" type="rings:minimum_phase_angle" minOccurs="0" maxOccurs="1"> </xs:element>
       <xs:element name="maximum_phase_angle" type="rings:maximum_phase_angle" minOccurs="0" maxOccurs="1"> </xs:element>
+      <xs:element name="mean_incidence_angle" type="rings:mean_incidence_angle" minOccurs="0" maxOccurs="1"> </xs:element>
+      <xs:element name="minimum_incidence_angle" type="rings:minimum_incidence_angle" minOccurs="0" maxOccurs="1"> </xs:element>
+      <xs:element name="maximum_incidence_angle" type="rings:maximum_incidence_angle" minOccurs="0" maxOccurs="1"> </xs:element>
+      <xs:element name="mean_emission_angle" type="rings:mean_emission_angle" minOccurs="0" maxOccurs="1"> </xs:element>
+      <xs:element name="minimum_emission_angle" type="rings:minimum_emission_angle" minOccurs="0" maxOccurs="1"> </xs:element>
+      <xs:element name="maximum_emission_angle" type="rings:maximum_emission_angle" minOccurs="0" maxOccurs="1"> </xs:element>
       <xs:element name="mean_observed_ring_elevation" type="rings:mean_observed_ring_elevation" minOccurs="0" maxOccurs="1"> </xs:element>
       <xs:element name="minimum_observed_ring_elevation" type="rings:minimum_observed_ring_elevation" minOccurs="0" maxOccurs="1"> </xs:element>
       <xs:element name="maximum_observed_ring_elevation" type="rings:maximum_observed_ring_elevation" minOccurs="0" maxOccurs="1"> </xs:element>
@@ -913,16 +919,19 @@
 
   <xs:complexType name="emission_angle">
     <xs:annotation>
-      <xs:documentation>The emission_angle element provides the value of
-        the angle between the surface normal vector at the intercept
-        point and a vector from the intercept point to the spacecraft.
-        The emission_angle varies from 0 degrees when the spacecraft is
-        viewing the subspacecraft point (nadir viewing) to 90 degrees
-        when the intercept is tangent to the surface of the target body.
-        Thus, higher values of emission_angle indicate more oblique
-        viewing of the target. For ring data, values in the range of 90
-        to 180 degrees indicate viewing on the unlit side from oblique
-        or edge-on at 90 degrees to the unlit nadir at 180 degrees.
+      <xs:documentation>The emission_angle element provides a measure of
+        the relationship between the instrument viewing position and the
+        surface normal vector at the intercept point. Specifically, it
+        is the angle, measured at the intercept point, between the local
+        surface normal vector and a vector in the direction of the
+        outgoing photon to the observing instrument. In the context of
+        planetary rings, the local surface normal vector is always on
+        the side of the ring plane illuminated by the light source.
+        Thus, the emission_angle varies from 0 degrees when the
+        spacecraft is viewing the illuminated side of the rings face-on,
+        to 90 degrees when viewing the rings edge-on (that is, the
+        spacecraft is in the ring plane), to 180 degrees when the
+        spacecraft is viewing the unlit side of the rings face-on.
         </xs:documentation>
     </xs:annotation>
     <xs:simpleContent>
@@ -1126,21 +1135,22 @@
   <xs:simpleType name="incidence_angle_WO_Units">
     <xs:restriction base="pds:ASCII_Real">
      <xs:minInclusive value="0"/>
-     <xs:maxInclusive value="180"/>
+     <xs:maxInclusive value="90"/>
 	   </xs:restriction>
   </xs:simpleType>
 
   <xs:complexType name="incidence_angle">
     <xs:annotation>
       <xs:documentation>The incidence_angle element provides a measure
-        of the lighting condition at the intercept point. Incidence
-        angle is the angle between the surface normal vector at the
-        intercept point and a vector from the intercept point to the
-        sun. The incidence_angle varies from 0 degrees when the
-        intercept point coincides with the subsolar point to 90 degrees
-        when the intercept is tangent to the surface of the target body,
-        values in the range of 90 to 180 degrees are possible for ring
-        data. </xs:documentation>
+        of the lighting condition at the intercept point. Specifically,
+        it is the angle, measured at the intercept point, between a
+        vector in the direction of an incoming photon from the
+        illumination source and the local surface normal vector. In the
+        context of planetary rings, the local surface normal vector is
+        always on the side of the ring plane illuminated by the light
+        source. Thus, the incidence_angle varies from 0 degrees if the
+        light source illuminates the rings face-on, to 90 degrees if the
+        light source illuminates the rings edge-on. </xs:documentation>
     </xs:annotation>
     <xs:simpleContent>
       <xs:extension base="rings:incidence_angle_WO_Units">
@@ -1335,7 +1345,7 @@
     </xs:annotation>
     <xs:simpleContent>
       <xs:extension base="rings:longitudinal_resolution_WO_Units">
-        <xs:attribute name="unit" type="pds:Units_of_Length" use="required" />
+        <xs:attribute name="unit" type="pds:Units_of_Angle" use="required" />
       </xs:extension>
     </xs:simpleContent>
   </xs:complexType>
@@ -1422,7 +1432,7 @@
   <xs:simpleType name="maximum_incidence_angle_WO_Units">
     <xs:restriction base="pds:ASCII_Real">
      <xs:minInclusive value="0"/>
-     <xs:maxInclusive value="180"/>
+     <xs:maxInclusive value="90"/>
 	   </xs:restriction>
   </xs:simpleType>
 
@@ -1504,7 +1514,7 @@
     </xs:annotation>
     <xs:simpleContent>
       <xs:extension base="rings:maximum_longitudinal_resolution_WO_Units">
-        <xs:attribute name="unit" type="pds:Units_of_Length" use="required" />
+        <xs:attribute name="unit" type="pds:Units_of_Angle" use="required" />
       </xs:extension>
     </xs:simpleContent>
   </xs:complexType>
@@ -1800,6 +1810,46 @@
     </xs:simpleContent>
   </xs:complexType>
 
+  <xs:simpleType name="mean_emission_angle_WO_Units">
+    <xs:restriction base="pds:ASCII_Real">
+     <xs:minInclusive value="0"/>
+     <xs:maxInclusive value="180"/>
+	   </xs:restriction>
+  </xs:simpleType>
+
+  <xs:complexType name="mean_emission_angle">
+    <xs:annotation>
+      <xs:documentation>The mean_emission_angle element provides the
+        mean value during the observation for the emission angle at the
+        target. </xs:documentation>
+    </xs:annotation>
+    <xs:simpleContent>
+      <xs:extension base="rings:mean_emission_angle_WO_Units">
+        <xs:attribute name="unit" type="pds:Units_of_Angle" use="required" />
+      </xs:extension>
+    </xs:simpleContent>
+  </xs:complexType>
+
+  <xs:simpleType name="mean_incidence_angle_WO_Units">
+    <xs:restriction base="pds:ASCII_Real">
+     <xs:minInclusive value="0"/>
+     <xs:maxInclusive value="90"/>
+	   </xs:restriction>
+  </xs:simpleType>
+
+  <xs:complexType name="mean_incidence_angle">
+    <xs:annotation>
+      <xs:documentation>The mean_incidence_angle element provides the
+        mean value during the observation for the incidence angle at the
+        target. </xs:documentation>
+    </xs:annotation>
+    <xs:simpleContent>
+      <xs:extension base="rings:mean_incidence_angle_WO_Units">
+        <xs:attribute name="unit" type="pds:Units_of_Angle" use="required" />
+      </xs:extension>
+    </xs:simpleContent>
+  </xs:complexType>
+
   <xs:simpleType name="mean_longitudinal_resolution_WO_Units">
     <xs:restriction base="pds:ASCII_Real">
      <xs:minInclusive value="-1.7976931348623157e308"/>
@@ -1819,7 +1869,7 @@
     </xs:annotation>
     <xs:simpleContent>
       <xs:extension base="rings:mean_longitudinal_resolution_WO_Units">
-        <xs:attribute name="unit" type="pds:Units_of_Length" use="required" />
+        <xs:attribute name="unit" type="pds:Units_of_Angle" use="required" />
       </xs:extension>
     </xs:simpleContent>
   </xs:complexType>
@@ -1934,7 +1984,7 @@
   <xs:simpleType name="minimum_incidence_angle_WO_Units">
     <xs:restriction base="pds:ASCII_Real">
      <xs:minInclusive value="0"/>
-     <xs:maxInclusive value="180"/>
+     <xs:maxInclusive value="90"/>
 	   </xs:restriction>
   </xs:simpleType>
 
@@ -2016,7 +2066,7 @@
     </xs:annotation>
     <xs:simpleContent>
       <xs:extension base="rings:minimum_longitudinal_resolution_WO_Units">
-        <xs:attribute name="unit" type="pds:Units_of_Length" use="required" />
+        <xs:attribute name="unit" type="pds:Units_of_Angle" use="required" />
       </xs:extension>
     </xs:simpleContent>
   </xs:complexType>
@@ -2965,11 +3015,11 @@
     <xs:annotation>
       <xs:documentation>The phase_angle element provides a measure of
         the relationship between the instrument viewing position and
-        incident illumination (such as solar light). Phase angle is
-        measured at the target; it is the angle between a vector to the
-        illumination source and a vector to the instrument. If not
-        specfied, the target is assumed to be at the center of the
-        instrument field of view. If illumination is from behind the
+        incident illumination (such as solar light). Specifically, it is
+        the angle, measured at the intercept point, between a vector in
+        the direction of an incoming photon from the illumination source
+        and a vector in the direction of an outgoing photon to the
+        observing instrument. If illumination is from behind the
         instrument, phase_angle will be small. </xs:documentation>
     </xs:annotation>
     <xs:simpleContent>
@@ -3215,7 +3265,7 @@
     </xs:annotation>
     <xs:simpleContent>
       <xs:extension base="rings:reprojection_grid_longitudinal_sampling_interval_WO_Units">
-        <xs:attribute name="unit" type="pds:Units_of_Length" use="required" />
+        <xs:attribute name="unit" type="pds:Units_of_Angle" use="required" />
       </xs:extension>
     </xs:simpleContent>
   </xs:complexType>
