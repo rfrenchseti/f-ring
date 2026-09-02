@@ -181,6 +181,10 @@ def summarize(offsets, longitudes):
         'slope_km_per_deg': np.nan,
         'rise_km': np.nan,
         'span_deg': np.nan,
+        'radial_res_km_px': np.nan,
+        'offset_px': np.nan,
+        'rise_px': np.nan,
+        'scatter_px': np.nan,
     }
     if n_good == 0:
         return result
@@ -228,6 +232,19 @@ def analyze_image(arguments, image_path):
         min_snr=arguments.min_snr)
     summary = summarize(offsets, longitudes)
     summary['coarse_offset_km'] = coarse
+
+    # A navigation error is a pointing error, so its natural unit is a pixel of
+    # the source image, not a kilometre. WAC pixels cover roughly twenty times
+    # more radial distance than NAC pixels, so judging both in km would condemn
+    # every WAC image for errors that are in fact sub-pixel.
+    with warnings.catch_warnings():
+        warnings.simplefilter('ignore', RuntimeWarning)
+        res = float(np.nanmedian(metadata['mean_radial_resolution']))
+    summary['radial_res_km_px'] = res
+    for name in ('offset', 'rise', 'scatter'):
+        value = summary[f'{name}_km']
+        summary[f'{name}_px'] = (value / res if res > 0 and np.isfinite(value)
+                                 else np.nan)
     summary['image'] = os.path.basename(image_path).replace('_CALIB.IMG', '')
     summary['reproj_path'] = reproj_path
     summary['median_snr'] = float(np.nanmedian(snr)) if np.isfinite(snr).any() else np.nan
@@ -245,13 +262,16 @@ def flags_for(summary, arguments):
         return ['no column had enough signal to measure']
     if summary['coverage'] < arguments.min_coverage:
         reasons.append(f'only {summary["coverage"]*100:.0f}% of columns measurable')
-    if abs(summary['offset_km']) > arguments.max_offset_km:
-        reasons.append(f'core offset {summary["offset_km"]:+.0f} km')
-    if (np.isfinite(summary['rise_km']) and
-            abs(summary['rise_km']) > arguments.max_rise_km):
-        reasons.append(f'core tilts {summary["rise_km"]:+.0f} km across the image')
-    if summary['scatter_km'] > arguments.max_scatter_km:
-        reasons.append(f'core scatter {summary["scatter_km"]:.0f} km')
+    if abs(summary['offset_px']) > arguments.max_offset_px:
+        reasons.append(f'core offset {summary["offset_px"]:+.1f} px '
+                       f'({summary["offset_km"]:+.0f} km)')
+    if (np.isfinite(summary['rise_px']) and
+            abs(summary['rise_px']) > arguments.max_rise_px):
+        reasons.append(f'core tilts {summary["rise_px"]:+.1f} px '
+                       f'({summary["rise_km"]:+.0f} km) across the image')
+    if summary['scatter_px'] > arguments.max_scatter_px:
+        reasons.append(f'core scatter {summary["scatter_px"]:.1f} px '
+                       f'({summary["scatter_km"]:.0f} km)')
     return reasons
 
 
@@ -314,13 +334,15 @@ def main():
                         help='Rows beyond this distance define the background')
     parser.add_argument('--min-snr', type=float, default=5.,
                         help='Smallest peak-to-noise ratio worth measuring')
-    parser.add_argument('--max-offset-km', type=float, default=100.,
-                        help='Flag an image whose core offset exceeds this')
-    parser.add_argument('--max-rise-km', type=float, default=150.,
-                        help='Flag an image whose core tilts more than this in '
-                             'total across the image')
-    parser.add_argument('--max-scatter-km', type=float, default=100.,
-                        help='Flag an image whose core scatter exceeds this')
+    parser.add_argument('--max-offset-px', type=float, default=8.,
+                        help='Flag an image whose core offset exceeds this many '
+                             'pixels of the source image')
+    parser.add_argument('--max-rise-px', type=float, default=12.,
+                        help='Flag an image whose core tilts more than this many '
+                             'source pixels across the image')
+    parser.add_argument('--max-scatter-px', type=float, default=8.,
+                        help='Flag an image whose core scatter exceeds this many '
+                             'source pixels')
     parser.add_argument('--min-coverage', type=float, default=0.25,
                         help='Flag an image with less measurable coverage')
     parser.add_argument('--csv', default=None,
@@ -337,6 +359,19 @@ def main():
 
     if arguments.plot_dir:
         os.makedirs(arguments.plot_dir, exist_ok=True)
+
+    fields = ['obsid', 'notes', 'image', 'n_columns', 'n_measured', 'coverage',
+              'offset_km', 'scatter_km', 'slope_km_per_deg', 'rise_km',
+              'span_deg', 'radial_res_km_px', 'offset_px', 'rise_px',
+              'scatter_px', 'coarse_offset_km', 'median_snr', 'flags']
+    csv_fp = None
+    writer = None
+    if arguments.csv:
+        # Written as we go rather than at the end: a full-archive run takes long
+        # enough that an interrupted one should not lose everything.
+        csv_fp = open(arguments.csv, 'w', newline='')
+        writer = csv.DictWriter(csv_fp, fieldnames=fields, extrasaction='ignore')
+        writer.writeheader()
 
     rows = []
     flagged = []
@@ -359,6 +394,9 @@ def main():
             reasons = flags_for(summary, arguments)
             summary['flags'] = '; '.join(reasons)
             rows.append(summary)
+            if writer is not None:
+                writer.writerow(summary)
+                csv_fp.flush()
             if reasons:
                 flagged.append(summary)
                 print(f'    {summary["image"]:14s} FLAG  {summary["flags"]}')
@@ -378,11 +416,17 @@ def main():
         offs = np.array([r['offset_km'] for r in rows])
         slopes = np.array([r['slope_km_per_deg'] for r in rows])
         rises = np.array([r['rise_km'] for r in rows])
+        offs_px = np.array([r['offset_px'] for r in rows])
+        rises_px = np.array([r['rise_px'] for r in rows])
+        scats_px = np.array([r['scatter_px'] for r in rows])
         scats = np.array([r['scatter_km'] for r in rows])
         for name, vals, unit in (('offset', offs, 'km'),
                                  ('slope', slopes, 'km/deg'),
                                  ('rise', rises, 'km'),
-                                 ('scatter', scats, 'km')):
+                                 ('scatter', scats, 'km'),
+                                 ('offset', offs_px, 'px'),
+                                 ('rise', rises_px, 'px'),
+                                 ('scatter', scats_px, 'px')):
             v = vals[np.isfinite(vals)]
             if len(v) == 0:
                 continue
@@ -390,16 +434,8 @@ def main():
                   f'  5th/95th {np.percentile(v, 5):+8.2f} / '
                   f'{np.percentile(v, 95):+8.2f}   max|.| {np.max(np.abs(v)):8.2f}')
 
-    if arguments.csv:
-        fields = ['obsid', 'notes', 'image', 'n_columns', 'n_measured',
-                  'coverage', 'offset_km', 'scatter_km', 'slope_km_per_deg',
-                  'rise_km', 'span_deg', 'coarse_offset_km', 'median_snr',
-                  'flags']
-        with open(arguments.csv, 'w', newline='') as fp:
-            writer = csv.DictWriter(fp, fieldnames=fields, extrasaction='ignore')
-            writer.writeheader()
-            for row in rows:
-                writer.writerow(row)
+    if csv_fp is not None:
+        csv_fp.close()
         print(f'Wrote {arguments.csv}')
 
 
