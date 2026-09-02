@@ -239,7 +239,7 @@
                 <lid_reference>urn:nasa:pds:context:target:satellite.saturn.pandora</lid_reference>
                 <reference_type>bundle_to_target</reference_type>
             </Internal_Reference>
-        </Target_Identification>
+        </Target_Identification>$NOESCAPE(STAR_TARGETS_BUNDLE)$
     </Context_Area>
     <Reference_List>
         <Internal_Reference>

@@ -482,6 +482,80 @@ TARGET_PANDORA = """
             </Internal_Reference>
         </Target_Identification>"""
 
+# The occultation observations were designed around one particular star, which is
+# present in every source image of the observation and therefore in the mosaic as
+# well. Nothing in the source data identifies it: the PDS3 labels give
+# TARGET_NAME = "SKY" and TARGET_LIST = "N/A", so the star is known only from the
+# observation name. Each name and LID below is that of the PDS context product for
+# the star; the Bayer or variable-star designation the observation name is built
+# from is carried as an alternate designation.
+#
+# L2 Puppis has no context product in the PDS registry, so the two L2PUPOCC
+# observations cannot name their star yet. They are listed here with a LID of None
+# so that the check in read_observation_list() does not report them as an
+# oversight.
+OCCULTATION_STARS = {
+    'ISS_172RI_BETPEGOCC001_VIMS': ('Scheat', 'Beta Pegasi', 'star.bet_peg'),
+    'ISS_172ST_URGAMPEG001_UVIS': ('Algenib', 'Gamma Pegasi', 'star.gam_peg'),
+    'ISS_180RI_RLYROCC001_VIMS': ('R Lyrae', '13 Lyrae', 'star.13_lyr'),
+    'ISS_180RI_RCASOCC001_VIMS': ('R Cassiopeiae', None, 'star.r_cas'),
+    'ISS_185RI_RHYAOCC001_VIMS_1': ('R Hydrae', None, 'star.r_hya'),
+    'ISS_185RI_RHYAOCC001_VIMS_2': ('R Hydrae', None, 'star.r_hya'),
+    'ISS_194RI_MUCEPOCC001_VIMS': ("Herschel's Garnet Star", 'Mu Cephei', 'star.mu._cep'),
+    'ISS_196RI_BETANDOCC001_VIMS': ('Mirach', 'Beta Andromedae', 'star.bet_and'),
+    'ISS_197RI_WHYAOCC001_VIMS': ('W Hydrae', None, 'star.w_hya'),
+    'ISS_198RI_RLYROCC001_VIMS': ('R Lyrae', '13 Lyrae', 'star.13_lyr'),
+    'ISS_201RI_L2PUPOCC001_VIMS_1': ('L2 Puppis', None, None),
+    'ISS_201RI_L2PUPOCC001_VIMS_2': ('L2 Puppis', None, None),
+    'ISS_205RI_L2PUPOCC002_VIMS': ('L2 Puppis', None, None),
+    'ISS_206RI_L2PUPOCC002_VIMS': ('L2 Puppis', None, None),
+}
+
+
+def _star_target_block(name, alt_designation, lid, reference_type):
+    """Return one Target_Identification block for a star."""
+    alt = ''
+    if alt_designation is not None:
+        alt = (f'\n            <alternate_designation>{alt_designation}'
+               f'</alternate_designation>')
+    return f"""
+        <Target_Identification>
+            <name>{name}</name>{alt}
+            <type>Star</type>
+            <Internal_Reference>
+                <lid_reference>urn:nasa:pds:context:target:{lid}</lid_reference>
+                <reference_type>{reference_type}</reference_type>
+            </Internal_Reference>
+        </Target_Identification>"""
+
+
+def target_star(obsid):
+    """Return the Target_Identification block for one observation's star.
+
+    Returns the empty string when the observation is not an occultation, or when
+    its star has no context product to reference.
+    """
+    if obsid not in OCCULTATION_STARS:
+        return ''
+    name, alt_designation, lid = OCCULTATION_STARS[obsid]
+    if lid is None:
+        return ''
+    return _star_target_block(name, alt_designation, lid, 'data_to_target')
+
+
+def all_star_targets(reference_type):
+    """Return Target_Identification blocks for every star the bundle references.
+
+    Used by the collection and bundle labels, which list every target appearing in
+    any of their members.
+    """
+    stars = {}
+    for name, alt_designation, lid in OCCULTATION_STARS.values():
+        if lid is not None:
+            stars[lid] = (name, alt_designation)
+    return ''.join(_star_target_block(stars[lid][0], stars[lid][1], lid, reference_type)
+                   for lid in sorted(stars))
+
 
 ##########################################################################################
 #
@@ -1666,6 +1740,17 @@ def read_observation_list():
                 'notes': notes,
             }
 
+    # Keep OCCULTATION_STARS and the observation list from drifting apart: every
+    # occultation needs a star, and only occultations should have one.
+    for obsid, info in OBSERVATION_INFO.items():
+        is_occultation = 'O' in info['notes']
+        if is_occultation and obsid not in OCCULTATION_STARS:
+            LOGGER.error(f'{obsid}: Marked as an occultation but has no entry in '
+                         f'OCCULTATION_STARS, so its star cannot be listed as a target')
+        elif not is_occultation and obsid in OCCULTATION_STARS:
+            LOGGER.error(f'{obsid}: Has an entry in OCCULTATION_STARS but is not '
+                         f'marked as an occultation in {OBSERVATION_LIST_PATH}')
+
 
 ##########################################################################################
 #
@@ -2050,6 +2135,9 @@ def xml_add_comments(ret, img_type, obsid, metadata, bkgnd_metadata):
         target_id += TARGET_PROMETHEUS
     if has_pandora:
         target_id += TARGET_PANDORA
+    # An occultation's star is in every source image of the observation, and so in
+    # the mosaic too; there is no per-image test to make.
+    target_id += target_star(obsid)
     ret['TARGET_IDENTIFICATION'] = target_id
 
     if img_type == 'r':
@@ -3636,6 +3724,8 @@ SENTINEL = -999
 OBSERVATION_INFO = None
 
 BASIC_XML_METADATA = {
+    'STAR_TARGETS_COLLECTION': all_star_targets('collection_to_target'),
+    'STAR_TARGETS_BUNDLE': all_star_targets('bundle_to_target'),
     'INFORMATION_MODEL_VERSION': '1.24.0.0',
     'PDS4_PDS_SCHEMA_XSD': 'https://pds.nasa.gov/pds4/pds/v1/PDS4_PDS_1O00.xsd',
     'PDS4_PDS_SCHEMA': 'https://pds.nasa.gov/pds4/pds/v1/PDS4_PDS_1O00.sch',
