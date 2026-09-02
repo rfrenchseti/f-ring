@@ -13,12 +13,17 @@ column, then reduces those to three numbers:
     rise     how far the core tilts across the whole image, in km
     scatter  the robust scatter of the per-column offsets, in km
 
-An image is flagged when any of the three exceeds its threshold. The defaults
-are deliberately loose: the core is genuinely eccentric and wanders tens of km
-about the Albers model, so only gross errors should be reported. They were set
-against 1,890 images from twelve observations graded 'G' for navigation, whose
-offsets run to about 70 km at the 5th/95th percentiles and whose total tilt
-reaches 123 km at the 99th; 0.3% of that known-good population is flagged.
+Everything is judged in pixels of the source image. Each image has its own
+resolution and what matters is how the core looks: a WAC pixel spans about
+185 km, so an 80 km error there is half a pixel and invisible, while a high
+resolution NAC sequence with 2.4 km pixels shows the same 80 km as a plain
+33 pixel displacement. Kilometres are reported alongside but decide nothing.
+
+The tilt is the main test. The core is eccentric and the Albers model only an
+approximation, so a core sitting off centre is ordinary and says little about
+navigation; a core that slopes across the image is not ordinary. The offset
+limit is therefore much looser than the tilt limit and exists only to catch
+grossly displaced images.
 
 The core is located coarsely over the whole radial range first and only then
 centroided, so an image whose core lies far outside the search window reports
@@ -92,7 +97,8 @@ def img_to_repro_path(arguments, image_path):
     return f_ring.file_clean_join(f_ring.REPRO_DIR, vol, sclk_dir, image_name)
 
 
-def measure_core_offsets(img, radii, *, search_km, baseline_km, min_snr):
+def measure_core_offsets(img, radii, resolution, *, search_km, baseline_km,
+                         min_snr, track_km):
     """Measure the core's radial offset in each longitude column.
 
     The core is found as the brightest feature within search_km of the center.
@@ -142,20 +148,72 @@ def measure_core_offsets(img, radii, *, search_km, baseline_km, min_snr):
         warnings.simplefilter('ignore', RuntimeWarning)
         peak = np.nanmax(win_signal, axis=0)
 
-    # Centroid the pixels above half the peak. Using the half-peak rather than
-    # everything positive keeps the wings of neighboring material out of it.
-    half = 0.5 * peak
-    weights = np.where(win_signal >= half[None, :], win_signal, 0.)
-    weights = np.nan_to_num(weights, nan=0., posinf=0., neginf=0.)
-    total = weights.sum(axis=0)
-    with np.errstate(invalid='ignore', divide='ignore'):
-        offsets = (weights * win_radii[:, None]).sum(axis=0) / total
+    def centroid(mask):
+        """Flux-weighted centroid of each column within a per-column mask."""
+        masked = np.where(mask, signal, np.nan)
+        with np.errstate(invalid='ignore'), warnings.catch_warnings():
+            warnings.simplefilter('ignore', RuntimeWarning)
+            col_peak = np.nanmax(masked, axis=0)
+        # Above half the peak only, so the wings of neighboring material stay out.
+        weights = np.where(masked >= 0.5 * col_peak[None, :], masked, 0.)
+        weights = np.nan_to_num(weights, nan=0., posinf=0., neginf=0.)
+        total = weights.sum(axis=0)
+        with np.errstate(invalid='ignore', divide='ignore'):
+            cen = (weights * radii[:, None]).sum(axis=0) / total
+        return np.where(total > 0, cen, np.nan), total
 
-    valid_rows = np.isfinite(win_signal).sum(axis=0)
-    bad = (~np.isfinite(snr) | (snr < min_snr) | (total <= 0) |
-           (valid_rows < window.sum() // 2))
-    offsets = np.where(bad, np.nan, offsets)
+    valid_rows = np.isfinite(signal[window, :]).sum(axis=0)
+    bad_base = (~np.isfinite(snr) | (snr < min_snr) |
+                (valid_rows < window.sum() // 2))
+
+    # The F ring has more than one strand, and a centroid free to roam the whole
+    # search window hops between them, which reads as a slope that is not there.
+    # So track the core in a band narrower than the gap between strands. The band
+    # starts centred on the coarse position, which is a median over columns and
+    # so is not dragged by a run of hopped columns; it is then re-centred on the
+    # line fitted to what that pass found, twice, so that a core which really
+    # does slope is followed rather than clipped. The band is never narrower than
+    # the image's own radial resolution, or a coarse WAC image would be squeezed
+    # below a single pixel.
+    track = max(track_km, 1.5 * float(np.nanmedian(resolution)))
+    columns = np.arange(img.shape[1], dtype=float)
+    centre = np.full(img.shape[1], coarse)
+    offsets = None
+    for _ in range(3):
+        band = window[:, None] & (np.abs(radii[:, None] - centre[None, :]) <= track)
+        offsets, total = centroid(band & np.isfinite(signal))
+        offsets = np.where(bad_base | (total <= 0), np.nan, offsets)
+        fitted = _robust_line(columns, offsets)
+        if fitted is None:
+            break
+        centre = fitted
     return offsets, snr, coarse
+
+
+def _robust_line(x, y, n_clip=2):
+    """Least-squares line through (x, y), re-fit after clipping outliers.
+
+    Returns the fitted value at every x, or None if there is too little to fit.
+    Clipping matters because a centroid that jumped strands in a few columns
+    would otherwise tilt the whole fit.
+    """
+    good = np.isfinite(y)
+    if good.sum() < 5:
+        return None
+    keep = good.copy()
+    coeffs = None
+    for _ in range(n_clip + 1):
+        if keep.sum() < 5:
+            break
+        coeffs = np.polyfit(x[keep], y[keep], 1)
+        resid = y - np.polyval(coeffs, x)
+        scale = np.nanmedian(np.abs(resid[keep] - np.nanmedian(resid[keep])))
+        if not np.isfinite(scale) or scale == 0:
+            break
+        keep = good & (np.abs(resid) <= 3. * 1.4826 * scale)
+    if coeffs is None:
+        return None
+    return np.polyval(coeffs, x)
 
 
 def unwrap_longitudes(longitudes):
@@ -180,6 +238,7 @@ def summarize(offsets, longitudes):
         'scatter_km': np.nan,
         'slope_km_per_deg': np.nan,
         'rise_km': np.nan,
+        'rise_sigma': np.nan,
         'span_deg': np.nan,
         'radial_res_km_px': np.nan,
         'offset_px': np.nan,
@@ -198,8 +257,23 @@ def summarize(offsets, longitudes):
     result['scatter_km'] = float(1.4826 * np.median(np.abs(off - median)))
     result['span_deg'] = float(lon.max() - lon.min())
     if n_good >= 10 and result['span_deg'] > 0.1:
-        slope, _ = np.polyfit(lon - lon.mean(), off, 1)
+        x = lon - lon.mean()
+        fitted = _robust_line(x, off)
+        if fitted is None:
+            return result
+        slope = (fitted[-1] - fitted[0]) / (x[-1] - x[0]) if x[-1] != x[0] else 0.
         result['slope_km_per_deg'] = float(slope)
+        # How well determined that slope is. A short, noisy image can produce a
+        # large apparent tilt from very little evidence, so record the tilt in
+        # units of its own uncertainty and let the caller insist on significance.
+        resid = off - fitted
+        sd = 1.4826 * np.median(np.abs(resid - np.median(resid)))
+        sx = np.std(x)
+        if sd > 0 and sx > 0:
+            se_slope = sd / (sx * np.sqrt(n_good))
+            rise_se = se_slope * result['span_deg']
+            if rise_se > 0:
+                result['rise_sigma'] = abs(slope * result['span_deg']) / rise_se
         # The tilt that matters is how far the core actually rises across the
         # image. A slope in km/deg looks alarming on a narrow high-resolution
         # image that in truth barely tilts at all.
@@ -226,10 +300,11 @@ def analyze_image(arguments, image_path):
         return None
 
     offsets, snr, coarse = measure_core_offsets(
-        img, radii,
+        img, radii, metadata['mean_radial_resolution'],
         search_km=arguments.search_km,
         baseline_km=arguments.baseline_km,
-        min_snr=arguments.min_snr)
+        min_snr=arguments.min_snr,
+        track_km=arguments.track_km)
     summary = summarize(offsets, longitudes)
     summary['coarse_offset_km'] = coarse
 
@@ -262,16 +337,31 @@ def flags_for(summary, arguments):
         return ['no column had enough signal to measure']
     if summary['coverage'] < arguments.min_coverage:
         reasons.append(f'only {summary["coverage"]*100:.0f}% of columns measurable')
-    if abs(summary['offset_px']) > arguments.max_offset_px:
-        reasons.append(f'core offset {summary["offset_px"]:+.1f} px '
-                       f'({summary["offset_km"]:+.0f} km)')
-    if (np.isfinite(summary['rise_px']) and
-            abs(summary['rise_px']) > arguments.max_rise_px):
+    # Everything is judged in pixels of the source image. Each image has its own
+    # resolution and what matters is how the core looks: a WAC pixel spans about
+    # 185 km, so an 80 km error there is half a pixel and invisible, while a
+    # high resolution NAC sequence with 2.4 km pixels shows the same 80 km as a
+    # plain 33 pixel displacement.
+    #
+    # A tilt is the real signature of bad navigation. The core is eccentric and
+    # the Albers model is only an approximation, so the core sitting off centre
+    # is ordinary and says little; a core that slopes across the image is not.
+    # Offset is therefore held to a much looser limit than tilt, and is there
+    # only to catch grossly displaced images.
+    def over(name, limit):
+        value = summary[f'{name}_px']
+        return np.isfinite(value) and abs(value) > limit
+
+    if (over('rise', arguments.max_rise_px) and
+            summary['rise_sigma'] > arguments.min_rise_sigma):
         reasons.append(f'core tilts {summary["rise_px"]:+.1f} px '
                        f'({summary["rise_km"]:+.0f} km) across the image')
-    if summary['scatter_px'] > arguments.max_scatter_px:
+    if over('scatter', arguments.max_scatter_px):
         reasons.append(f'core scatter {summary["scatter_px"]:.1f} px '
                        f'({summary["scatter_km"]:.0f} km)')
+    if over('offset', arguments.max_offset_px):
+        reasons.append(f'core offset {summary["offset_px"]:+.1f} px '
+                       f'({summary["offset_km"]:+.0f} km)')
     return reasons
 
 
@@ -332,17 +422,29 @@ def main():
                         help='Look for the core within this distance of center')
     parser.add_argument('--baseline-km', type=float, default=600.,
                         help='Rows beyond this distance define the background')
+    parser.add_argument('--track-km', type=float, default=80.,
+                        help='Half-width of the band the core is tracked in once '
+                             'its path is known, to stop the centroid hopping '
+                             'between F ring strands')
     parser.add_argument('--min-snr', type=float, default=5.,
                         help='Smallest peak-to-noise ratio worth measuring')
-    parser.add_argument('--max-offset-px', type=float, default=8.,
-                        help='Flag an image whose core offset exceeds this many '
-                             'pixels of the source image')
-    parser.add_argument('--max-rise-px', type=float, default=12.,
+    parser.add_argument('--max-rise-px', type=float, default=6.,
                         help='Flag an image whose core tilts more than this many '
-                             'source pixels across the image')
-    parser.add_argument('--max-scatter-px', type=float, default=8.,
-                        help='Flag an image whose core scatter exceeds this many '
-                             'source pixels')
+                             'source pixels across the image. This is the main '
+                             'test: a sloped core is what bad navigation looks '
+                             'like.')
+    parser.add_argument('--min-rise-sigma', type=float, default=5.,
+                        help='Only report a tilt this many times larger than its '
+                             'own uncertainty, so a short or noisy image cannot '
+                             'produce a large tilt out of very little evidence')
+    parser.add_argument('--max-scatter-px', type=float, default=6.,
+                        help='Flag an image whose core wanders more than this '
+                             'many source pixels')
+    parser.add_argument('--max-offset-px', type=float, default=25.,
+                        help='Flag an image whose core sits more than this many '
+                             'source pixels off centre. Deliberately loose: the '
+                             'core is eccentric, so being off centre is ordinary '
+                             'and only a gross displacement is worth reporting.')
     parser.add_argument('--min-coverage', type=float, default=0.25,
                         help='Flag an image with less measurable coverage')
     parser.add_argument('--csv', default=None,
