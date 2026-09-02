@@ -394,6 +394,25 @@ LOGGER.add_handler(handler)
 handler = pdslogger.error_handler(LOG_DIR, rotation='none')
 LOGGER.add_handler(handler)
 
+
+def log_uncaught_exception(exc_type, exc_value, exc_traceback):
+    """Log a fatal exception as an error before the process dies.
+
+    Without this, anything that fails outside the per-OBSID loop (writing the
+    collection inventories, the global indexes, the support files) would kill
+    the run leaving nothing in the error log, so a run that died partway
+    through would look clean.
+    """
+    if issubclass(exc_type, KeyboardInterrupt):
+        sys.__excepthook__(exc_type, exc_value, exc_traceback)
+        return
+    LOGGER.error('Fatal uncaught exception:\n' +
+                 ''.join(traceback.format_exception(exc_type, exc_value,
+                                                    exc_traceback)))
+
+
+sys.excepthook = log_uncaught_exception
+
 # Create a separate logger for pdstemplate that only handles warnings and errors
 # but writes to the same log files as the main logger
 pdstemplate_logger = pdslogger.PdsLogger('fring.pdstemplate')
@@ -804,9 +823,11 @@ def read_mosaic(data_path, metadata_path, *, bkg_sub=False, read_img=True):
         if bkg_sub:
             with np.load(data_path) as npz:
                 metadata['img'] = ma.MaskedArray(**npz)
-                # The background image mask shows the "bad pixels"
-                # The missing data in the original mosaic has already been
-                # converted to the sentinel value.
+                # The mask marks the pixels that were excluded when fitting
+                # the background gradient (stars, moons, and the like). Those
+                # are real data and belong in the archive, so the mask is
+                # dropped. Pixels missing from the original mosaic are already
+                # the sentinel value.
                 metadata['img'].mask = False
         else:
             metadata['img'] = ma.MaskedArray(np.load(data_path))
@@ -903,14 +924,29 @@ def read_reproj(metadata_path):
     return metadata
 
 
-def _image_has_satellite(metadata, satellite_dist, satellite_long):
-    """Return True if the satellite is present in the image."""
+# How far outside the radial limits a satellite is still accepted when the
+# observation log says it was seen by eye. The core radius comes from an orbit
+# model good to a few tens of km, and the satellites are themselves tens of km
+# across, so a moon that really is visible can compute as marginally outside.
+SATELLITE_VISUAL_RADIAL_TOLERANCE = 50
+
+
+def _image_has_satellite(metadata, satellite_dist, satellite_long,
+                         radial_tolerance=0.):
+    """Return (present, reason) for the satellite in this image.
+
+    radial_tolerance widens the radial limits by the given number of km. When
+    the satellite is absent, reason says why, for use in a warning message.
+    """
     long_antimask = metadata['long_antimask']
     longitudes = metadata['longitudes'][long_antimask]  # Valid corotating longitudes
     inertial_longitudes = metadata['inertial_longitudes'][long_antimask]
     ETs = metadata['time']  # Scalar for reprojected images, array for mosaics
     if isinstance(ETs, np.ndarray):
         ETs = ETs[long_antimask]
+
+    if len(longitudes) < 5:
+        return False, 'the image has fewer than five valid longitudes'
 
     # Find the closest longitude to the satellite longitude, accounting for
     # the wraparound at 0/360 degrees.
@@ -920,11 +956,15 @@ def _image_has_satellite(metadata, satellite_dist, satellite_long):
     # Must be within two longitude bins of a valid longitude; this gives us a
     # little leeway for missing data.
     if closest_diff > 2 * arguments.longitude_resolution:
-        return False
-    # Must have at least two valid longitudes on either side
-    # We don't account for wraparound; it's unlikely to matter
-    if closest_index < 2 or closest_index >= len(longitudes) - 2:
-        return False
+        return False, (f'its longitude is {closest_diff:.3f} deg from the nearest '
+                       f'longitude containing valid data')
+    # Must have at least two valid longitudes on either side, so that the
+    # satellite isn't sitting right at the edge of the available data. When the
+    # valid longitudes wrap through 0/360 degrees the two ends of the array are
+    # adjacent and there is no edge to fall off.
+    wraps = bool(long_antimask[0]) and bool(long_antimask[-1])
+    if not wraps and (closest_index < 2 or closest_index >= len(longitudes) - 2):
+        return False, 'it is at the edge of the valid longitudes'
 
     if isinstance(ETs, np.ndarray):
         closest_ET = ETs[closest_index]
@@ -936,28 +976,62 @@ def _image_has_satellite(metadata, satellite_dist, satellite_long):
     closest_radius = fring_radius_at_longitude(inertial_longitudes[closest_index],
                                                closest_ET)
     radius_sat_dist = closest_radius - closest_sat_dist  # + Prometheus, - Pandora
-    return ((radius_sat_dist < 0 and  # Pandora
-             radius_sat_dist > -arguments.radius_outer_delta) or
-            (radius_sat_dist > 0 and  # Prometheus
-             radius_sat_dist < -arguments.radius_inner_delta))
+    if radius_sat_dist < 0:  # Pandora, exterior to the core
+        radial_limit = arguments.radius_outer_delta
+    else:  # Prometheus, interior to the core
+        radial_limit = -arguments.radius_inner_delta
+    if abs(radius_sat_dist) < radial_limit + radial_tolerance:
+        return True, ''
+    return False, (f'it is {abs(radius_sat_dist)-radial_limit:.1f} km beyond the '
+                   f'{radial_limit:.0f} km radial limit')
 
 
-def image_has_prometheus(metadata):
-    """Return True if Prometheus is present in the mosaic/reproj imaged."""
+def image_has_prometheus(metadata, radial_tolerance=0.):
+    """Return (present, reason) for Prometheus in the mosaic/reproj image."""
     ETs = metadata['time']
     if isinstance(ETs, np.ndarray):
         ETs = ETs[metadata['long_antimask']]
     prometheus_dist, prometheus_corot_long = saturn_to_prometheus_corot(ETs)
-    return _image_has_satellite(metadata, prometheus_dist, prometheus_corot_long)
+    return _image_has_satellite(metadata, prometheus_dist, prometheus_corot_long,
+                                radial_tolerance=radial_tolerance)
 
 
-def image_has_pandora(metadata):
-    """Return True if Pandora is present in the mosaic/reproj imaged."""
+def image_has_pandora(metadata, radial_tolerance=0.):
+    """Return (present, reason) for Pandora in the mosaic/reproj image."""
     ETs = metadata['time']
     if isinstance(ETs, np.ndarray):
         ETs = ETs[metadata['long_antimask']]
     pandora_dist, pandora_corot_long = saturn_to_pandora_corot(ETs)
-    return _image_has_satellite(metadata, pandora_dist, pandora_corot_long)
+    return _image_has_satellite(metadata, pandora_dist, pandora_corot_long,
+                                radial_tolerance=radial_tolerance)
+
+
+def mosaic_has_satellite(obsid, img_type, metadata, name, image_has_satellite_func,
+                         visually_confirmed):
+    """Return True if a satellite should be listed as a target for a mosaic.
+
+    The geometric test uses this product's own valid longitudes, so a mosaic and
+    its background-subtracted version are evaluated separately; background
+    subtraction can drop longitudes and legitimately change the answer.
+    """
+    geometric, reason = image_has_satellite_func(metadata)
+    if geometric == visually_confirmed:
+        return geometric
+    if geometric:
+        # Geometrically inside the data but not seen by eye. The label says as
+        # much, so keep the target and record the disagreement.
+        LOGGER.warning(f'{obsid}/{img_type}: {name} is geometrically within the '
+                       f'valid data range but was not visually confirmed')
+        return True
+    # Seen by eye but geometrically absent. Accept it if it is only just outside
+    # the radial limits, otherwise flag the disagreement and say why.
+    with_tolerance, _ = image_has_satellite_func(
+        metadata, radial_tolerance=SATELLITE_VISUAL_RADIAL_TOLERANCE)
+    if with_tolerance:
+        return True
+    LOGGER.warning(f'{obsid}/{img_type}: {name} was visually confirmed but is not '
+                   f'in the valid data range because {reason}')
+    return False
 
 
 def mosaic_has_visual_prometheus(obsid):
@@ -1147,7 +1221,7 @@ def read_label(image_name):
     components = image_name.split('/')[-5:]
     image_path = os.path.join(CALIBRATED_DIR, *components)
     label_path = image_path.replace('.IMG', '.LBL')
-    return Pds3Label(label_path, method='fast')
+    return Pds3Label(label_path, method='fast', first_suffix=False)
 
 
 def compute_mid_sclk(start_sclk, stop_sclk):
@@ -1724,7 +1798,7 @@ def xml_metadata_for_image(obsid, metadata, bkgnd_metadata, img_type):
         image_name0 = reformat_iss_name(image_name0)
     camera = image_name0[-1]
     if camera not in ('n', 'w'):
-        LOGGER.fatal(f'Unknown camera for image {image_name0}')
+        LOGGER.error(f'Unknown camera for image {image_name0}')
         raise ObsIdFailedException
     if img_type != 'r':
         for image_name in image_name_list:
@@ -1745,6 +1819,24 @@ def xml_metadata_for_image(obsid, metadata, bkgnd_metadata, img_type):
 
 
 def xml_add_pds3_label_info(ret, obsid, min_image_path, max_image_path):
+    """Add PDS3 label information to the XML metadata.
+
+    Any unexpected failure is logged as an error and turned into an
+    ObsIdFailedException so that the caller skips just this product instead of
+    aborting everything that would have followed it.
+    """
+    try:
+        _xml_add_pds3_label_info(ret, obsid, min_image_path, max_image_path)
+    except (ObsIdFailedException, KeyboardInterrupt, SystemExit):
+        raise
+    except Exception:
+        LOGGER.error(f'{obsid}: Failed to extract PDS3 label information from '
+                     f'{min_image_path} / {max_image_path}:\n'
+                     + traceback.format_exc())
+        raise ObsIdFailedException
+
+
+def _xml_add_pds3_label_info(ret, obsid, min_image_path, max_image_path):
     """Add PDS3 label information to the XML metadata."""
     try:
         min_label = read_label(min_image_path)
@@ -1937,13 +2029,17 @@ def xml_add_comments(ret, img_type, obsid, metadata, bkgnd_metadata):
             Browse images of the mosaic in multiple sizes in PNG format."""
 
     target_id = ''
-    has_prometheus = image_has_prometheus(metadata)
-    has_pandora = image_has_pandora(metadata)
-    if img_type != 'r':
-        if has_prometheus != mosaic_has_visual_prometheus(obsid):
-            LOGGER.warning(f'{obsid}/{img_type}: Prometheus is {has_prometheus} in the image but {mosaic_has_visual_prometheus(obsid)} visually confirmed')
-        if has_pandora != mosaic_has_visual_pandora(obsid):
-            LOGGER.warning(f'{obsid}/{img_type}: Pandora is {has_pandora} in the image but {mosaic_has_visual_pandora(obsid)} visually confirmed')
+    if img_type == 'r':
+        # Reprojected images have no visual confirmation of their own
+        has_prometheus, _ = image_has_prometheus(metadata)
+        has_pandora, _ = image_has_pandora(metadata)
+    else:
+        has_prometheus = mosaic_has_satellite(
+            obsid, img_type, metadata, 'Prometheus', image_has_prometheus,
+            mosaic_has_visual_prometheus(obsid))
+        has_pandora = mosaic_has_satellite(
+            obsid, img_type, metadata, 'Pandora', image_has_pandora,
+            mosaic_has_visual_pandora(obsid))
     if has_prometheus:
         target_id += TARGET_PROMETHEUS
     if has_pandora:
@@ -2314,13 +2410,27 @@ ring core -1000km and +1000km at each inertial longitude containing valid data a
 of the observation.
 """
     if 'Prometheus' in ret['TARGET_IDENTIFICATION']:
-        ret['MOSAIC_RINGS_DESCRIPTION'] += """
+        if mosaic_has_visual_prometheus(obsid):
+            ret['MOSAIC_RINGS_DESCRIPTION'] += """
+
+This mosaic includes Prometheus within the valid data range, and its presence has been
+visually confirmed.
+"""
+        else:
+            ret['MOSAIC_RINGS_DESCRIPTION'] += """
 
 This mosaic includes Prometheus within the valid data range, although its presence has not
 been visually confirmed.
 """
     if 'Pandora' in ret['TARGET_IDENTIFICATION']:
-        ret['MOSAIC_RINGS_DESCRIPTION'] += """
+        if mosaic_has_visual_pandora(obsid):
+            ret['MOSAIC_RINGS_DESCRIPTION'] += """
+
+This mosaic includes Pandora within the valid data range, and its presence has been
+visually confirmed.
+"""
+        else:
+            ret['MOSAIC_RINGS_DESCRIPTION'] += """
 
 This mosaic includes Pandora within the valid data range, although its presence has not
 been visually confirmed.
@@ -3162,6 +3272,15 @@ def handle_one_obsid(obsid, reproj_collection_fp, browse_reproj_collection_fp,
             except ObsIdFailedException:
                 # Already logged; skip this image's inventory rows without
                 # losing the mosaic products generated above
+                continue
+            except (KeyboardInterrupt, SystemExit):
+                raise
+            except Exception:
+                # Anything unexpected: log it and drop just this image, so one
+                # bad source image cannot cost us the rest of the observation
+                LOGGER.error(f'{obsid}: Uncaught exception while generating the '
+                             f'reprojected image for {image_path}; skipping it:\n'
+                             + traceback.format_exc())
                 continue
 
             # Only list products in the inventories once they have actually
