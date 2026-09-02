@@ -21,9 +21,15 @@ resolution NAC sequence with 2.4 km pixels shows the same 80 km as a plain
 
 The tilt is the main test. The core is eccentric and the Albers model only an
 approximation, so a core sitting off centre is ordinary and says little about
-navigation; a core that slopes across the image is not ordinary. The offset
-limit is therefore much looser than the tilt limit and exists only to catch
-grossly displaced images.
+navigation; a core that slopes across the image is not ordinary. Eight pixels
+off centre is normal F ring core variation, and it takes many dozens of pixels
+before a displacement is evidence of bad navigation, so the offset limit is far
+looser than the tilt limit and exists only to catch gross cases.
+
+The core wanders in the other sense too, drifting a hundred km below the model
+and back within one image, which a straight line reads as a tilt. Across the
+archive 99% of images tilt less than nine pixels, so the defaults sit well above
+that and report only the extremes: over 21,046 images they flag a handful.
 
 The core is located coarsely over the whole radial range first and only then
 centroided, so an image whose core lies far outside the search window reports
@@ -428,23 +434,27 @@ def main():
                              'between F ring strands')
     parser.add_argument('--min-snr', type=float, default=5.,
                         help='Smallest peak-to-noise ratio worth measuring')
-    parser.add_argument('--max-rise-px', type=float, default=6.,
+    parser.add_argument('--max-rise-px', type=float, default=15.,
                         help='Flag an image whose core tilts more than this many '
                              'source pixels across the image. This is the main '
                              'test: a sloped core is what bad navigation looks '
-                             'like.')
+                             'like. Across the archive the 99th percentile is '
+                             'under 9 pixels, so 15 is well clear of the core\'s '
+                             'own wander.')
     parser.add_argument('--min-rise-sigma', type=float, default=5.,
                         help='Only report a tilt this many times larger than its '
                              'own uncertainty, so a short or noisy image cannot '
                              'produce a large tilt out of very little evidence')
-    parser.add_argument('--max-scatter-px', type=float, default=6.,
+    parser.add_argument('--max-scatter-px', type=float, default=8.,
                         help='Flag an image whose core wanders more than this '
-                             'many source pixels')
-    parser.add_argument('--max-offset-px', type=float, default=25.,
+                             'many source pixels about its own fitted track')
+    parser.add_argument('--max-offset-px', type=float, default=50.,
                         help='Flag an image whose core sits more than this many '
-                             'source pixels off centre. Deliberately loose: the '
-                             'core is eccentric, so being off centre is ordinary '
-                             'and only a gross displacement is worth reporting.')
+                             'source pixels off centre. Very loose on purpose: '
+                             'the core really does wander, and eight pixels off '
+                             'centre is ordinary variation, so only a gross '
+                             'displacement of many dozens of pixels is evidence '
+                             'of anything.')
     parser.add_argument('--min-coverage', type=float, default=0.25,
                         help='Flag an image with less measurable coverage')
     parser.add_argument('--csv', default=None,
@@ -464,8 +474,8 @@ def main():
 
     fields = ['obsid', 'notes', 'image', 'n_columns', 'n_measured', 'coverage',
               'offset_km', 'scatter_km', 'slope_km_per_deg', 'rise_km',
-              'span_deg', 'radial_res_km_px', 'offset_px', 'rise_px',
-              'scatter_px', 'coarse_offset_km', 'median_snr', 'flags']
+              'rise_sigma', 'span_deg', 'radial_res_km_px', 'offset_px',
+              'rise_px', 'scatter_px', 'coarse_offset_km', 'median_snr', 'flags']
     csv_fp = None
     writer = None
     if arguments.csv:
