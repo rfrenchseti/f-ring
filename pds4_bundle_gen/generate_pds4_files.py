@@ -1141,6 +1141,13 @@ def remap_image_indexes(metadata):
     image_indexes = metadata['image_number']
     image_name_list = metadata['image_name_list']
     image_path_list = metadata['image_path_list']
+
+    # Keep the untruncated lists. Most observations archive only the images that
+    # went into the mosaic, but occultation and 'R' observations archive the whole
+    # sequence, because their mosaics deliberately use only part of it.
+    metadata['all_image_name_list'] = [reformat_iss_name(x) for x in image_name_list]
+    metadata['all_image_path_list'] = list(image_path_list)
+
     used_indexes = sorted(set(image_indexes) - set([SENTINEL]))
     number_map = {SENTINEL: SENTINEL}
     for i in range(len(used_indexes)):
@@ -1148,14 +1155,35 @@ def remap_image_indexes(metadata):
     new_image_indexes = [number_map[x] for x in image_indexes]
     metadata['image_number'] = np.array(new_image_indexes)
 
-    # XXX Change for occultations? or all mosaics?
-    # Only include images that we actually used in the name list
+    # Only include images that we actually used in the name list. These lists
+    # drive the mosaic's own metadata, so they must stay restricted to the images
+    # the mosaic was built from: the params table's image_index column indexes
+    # into them, and the src_imgs table lists exactly them.
     new_image_name_list = [reformat_iss_name(image_name_list[x])
                                for x in number_map.keys() if x != SENTINEL]
     metadata['image_name_list'] = new_image_name_list
     new_image_path_list = [image_path_list[x]
                                for x in number_map.keys() if x != SENTINEL]
     metadata['image_path_list'] = new_image_path_list
+
+
+def archived_image_paths(obsid, metadata):
+    """Return the source images to archive as reprojected products.
+
+    Normally only the images that went into the mosaic are archived, since those
+    are the only ones whose navigation was checked while it was built. The
+    occultation ('O') and 'R' observations archive every image of the sequence:
+    their mosaics use only part of a sequence that is wanted in full, and the
+    navigation of the remainder has been checked separately with
+    mosaics/analyze_reproj_navigation.py.
+
+    An image archived this way is still absent from the mosaic's src_imgs table,
+    which lists only what the mosaic was actually built from.
+    """
+    notes = OBSERVATION_INFO[obsid]['notes']
+    if 'O' in notes or 'R' in notes:
+        return metadata['all_image_path_list']
+    return metadata['image_path_list']
 
 
 def reslice_reproj_img(img, min_corotating_longitude, max_corotating_longitude):
@@ -2200,10 +2228,17 @@ Metadata for the Reprojected Version of Cassini ISS Calibrated Image
     ret['CALIB_LIDVID'] = image_name_to_calib_lidvid(image_name)
     ret['BROWSE_REPROJ_LID'] = image_name_to_reproj_browse_lid(image_name)
 
+    if metadata.get('used_in_mosaic', True):
+        mosaic_sentence = (f'This reprojected image was used to create mosaic '
+                           f'{obsid.lower()}.')
+    else:
+        mosaic_sentence = (f'This reprojected image is part of observation '
+                           f'{root_obsid} but was not used to create mosaic '
+                           f'{obsid.lower()}, which covers only part of the '
+                           f'observation.')
     ret['REPROJ_DESCRIPTION'] = f"""
 Reprojected version of Cassini ISS calibrated image {image_name} from
-Cassini observation {root_obsid}. This reprojected image was used to
-create mosaic {obsid.lower()}.
+Cassini observation {root_obsid}. {mosaic_sentence}
 
 This derived data product is part of bundle cassini_iss_fring_mosaics_rsfrench2025,
 created by Robert S. French et al., and archived at the Ring-Moon Systems Node.
@@ -3393,11 +3428,13 @@ def handle_one_obsid(obsid, reproj_collection_fp, browse_reproj_collection_fp,
                                   obsid.lower())
         reproj_browse_dir = os.path.join(arguments.output_dir, 'browse_reproj_img',
                                          obsid.lower())
-        for image_path in mosaic_metadata['image_path_list']:
+        mosaic_image_paths = set(mosaic_metadata['image_path_list'])
+        for image_path in archived_image_paths(obsid, mosaic_metadata):
             try:
                 reproj_path = img_to_repro_path(image_path)
                 reproj_metadata = read_reproj(obsid, reproj_path)
                 reproj_metadata['image_path'] = image_path
+                reproj_metadata['used_in_mosaic'] = image_path in mosaic_image_paths
                 reproj_metadata['image_name'] = image_name = \
                     reformat_iss_name(image_path.split('/')[-1].replace('_CALIB.IMG', ''))
 
