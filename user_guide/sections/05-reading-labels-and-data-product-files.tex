@@ -56,10 +56,51 @@ This format allows software that knows the width of each column to efficiently r
 Files with the extension \code{.\allowbreak{}csv} (mainly the collection files) are formatted as \textit{variable-width comma-separated value} files. These files can be read the same way as the above table files, except it is more likely programs will correctly identify them as delimited instead of fixed width from the beginning.
 
 
+\subsubsection{Image files}
+\label{sec:image-files}
+
+Files with the extension \code{.\allowbreak{}img} hold the reprojected images and mosaics. They are raw binary arrays with no header, no record separators, and no padding: LSB (little-endian) IEEE 754 single-precision floats, stored one complete radial row at a time, with the value −999 marking any element that has no valid data (Section \ref{sec:data-reproj-img}). A text editor is of no use on these files, but no PDS4-aware software is needed either. In Python, \code{numpy} reads them directly:
+
+\begin{CodeBlock}
+import numpy as np
+
+# A reprojected image: 401 radial rows, one column per stored longitude.
+img = np.fromfile('1874525875w_reproj_img.img', dtype='<f4')
+img = np.ma.masked_equal(img.reshape(401, -1), -999)
+
+# Row i of either product is a fixed distance from the predicted core.
+delta_r = -1000.0 + 5.0 * np.arange(401)     # km, -1000 .. +1000
+
+# A mosaic is never clipped, so it is always the full grid.
+mos = np.fromfile('iss_036rf_fmovie001_vims_mosaic.img', dtype='<f4')
+mos = np.ma.masked_equal(mos.reshape(401, 18000), -999)
+col = int(round(longitude / 0.02))           # column for a longitude
+\end{CodeBlock}
+
+The columns of a \textit{reprojected} image do not carry their longitudes with them, because the image is clipped to the longitudes that contain valid data. Take \code{rings:\allowbreak{}minimum\_\allowbreak{}corotating\_\allowbreak{}ring\_\allowbreak{}longitude} and \code{rings:\allowbreak{}maximum\_\allowbreak{}corotating\_\allowbreak{}ring\_\allowbreak{}longitude} from the label. When the minimum is greater than the maximum, the image wraps around 360° and is stored as two sections, first from the minimum up to 359.98° and then from 0° up to the maximum (Section \ref{sec:reprojection}). Taking the longitude modulo 360 handles both cases with the same expression, so no special case is needed:
+
+\begin{CodeBlock}
+# From the label of 1874525875w_reproj_img (this image does wrap):
+#   <rings:minimum_corotating_ring_longitude unit="deg">338.04</...>
+#   <rings:maximum_corotating_ring_longitude unit="deg">77.60</...>
+min_lon, max_lon = 338.04, 77.60
+
+# Longitude of every column, in order, wrapping through 360 where needed.
+lon = (min_lon + 0.02 * np.arange(img.shape[1])) % 360.0
+assert img.shape[1] == round(((max_lon - min_lon) % 360.0) / 0.02) + 1
+assert abs(lon[-1] - max_lon) < 1e-6
+
+# The column holding a particular longitude.
+col = int(round(((want_lon - min_lon) % 360.0) / 0.02))
+\end{CodeBlock}
+
+The rows of the associated \code{\_\allowbreak{}metadata\_\allowbreak{}params.\allowbreak{}tab} file cover only the longitudes that contain valid data, so they do not line up one-to-one with the columns of the image. Use the corotating longitude to match a table row to an image column, as described in Section \ref{sec:data-reproj-img}.
+
+
 \subsection{Using PDS4-specific software}
 \label{sec:using-pds4-specific-software}
 
-A variety of software is available for reading PDS4-format data. Note that over time tools evolve and are replaced, and the URLs or package names where tools can be found change. This section includes tools and their locations at the time of publication. To find new or updated tools, use the resources in Section \ref{sec:pds4-standards-and-documentation}
+A variety of software is available for reading PDS4-format data. Note that over time tools evolve and are replaced, and the URLs or package names where tools can be found change. This section includes tools and their locations at the time of publication. To find new or updated tools, use the resources in Section \ref{sec:pds4-standards-and-documentation}.
 
 
 \subsubsection{The Small Bodies Node tools}
