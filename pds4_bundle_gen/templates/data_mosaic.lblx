@@ -109,7 +109,7 @@
             <cassini:Cassini>
                 <cassini:ISS_Specific_Attributes>
                     <cassini:mission_phase_name>$TOUR$</cassini:mission_phase_name>
-                    <cassini:spacecraft_clock_count_partition>1</cassini:spacecraft_clock_count_partition>
+                    <cassini:spacecraft_clock_count_partition>$SPACECRAFT_CLOCK_CNT_PARTITION$</cassini:spacecraft_clock_count_partition>
                     <cassini:spacecraft_clock_start_count>$SPACECRAFT_CLOCK_START_COUNT$</cassini:spacecraft_clock_start_count>
                     <cassini:spacecraft_clock_stop_count>$SPACECRAFT_CLOCK_STOP_COUNT$</cassini:spacecraft_clock_stop_count>
                     <cassini:filter_name_1>$FILTER1$</cassini:filter_name_1>
@@ -231,9 +231,7 @@
                 <sequence_number>2</sequence_number>
             </Axis_Array>
             <Special_Constants>
-                <!-- Data was missing or corrupted in the original image (either because it was off
-                 the edge of the FOV or because of a transmission error resulting in a partial or
-                 corrupted image) -->
+                <!-- $SENTINEL_DESCRIPTION$ -->
                 <missing_constant>$SENTINEL$</missing_constant>
             </Special_Constants>
         </Array_2D_Image>

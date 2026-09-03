@@ -6,3 +6,11 @@ S,urn:nasa:pds:context:target:ring.saturn.rings
 S,urn:nasa:pds:context:target:ring.saturn.f_ring
 S,urn:nasa:pds:context:target:satellite.saturn.pandora
 S,urn:nasa:pds:context:target:satellite.saturn.prometheus
+S,urn:nasa:pds:context:target:star.bet_and
+S,urn:nasa:pds:context:target:star.bet_peg
+S,urn:nasa:pds:context:target:star.gam_peg
+S,urn:nasa:pds:context:target:star.mu._cep
+S,urn:nasa:pds:context:target:star.r_cas
+S,urn:nasa:pds:context:target:star.w_hya
+S,urn:nasa:pds:context:target:star.13_lyr
+S,urn:nasa:pds:context:target:star.r_hya

@@ -231,7 +231,7 @@
                 <lid_reference>urn:nasa:pds:context:target:satellite.saturn.pandora</lid_reference>
                 <reference_type>collection_to_target</reference_type>
             </Internal_Reference>
-        </Target_Identification>
+        </Target_Identification>$NOESCAPE(STAR_TARGETS_COLLECTION)$
     </Context_Area>
     <Reference_List>
         <Internal_Reference>

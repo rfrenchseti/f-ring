@@ -87,6 +87,8 @@ OBSERVATION_LIST_PATH = 'observation_list.csv'
 #     OBSID/
 #       IMG_browse_reproj_img.lblx                 +[template reproj-browse-image.lblx]
 #       IMG_browse_reproj_img_full.png             +[generated]
+#       IMG_browse_reproj_img_med.png              +[generated]
+#       IMG_browse_reproj_img_small.png            +[generated]
 #       IMG_browse_reproj_img_thumb.png            +[generated]
 #   context/
 #     collection_context.csv                        [RMS - boilerplate]
@@ -282,6 +284,8 @@ f_ring.init(arguments)
 
 # These hardcoded paths are for the machine ringlet
 CALIBRATED_DIR = '/data/pdsdata/holdings/calibrated'
+# A few keywords the labels need, like VALID_MAXIMUM, live only in the raw labels.
+VOLUMES_DIR = '/data/pdsdata/holdings/volumes'
 REPROJ_DIR = '/data/cb-results/fring/ring_mosaic/ring_repro'
 OFFSETS_DIR = '/data/cb-results/fring/offsets'
 
@@ -479,6 +483,80 @@ TARGET_PANDORA = """
                 <reference_type>data_to_target</reference_type>
             </Internal_Reference>
         </Target_Identification>"""
+
+# The occultation observations were designed around one particular star, which is
+# present in every source image of the observation and therefore in the mosaic as
+# well. Nothing in the source data identifies it: the PDS3 labels give
+# TARGET_NAME = "SKY" and TARGET_LIST = "N/A", so the star is known only from the
+# observation name. Each name and LID below is that of the PDS context product for
+# the star; the Bayer or variable-star designation the observation name is built
+# from is carried as an alternate designation.
+#
+# L2 Puppis has no context product in the PDS registry, so the two L2PUPOCC
+# observations cannot name their star yet. They are listed here with a LID of None
+# so that the check in read_observation_list() does not report them as an
+# oversight.
+OCCULTATION_STARS = {
+    'ISS_172RI_BETPEGOCC001_VIMS': ('Scheat', 'Beta Pegasi', 'star.bet_peg'),
+    'ISS_172ST_URGAMPEG001_UVIS': ('Algenib', 'Gamma Pegasi', 'star.gam_peg'),
+    'ISS_180RI_RLYROCC001_VIMS': ('R Lyrae', '13 Lyrae', 'star.13_lyr'),
+    'ISS_180RI_RCASOCC001_VIMS': ('R Cassiopeiae', None, 'star.r_cas'),
+    'ISS_185RI_RHYAOCC001_VIMS_1': ('R Hydrae', None, 'star.r_hya'),
+    'ISS_185RI_RHYAOCC001_VIMS_2': ('R Hydrae', None, 'star.r_hya'),
+    'ISS_194RI_MUCEPOCC001_VIMS': ("Herschel's Garnet Star", 'Mu Cephei', 'star.mu._cep'),
+    'ISS_196RI_BETANDOCC001_VIMS': ('Mirach', 'Beta Andromedae', 'star.bet_and'),
+    'ISS_197RI_WHYAOCC001_VIMS': ('W Hydrae', None, 'star.w_hya'),
+    'ISS_198RI_RLYROCC001_VIMS': ('R Lyrae', '13 Lyrae', 'star.13_lyr'),
+    'ISS_201RI_L2PUPOCC001_VIMS_1': ('L2 Puppis', None, None),
+    'ISS_201RI_L2PUPOCC001_VIMS_2': ('L2 Puppis', None, None),
+    'ISS_205RI_L2PUPOCC002_VIMS': ('L2 Puppis', None, None),
+    'ISS_206RI_L2PUPOCC002_VIMS': ('L2 Puppis', None, None),
+}
+
+
+def _star_target_block(name, alt_designation, lid, reference_type):
+    """Return one Target_Identification block for a star."""
+    alt = ''
+    if alt_designation is not None:
+        alt = (f'\n            <alternate_designation>{alt_designation}'
+               f'</alternate_designation>')
+    return f"""
+        <Target_Identification>
+            <name>{name}</name>{alt}
+            <type>Star</type>
+            <Internal_Reference>
+                <lid_reference>urn:nasa:pds:context:target:{lid}</lid_reference>
+                <reference_type>{reference_type}</reference_type>
+            </Internal_Reference>
+        </Target_Identification>"""
+
+
+def target_star(obsid):
+    """Return the Target_Identification block for one observation's star.
+
+    Returns the empty string when the observation is not an occultation, or when
+    its star has no context product to reference.
+    """
+    if obsid not in OCCULTATION_STARS:
+        return ''
+    name, alt_designation, lid = OCCULTATION_STARS[obsid]
+    if lid is None:
+        return ''
+    return _star_target_block(name, alt_designation, lid, 'data_to_target')
+
+
+def all_star_targets(reference_type):
+    """Return Target_Identification blocks for every star the bundle references.
+
+    Used by the collection and bundle labels, which list every target appearing in
+    any of their members.
+    """
+    stars = {}
+    for name, alt_designation, lid in OCCULTATION_STARS.values():
+        if lid is not None:
+            stars[lid] = (name, alt_designation)
+    return ''.join(_star_target_block(stars[lid][0], stars[lid][1], lid, reference_type)
+                   for lid in sorted(stars))
 
 
 ##########################################################################################
@@ -784,10 +862,11 @@ def add_orbital_metadata(metadata):
     metadata['pandora_dist'], metadata['pandora_corot_long'] = saturn_to_pandora_corot(ETs)
 
 
-def read_mosaic(data_path, metadata_path, *, bkg_sub=False, read_img=True):
+def read_mosaic(obsid, data_path, metadata_path, *, bkg_sub=False, read_img=True):
     """Read a main or background-subtracted mosaic and associated metadata.
 
     Parameters:
+        obsid (str): the observation name, used only in error messages
         data_path (str): path to the mosaic data file
         metadata_path (str): path to the mosaic metadata file
         bkg_sub (bool): whether to read a background-subtracted mosaic
@@ -871,10 +950,11 @@ def read_bkgnd_metadata(model_path, metadata_path):
     return metadata
 
 
-def read_reproj(metadata_path):
+def read_reproj(obsid, metadata_path):
     """Read reprojected image metadata.
 
     Parameters:
+        obsid (str): the observation name, used only in error messages
         metadata_path (str): path to the reprojected image metadata file
 
     Returns:
@@ -1061,6 +1141,13 @@ def remap_image_indexes(metadata):
     image_indexes = metadata['image_number']
     image_name_list = metadata['image_name_list']
     image_path_list = metadata['image_path_list']
+
+    # Keep the untruncated lists. Most observations archive only the images that
+    # went into the mosaic, but occultation and 'R' observations archive the whole
+    # sequence, because their mosaics deliberately use only part of it.
+    metadata['all_image_name_list'] = [reformat_iss_name(x) for x in image_name_list]
+    metadata['all_image_path_list'] = list(image_path_list)
+
     used_indexes = sorted(set(image_indexes) - set([SENTINEL]))
     number_map = {SENTINEL: SENTINEL}
     for i in range(len(used_indexes)):
@@ -1068,14 +1155,35 @@ def remap_image_indexes(metadata):
     new_image_indexes = [number_map[x] for x in image_indexes]
     metadata['image_number'] = np.array(new_image_indexes)
 
-    # XXX Change for occultations? or all mosaics?
-    # Only include images that we actually used in the name list
+    # Only include images that we actually used in the name list. These lists
+    # drive the mosaic's own metadata, so they must stay restricted to the images
+    # the mosaic was built from: the params table's image_index column indexes
+    # into them, and the src_imgs table lists exactly them.
     new_image_name_list = [reformat_iss_name(image_name_list[x])
                                for x in number_map.keys() if x != SENTINEL]
     metadata['image_name_list'] = new_image_name_list
     new_image_path_list = [image_path_list[x]
                                for x in number_map.keys() if x != SENTINEL]
     metadata['image_path_list'] = new_image_path_list
+
+
+def archived_image_paths(obsid, metadata):
+    """Return the source images to archive as reprojected products.
+
+    Normally only the images that went into the mosaic are archived, since those
+    are the only ones whose navigation was checked while it was built. The
+    occultation ('O') and 'R' observations archive every image of the sequence:
+    their mosaics use only part of a sequence that is wanted in full, and the
+    navigation of the remainder has been checked separately with
+    mosaics/analyze_reproj_navigation.py.
+
+    An image archived this way is still absent from the mosaic's src_imgs table,
+    which lists only what the mosaic was actually built from.
+    """
+    notes = OBSERVATION_INFO[obsid]['notes']
+    if 'O' in notes or 'R' in notes:
+        return metadata['all_image_path_list']
+    return metadata['image_path_list']
 
 
 def reslice_reproj_img(img, min_corotating_longitude, max_corotating_longitude):
@@ -1153,7 +1261,7 @@ def obsid_to_mosaic_lid(obsid, bkg_sub):
     urn:nasa:pds:cassini_iss_fring_mosaics_rsfrench2025:data_mosaic:
     iosic_276rb_complitb4001_si_mosaic
         or
-    urn:nasa:pds:cassini_iss_fring_mosaics_rsfrench2025_mosaic_rsfrench2025:data_mosaic_bkg_sub:iosic_276rb_complitb4001_si_mosaic_bkg_sub
+    urn:nasa:pds:cassini_iss_fring_mosaics_rsfrench2025:data_mosaic_bkg_sub:iosic_276rb_complitb4001_si_mosaic_bkg_sub
     """
     sfx = '_bkg_sub' if bkg_sub else ''
     obsid = obsid.lower()
@@ -1165,7 +1273,7 @@ def obsid_to_mosaic_lidvid(obsid, bkg_sub):
 
     urn:nasa:pds:cassini_iss_fring_mosaics_rsfrench2025:data_mosaic:iosic_276rb_complitb4001_si_mosaic::1.0
         or
-    urn:nasa:pds:cassini_iss_fring_mosaics_rsfrench2025_mosaic_rsfrench2025:data_mosaic_bkg_sub:iosic_276rb_complitb4001_si_mosaic_bkg_sub::1.0
+    urn:nasa:pds:cassini_iss_fring_mosaics_rsfrench2025:data_mosaic_bkg_sub:iosic_276rb_complitb4001_si_mosaic_bkg_sub::1.0
     """
     return obsid_to_mosaic_lid(obsid, bkg_sub)+'::1.0'
 
@@ -1175,7 +1283,7 @@ def obsid_to_mosaic_browse_lid(obsid, bkg_sub):
 
     urn:nasa:pds:cassini_iss_fring_mosaics_rsfrench2025:browse_mosaic:iosic_276rb_complitb4001_si_browse_mosaic
         or
-    urn:nasa:pds:cassini_iss_fring_mosaics_rsfrench2025_mosaic_rsfrench2025:browse_mosaic_bkg_sub:
+    urn:nasa:pds:cassini_iss_fring_mosaics_rsfrench2025:browse_mosaic_bkg_sub:
     iosic_276rb_complitb4001_si_browse_mosaic_bkg_sub
     """
     sfx = '_bkg_sub' if bkg_sub else ''
@@ -1221,6 +1329,19 @@ def read_label(image_name):
     components = image_name.split('/')[-5:]
     image_path = os.path.join(CALIBRATED_DIR, *components)
     label_path = image_path.replace('.IMG', '.LBL')
+    return Pds3Label(label_path, method='fast', first_suffix=False)
+
+
+def read_raw_label(image_name):
+    """Return the PDS3 label of the raw image the calibrated image came from.
+
+    A handful of keywords, notably VALID_MAXIMUM, appear only in the raw labels.
+    The raw label sits at the same place under the volumes tree, without the
+    _CALIB in its name.
+    """
+    components = image_name.split('/')[-5:]
+    image_path = os.path.join(VOLUMES_DIR, *components)
+    label_path = image_path.replace('_CALIB.IMG', '.LBL')
     return Pds3Label(label_path, method='fast', first_suffix=False)
 
 
@@ -1662,6 +1783,17 @@ def read_observation_list():
                 'notes': notes,
             }
 
+    # Keep OCCULTATION_STARS and the observation list from drifting apart: every
+    # occultation needs a star, and only occultations should have one.
+    for obsid, info in OBSERVATION_INFO.items():
+        is_occultation = 'O' in info['notes']
+        if is_occultation and obsid not in OCCULTATION_STARS:
+            LOGGER.error(f'{obsid}: Marked as an occultation but has no entry in '
+                         f'OCCULTATION_STARS, so its star cannot be listed as a target')
+        elif not is_occultation and obsid in OCCULTATION_STARS:
+            LOGGER.error(f'{obsid}: Has an entry in OCCULTATION_STARS but is not '
+                         f'marked as an occultation in {OBSERVATION_LIST_PATH}')
+
 
 ##########################################################################################
 #
@@ -1803,9 +1935,11 @@ def xml_metadata_for_image(obsid, metadata, bkgnd_metadata, img_type):
     if img_type != 'r':
         for image_name in image_name_list:
             if image_name[-1] != camera:
+                # The label can only name one camera, so a mixed-camera mosaic
+                # would be archived under whichever camera image 0 happened to use.
                 LOGGER.error(f'{obsid}: Inconsistent cameras for images '
-                            f'{image_name0} and {image_name}')
-                break
+                             f'{image_name0} and {image_name}')
+                raise ObsIdFailedException
     if camera == 'n':
         ret['CAMERA_WIDTH'] = 'Narrow'
         ret['CAMERA_WN_UC'] = 'N'
@@ -1956,6 +2090,20 @@ def _xml_add_pds3_label_info(ret, obsid, min_image_path, max_image_path):
     ret['TARGET_DESC'] = min_label['TARGET_DESC']
     ret['TELEMETRY_FORMAT_ID'] = min_label['TELEMETRY_FORMAT_ID']
 
+    # VALID_MAXIMUM is not carried over into the calibrated label, so it has to
+    # come from the raw one.
+    try:
+        ret['VALID_MAXIMUM'] = read_raw_label(min_image_path)['VALID_MAXIMUM']
+    except FileNotFoundError:
+        LOGGER.error(f'{obsid}: Failed to open the raw label for {min_image_path}')
+        raise ObsIdFailedException
+    except pyparsing.exceptions.ParseException:
+        LOGGER.error(f'{obsid}: Failed to parse the raw label for {min_image_path}')
+        raise ObsIdFailedException
+    except KeyError:
+        LOGGER.error(f'{obsid}: The raw label for {min_image_path} has no VALID_MAXIMUM')
+        raise ObsIdFailedException
+
 
 def xml_add_comments(ret, img_type, obsid, metadata, bkgnd_metadata):
     """Add descriptions, comments, and references to the XML metadata."""
@@ -2044,6 +2192,9 @@ def xml_add_comments(ret, img_type, obsid, metadata, bkgnd_metadata):
         target_id += TARGET_PROMETHEUS
     if has_pandora:
         target_id += TARGET_PANDORA
+    # An occultation's star is in every source image of the observation, and so in
+    # the mosaic too; there is no per-image test to make.
+    target_id += target_star(obsid)
     ret['TARGET_IDENTIFICATION'] = target_id
 
     if img_type == 'r':
@@ -2077,10 +2228,17 @@ Metadata for the Reprojected Version of Cassini ISS Calibrated Image
     ret['CALIB_LIDVID'] = image_name_to_calib_lidvid(image_name)
     ret['BROWSE_REPROJ_LID'] = image_name_to_reproj_browse_lid(image_name)
 
+    if metadata.get('used_in_mosaic', True):
+        mosaic_sentence = (f'This reprojected image was used to create mosaic '
+                           f'{obsid.lower()}.')
+    else:
+        mosaic_sentence = (f'This reprojected image is part of observation '
+                           f'{root_obsid} but was not used to create mosaic '
+                           f'{obsid.lower()}, which covers only part of the '
+                           f'observation.')
     ret['REPROJ_DESCRIPTION'] = f"""
 Reprojected version of Cassini ISS calibrated image {image_name} from
-Cassini observation {root_obsid}. This reprojected image was used to
-create mosaic {obsid.lower()}.
+Cassini observation {root_obsid}. {mosaic_sentence}
 
 This derived data product is part of bundle cassini_iss_fring_mosaics_rsfrench2025,
 created by Robert S. French et al., and archived at the Ring-Moon Systems Node.
@@ -2196,6 +2354,17 @@ def xml_add_mosaic_comments(ret, metadata, bkgnd_metadata, img_type, root_obsid,
         OBSERVATION_INFO[full_obsid]['bkgnd_qual']]
 
     total_hours = total_secs / 3600
+
+    # A sentinel in a mosaic overwhelmingly means "no image covered this longitude",
+    # which is not what it means in a reprojected image, and a background-subtracted
+    # mosaic has one further cause of its own.
+    ret['SENTINEL_DESCRIPTION'] = """No data are available for this pixel, either because no
+                 image covered this longitude, or because the data were missing or corrupted
+                 in the source image (off the edge of the FOV, or a transmission error
+                 resulting in a partial or corrupted image)"""
+    if img_type == 'b':
+        ret['SENTINEL_DESCRIPTION'] += """, or because no valid background model
+                 could be fit at this longitude"""
 
     ret['MIN_IMAGE_NAME'] = min_image_name
     ret['MAX_IMAGE_NAME'] = max_image_name
@@ -2849,12 +3018,12 @@ def generate_image(obsid, output_dir, metadata, xml_metadata, global_index_fp,
 
 
 def generate_browse(obsid, browse_dir, metadata, xml_metadata, img_type):
-    """Create mosaic browse images.
+    """Create browse images for a mosaic or a reprojected image.
 
     Inputs:
         obsid           The observation name.
         browse_dir      The directory in which to put all browse files.
-        metadata        The metadata for a background-subtracted mosaic.
+        metadata        The metadata for the mosaic or reprojected image.
         xml_metadata    The XML substitutions.
         img_type        The img_type of data being provided:
                             'm' = Mosaic
@@ -2886,7 +3055,7 @@ def generate_browse(obsid, browse_dir, metadata, xml_metadata, img_type):
 
     img_type == 'r':
 
-      browse_mosaic/
+      browse_reproj_img/
         OBSID/
           IMG_browse_reproj_img_full.png
           IMG_browse_reproj_img_med.png
@@ -3226,8 +3395,8 @@ def handle_one_obsid(obsid, reproj_collection_fp, browse_reproj_collection_fp,
             LOGGER.error(f'File not found: {bkgnd_metadata_path}')
             return False
 
-        mosaic_metadata = read_mosaic(mosaic_path, mosaic_metadata_path, bkg_sub=False)
-        bsm_metadata = read_mosaic(bsm_path, bsm_metadata_path, bkg_sub=True)
+        mosaic_metadata = read_mosaic(obsid, mosaic_path, mosaic_metadata_path, bkg_sub=False)
+        bsm_metadata = read_mosaic(obsid, bsm_path, bsm_metadata_path, bkg_sub=True)
         bkgnd_metadata = read_bkgnd_metadata(bkgnd_model_path, bkgnd_metadata_path)
 
         if not all(obsid == x for x in mosaic_metadata['obsid_list']):
@@ -3252,18 +3421,20 @@ def handle_one_obsid(obsid, reproj_collection_fp, browse_reproj_collection_fp,
         GENERATE_BROWSE_REPROJ_LABELS or GENERATE_REPROJ_SUPPL_FILES or
         GENERATE_REPROJ_GLOBAL_INDEX):
         if mosaic_metadata is None:
-            mosaic_metadata = read_mosaic(mosaic_path, mosaic_metadata_path,
+            mosaic_metadata = read_mosaic(obsid, mosaic_path, mosaic_metadata_path,
                                           bkg_sub=False, read_img=False)
             remap_image_indexes(mosaic_metadata)
         reproj_dir = os.path.join(arguments.output_dir, 'data_reproj_img',
                                   obsid.lower())
         reproj_browse_dir = os.path.join(arguments.output_dir, 'browse_reproj_img',
                                          obsid.lower())
-        for image_path in mosaic_metadata['image_path_list']:
+        mosaic_image_paths = set(mosaic_metadata['image_path_list'])
+        for image_path in archived_image_paths(obsid, mosaic_metadata):
             try:
                 reproj_path = img_to_repro_path(image_path)
-                reproj_metadata = read_reproj(reproj_path)
+                reproj_metadata = read_reproj(obsid, reproj_path)
                 reproj_metadata['image_path'] = image_path
+                reproj_metadata['used_in_mosaic'] = image_path in mosaic_image_paths
                 reproj_metadata['image_name'] = image_name = \
                     reformat_iss_name(image_path.split('/')[-1].replace('_CALIB.IMG', ''))
 
@@ -3619,6 +3790,8 @@ SENTINEL = -999
 OBSERVATION_INFO = None
 
 BASIC_XML_METADATA = {
+    'STAR_TARGETS_COLLECTION': all_star_targets('collection_to_target'),
+    'STAR_TARGETS_BUNDLE': all_star_targets('bundle_to_target'),
     'INFORMATION_MODEL_VERSION': '1.24.0.0',
     'PDS4_PDS_SCHEMA_XSD': 'https://pds.nasa.gov/pds4/pds/v1/PDS4_PDS_1O00.xsd',
     'PDS4_PDS_SCHEMA': 'https://pds.nasa.gov/pds4/pds/v1/PDS4_PDS_1O00.sch',

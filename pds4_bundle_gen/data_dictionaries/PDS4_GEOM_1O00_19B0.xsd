@@ -1,11 +1,11 @@
 <?xml version="1.0" encoding="UTF-8"?>
-  <!-- PDS4 XML/Schema for Name Space Id:geom  Version:1.9.10.0 - Mon Apr 28 22:37:21 UTC 2025 -->
+  <!-- PDS4 XML/Schema for Name Space Id:geom  Version:1.9.11.0 - Thu Jul 31 22:25:41 UTC 2025 -->
   <!-- Generated from the PDS4 Information Model Version 1.24.0.0 - System Build 15.1 -->
   <!-- *** This PDS4 product schema is an operational deliverable. *** -->
   <!--                                                                           -->
   <!--               Dictionary Stack                                            -->
   <!-- 1.24.0.0 - pds: - Common Dictionary                                       -->
-  <!-- 1.9.10.0 - geom: - Geometry Dictionary Full                               -->
+  <!-- 1.9.11.0 - geom: - Geometry Dictionary Full                               -->
   <!--                                                                           -->
   <xs:schema xmlns:xs="http://www.w3.org/2001/XMLSchema"
     targetNamespace="http://pds.nasa.gov/pds4/geom/v1"
@@ -13,7 +13,7 @@
     xmlns:pds="http://pds.nasa.gov/pds4/pds/v1"
     elementFormDefault="qualified"
     attributeFormDefault="unqualified"
-    version="1.9.10.0">
+    version="1.9.11.0">
  
     <xs:import namespace="http://pds.nasa.gov/pds4/pds/v1" schemaLocation="https://pds.nasa.gov/pds4/pds/v1/PDS4_PDS_1O00.xsd"/>
  
@@ -273,6 +273,8 @@
 	Central_Body_Identification, so that other LDDs can use them (supports Rings LDD).
 	- Corrected Frame_Identification_Base to have abstract_flag = true, since it is only used as a parent.
 	- Added an optional local_identifier to Body_Identification_Base and Frame_Identification_Base.
+	Version 1.9.11.0 2025-07-31
+	- Updated definitions for emission_angle, incidence_angle, and phase_angle
     
     </xs:documentation>
   </xs:annotation>
@@ -3861,17 +3863,24 @@
 
   <xs:complexType name="emission_angle">
     <xs:annotation>
-      <xs:documentation>The emission_angle element provides the value of
-        the angle between the surface normal vector at the intercept
-        point and a vector from the intercept point to the spacecraft.
-        The emission_angle varies from 0 degrees when the spacecraft is
-        viewing the subspacecraft point (nadir viewing) to 90 degrees
-        when the intercept is tangent to the surface of the target body.
-        Thus, higher values of emission_angle indicate more oblique
-        viewing of the target. For ring data, values in the range of 90
-        to 180 degrees indicate viewing on the unlit side from oblique
-        or edge-on at 90 degrees to the unlit nadir at 180 degrees.
-        </xs:documentation>
+      <xs:documentation>The emission_angle element provides a measure of
+        the relationship between the instrument viewing position and the
+        surface normal vector at the intercept point. Specifically, it
+        is the angle, measured at the intercept point, between the local
+        surface normal vector and a vector in the direction of the
+        outgoing photon to the observing instrument. The emission_angle
+        varies from 0 degrees when the spacecraft is viewing the
+        subspacecraft point (nadir viewing) to 90 degrees when the
+        intercept is tangent to the surface of the target body. Thus,
+        higher values of emission_angle indicate more oblique viewing of
+        the target. In the context of planetary rings, the local surface
+        normal vector is always on the side of the ring plane
+        illuminated by the light source. Thus, the emission_angle varies
+        from 0 degrees when the spacecraft is viewing the illuminated
+        side of the rings face-on, to 90 degrees when viewing the rings
+        edge-on (that is, the spacecraft is in the ring plane), to 180
+        degrees when the spacecraft is viewing the unlit side of the
+        rings face-on. </xs:documentation>
     </xs:annotation>
     <xs:simpleContent>
       <xs:extension base="geom:emission_angle_WO_Units">
@@ -4118,13 +4127,18 @@
   <xs:complexType name="incidence_angle">
     <xs:annotation>
       <xs:documentation>The incidence_angle element provides a measure
-        of the lighting condition at the intercept point. Incidence
-        angle is the angle between the local vertical at the intercept
-        point (surface) and a vector from the intercept point to the
-        sun. The incidence_angle varies from 0 degrees when the
-        intercept point coincides with the subsolar point to 90 degrees
-        when the intercept point is at the terminator (i.e., in the
-        shadowed or dark portion of the target body). </xs:documentation>
+        of the lighting condition at the intercept point. Specifically,
+        it is the angle, measured at the intercept point, between a
+        vector in the direction of an incoming photon from the
+        illumination source and the local surface normal vector. The
+        incidence_angle varies from 0 degrees when the intercept point
+        coincides with the subsolar point to 90 degrees when the
+        intercept is tangent to the surface of the target body. In the
+        context of planetary rings, the local surface normal vector is
+        always on the side of the ring plane illuminated by the light
+        source. Thus, the incidence_angle varies from 0 degrees if the
+        light source illuminates the rings face-on, to 90 degrees if the
+        light source illuminates the rings edge-on. </xs:documentation>
     </xs:annotation>
     <xs:simpleContent>
       <xs:extension base="geom:incidence_angle_WO_Units">
@@ -5475,11 +5489,12 @@
     <xs:annotation>
       <xs:documentation>The phase_angle element provides a measure of
         the relationship between the instrument viewing position and
-        incident illumination (such as solar light). Phase angle is
-        measured at the target; it is the angle between a vector to the
-        illumination source and a vector to the instrument. If
-        illumination is from behind the instrument, phase_angle will be
-        small. </xs:documentation>
+        incident illumination (such as solar light). Specifically, it is
+        the angle, measured at the intercept point, between a vector in
+        the direction of an incoming photon from the illumination source
+        and a vector in the direction of an outgoing photon to the
+        observing instrument. If illumination is from behind the
+        instrument, phase_angle will be small. </xs:documentation>
     </xs:annotation>
     <xs:simpleContent>
       <xs:extension base="geom:phase_angle_WO_Units">
