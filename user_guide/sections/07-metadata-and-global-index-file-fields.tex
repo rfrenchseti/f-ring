@@ -7,6 +7,8 @@
 \subsection{Reprojected image and mosaic metadata params}
 \label{sec:reprojected-image-and-mosaic-metadata-params}
 
+Units are uniform throughout this section and throughout the bundle. All angles, longitudes, and true anomalies are in degrees; all radii and radial distances are in km; radial resolution is in km/pixel and longitudinal resolution in degrees/pixel; percentages are in percent; and all times given as \code{tdb} (including \code{rings:\allowbreak{}observed\_\allowbreak{}event\_\allowbreak{}tdb}) are ephemeris times in seconds past the J2000 epoch, 2000-01-01T12:00:00 TDB — the same quantity SPICE calls \textit{ET}. Times given as \code{date\_\allowbreak{}time} are UTC.
+
 The following fields are tabulated for each valid corotating longitude in each reprojected image (\code{IMG\_\allowbreak{}reproj\_\allowbreak{}img\_\allowbreak{}metadata\_\allowbreak{}params.\allowbreak{}tab}), mosaic (\code{OBSID\_\allowbreak{}mosaic\_\allowbreak{}metadata\_\allowbreak{}params.\allowbreak{}tab}), and background-subtracted mosaic (\code{OBSID\_\allowbreak{}mosaic\_\allowbreak{}bkg\_\allowbreak{}sub\_\allowbreak{}metadata\_\allowbreak{}params.\allowbreak{}tab}).
 
 \begingroup\small
@@ -88,7 +90,7 @@ The following fields are tabulated for each valid corotating longitude in each r
 \hline
 \code{rings:\allowbreak{}maximum\_\allowbreak{}phase\_\allowbreak{}angle} & The maximum (across all valid longitudes) phase angle \\
 \hline
-\code{rings:\allowbreak{}mean\_\allowbreak{}incidence\_\allowbreak{}angle} & The ring plane incidence angle at the time of the observation; incidence angle does not vary with longitude so minimum and maximum versions are not supplied \\
+\code{rings:\allowbreak{}mean\_\allowbreak{}incidence\_\allowbreak{}angle} & The ring plane incidence angle at the time of the observation. The incidence angle does not vary with longitude and changes only slowly with time, so a single value is computed for the whole product; \code{rings:\allowbreak{}minimum\_\allowbreak{}incidence\_\allowbreak{}angle} and \code{rings:\allowbreak{}maximum\_\allowbreak{}incidence\_\allowbreak{}angle} are present in the label and carry that same value \\
 \hline
 \code{rings:\allowbreak{}mean\_\allowbreak{}emission\_\allowbreak{}angle} & The mean (across all valid longitudes) emission angle; the angle is < 90° on the lit side of the rings \\
 \hline
@@ -182,7 +184,7 @@ The following fields are tabulated for each valid corotating longitude in each r
 \hline
 \code{rings:\allowbreak{}maximum\_\allowbreak{}phase\_\allowbreak{}angle} & The maximum (across all valid longitudes) phase angle \\
 \hline
-\code{rings:\allowbreak{}mean\_\allowbreak{}incidence\_\allowbreak{}angle} & The ring plane incidence angle at the time of the observation; since incidence angle changes slowly over time only a single value is provided \\
+\code{rings:\allowbreak{}mean\_\allowbreak{}incidence\_\allowbreak{}angle} & The ring plane incidence angle during the times the source images were taken. The incidence angle does not vary with longitude and changes only slowly with time, so a single value is computed for the whole mosaic; \code{rings:\allowbreak{}minimum\_\allowbreak{}incidence\_\allowbreak{}angle} and \code{rings:\allowbreak{}maximum\_\allowbreak{}incidence\_\allowbreak{}angle} are present in the label and carry that same value \\
 \hline
 \code{rings:\allowbreak{}mean\_\allowbreak{}emission\_\allowbreak{}angle} & The mean (across all valid longitudes) emission angle; the angle is < 90° on the lit side of the rings \\
 \hline

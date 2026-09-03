@@ -56,10 +56,17 @@ This format allows software that knows the width of each column to efficiently r
 Files with the extension \code{.\allowbreak{}csv} (mainly the collection files) are formatted as \textit{variable-width comma-separated value} files. These files can be read the same way as the above table files, except it is more likely programs will correctly identify them as delimited instead of fixed width from the beginning.
 
 
+\subsubsection{Image files}
+\label{sec:image-files}
+
+Files with the extension \code{.\allowbreak{}img} hold the reprojected images and mosaics. They are raw binary arrays with no header, no record separators, and no padding: LSB (little-endian) IEEE 754 single-precision floats, with the longitude index varying fastest so that the data reshapes directly to 401 radii by \textit{N} longitudes, and with the value −999 marking any element that has no valid data (Section \ref{sec:data-reproj-img}).
+The example programs described in Section \ref{sec:example-programs} demonstrate how to read and display these files.
+
+
 \subsection{Using PDS4-specific software}
 \label{sec:using-pds4-specific-software}
 
-A variety of software is available for reading PDS4-format data. Note that over time tools evolve and are replaced, and the URLs or package names where tools can be found change. This section includes tools and their locations at the time of publication. To find new or updated tools, use the resources in Section \ref{sec:pds4-standards-and-documentation}
+A variety of software is available for reading PDS4-format data. Note that over time tools evolve and are replaced, and the URLs or package names where tools can be found change. This section includes tools and their locations at the time of publication. To find new or updated tools, use the resources in Section \ref{sec:pds4-standards-and-documentation}.
 
 
 \subsubsection{The Small Bodies Node tools}
