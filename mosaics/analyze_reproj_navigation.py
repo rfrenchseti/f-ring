@@ -27,9 +27,13 @@ before a displacement is evidence of bad navigation, so the offset limit is far
 looser than the tilt limit and exists only to catch gross cases.
 
 The core wanders in the other sense too, drifting a hundred km below the model
-and back within one image, which a straight line reads as a tilt. Across the
-archive 99% of images tilt less than nine pixels, so the defaults sit well above
-that and report only the extremes: over 21,046 images they flag a handful.
+and back within one image, which a straight line reads as a tilt, so most of
+what the tilt test reports is not a navigation error. That is on purpose. The
+output is a list to look at with --plot-dir, not a verdict, and the tilt limit is
+set low enough to catch the real cases at the cost of a lot of company: over the
+whole archive it reports about 500 images in 60 observations, of which a review
+found three worth acting on. A limit high enough to isolate only those three
+would have missed one of them, which tilted 10 pixels.
 
 The core is located coarsely over the whole radial range first and only then
 centroided, so an image whose core lies far outside the search window reports
@@ -434,13 +438,12 @@ def main():
                              'between F ring strands')
     parser.add_argument('--min-snr', type=float, default=5.,
                         help='Smallest peak-to-noise ratio worth measuring')
-    parser.add_argument('--max-rise-px', type=float, default=15.,
+    parser.add_argument('--max-rise-px', type=float, default=6.,
                         help='Flag an image whose core tilts more than this many '
                              'source pixels across the image. This is the main '
                              'test: a sloped core is what bad navigation looks '
-                             'like. Across the archive the 99th percentile is '
-                             'under 9 pixels, so 15 is well clear of the core\'s '
-                             'own wander.')
+                             'like. Deliberately inclusive, because the output is '
+                             'a list to look at, not a verdict.')
     parser.add_argument('--min-rise-sigma', type=float, default=5.,
                         help='Only report a tilt this many times larger than its '
                              'own uncertainty, so a short or noisy image cannot '
