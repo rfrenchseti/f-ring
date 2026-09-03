@@ -66,3 +66,9 @@ DONE - Consider using wrap-around longitude limits.
 DONE - Put example Python files in user guide label file?
 
 - Compare cassini: fields between what I generate and the PDS4 bundle
+
+- Fill in the L2 Puppis context product LID in OCCULTATION_STARS once the
+  Engineering Node registers it. Until then target_star() returns '' for the
+  four L2PUPOCC observations and their labels ship with no star target, with
+  no warning. The user guide already states that every occultation names its
+  star.
