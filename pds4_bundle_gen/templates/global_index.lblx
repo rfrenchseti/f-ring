@@ -6,7 +6,7 @@
     xmlns="http://pds.nasa.gov/pds4/pds/v1"
     xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
     xsi:schemaLocation="
-	http://pds.nasa.gov/pds4/pds/v1 $PDS4_PDS_SCHEMA_XSD$">
+    http://pds.nasa.gov/pds4/pds/v1 $PDS4_PDS_SCHEMA_XSD$">
 
     <Identification_Area>
         <logical_identifier>$GLOBAL_INDEX_LID$</logical_identifier>

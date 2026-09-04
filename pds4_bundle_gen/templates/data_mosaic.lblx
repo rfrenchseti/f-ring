@@ -15,10 +15,10 @@
     xmlns:disp="http://pds.nasa.gov/pds4/disp/v1"
     xmlns:cassini="http://pds.nasa.gov/pds4/mission/cassini/v1"
     xsi:schemaLocation="
-	http://pds.nasa.gov/pds4/pds/v1 $PDS4_PDS_SCHEMA_XSD$
-	http://pds.nasa.gov/pds4/rings/v1 $PDS4_RINGS_SCHEMA_XSD$
+    http://pds.nasa.gov/pds4/pds/v1 $PDS4_PDS_SCHEMA_XSD$
+    http://pds.nasa.gov/pds4/rings/v1 $PDS4_RINGS_SCHEMA_XSD$
     http://pds.nasa.gov/pds4/disp/v1 $PDS4_DISP_SCHEMA_XSD$
-	http://pds.nasa.gov/pds4/mission/cassini/v1 $PDS4_CASSINI_SCHEMA_XSD$">
+    http://pds.nasa.gov/pds4/mission/cassini/v1 $PDS4_CASSINI_SCHEMA_XSD$">
 
     <Identification_Area>
         <logical_identifier>$MOSAIC_LID$</logical_identifier>

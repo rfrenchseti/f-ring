@@ -1136,9 +1136,14 @@ def mosaic_has_satellite(obsid, img_type, metadata, name, image_has_satellite_fu
 
     The geometric test uses this product's own valid longitudes, so a mosaic and
     its background-subtracted version are evaluated separately; background
-    subtraction can drop longitudes and legitimately change the answer.
+    subtraction can drop longitudes and legitimately change the answer. It
+    widens the radial limits by SATELLITE_VISUAL_RADIAL_TOLERANCE, which is
+    inside the error budget of an orbit model good to a few tens of km for
+    satellites tens of km across, and is the same tolerance the per-image test
+    uses so that the two cannot disagree.
     """
-    geometric, reason = image_has_satellite_func(metadata)
+    geometric, reason = image_has_satellite_func(
+        metadata, radial_tolerance=SATELLITE_VISUAL_RADIAL_TOLERANCE)
     if geometric == visually_confirmed:
         return geometric
     if geometric:
@@ -1147,12 +1152,7 @@ def mosaic_has_satellite(obsid, img_type, metadata, name, image_has_satellite_fu
         LOGGER.warning(f'{obsid}/{img_type}: {name} is geometrically within the '
                        f'valid data range but was not visually confirmed')
         return True
-    # Seen by eye but geometrically absent. Accept it if it is only just outside
-    # the radial limits, otherwise flag the disagreement and say why.
-    with_tolerance, _ = image_has_satellite_func(
-        metadata, radial_tolerance=SATELLITE_VISUAL_RADIAL_TOLERANCE)
-    if with_tolerance:
-        return True
+    # Seen by eye but geometrically absent even with the widened limits.
     LOGGER.warning(f'{obsid}/{img_type}: {name} was visually confirmed but is not '
                    f'in the valid data range because {reason}')
     return False
@@ -1519,7 +1519,7 @@ def ra_rad_to_hms(ra):
     hh = int(ra_deg)
     mm = int((ra_deg-hh)*60)
     ss = (ra_deg-hh-mm/60.)*3600
-    return f"{hh:02d}h{mm:02d}m{ss:05.3f}s"
+    return f"{hh:02d}h{mm:02d}m{ss:06.3f}s"
 
 
 def dec_rad_to_deg(dec):
@@ -1532,7 +1532,7 @@ def dec_rad_to_deg(dec):
     dd = int(dec_deg)
     mm = int((dec_deg-dd)*60)
     ss = (dec_deg-dd-mm/60.)*3600
-    return f"{neg}{dd:03d}d{mm:02d}m{ss:05.3f}s"
+    return f"{neg}{dd:03d}d{mm:02d}m{ss:06.3f}s"
 
 
 def write_suppl_file(output_path, metadata, xml_metadata):
@@ -2308,9 +2308,14 @@ def xml_add_comments(ret, img_type, obsid, metadata, bkgnd_metadata):
 
     target_id = ''
     if img_type == 'r':
-        # Reprojected images have no visual confirmation of their own
-        has_prometheus, _ = image_has_prometheus(metadata)
-        has_pandora, _ = image_has_pandora(metadata)
+        # Reprojected images have no visual confirmation of their own, so the
+        # geometric test decides. It uses the same widened radial limits as the
+        # mosaic test, because a mosaic holds exactly its images' pixels and the
+        # two must not disagree about whether a moon is in range.
+        has_prometheus, _ = image_has_prometheus(
+            metadata, radial_tolerance=SATELLITE_VISUAL_RADIAL_TOLERANCE)
+        has_pandora, _ = image_has_pandora(
+            metadata, radial_tolerance=SATELLITE_VISUAL_RADIAL_TOLERANCE)
     else:
         has_prometheus = mosaic_has_satellite(
             obsid, img_type, metadata, 'Prometheus', image_has_prometheus,
@@ -2536,7 +2541,7 @@ different date ranges representing the other available observation chunks.
         elif 'M2' in notes:
             partial_comment = f"""
 
-Because observation {root_obsid} consists of two distinct "movies" consisting of
+Because observation {root_obsid} consists of two distinct "movies" covering
 approximately the same co-rotating longitudes but taken at inertial longitudes roughly 180
 degrees apart, we have split the observation into two chunks. This mosaic consists of
 {root_obsid} chunk {obsid_chunk}. The other mosaic is available as
@@ -2545,7 +2550,7 @@ degrees apart, we have split the observation into two chunks. This mosaic consis
         elif 'M3' in notes:
             partial_comment = f"""
 
-Because observation {root_obsid} consists of multiple "movies" consisting of approximately
+Because observation {root_obsid} consists of multiple "movies" covering approximately
 the same co-rotating longitudes but taken at different inertial longitudes (not 180
 degrees apart), we have split the observation into multiple chunks. This mosaic consists
 of {root_obsid} chunk {obsid_chunk}. Other mosaics are available in this bundle for
@@ -2618,7 +2623,7 @@ that could not be repaired during the construction of the mosaic.""")
 data values clipped; use caution when using this mosaic for photometry.""")
     if 'O' in notes:
         additional_notes.append("""The sequence of source images used to create this
-mosaic were designed to observe a stellar occultation of the F ring core. As such, a star
+mosaic was designed to observe a stellar occultation of the F ring core. As such, a star
 is present in each source image and may appear in the mosaic multiple times depending on
 how the reprojected images were stitched together. In addition, the source images were
 taken at roughly the same co-rotating longitudes and thus have significant overlap in the
@@ -3340,16 +3345,21 @@ These browse images correspond to the reprojected, calibrated Cassini ISS image
 {image_name} from observation {root_obsid} taken at {start_date}. The original
 reprojected image is in units of I/F. The browse images map I/F to 8-bit
 greyscale and are contrast-stretched for easier viewing, using a blackpoint at
-the minimum image value, a whitepoint at the 99.8% maximum image value, and a
-gamma of 0.5. Browse images are available in four sizes: full (containing only
-the longitudes with valid data at full resolution, and thus possibly narrower
-than the reprojected image data array when the coverage is discontinuous, with a
-minimum width of 800 pixels), med (downsampled by
-10 in longitude, with a minimum width of 400 pixels and a height of 400 pixels),
-small (200x200), and thumb (100x100). The browse images omit longitudes that
-have no data available; if the available longitudes are discontinuous, the
-browse image will show the longitudes as being adjacent. Pixels with no data
-available are shown as black.
+the minimum image value or zero, whichever is greater, a whitepoint at the 99.8%
+maximum image value, and a gamma of 0.5. Because the blackpoint is never
+negative, the negative values that calibration noise produces are all shown as
+black.
+
+Browse images are available in four sizes. All of them omit the longitudes that
+have no data available, so a discontinuous set of longitudes is shown as
+adjacent, and the resulting width is the number of longitudes that do have data.
+The full image is that width or 800 pixels, whichever is greater, by 401 pixels
+high; the med image is one tenth that width or 400 pixels, whichever is greater,
+by 400 pixels high; small is 200x200 and thumb is 100x100. Any size other than
+full is therefore resampled, and one narrower than its minimum width is stretched
+to reach it. The med, small and thumb images carry the observation and image name
+drawn in the upper left corner. Pixels with no data available are shown as
+black.
 
 
 This derived data product is part of bundle
@@ -3380,11 +3390,17 @@ from reprojected, calibrated Cassini ISS images from observation {root_obsid}.
 The images used range from {min_image_name} ({start_date}) to {max_image_name}
 ({stop_date}). The original mosaic data are in units of I/F. The browse images map I/F to
 8-bit greyscale and are contrast-stretched for easier viewing, using a
-blackpoint at the minimum mosaic value, a whitepoint at the 99.8% maximum mosaic
-value, and a gamma of 0.5. Browse images are available in four sizes: full
-(18000x401), med (1800x400), small (200x200), and thumb (100x100). The full
-longitude range is shown even when no images cover that area. Pixels with no
-data available are shown as black.
+blackpoint at the minimum mosaic value or zero, whichever is greater, a
+whitepoint at the 99.8% maximum mosaic value, and a gamma of 0.5. Because the
+blackpoint is never negative, the negative values that calibration noise
+produces, and that background subtraction leaves across roughly half of the
+background region, are all shown as black.
+
+Browse images are available in four sizes: full (18000x401), med (1800x400),
+small (200x200), and thumb (100x100). Every size other than full is resampled
+from the mosaic. The med, small and thumb images carry the observation name
+drawn in the upper left corner. The full longitude range is shown even when no
+images cover that area. Pixels with no data available are shown as black.
 
 
 This derived data product is part of bundle cassini_iss_fring_mosaics_rsfrench2025,
@@ -3887,6 +3903,7 @@ def generate_support_files():
     metadata['MISCELLANEOUS_COLLECTION_LID'] = MISCELLANEOUS_COLLECTION_LID
     metadata['SPICE_KERNELS_COLLECTION_LID'] = SPICE_KERNELS_COLLECTION_LID
     metadata['XML_SCHEMA_COLLECTION_LID'] = XML_SCHEMA_COLLECTION_LID
+    metadata['README_PATH'] = os.path.join(arguments.output_dir, 'readme.txt')
     populate_template('bundle.lblx', bundle_path, metadata)
 
 
