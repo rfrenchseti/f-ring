@@ -1351,28 +1351,53 @@ def obsid_to_mosaic_browse_lidvid(obsid, bkg_sub):
     return obsid_to_mosaic_browse_lid(obsid, bkg_sub)+'::1.0'
 
 
-TOUR_PRE_HUYGENS_END_ET = utc2et('2004-359T00:00:00.000')
-TOUR_END_ET = utc2et('2008-183T00:00:00.000')
-EQUINOX_MISSION_END_ET = utc2et('2010-273T00:00:00.000')
+# The Cassini dictionary permits many spellings of each mission phase. The RMS
+# house standard (SETI/rms-data-projects#133) fixes a single-valued subset for
+# the data sets this node curates, and the ISS, UVIS and VIMS bundles already
+# follow it. Use exactly these names and boundaries.
+#
+# The short encounters come first and take precedence: a date inside one of them
+# ends the search, and every other date falls in one of the full-length periods,
+# which cover the whole timeline without gaps.
+CASSINI_MISSION_PHASES = [
+    # Short encounters that interrupt longer periods
+    ('Venus 1 Encounter',        '1998-116', '1998-117'),
+    ('Venus 2 Encounter',        '1999-175', '1999-176'),
+    ('Earth Encounter',          '1999-230', '1999-231'),
+    ('Jupiter Encounter',        '2000-365', '2000-366'),
+    ('Phoebe Encounter',         '2004-163', '2004-164'),
+    ('Saturn Orbit Insertion',   '2004-183', '2004-184'),
+    ('Titan A Encounter',        '2004-300', '2004-301'),
+    ('Titan B Encounter',        '2004-348', '2004-349'),
+    # Full-length periods covering the whole mission timeline
+    ('Interplanetary Cruise',    '1997-001', '1999-312'),
+    ('Outer Cruise',             '1999-312', '2002-189'),
+    ('Science Cruise',           '2002-189', '2004-012'),
+    ('Approach Science',         '2004-012', '2004-163'),
+    ('Tour Pre-Huygens',         '2004-163', '2004-359'),
+    ('Huygens Probe Separation', '2004-359', '2004-360'),
+    ('Huygens Descent',          '2004-360', '2005-014'),
+    ('Titan C Huygens',          '2005-014', '2005-015'),
+    ('Tour',                     '2005-015', '2008-183'),
+    ('Equinox Mission',          '2008-183', '2010-273'),
+    ('Solstice Mission',         '2010-273', '2020-001'),
+]
+
+CASSINI_MISSION_PHASE_ETS = [
+    (name, utc2et(f'{start}T00:00:00.000'), utc2et(f'{stop}T00:00:00.000'))
+    for name, start, stop in CASSINI_MISSION_PHASES]
 
 def et_to_tour(et):
-    """Convert ET to PDS4 Cassini Tour name.
+    """Return the Cassini mission phase name for an ET.
 
-    See https://github.com/pds-data-dictionaries/ldd-cassini/blob/main/src/
-        PDS4_CASSINI_IngestLDD.xml
+    The names and boundaries are the RMS house standard, which is a
+    single-valued subset of what the Cassini dictionary permits:
+    https://github.com/SETI/rms-data-projects/issues/133
     """
-    if et < TOUR_PRE_HUYGENS_END_ET:
-        return 'TOUR PRE-HUYGENS'
-    if et < TOUR_END_ET:
-        return 'TOUR'
-    if et < EQUINOX_MISSION_END_ET:
-        # The Equinox and Solstice missions are called the Extended and
-        # Extended-Extended missions in the PDS3 source labels and in the
-        # cassini_iss_saturn PDS4 bundle. Both spellings are legal in the
-        # Cassini dictionary; use the archive's so that a product here and the
-        # calibrated image it derives from report the same phase.
-        return 'EXTENDED MISSION'
-    return 'EXTENDED-EXTENDED MISSION'
+    for name, start_et, stop_et in CASSINI_MISSION_PHASE_ETS:
+        if start_et <= et < stop_et:
+            return name
+    raise ValueError(f'ET {et} is outside the Cassini mission timeline')
 
 
 def read_label(image_name):
