@@ -66,20 +66,20 @@
                 </Internal_Reference>
             </Observing_System_Component>
             <Observing_System_Component>
-                <name>Imaging Science Subsystem - Wide Angle</name>
-                <type>Instrument</type>
-                <description>ISSWA</description>
-                <Internal_Reference>
-                    <lid_reference>urn:nasa:pds:context:instrument:isswa.co</lid_reference>
-                    <reference_type>is_instrument</reference_type>
-                </Internal_Reference>
-            </Observing_System_Component>
-            <Observing_System_Component>
                 <name>Imaging Science Subsystem - Narrow Angle</name>
                 <type>Instrument</type>
                 <description>ISSNA</description>
                 <Internal_Reference>
                     <lid_reference>urn:nasa:pds:context:instrument:issna.co</lid_reference>
+                    <reference_type>is_instrument</reference_type>
+                </Internal_Reference>
+            </Observing_System_Component>
+            <Observing_System_Component>
+                <name>Imaging Science Subsystem - Wide Angle</name>
+                <type>Instrument</type>
+                <description>ISSWA</description>
+                <Internal_Reference>
+                    <lid_reference>urn:nasa:pds:context:instrument:isswa.co</lid_reference>
                     <reference_type>is_instrument</reference_type>
                 </Internal_Reference>
             </Observing_System_Component>

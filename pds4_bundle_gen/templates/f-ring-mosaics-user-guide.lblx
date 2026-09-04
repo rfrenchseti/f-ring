@@ -5,7 +5,6 @@
 <Product_Document
   xmlns="http://pds.nasa.gov/pds4/pds/v1"
   xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
-  xmlns:pds="http://pds.nasa.gov/pds4/pds/v1"
   xsi:schemaLocation="http://pds.nasa.gov/pds4/pds/v1 $PDS4_PDS_SCHEMA_XSD$">
     <Identification_Area>
         <logical_identifier>$USERGUIDE_LID$</logical_identifier>
@@ -154,21 +153,21 @@
                     <reference_type>is_instrument_host</reference_type>
                 </Internal_Reference>
             </Observing_System_Component>
-           <Observing_System_Component>
-                <name>Imaging Science Subsystem - Wide Angle</name>
-                <type>Instrument</type>
-                <description>ISSWA</description>
-                <Internal_Reference>
-                    <lid_reference>urn:nasa:pds:context:instrument:isswa.co</lid_reference>
-                    <reference_type>is_instrument</reference_type>
-                </Internal_Reference>
-            </Observing_System_Component>
             <Observing_System_Component>
                 <name>Imaging Science Subsystem - Narrow Angle</name>
                 <type>Instrument</type>
                 <description>ISSNA</description>
                 <Internal_Reference>
                     <lid_reference>urn:nasa:pds:context:instrument:issna.co</lid_reference>
+                    <reference_type>is_instrument</reference_type>
+                </Internal_Reference>
+            </Observing_System_Component>
+           <Observing_System_Component>
+                <name>Imaging Science Subsystem - Wide Angle</name>
+                <type>Instrument</type>
+                <description>ISSWA</description>
+                <Internal_Reference>
+                    <lid_reference>urn:nasa:pds:context:instrument:isswa.co</lid_reference>
                     <reference_type>is_instrument</reference_type>
                 </Internal_Reference>
             </Observing_System_Component>
