@@ -216,6 +216,15 @@
             <offset unit="byte">0</offset>
             <axes>2</axes>
             <axis_index_order>Last Index Fastest</axis_index_order>
+            <description>
+                Line is the radial axis and Sample is the co-rotating longitude axis.
+                Line 0 is the innermost row, at a delta radius of -1000 km from the
+                F ring core, and the delta radius increases outward by 5 km per line,
+                so that delta radius = -1000 + 5 * Line km and the modeled core lies
+                at Line 200. Sample 0 is co-rotating longitude 0 degrees and the
+                longitude increases by 0.02 degrees per sample, so that longitude =
+                0.02 * Sample degrees.
+            </description>
             <Element_Array>
                 <data_type>IEEE754LSBSingle</data_type>
                 <unit>I/F</unit>

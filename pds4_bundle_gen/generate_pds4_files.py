@@ -492,25 +492,25 @@ TARGET_PANDORA = """
 # the star; the Bayer or variable-star designation the observation name is built
 # from is carried as an alternate designation.
 #
-# L2 Puppis has no context product in the PDS registry, so the two L2PUPOCC
-# observations cannot name their star yet. They are listed here with a LID of None
-# so that the check in read_observation_list() does not report them as an
-# oversight.
+# The L2 Puppis context product is not registered yet; its LID is reserved and is
+# referenced here so that the four L2PUPOCC observations name their star like
+# every other occultation.
 OCCULTATION_STARS = {
     'ISS_172RI_BETPEGOCC001_VIMS': ('Scheat', 'Beta Pegasi', 'star.bet_peg'),
     'ISS_172ST_URGAMPEG001_UVIS': ('Algenib', 'Gamma Pegasi', 'star.gam_peg'),
     'ISS_180RI_RLYROCC001_VIMS': ('R Lyrae', '13 Lyrae', 'star.13_lyr'),
     'ISS_180RI_RCASOCC001_VIMS': ('R Cassiopeiae', None, 'star.r_cas'),
+    'ISS_191RI_RCASOCCB001_VIMS': ('R Cassiopeiae', None, 'star.r_cas'),
     'ISS_185RI_RHYAOCC001_VIMS_1': ('R Hydrae', None, 'star.r_hya'),
     'ISS_185RI_RHYAOCC001_VIMS_2': ('R Hydrae', None, 'star.r_hya'),
     'ISS_194RI_MUCEPOCC001_VIMS': ("Herschel's Garnet Star", 'Mu Cephei', 'star.mu._cep'),
     'ISS_196RI_BETANDOCC001_VIMS': ('Mirach', 'Beta Andromedae', 'star.bet_and'),
     'ISS_197RI_WHYAOCC001_VIMS': ('W Hydrae', None, 'star.w_hya'),
     'ISS_198RI_RLYROCC001_VIMS': ('R Lyrae', '13 Lyrae', 'star.13_lyr'),
-    'ISS_201RI_L2PUPOCC001_VIMS_1': ('L2 Puppis', None, None),
-    'ISS_201RI_L2PUPOCC001_VIMS_2': ('L2 Puppis', None, None),
-    'ISS_205RI_L2PUPOCC002_VIMS': ('L2 Puppis', None, None),
-    'ISS_206RI_L2PUPOCC002_VIMS': ('L2 Puppis', None, None),
+    'ISS_201RI_L2PUPOCC001_VIMS_1': ('L2 Puppis', None, 'star.l02_pup'),
+    'ISS_201RI_L2PUPOCC001_VIMS_2': ('L2 Puppis', None, 'star.l02_pup'),
+    'ISS_205RI_L2PUPOCC002_VIMS': ('L2 Puppis', None, 'star.l02_pup'),
+    'ISS_206RI_L2PUPOCC002_VIMS': ('L2 Puppis', None, 'star.l02_pup'),
 }
 
 
@@ -570,9 +570,46 @@ class ObsIdFailedException(Exception):
     pass
 
 
-def et_to_datetime(et, dec=None):
-    """Convert a SPICE ET to a datetime like 2020-01-01T00:00:00Z."""
-    return julian.ymdhms_format_from_tai(julian.tai_from_tdb(et), digits=dec) + 'Z'
+def et_to_datetime(et, dec=None, mode='round'):
+    """Convert a SPICE ET to a datetime like 2020-01-01T00:00:00Z.
+
+    mode='round' rounds to the nearest second (or to `dec` digits). mode='floor'
+    and mode='ceil' move to the whole second at or before, or at or after, the
+    true time. A start formatted with 'floor' and a stop formatted with 'ceil'
+    always bracket the true interval, which rounding does not: rounding can move
+    a start later than the shutter opening and a stop earlier than its closing.
+    """
+    tai = julian.tai_from_tdb(et)
+    if mode == 'floor':
+        tai = float(np.floor(tai))
+    elif mode == 'ceil':
+        tai = float(np.ceil(tai))
+    else:
+        assert mode == 'round', f'Unknown rounding mode {mode}'
+    return julian.ymdhms_format_from_tai(tai, digits=dec) + 'Z'
+
+
+def wrap360(angle, decimals=3):
+    """Return an angle in [0, 360) that will not print as 360 after rounding.
+
+    An angle a hair under 360 rounds up to 360.000 when formatted, which is out
+    of range for every longitude and anomaly field in this bundle. Fold those
+    back to zero, which is the same direction.
+    """
+    angle = float(angle) % 360.
+    if round(angle, decimals) >= 360.:
+        angle = 0.
+    return angle
+
+
+def file_zulu(path):
+    """Return a file's modification time in the form the labels use.
+
+    This is what the pdstemplate FILE_ZULU function writes into
+    creation_date_time, so an index built with it agrees with the label.
+    """
+    return datetime.datetime.fromtimestamp(
+        os.path.getmtime(path), datetime.UTC).strftime('%Y-%m-%dT%H:%M:%SZ')
 
 
 def utc2et(s):
@@ -701,7 +738,14 @@ def wrapped_minmax(lon):
     gaps = np.diff(np.r_[lon, lon[0] + 360])
 
     # largest gap
-    k = np.argmax(gaps)
+    k = int(np.argmax(gaps))
+
+    # When no gap stands out, the coverage is uniform and there is no point on
+    # the circle to break it at; argmax would pick one out of floating-point
+    # noise and report an interval such as "from 256.04 to 256.02". Report the
+    # plain endpoints instead.
+    if gaps[k] < gaps.min() * 1.5:
+        return lon[0], lon[-1]
 
     # interval is the complement of that gap
     min_lon = lon[(k + 1) % len(lon)]
@@ -1141,6 +1185,7 @@ def remap_image_indexes(metadata):
     image_indexes = metadata['image_number']
     image_name_list = metadata['image_name_list']
     image_path_list = metadata['image_path_list']
+    long_antimask = metadata['long_antimask']
 
     # Keep the untruncated lists. Most observations archive only the images that
     # went into the mosaic, but occultation and 'R' observations archive the whole
@@ -1148,11 +1193,16 @@ def remap_image_indexes(metadata):
     metadata['all_image_name_list'] = [reformat_iss_name(x) for x in image_name_list]
     metadata['all_image_path_list'] = list(image_path_list)
 
-    used_indexes = sorted(set(image_indexes) - set([SENTINEL]))
+    # Count only the images that supply a longitude the product actually keeps.
+    # Background subtraction drops whole longitudes, and the image numbers of the
+    # dropped columns survive in the metadata; including them would list, count
+    # and reference source images that contribute no data to this product.
+    used_indexes = sorted(set(np.asarray(image_indexes)[long_antimask]) -
+                          set([SENTINEL]))
     number_map = {SENTINEL: SENTINEL}
     for i in range(len(used_indexes)):
         number_map[used_indexes[i]] = i
-    new_image_indexes = [number_map[x] for x in image_indexes]
+    new_image_indexes = [number_map.get(x, SENTINEL) for x in image_indexes]
     metadata['image_number'] = np.array(new_image_indexes)
 
     # Only include images that we actually used in the name list. These lists
@@ -1316,8 +1366,13 @@ def et_to_tour(et):
     if et < TOUR_END_ET:
         return 'TOUR'
     if et < EQUINOX_MISSION_END_ET:
-        return 'EQUINOX MISSION'
-    return 'SOLSTICE MISSION'
+        # The Equinox and Solstice missions are called the Extended and
+        # Extended-Extended missions in the PDS3 source labels and in the
+        # cassini_iss_saturn PDS4 bundle. Both spellings are legal in the
+        # Cassini dictionary; use the archive's so that a product here and the
+        # calibrated image it derives from report the same phase.
+        return 'EXTENDED MISSION'
+    return 'EXTENDED-EXTENDED MISSION'
 
 
 def read_label(image_name):
@@ -1373,14 +1428,39 @@ def unit(v):
     return v / np.linalg.norm(v)
 
 
-def extract_roll_from_cmat(cmat):
-    z = unit(cmat[2, :])
-    x = unit(cmat[0, :])
+def radec_to_unit_vector(ra, dec):
+    """Return the J2000 unit vector for a right ascension and declination."""
+    return unit(np.array([
+        np.cos(dec) * np.cos(ra),
+        np.cos(dec) * np.sin(ra),
+        np.sin(dec)
+    ]))
 
-    # Reference X-axis for constructing ideal frame (Z-perp)
+
+def roll_reference_axes(z):
+    """Return the reference X and Y axes used to measure roll about a Z axis.
+
+    The choice of `temp` switches when the Z axis passes near the pole, so the
+    same Z must be used to measure a roll and to reapply it. Measuring against
+    one Z and rebuilding against another that falls on the far side of the
+    switchover twists the resulting frame by an arbitrary angle.
+    """
     temp = np.array([0.0, 0.0, 1.0]) if abs(z[2]) < 0.9 else np.array([0.0, 1.0, 0.0])
     x_ref = unit(np.cross(temp, z))
     y_ref = np.cross(z, x_ref)
+    return x_ref, y_ref
+
+
+def extract_roll_from_cmat(cmat, ref_z=None):
+    """Return the roll of a C-matrix about its own boresight.
+
+    ref_z gives the Z axis whose reference frame the roll is measured in; pass
+    the Z the roll will be reapplied to. It defaults to the matrix's own Z.
+    """
+    z = unit(cmat[2, :])
+    x = unit(cmat[0, :])
+
+    x_ref, y_ref = roll_reference_axes(unit(ref_z) if ref_z is not None else z)
 
     # Project original X into the Z-plane and normalize
     x_proj = unit(x - np.dot(x, z) * z)
@@ -1392,17 +1472,10 @@ def extract_roll_from_cmat(cmat):
 
 def rebuild_cmatrix_from_ra_dec_roll(ra, dec, roll):
     # Construct Z axis from RA/DEC
-    z = np.array([
-        np.cos(dec) * np.cos(ra),
-        np.cos(dec) * np.sin(ra),
-        np.sin(dec)
-    ])
-    z = unit(z)
+    z = radec_to_unit_vector(ra, dec)
 
     # Construct reference X-axis
-    temp = np.array([0.0, 0.0, 1.0]) if abs(z[2]) < 0.9 else np.array([0.0, 1.0, 0.0])
-    x_ref = unit(np.cross(temp, z))
-    y_ref = np.cross(z, x_ref)
+    x_ref, y_ref = roll_reference_axes(z)
 
     # Apply roll about Z
     cos_r = np.cos(roll)
@@ -1442,7 +1515,11 @@ def write_suppl_file(output_path, metadata, xml_metadata):
     offset_path = img_to_offset_path(metadata['image_path'])
     offset_metadata = read_offset_metadata_path(offset_path)
 
-    if 'manual_offset' in offset_metadata:
+    # The key can be present with a value of None, which means no manual offset
+    # was ever recorded. The reprojection pipeline tests the value, not the key,
+    # and falls back to the automatic offset; match it, so that the archived
+    # pointing is the pointing the product was actually built with.
+    if offset_metadata.get('manual_offset') is not None:
         nav_type = 'Manual'
         offset = offset_metadata['manual_offset']
     elif offset_metadata['offset_winner'] == 'MODEL':
@@ -1692,8 +1769,15 @@ def write_suppl_file(output_path, metadata, xml_metadata):
                                          swap=True)
     bp_ctr_nav = oops.backplane.Backplane(obs, meshgrid=meshgrid_ctr)
 
-    oops_ra_non_app_ctr_nav = bp_ctr_nav.right_ascension(apparent=False).vals[0][0]
-    oops_dec_non_app_ctr_nav = bp_ctr_nav.declination(apparent=False).vals[0][0]
+    # The archived C-matrix must be the same kind of rotation a SPICE C kernel
+    # supplies: the physical orientation of the camera frame in J2000. The
+    # boresight is therefore the apparent direction, which is where the camera
+    # axis actually points, and not the geometric direction of the source seen
+    # there. Using the geometric direction would fold stellar aberration into
+    # the matrix, so a user applying SPICE aberration corrections with it would
+    # count that displacement twice.
+    oops_ra_ctr_nav = bp_ctr_nav.right_ascension(apparent=True).vals[0][0]
+    oops_dec_ctr_nav = bp_ctr_nav.declination(apparent=True).vals[0][0]
 
     image_name = metadata['image_name']
 
@@ -1704,9 +1788,12 @@ def write_suppl_file(output_path, metadata, xml_metadata):
     else:
         assert False, f'Unknown image name camera {image_name}'
 
-    roll = extract_roll_from_cmat(cmat)
+    # Measure the kernel pointing's roll in the reference frame of the navigated
+    # boresight, which is the frame it is about to be reapplied in.
+    z_nav = radec_to_unit_vector(oops_ra_ctr_nav, oops_dec_ctr_nav)
+    roll = extract_roll_from_cmat(cmat, ref_z=z_nav)
 
-    cmat_nav = rebuild_cmatrix_from_ra_dec_roll(oops_ra_non_app_ctr_nav, oops_dec_non_app_ctr_nav, roll)
+    cmat_nav = rebuild_cmatrix_from_ra_dec_roll(oops_ra_ctr_nav, oops_dec_ctr_nav, roll)
 
     start_date = xml_metadata['START_DATE_TIME_3']
     partition = xml_metadata['SPACECRAFT_CLOCK_CNT_PARTITION']
@@ -1728,8 +1815,8 @@ def write_suppl_file(output_path, metadata, xml_metadata):
     hdr_text += 'Stellar Aberration Correction = No\n'
     hdr_text += 'Light Travel Time Correction = No\n'
     hdr_text += f'Navigation Type = {nav_type}\n'
-    hdr_text += f'Navigated Boresight RA = {np.rad2deg(oops_ra_non_app_ctr_nav):.6} deg ({ra_rad_to_hms(oops_ra_non_app_ctr_nav)})\n'
-    hdr_text += f'Navigated Boresight Dec = {np.rad2deg(oops_dec_non_app_ctr_nav):.6} deg ({dec_rad_to_deg(oops_dec_non_app_ctr_nav)})\n'
+    hdr_text += f'Navigated Boresight RA = {np.rad2deg(oops_ra_ctr_nav):.6} deg ({ra_rad_to_hms(oops_ra_ctr_nav)})\n'
+    hdr_text += f'Navigated Boresight Dec = {np.rad2deg(oops_dec_ctr_nav):.6} deg ({dec_rad_to_deg(oops_dec_ctr_nav)})\n'
     hdr_text += f'Navigated Boresight Roll = {np.rad2deg(roll):.6} deg\n'
     hdr_text += 'C-Matrix = \n'
 
@@ -2008,9 +2095,9 @@ def _xml_add_pds3_label_info(ret, obsid, min_image_path, max_image_path):
 
     et_start_time = julian.tdb_from_iso(ret['START_TIME_DOY'])
     et_stop_time = julian.tdb_from_iso(ret['STOP_TIME_DOY'])
-    ret['START_DATE_TIME'] = et_to_datetime(et_start_time)
+    ret['START_DATE_TIME'] = et_to_datetime(et_start_time, mode='floor')
     ret['START_DATE_TIME_3'] = et_to_datetime(et_start_time, dec=3)
-    ret['STOP_DATE_TIME'] = et_to_datetime(et_stop_time)
+    ret['STOP_DATE_TIME'] = et_to_datetime(et_stop_time, mode='ceil')
     ret['STOP_DATE_TIME_3'] = et_to_datetime(et_stop_time, dec=3)
     ret['MIDTIME_ET'] = (et_start_time + et_stop_time)/2
     ret['MIDTIME_DATE_TIME'] = et_to_datetime((et_start_time + et_stop_time)/2)
@@ -2047,7 +2134,19 @@ def _xml_add_pds3_label_info(ret, obsid, min_image_path, max_image_path):
         julian.tdb_from_iso(min_label['IMAGE_MID_TIME'])),
         ymd=False, digits=3)
     ret['IMAGE_NUMBER'] = min_label['IMAGE_NUMBER']
-    ret['IMAGE_OBSERVATION_TYPE'] = str(min_label['IMAGE_OBSERVATION_TYPE']).strip("{}'")
+    # PDS3 IMAGE_OBSERVATION_TYPE can hold a set, e.g. {"SCIENCE","SUPPORT"}.
+    # pdsparser returns a Python set, whose repr is not a legal element value and
+    # whose iteration order is not reproducible between runs. The Cassini
+    # dictionary declares the element repeatable, so emit one element per value
+    # in a fixed order.
+    obs_type = min_label['IMAGE_OBSERVATION_TYPE']
+    if isinstance(obs_type, (set, frozenset, list, tuple)):
+        obs_types = sorted(str(x) for x in obs_type)
+    else:
+        obs_types = [str(obs_type)]
+    ret['IMAGE_OBSERVATION_TYPE'] = ('\n' + ' ' * 20).join(
+        f'<cassini:image_observation_type>{x}</cassini:image_observation_type>'
+        for x in obs_types)
     ret['IMAGE_TIME'] = julian.iso_from_tai(julian.tai_from_tdb(
         julian.tdb_from_iso(min_label['IMAGE_TIME'])),
         ymd=False, digits=3)
@@ -2133,7 +2232,11 @@ def xml_add_comments(ret, img_type, obsid, metadata, bkgnd_metadata):
     num_good_long = np.sum(long_antimask)
     corot_longitudes = metadata['longitudes'][long_antimask]
     min_corot_long, max_corot_long = wrapped_minmax(corot_longitudes)
-    diff_corot = (max_corot_long - min_corot_long) % 360
+    # The span reaches the far edge of the last populated bin, so it covers one
+    # more sampling interval than the difference between the two bin centers.
+    # Without this the label reads "a total of 5.04 degrees ... spanning 5.02".
+    diff_corot = ((max_corot_long - min_corot_long) % 360 +
+                  arguments.longitude_resolution)
     deg_good_long = num_good_long / len(long_antimask) * 360
     inertial_longitudes = metadata['inertial_longitudes'][long_antimask]
     min_inertial, max_inertial = wrapped_minmax(inertial_longitudes)
@@ -2150,6 +2253,8 @@ def xml_add_comments(ret, img_type, obsid, metadata, bkgnd_metadata):
             f'{360 - arguments.longitude_resolution:.2f}'
     ret['MIN_RING_COROTATING_LONG_FIXED'] = f'{min_corot_long:6.2f}'
     ret['MAX_RING_COROTATING_LONG_FIXED'] = f'{max_corot_long:6.2f}'
+    min_inertial = wrap360(min_inertial)
+    max_inertial = wrap360(max_inertial)
     ret['MIN_RING_INERTIAL_LONG'] = f'{min_inertial:.3f}'
     ret['MAX_RING_INERTIAL_LONG'] = f'{max_inertial:.3f}'
     ret['MIN_RING_INERTIAL_LONG_FIXED'] = f'{min_inertial:7.3f}'
@@ -2255,7 +2360,8 @@ space covering {diff_inertial:.3f} degrees of inertial longitude from {min_inert
 to {max_inertial:.3f}. The source image was calibrated using CISSCAL 4.0 and the data
 values are in units of I/F. The mosaics, in the data_mosaic and data_mosaic_bkg_sub
 collections, were generated by stitching together reprojected, calibrated images such as
-this, and this reprojected image is used in the mosaic named {obsid.lower()}.
+this, and this reprojected image is associated with the mosaic named
+{obsid.lower()}.
 
 
 The reprojection takes the image space and reprojects it onto a regular radius/longitude
@@ -2502,8 +2608,6 @@ spanning {min_image_name} ({start_date_time}) to {max_image_name} ({stop_date_ti
 During this time, Cassini followed one co-rotating longitude for {total_secs:,.0f} seconds
 ({total_hours:.5f} hours) by observing multiple inertial longitudes covering the (possibly
 discontinuous) {diff_inertial:.3f} degrees from {min_inertial:.3f} to {max_inertial:.3f}.
-The source images were calibrated using CISSCAL 4.0 and the data values are in units of
-I/F.
 """
     elif 'N' in notes:
         ret['MOSAIC_COMMENT'] = f"""
@@ -2513,8 +2617,7 @@ spanning {min_image_name} ({start_date_time}) to {max_image_name} ({stop_date_ti
 During this time, Cassini observed multiple co-rotating longitudes at multiple inertial
 longitudes for {total_secs:,.0f} seconds ({total_hours:.5f} hours). The inertial
 longitudes covered the (possibly discontinuous) {diff_inertial:.3f} degrees from
-{min_inertial:.3f} to {max_inertial:.3f}. The source images were calibrated using CISSCAL
-4.0 and the data values are in units of I/F.
+{min_inertial:.3f} to {max_inertial:.3f}.
 """
     else:
         ret['MOSAIC_COMMENT'] = f"""
@@ -2767,6 +2870,15 @@ def generate_image(obsid, output_dir, metadata, xml_metadata, global_index_fp,
                 prometheus_dist, prometheus_corot_long = saturn_to_prometheus_corot(et)
                 pandora_dist, pandora_corot_long = saturn_to_pandora_corot(et)
 
+                # An angle a hair under 360 would otherwise print as 360.000
+                longitude = wrap360(longitude, 2)
+                inertial = wrap360(inertial)
+                long_asc = wrap360(long_asc)
+                long_peri = wrap360(long_peri)
+                true_anomaly = wrap360(true_anomaly)
+                prometheus_corot_long = wrap360(prometheus_corot_long)
+                pandora_corot_long = wrap360(pandora_corot_long)
+
                 row = f'{longitude:6.2f}, '
                 if img_type != 'r':
                     image_idx = image_indexes[idx]
@@ -2886,7 +2998,9 @@ def generate_image(obsid, output_dir, metadata, xml_metadata, global_index_fp,
         filespec = '/'.join(label_output_path.split('/')[-3:])
         start_date = xml_metadata['START_DATE_TIME']
         stop_date = xml_metadata['STOP_DATE_TIME']
-        current_date_time = xml_metadata['CURRENT_DATE_TIME']
+        # The label reports the data file's modification time, so the index
+        # must report the same one and not the time this row was written.
+        current_date_time = file_zulu(xml_metadata['IMG_PATH'])
         sclk_start = xml_metadata['SPACECRAFT_CLOCK_START_COUNT']
         sclk_stop = xml_metadata['SPACECRAFT_CLOCK_STOP_COUNT']
         notes = OBSERVATION_INFO[obsid]['notes']
@@ -2942,13 +3056,13 @@ def generate_image(obsid, output_dir, metadata, xml_metadata, global_index_fp,
                f'{max_core_radius},')
 
         if img_type == 'r':
-            row += (f'{long_asc:7.3f},'
-                    f'{long_peri:7.3f},'
-                    f'{min_true_anomaly:7.3f},'
-                    f'{max_true_anomaly:7.3f},'
-                    f'{prometheus_corot_long:7.3f},'
+            row += (f'{wrap360(long_asc):7.3f},'
+                    f'{wrap360(long_peri):7.3f},'
+                    f'{wrap360(min_true_anomaly):7.3f},'
+                    f'{wrap360(max_true_anomaly):7.3f},'
+                    f'{wrap360(prometheus_corot_long):7.3f},'
                     f'{prometheus_dist:10.3f},'
-                    f'{pandora_corot_long:7.3f},'
+                    f'{wrap360(pandora_corot_long):7.3f},'
                     f'{pandora_dist:10.3f},')
         else:
             mean_long_asc = wrapped_mean(long_asc)
@@ -2965,23 +3079,23 @@ def generate_image(obsid, output_dir, metadata, xml_metadata, global_index_fp,
             mean_pandora_dist = np.mean(pandora_dist)
             min_pandora_dist = np.min(pandora_dist)
             max_pandora_dist = np.max(pandora_dist)
-            row += (f'{mean_long_asc:7.3f},'
-                    f'{min_long_asc:7.3f},'
-                    f'{max_long_asc:7.3f},'
-                    f'{mean_long_peri:7.3f},'
-                    f'{min_long_peri:7.3f},'
-                    f'{max_long_peri:7.3f},'
-                    f'{min_true_anomaly:7.3f},'
-                    f'{max_true_anomaly:7.3f},'
-                    f'{mean_prometheus_corot_long:7.3f},'
-                    f'{min_prometheus_corot_long:7.3f},'
-                    f'{max_prometheus_corot_long:7.3f},'
+            row += (f'{wrap360(mean_long_asc):7.3f},'
+                    f'{wrap360(min_long_asc):7.3f},'
+                    f'{wrap360(max_long_asc):7.3f},'
+                    f'{wrap360(mean_long_peri):7.3f},'
+                    f'{wrap360(min_long_peri):7.3f},'
+                    f'{wrap360(max_long_peri):7.3f},'
+                    f'{wrap360(min_true_anomaly):7.3f},'
+                    f'{wrap360(max_true_anomaly):7.3f},'
+                    f'{wrap360(mean_prometheus_corot_long):7.3f},'
+                    f'{wrap360(min_prometheus_corot_long):7.3f},'
+                    f'{wrap360(max_prometheus_corot_long):7.3f},'
                     f'{mean_prometheus_dist:10.3f},'
                     f'{min_prometheus_dist:10.3f},'
                     f'{max_prometheus_dist:10.3f},'
-                    f'{mean_pandora_corot_long:7.3f},'
-                    f'{min_pandora_corot_long:7.3f},'
-                    f'{max_pandora_corot_long:7.3f},'
+                    f'{wrap360(mean_pandora_corot_long):7.3f},'
+                    f'{wrap360(min_pandora_corot_long):7.3f},'
+                    f'{wrap360(max_pandora_corot_long):7.3f},'
                     f'{mean_pandora_dist:10.3f},'
                     f'{min_pandora_dist:10.3f},'
                     f'{max_pandora_dist:10.3f},')
@@ -3481,8 +3595,9 @@ def generate_mosaic_collection_xml(coll_data_mosaic_csv_path,
         LOGGER.error('Cannot generate data_mosaic collection labels without '
                      'traversing products; run with product generation enabled')
         return
-    metadata['EARLIEST_START_DATE_TIME'] = et_to_datetime(EARLIEST_START_DATE_TIME)
-    metadata['LATEST_STOP_DATE_TIME'] = et_to_datetime(LATEST_STOP_DATE_TIME)
+    metadata['EARLIEST_START_DATE_TIME'] = et_to_datetime(EARLIEST_START_DATE_TIME,
+                                                          mode='floor')
+    metadata['LATEST_STOP_DATE_TIME'] = et_to_datetime(LATEST_STOP_DATE_TIME, mode='ceil')
 
     coll_data_mosaic_xml_path = coll_data_mosaic_csv_path.replace('.csv', '.lblx')
     coll_bsm_data_mosaic_xml_path = coll_bsm_data_mosaic_csv_path.replace('.csv', '.lblx')
@@ -3556,8 +3671,9 @@ def generate_reproj_collection_xml(coll_data_reproj_csv_path):
         LOGGER.error('Cannot generate data_reproj_img collection label without '
                      'traversing products; run with product generation enabled')
         return
-    metadata['EARLIEST_START_DATE_TIME'] = et_to_datetime(EARLIEST_START_DATE_TIME)
-    metadata['LATEST_STOP_DATE_TIME'] = et_to_datetime(LATEST_STOP_DATE_TIME)
+    metadata['EARLIEST_START_DATE_TIME'] = et_to_datetime(EARLIEST_START_DATE_TIME,
+                                                          mode='floor')
+    metadata['LATEST_STOP_DATE_TIME'] = et_to_datetime(LATEST_STOP_DATE_TIME, mode='ceil')
     coll_data_reproj_xml_path = coll_data_reproj_csv_path.replace('.csv', '.lblx')
 
     metadata['DATA_REPROJ_COLLECTION_LID'] = DATA_REPROJ_COLLECTION_LID
@@ -3600,19 +3716,19 @@ def generate_global_index_xml(global_index_csv_path, hdr, img_type):
         metadata['GLOBAL_INDEX_LID'] = GLOBAL_REPROJ_INDEX_LID
         metadata['GLOBAL_INDEX_TITLE'] = 'Global Reprojected Image Index'
         metadata['GLOBAL_INDEX_DESCRIPTION'] = """
-Index table containing metadata for all reprojected images in the F-ring mosaic dataset.
+Index table containing metadata for all reprojected images in the F-ring mosaic dataset. Every pair of minimum and maximum columns holding an angle gives the ends of the range of that angle over the longitudes containing valid data. Those ranges are computed on the circle, so when a range wraps through 360 degrees the minimum is greater than the maximum.
         """
     elif img_type == 'm':
         metadata['GLOBAL_INDEX_LID'] = GLOBAL_MOSAIC_INDEX_LID
         metadata['GLOBAL_INDEX_TITLE'] = 'Global Mosaic Index'
         metadata['GLOBAL_INDEX_DESCRIPTION'] = """
-Index table containing metadata for all mosaics in the F-ring mosaic dataset.
+Index table containing metadata for all mosaics in the F-ring mosaic dataset. Every pair of minimum and maximum columns holding an angle gives the ends of the range of that angle over the longitudes containing valid data. Those ranges are computed on the circle, so when a range wraps through 360 degrees the minimum is greater than the maximum.
         """
     elif img_type == 'b':
         metadata['GLOBAL_INDEX_LID'] = GLOBAL_MOSAIC_BKG_SUB_INDEX_LID
         metadata['GLOBAL_INDEX_TITLE'] = 'Global Background-Subtracted Mosaic Index'
         metadata['GLOBAL_INDEX_DESCRIPTION'] = """
-Index table containing metadata for all background-subtracted mosaics in the F-ring mosaic dataset.
+Index table containing metadata for all background-subtracted mosaics in the F-ring mosaic dataset. Every pair of minimum and maximum columns holding an angle gives the ends of the range of that angle over the longitudes containing valid data. Those ranges are computed on the circle, so when a range wraps through 360 degrees the minimum is greater than the maximum.
         """
     else:
         raise ValueError(f'Invalid image type: {img_type}')
@@ -3732,8 +3848,9 @@ def generate_support_files():
     bundle_name = 'bundle.lblx'
     bundle_path = os.path.join(bundle_dir, bundle_name)
     metadata['BUNDLE_LID'] = f'urn:nasa:pds:{BUNDLE_NAME}'
-    metadata['EARLIEST_START_DATE_TIME'] = et_to_datetime(EARLIEST_START_DATE_TIME)
-    metadata['LATEST_STOP_DATE_TIME'] = et_to_datetime(LATEST_STOP_DATE_TIME)
+    metadata['EARLIEST_START_DATE_TIME'] = et_to_datetime(EARLIEST_START_DATE_TIME,
+                                                          mode='floor')
+    metadata['LATEST_STOP_DATE_TIME'] = et_to_datetime(LATEST_STOP_DATE_TIME, mode='ceil')
     metadata['BROWSE_MOSAIC_COLLECTION_LID'] = BROWSE_MOSAIC_COLLECTION_LID
     metadata['BROWSE_MOSAIC_BKG_SUB_COLLECTION_LID'] = BROWSE_MOSAIC_BKG_SUB_COLLECTION_LID
     metadata['BROWSE_REPROJ_COLLECTION_LID'] = BROWSE_REPROJ_COLLECTION_LID

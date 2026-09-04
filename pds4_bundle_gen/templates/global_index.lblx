@@ -285,7 +285,6 @@
                     <field_location unit="byte">251</field_location>
                     <data_type>ASCII_Date_Time_YMD_UTC</data_type>
                     <field_length unit="byte">20</field_length>
-                    <unit>none</unit>
                     <description>
                         The start date and time of the observation in UTC.
                     </description>
@@ -296,7 +295,6 @@
                     <field_location unit="byte">272</field_location>
                     <data_type>ASCII_Date_Time_YMD_UTC</data_type>
                     <field_length unit="byte">20</field_length>
-                    <unit>none</unit>
                     <description>
                         The stop date and time of the observation in UTC.
                     </description>
@@ -305,22 +303,28 @@
                     <name>cassini:spacecraft_clock_start_count</name>
                     <field_number>6</field_number>
                     <field_location unit="byte">293</field_location>
-                    <data_type>ASCII_Real</data_type>
+                    <data_type>ASCII_String</data_type>
                     <field_length unit="byte">14</field_length>
-                    <unit>none</unit>
                     <description>
-                        The spacecraft clock start count for the observation.
+                        The spacecraft clock start count for the observation, with the
+                        partition number (always 1) omitted. This is a clock reading, not
+                        a number of seconds: the digits after the decimal point are
+                        counts of 1/256 of a second, so that 1549801215.222 is 222/256 of
+                        a second after tick 1549801215.
                     </description>
                 </Field_Character>
                 <Field_Character>
                     <name>cassini:spacecraft_clock_stop_count</name>
                     <field_number>7</field_number>
                     <field_location unit="byte">308</field_location>
-                    <data_type>ASCII_Real</data_type>
+                    <data_type>ASCII_String</data_type>
                     <field_length unit="byte">14</field_length>
-                    <unit>none</unit>
                     <description>
-                        The spacecraft clock stop count for the observation.
+                        The spacecraft clock stop count for the observation, with the
+                        partition number (always 1) omitted. This is a clock reading, not
+                        a number of seconds: the digits after the decimal point are
+                        counts of 1/256 of a second, so that 1549801215.222 is 222/256 of
+                        a second after tick 1549801215.
                     </description>
                 </Field_Character>
                 <Field_Character>
@@ -329,7 +333,6 @@
                     <field_location unit="byte">323</field_location>
                     <data_type>ASCII_NonNegative_Integer</data_type>
                     <field_length unit="byte">5</field_length>
-                    <unit>none</unit>
                     <description>
                         The number of valid longitudes in the product.
                     </description>
@@ -340,7 +343,6 @@
                     <field_location unit="byte">329</field_location>
                     <data_type>ASCII_Real</data_type>
                     <field_length unit="byte">7</field_length>
-                    <unit>none</unit>
                     <description>
                         The percentage coverage of all longitudes in the product.
                     </description>
@@ -353,7 +355,13 @@
                     <field_length unit="byte">6</field_length>
                     <unit>deg</unit>
                     <description>
-                        The minimum corotating longitude in the product that contains valid data.
+                        The lower end of the range of co-rotating longitude that contains
+                        valid data. Note that this is not always the same quantity as the
+                        rings:minimum_corotating_ring_longitude of the product label: a
+                        mosaic label reports the full grid, 0 to 359.98 degrees, because a
+                        mosaic is always written out to its full extent. When the range of
+                        valid data wraps through 360 degrees this value is greater than
+                        the maximum.
                     </description>
                 </Field_Character>
                 <Field_Character>
@@ -364,7 +372,13 @@
                     <field_length unit="byte">6</field_length>
                     <unit>deg</unit>
                     <description>
-                        The maximum corotating longitude in the product that contains valid data.
+                        The upper end of the range of co-rotating longitude that contains
+                        valid data. Note that this is not always the same quantity as the
+                        rings:maximum_corotating_ring_longitude of the product label: a
+                        mosaic label reports the full grid, 0 to 359.98 degrees, because a
+                        mosaic is always written out to its full extent. When the range of
+                        valid data wraps through 360 degrees this value is less than the
+                        minimum.
                     </description>
                 </Field_Character>
                 <Field_Character>
@@ -814,7 +828,6 @@
                     <field_location unit="byte">706</field_location>
                     <data_type>ASCII_Date_Time_YMD_UTC</data_type>
                     <field_length unit="byte">20</field_length>
-                    <unit>none</unit>
                     <description>
                         The date and time when the product was created (UTC).
                     </description>
@@ -826,7 +839,6 @@
                     <field_location unit="byte">727</field_location>
                     <data_type>ASCII_String</data_type>
                     <field_length unit="byte">1</field_length>
-                    <unit>none</unit>
                     <description>
                         Subjective quality of the navigation of the images that were used to create
                         this mosaic (G=good, F=fair, P=poor).
@@ -838,7 +850,6 @@
                     <field_location unit="byte">729</field_location>
                     <data_type>ASCII_String</data_type>
                     <field_length unit="byte">1</field_length>
-                    <unit>none</unit>
                     <description>
                         Subjective quality of the background modeling and subtraction process used
                         on this mosaic (G=good, F=fair, P=poor).
@@ -850,7 +861,6 @@
                     <field_location unit="byte">731</field_location>
                     <data_type>ASCII_String</data_type>
                     <field_length unit="byte">4</field_length>
-                    <unit>none</unit>
                     <description>
                         Any notes about the product. See the User Guide for details.
                     </description>
@@ -861,7 +871,6 @@
                     <field_location unit="byte">736</field_location>
                     <data_type>ASCII_NonNegative_Integer</data_type>
                     <field_length unit="byte">4</field_length>
-                    <unit>none</unit>
                     <description>
                         The number of source images used to create this mosaic.
                     </description>
@@ -915,7 +924,6 @@
                     <field_location unit="byte">727</field_location>
                     <data_type>ASCII_String</data_type>
                     <field_length unit="byte">1</field_length>
-                    <unit>none</unit>
                     <description>
                         Subjective quality of the navigation of the images that were used to create
                         this mosaic (G=good, F=fair, P=poor).
@@ -927,7 +935,6 @@
                     <field_location unit="byte">729</field_location>
                     <data_type>ASCII_String</data_type>
                     <field_length unit="byte">4</field_length>
-                    <unit>none</unit>
                     <description>
                         Any notes about the product. See the User Guide for details.
                     </description>
@@ -938,7 +945,6 @@
                     <field_location unit="byte">734</field_location>
                     <data_type>ASCII_NonNegative_Integer</data_type>
                     <field_length unit="byte">4</field_length>
-                    <unit>none</unit>
                     <description>
                         The number of source images used to create this mosaic.
                     </description>
@@ -1092,7 +1098,6 @@
                     <field_location unit="byte">598</field_location>
                     <data_type>ASCII_Date_Time_YMD_UTC</data_type>
                     <field_length unit="byte">20</field_length>
-                    <unit>none</unit>
                     <description>
                         The date and time when the product was created (UTC).
                     </description>
@@ -1103,7 +1108,6 @@
                     <field_location unit="byte">619</field_location>
                     <data_type>ASCII_String</data_type>
                     <field_length unit="byte">1</field_length>
-                    <unit>none</unit>
                     <description>
                         Subjective quality of the navigation of the images that were used to create
                         the mosaic that this image is part of (G=good, F=fair, P=poor). Note that
@@ -1117,7 +1121,6 @@
                     <field_location unit="byte">621</field_location>
                     <data_type>ASCII_String</data_type>
                     <field_length unit="byte">4</field_length>
-                    <unit>none</unit>
                     <description>
                         Any notes about the product. See the User Guide for details.
                     </description>

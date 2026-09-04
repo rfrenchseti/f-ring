@@ -67,8 +67,9 @@ DONE - Put example Python files in user guide label file?
 
 - Compare cassini: fields between what I generate and the PDS4 bundle
 
-- Fill in the L2 Puppis context product LID in OCCULTATION_STARS once the
-  Engineering Node registers it. Until then target_star() returns '' for the
-  four L2PUPOCC observations and their labels ship with no star target, with
-  no warning. The user guide already states that every occultation names its
-  star.
+DONE - Fill in the L2 Puppis context product LID in OCCULTATION_STARS. The LID
+  urn:nasa:pds:context:target:star.l02_pup is now referenced by the four
+  L2PUPOCC observations, by collection_context.csv, and by the bundle and
+  collection labels. The Engineering Node still has to register the context
+  product itself, so validate will report it as a dangling reference until
+  that delivery lands.
