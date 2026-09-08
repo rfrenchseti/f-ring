@@ -85,38 +85,36 @@ data_reproj_img/
 └── ...
 \end{CodeBlock}
 
-The file \code{IMGID\_\allowbreak{}reproj\_\allowbreak{}img.\allowbreak{}lblx} contains all of the details about the reprojected image, including the reprojection and viewing geometry:
+The file \code{IMGID\_\allowbreak{}reproj\_\allowbreak{}img.\allowbreak{}lblx} contains all of the details about the reprojected image, including the reprojection and viewing geometry. Every excerpt in this section is taken from image \code{1622049830n} of observation \code{iss\_\allowbreak{}111rf\_\allowbreak{}fmovie002\_\allowbreak{}prime}:
 
 \begin{CodeBlock}[fontsize=\scriptsize]
 <rings:epoch_reprojection_basis_utc>2007-01-01T00:00:00.000Z</rings:epoch_reprojection_basis_utc>
 <rings:reprojection_plane>Equator</rings:reprojection_plane>
 <rings:corotating_flag>Y</rings:corotating_flag>
 <rings:corotation_rate unit="deg/s">0.006735694444</rings:corotation_rate> <!-- 581.964 deg/day -->
-<rings:mean_phase_angle unit="deg">36.119</rings:mean_phase_angle>
-<rings:minimum_phase_angle unit="deg">35.990</rings:minimum_phase_angle>
-<rings:maximum_phase_angle unit="deg">36.182</rings:maximum_phase_angle>
-<rings:mean_incidence_angle unit="deg">88.821</rings:mean_incidence_angle>
-<rings:minimum_incidence_angle unit="deg">88.821</rings:minimum_incidence_angle>
-<rings:maximum_incidence_angle unit="deg">88.821</rings:maximum_incidence_angle>
-<rings:mean_emission_angle unit="deg">97.421</rings:mean_emission_angle>
-<rings:minimum_emission_angle unit="deg">97.200</rings:minimum_emission_angle>
-<rings:maximum_emission_angle unit="deg">97.651</rings:maximum_emission_angle>
-<rings:minimum_corotating_ring_longitude unit="deg">286.14</rings:minimum_corotating_ring_longitude>
-<rings:maximum_corotating_ring_longitude unit="deg">308.60</rings:maximum_corotating_ring_longitude>
-<rings:minimum_ring_radius unit="km">138894.242</rings:minimum_ring_radius>
-<rings:maximum_ring_radius unit="km">140934.268</rings:maximum_ring_radius>
+<rings:mean_phase_angle unit="deg">34.334</rings:mean_phase_angle>
+<rings:minimum_phase_angle unit="deg">34.208</rings:minimum_phase_angle>
+<rings:maximum_phase_angle unit="deg">34.373</rings:maximum_phase_angle>
+<rings:mean_incidence_angle unit="deg">88.824</rings:mean_incidence_angle>
+<rings:minimum_incidence_angle unit="deg">88.824</rings:minimum_incidence_angle>
+<rings:maximum_incidence_angle unit="deg">88.824</rings:maximum_incidence_angle>
+<rings:mean_emission_angle unit="deg">103.117</rings:mean_emission_angle>
+<rings:minimum_emission_angle unit="deg">102.901</rings:minimum_emission_angle>
+<rings:maximum_emission_angle unit="deg">103.339</rings:maximum_emission_angle>
+<rings:minimum_corotating_ring_longitude unit="deg">186.60</rings:minimum_corotating_ring_longitude>
+<rings:maximum_corotating_ring_longitude unit="deg">199.56</rings:maximum_corotating_ring_longitude>
+<rings:minimum_ring_radius unit="km">138896.295</rings:minimum_ring_radius>
+<rings:maximum_ring_radius unit="km">140916.702</rings:maximum_ring_radius>
 <rings:Reprojection_Grid_Parameters>
     <local_identifier>reproj_grid</local_identifier>
-    <rings:reprojection_grid_radial_sampling_interval unit="km">
-        5.0</rings:reprojection_grid_radial_sampling_interval>
-    <rings:reprojection_grid_longitudinal_sampling_interval unit="deg">
-        0.02</rings:reprojection_grid_longitudinal_sampling_interval>
-    <rings:minimum_radial_resolution unit="km">5.390</rings:minimum_radial_resolution>
-    <rings:maximum_radial_resolution unit="km">9.827</rings:maximum_radial_resolution>
-    <rings:mean_radial_resolution unit="km">7.001</rings:mean_radial_resolution>
-    <rings:minimum_longitudinal_resolution unit="deg">0.016</rings:minimum_longitudinal_resolution>
-    <rings:maximum_longitudinal_resolution unit="deg">0.018</rings:maximum_longitudinal_resolution>
-    <rings:mean_longitudinal_resolution unit="deg">0.017</rings:mean_longitudinal_resolution>
+    <rings:reprojection_grid_radial_sampling_interval unit="km">5.0</rings:reprojection_grid_radial_sampling_interval>
+    <rings:reprojection_grid_longitudinal_sampling_interval unit="deg">0.02</rings:reprojection_grid_longitudinal_sampling_interval>
+    <rings:minimum_radial_resolution unit="km">5.613</rings:minimum_radial_resolution>
+    <rings:maximum_radial_resolution unit="km">6.487</rings:maximum_radial_resolution>
+    <rings:mean_radial_resolution unit="km">5.853</rings:mean_radial_resolution>
+    <rings:minimum_longitudinal_resolution unit="deg">0.00963</rings:minimum_longitudinal_resolution>
+    <rings:maximum_longitudinal_resolution unit="deg">0.01046</rings:maximum_longitudinal_resolution>
+    <rings:mean_longitudinal_resolution unit="deg">0.01007</rings:mean_longitudinal_resolution>
 </rings:Reprojection_Grid_Parameters>
 \end{CodeBlock}
 
@@ -126,9 +124,9 @@ and the details of the image file, \code{IMGID\_\allowbreak{}reproj\_\allowbreak
 <File_Area_Observational>
     <File>
         <file_name>1622049830n_reproj_img.img</file_name>
-        <creation_date_time>2025-07-25T22:48:10Z</creation_date_time>
-        <file_size unit="byte">1050620</file_size>
-        <md5_checksum>ad24ba420a8705285effa703a950b61e</md5_checksum>
+        <creation_date_time>2026-09-08T19:31:25Z</creation_date_time>
+        <file_size unit="byte">1040996</file_size>
+        <md5_checksum>3d19ed500563eab78063a95eb57cbdd1</md5_checksum>
     </File>
     <!-- The calibrated, reprojected single image -->
     <Array_2D_Image>
@@ -136,24 +134,34 @@ and the details of the image file, \code{IMGID\_\allowbreak{}reproj\_\allowbreak
         <offset unit="byte">0</offset>
         <axes>2</axes>
         <axis_index_order>Last Index Fastest</axis_index_order>
+        <description>
+            Line is the radial axis and Sample is the co-rotating longitude axis.
+            Line 0 is the innermost row, at a delta radius of -1000 km from the
+            F ring core, and the delta radius increases outward by 5 km per line,
+            so that delta radius = -1000 + 5 * Line km and the modeled core lies
+            at Line 200. Sample 0 is the minimum co-rotating longitude given by
+            rings:minimum_corotating_ring_longitude and the longitude increases
+            by 0.02 degrees per sample, wrapping through 360 degrees when the
+            minimum is greater than the maximum.
+        </description>
         <Element_Array>
             <data_type>IEEE754LSBSingle</data_type>
             <unit>I/F</unit>
         </Element_Array>
         <Axis_Array>
-            <axis_name>Line</axis_name> <!-- vertical (radial) -->
+            <axis_name>Line</axis_name> <!-- vertical (delta radius) -->
             <elements>401</elements>
             <sequence_number>1</sequence_number>
         </Axis_Array>
         <Axis_Array>
-            <axis_name>Sample</axis_name> <!-- horizontal (longitude) -->
-            <elements>655</elements>
+            <axis_name>Sample</axis_name> <!-- horizontal (co-rotating longitude) -->
+            <elements>649</elements>
             <sequence_number>2</sequence_number>
         </Axis_Array>
         <Special_Constants>
             <!-- Data was missing or corrupted in the original image (either because it was off
-                the edge of the FOV or because of a transmission error resulting in a partial or
-                corrupted image) -->
+             the edge of the FOV or because of a transmission error resulting in a partial or
+             corrupted image) -->
             <missing_constant>-999</missing_constant>
         </Special_Constants>
     </Array_2D_Image>
@@ -166,11 +174,12 @@ An associated metadata file, \code{IMGID\_\allowbreak{}reproj\_\allowbreak{}img\
 
 \begin{CodeBlock}[fontsize=\scriptsize]
 rings:corotating_ring_longitude,rings:observed_event_tdb,rings:inertial_ring_longitude,rings:radial_resolution,rings:longitudinal_resolution,rings:incidence_angle,rings:phase_angle,rings:emission_angle,core_radius,longitude_ascending_node,longitude_pericenter,true_anomaly,corotating_longitude_prometheus,radius_prometheus,corotating_longitude_pandora,radius_pandora
-320.08, 558091398.772, 101.729,    5.232,  0.00010,  63.312, 129.712,  67.484, 140188.617, 293.578, 186.171, 275.558, 177.733, 139483.579,  23.223, 141253.549
-320.10, 558091398.772, 101.749,    5.233,  0.00010,  63.312, 129.711,  67.483, 140188.503, 293.578, 186.171, 275.578, 177.733, 139483.579,  23.223, 141253.549
-320.12, 558091398.772, 101.769,    5.233,  0.00010,  63.312, 129.710,  67.482, 140188.389, 293.578, 186.171, 275.598, 177.733, 139483.579,  23.223, 141253.549
-320.14, 558091398.772, 101.789,    5.233,  0.00010,  63.312, 129.709,  67.481, 140188.274, 293.578, 186.171, 275.618, 177.733, 139483.579,  23.223, 141253.549
-320.16, 558091398.772, 101.809,    5.233,  0.00010,  63.312, 129.707,  67.479, 140188.160, 293.578, 186.171, 275.638, 177.733, 139483.579,  23.223, 141253.549[...]
+186.60, 296628214.587, 272.212,    6.487,  0.00963,  88.824,  34.369, 103.339, 139916.702, 147.322, 294.690, 337.522, 274.743, 139453.621,  68.058, 141137.545
+186.62, 296628214.587, 272.232,    6.484,  0.00963,  88.824,  34.369, 103.339, 139916.658, 147.322, 294.690, 337.542, 274.743, 139453.621,  68.058, 141137.545
+186.64, 296628214.587, 272.252,    6.480,  0.00964,  88.824,  34.368, 103.338, 139916.614, 147.322, 294.690, 337.562, 274.743, 139453.621,  68.058, 141137.545
+186.66, 296628214.587, 272.272,    6.477,  0.00964,  88.824,  34.368, 103.337, 139916.571, 147.322, 294.690, 337.582, 274.743, 139453.621,  68.058, 141137.545
+186.68, 296628214.587, 272.292,    6.473,  0.00964,  88.824,  34.367, 103.337, 139916.527, 147.322, 294.690, 337.602, 274.743, 139453.621,  68.058, 141137.545
+[...]
 \end{CodeBlock}
 
 where the rows are in ascending corotating-longitude order and cover only the longitudes that contain valid data. Because a reprojected image that wraps around at 360° is stored starting at its minimum corotating longitude and continuing through 360° to its maximum (see Section~\ref{sec:reprojection}), and because the image may retain sentinel-filled columns at longitudes with no valid data, the rows do \textit{not} necessarily correspond one-to-one, in sequence, to the X indices of the image array; to associate a row with an image column, use the corotating ring longitude field instead of the row position. The column holding a given corotating longitude is \code{col = round(((longitude − min\_\allowbreak{}corotating\_\allowbreak{}ring\_\allowbreak{}longitude) mod 360) / 0.\allowbreak{}02)}, and column \textit{c} holds longitude \code{(min\_\allowbreak{}corotating\_\allowbreak{}ring\_\allowbreak{}longitude + 0.\allowbreak{}02 × c) mod 360}; the modulo handles the wraparound case (Section~\ref{sec:reading-labels-and-data-product-files}). This table gives the actual corotating longitude for each row as well as additional useful information such as the inertial longitude, radial resolution, angular (longitudinal) resolution, phase angle, emission angle, and various orbital parameters. See Sections~\ref{sec:reprojection} and \ref{sec:metadata-and-global-index-file-fields} for details about these fields and Section~\ref{sec:reading-labels-and-data-product-files} for information on how to read these files with software.
@@ -181,24 +190,24 @@ Finally, a supplemental information file, \code{IMGID\_\allowbreak{}reproj\_\all
 This file contains a C-matrix that describes the rotation from the J2000 reference
 frame to the camera pointing based upon analysis of the contents of the image.
 
-Source Data Product ID = 1736795703n_calib
-Image Start Time (SCLK) = 1/1736795701.243
-Image Start Time (UTC) = 2013-01-13T18:20:56.381Z
-Image Mid Time (SCLK) = 1/1736795702.180
-Image Mid Time (UTC) = 2013-01-13T18:20:57.131Z
-Image Stop Time (SCLK) = 1/1736795703.118
-Image Stop Time (UTC) = 2013-01-13T18:20:57.881Z
+Source Data Product ID = 1622049830n_calib
+Image Start Time (SCLK) = 1/1622049829.163
+Image Start Time (UTC) = 2009-05-26T16:42:27.992Z
+Image Mid Time (SCLK) = 1/1622049830.012
+Image Mid Time (UTC) = 2009-05-26T16:42:28.402Z
+Image Stop Time (SCLK) = 1/1622049830.118
+Image Stop Time (UTC) = 2009-05-26T16:42:28.812Z
 Trajectory Kernels Query Time = Observation mid time
 Stellar Aberration Correction = No
 Light Travel Time Correction = No
-Navigation Type = Ring and/or Satellite Models
-Navigated Boresight RA = 287.227 deg (19h08m54.446s)
-Navigated Boresight Dec = 46.7338 deg (+046d44m1.850s)
-Navigated Boresight Roll = 22.6952 deg
+Navigation Type = Stars
+Navigated Boresight RA = 142.804 deg (09h31m13.028s)
+Navigated Boresight Dec = -11.8016 deg (-011d48m05.706s)
+Navigated Boresight Roll = -44.9209 deg
 C-Matrix =
-    0.7979776914    0.5415732280    0.2644428914
-   -0.5674768892    0.5273925427    0.6323188168
-    0.2029817339   -0.6546415390    0.7281777744
+   -0.3130222448   -0.6513481158   -0.6912038095
+   -0.5422429512   -0.4749368367    0.6931144083
+   -0.7797369147    0.5917606215   -0.2045231298
 \end{CodeBlock}
 
 This pointing information is only provided for archival completeness and is not expected to be used by most scientific users.
@@ -265,11 +274,11 @@ The \code{OBSID1\_\allowbreak{}mosaic[\_\allowbreak{}bkg\_\allowbreak{}sub]\_\al
 
 \begin{CodeBlock}[fontsize=\scriptsize]
 rings:corotating_ring_longitude,image_index,rings:observed_event_tdb,rings:inertial_ring_longitude,rings:radial_resolution,rings:longitudinal_resolution,rings:incidence_angle,rings:phase_angle,rings:emission_angle,core_radius,longitude_ascending_node,longitude_pericenter,true_anomaly,corotating_longitude_prometheus,radius_prometheus,corotating_longitude_pandora,radius_pandora
-308.04,    8, 558093184.000,  81.866,    5.175,  0.00010,  63.312, 129.427,  67.248, 140302.302, 293.523, 186.227, 255.639, 177.819, 139542.008,  23.103, 141339.852
-308.06,    8, 558093184.000,  81.886,    5.175,  0.00010,  63.312, 129.426,  67.247, 140302.190, 293.523, 186.227, 255.659, 177.819, 139542.008,  23.103, 141339.852
-308.08,    8, 558093184.000,  81.906,    5.175,  0.00010,  63.312, 129.425,  67.245, 140302.078, 293.523, 186.227, 255.679, 177.819, 139542.008,  23.103, 141339.852
-308.10,    8, 558093184.000,  81.926,    5.176,  0.00010,  63.312, 129.423,  67.244, 140301.967, 293.523, 186.227, 255.699, 177.819, 139542.008,  23.103, 141339.852
-308.12,    8, 558093184.000,  81.946,    5.176,  0.00010,  63.312, 129.422,  67.243, 140301.855, 293.523, 186.227, 255.719, 177.819, 139542.008,  23.103, 141339.852
+  4.60,    8, 296602047.773, 273.960,    5.289,  0.03542,  88.824,  38.053,  93.478, 139911.390, 148.136, 293.872, 340.088, 273.628, 139319.213,  70.526, 142262.214
+  4.62,    8, 296602047.773, 273.980,    5.286,  0.03542,  88.824,  38.053,  93.477, 139911.351, 148.136, 293.872, 340.108, 273.628, 139319.213,  70.526, 142262.214
+  4.64,    8, 296602047.773, 274.000,    5.282,  0.03543,  88.824,  38.053,  93.477, 139911.312, 148.136, 293.872, 340.128, 273.628, 139319.213,  70.526, 142262.214
+  4.66,    8, 296602047.773, 274.020,    5.279,  0.03543,  88.824,  38.053,  93.477, 139911.273, 148.136, 293.872, 340.148, 273.628, 139319.213,  70.526, 142262.214
+  4.68,    8, 296602047.773, 274.040,    5.276,  0.03543,  88.824,  38.053,  93.477, 139911.234, 148.136, 293.872, 340.168, 273.628, 139319.213,  70.526, 142262.214
 [...]
 \end{CodeBlock}
 
@@ -282,7 +291,7 @@ image_index,LIDVID
    0, urn:nasa:pds:cassini_iss_fring_mosaics_rsfrench2025:data_reproj_img:1622022571n_reproj_img::1.0
    1, urn:nasa:pds:cassini_iss_fring_mosaics_rsfrench2025:data_reproj_img:1622022704n_reproj_img::1.0
    2, urn:nasa:pds:cassini_iss_fring_mosaics_rsfrench2025:data_reproj_img:1622022841n_reproj_img::1.0
-[…]
+[...]
 \end{CodeBlock}
 
 While all of these files are in fixed-width format for rapid reading with appropriate software, they can also be read as if they were CSV files by standard spreadsheet software. In this case you must specify that the file is delimited by commas.
