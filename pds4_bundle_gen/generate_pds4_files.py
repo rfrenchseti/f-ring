@@ -40,6 +40,10 @@ sys.path.append(os.path.join(parent_dir, 'external'))
 import f_ring_util.f_ring as f_ring
 
 BUNDLE_NAME = 'cassini_iss_fring_mosaics_rsfrench2025'
+# The year this bundle is published, fixed by the bundle name and DOI. It must not
+# track the clock: labels regenerated in a later year still belong to the 2025
+# release.
+PUBLICATION_YEAR = '2025'
 DATA_MOSAIC_COLLECTION_LID = f'urn:nasa:pds:{BUNDLE_NAME}:data_mosaic'
 DATA_MOSAIC_BKG_SUB_COLLECTION_LID =f'urn:nasa:pds:{BUNDLE_NAME}:data_mosaic_bkg_sub'
 DATA_REPROJ_COLLECTION_LID = f'urn:nasa:pds:{BUNDLE_NAME}:data_reproj_img'
@@ -3967,7 +3971,7 @@ BASIC_XML_METADATA = {
     'KEYWORDS_MOSAIC': ['saturn rings', 'f ring', 'cassini iss', 'mosaic'],
     'KEYWORDS_REPROJ': ['saturn rings', 'f ring', 'cassini iss', 'reprojected image'],
     'KEYWORDS_MOSAIC_REPROJ': ['saturn rings', 'f ring', 'cassini iss', 'mosaic', 'reprojected image'],
-    'PUBLICATION_YEAR': datetime.datetime.now(datetime.UTC).strftime('%Y'),
+    'PUBLICATION_YEAR': PUBLICATION_YEAR,
     'USERGUIDE_LID': USERGUIDE_LID,
     'USERGUIDE_DOI': '10.17189/ajhh-aj88',
     'USERGUIDE_PDF_NAME': 'f-ring-mosaics-user-guide.pdf',

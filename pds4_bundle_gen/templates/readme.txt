@@ -25,7 +25,7 @@ Systems Node: https://pds-rings.seti.org/
 The following is the recommended information to include in a (e.g. journal)
 citation of this data set:
 
-  "French, R.S. and Hedman, M.M. (2026).
+  "French, R.S. and Hedman, M.M. (2025).
    F Ring Mosaics and Reprojected Images Created from Calibrated Cassini ISS
    Images, and Associated Metadata (Version 1.0) [Data set].
    NASA Planetary Data System. DOI 10.17189/3tfh-th07."
