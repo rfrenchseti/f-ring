@@ -4,7 +4,7 @@
 **Software reviewed:** `/seti/research/f-ring/f-ring/pds4_bundle_gen/` — `generate_pds4_files.py` (3,817 lines), `templates/*.lblx`, `templates/examples/*.py`, `templates/*.csv`
 **Users guide compared against:** `/seti/research/f-ring/f-ring/users_guide/sections/*.tex` (LaTeX sources; `main.pdf` built 2026-07-19, md5 `e6e7eef933…`, shipped identically in the bundle)
 **Ground truth:** the regenerated bundle at `/data/fring-bundles/pds4/` (rebuilt 2026-07-21 18:23).
-**Predecessor:** `critiques/pds4-bundle-gen-critique-2026-07-19.md`. Line numbers refer to the current files.
+**Predecessor:** `critiques/archive/pds4-bundle-gen-critique-2026-07-19.md`. Line numbers refer to the current files.
 
 ---
 

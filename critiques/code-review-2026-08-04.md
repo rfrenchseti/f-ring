@@ -10,7 +10,7 @@ itself (it is mid-regeneration; a bundle spot-check should be a second pass).
 consistency of units, masks, and sentinel values; code-vs-guide consistency.
 **Method:** nine parallel line-by-line reviews by area, followed by independent re-verification of
 every critical/major claim against the source (and, where marked, numerically or empirically).
-**Predecessor:** `critiques/pds4-bundle-gen-critique-2026-07-21.md` (status of its findings in §6).
+**Predecessor:** `critiques/archive/pds4-bundle-gen-critique-2026-07-21.md` (status of its findings in §6).
 
 > **Fix status (updated 2026-08-04):** every finding in this report was fixed on branch
 > `code_review_fixes` — commits `52cb449` (mosaics), `115574b` (f_ring_util + photometry),
