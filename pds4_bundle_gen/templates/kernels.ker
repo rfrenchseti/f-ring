@@ -1,3 +1,36 @@
+KPL/MK
+
+This metakernel lists every SPICE kernel used to navigate the Cassini ISS
+images in this bundle and to compute the tabulated geometry.
+
+Two of the planetary constants kernels below are Ring-Moon Systems Node
+derivatives of NAIF originals. NAIF does not distribute either one under these
+names.
+
+   cpck15Dec2017_saturn_only.tpc is NAIF's cpck15Dec2017.tpc with all
+   references to planetary systems other than Saturn removed (edited by
+   M. Showalter, SETI Institute, 2020-08-18). It should be regarded as
+   definitive only for bodies in the Saturn system.
+
+   pck00010_edit_v01.tpc is NAIF's pck00010.tpc with several small satellites
+   added (Aegaeon, Perdita, Mab, Cupid, S/2004 N 1, Nix, Hydra, Kerberos and
+   Styx) and with Saturn's pole replaced by the values of French et al.
+   (Icarus 103, 163-214, 1993), converted to J2000 and precessed to the epoch
+   of the constants file.
+
+The corotating_longitude_prometheus, radius_prometheus,
+corotating_longitude_pandora and radius_pandora columns of the metadata tables
+were computed from a separate load of four of these kernels, in this order:
+
+   naif0012.tls
+   de438.bsp
+   sat393.bsp
+   pck00010_edit_v01.tpc
+
+so Saturn's pole for those columns comes from pck00010_edit_v01.tpc and not
+from cpck15Dec2017_saturn_only.tpc. Every other quantity in this bundle was
+derived with the full set below.
+
 \begindata
 KERNELS_TO_LOAD = (
     'naif0012.tls',
@@ -6,6 +39,7 @@ KERNELS_TO_LOAD = (
     'cas_status_v04.tf',
     'cas_iss_v10.ti',
     'cas_rocks_v18.tf',
+    'pck00010_edit_v01.tpc',
     'cpck15Dec2017_saturn_only.tpc',
     'cpck_rock_21Jan2011_merged.tpc',
     'aegaeon_mst2013.bpc',

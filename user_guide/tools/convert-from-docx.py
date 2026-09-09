@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Convert the F Ring User's Guide .docx to a LaTeX project.
+"""Convert the F Ring User Guide .docx to a LaTeX project.
 
 Reads the unzipped docx in DOCX_DIR and writes .tex files into PROJ.
 Tracked changes are accepted: w:ins content kept, w:del content dropped.

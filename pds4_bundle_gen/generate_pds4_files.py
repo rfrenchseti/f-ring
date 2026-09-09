@@ -3976,7 +3976,7 @@ BASIC_XML_METADATA = {
     'USERGUIDE_DOI': '10.17189/ajhh-aj88',
     'USERGUIDE_PDF_NAME': 'f-ring-mosaics-user-guide.pdf',
     'USERGUIDE_PDF_PATH': os.path.join('document', 'user_guide', 'f-ring-mosaics-user-guide.pdf'),
-    'USERGUIDE_COMMENT': "Detailed User's Guide for the F Ring Mosaics and Reprojected Images in this bundle.",
+    'USERGUIDE_COMMENT': 'Detailed User Guide for the F Ring Mosaics and Reprojected Images in this bundle.',
     'XML_SCHEMA_COLLECTION_LID': f'urn:nasa:pds:{BUNDLE_NAME}:xml_schema',
     'CASSINI_USER_GUIDE_LID': 'urn:nasa:pds:cassini_iss_saturn:document:iss-data-user-guide',
     'CASSINI_USER_GUIDE_DESC': "The Cassini ISS Data User's Guide (PDS3); DOI: 10.17189/1504135",
