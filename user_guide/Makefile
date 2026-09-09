@@ -1,4 +1,4 @@
-# Build the F Ring User's Guide.
+# Build the F Ring User Guide.
 # The sty/ directory carries a few standard packages (booktabs, caption,
 # enumitem, fancyvrb, titlesec, float, xcolor, pmboxdraw, newunicodechar,
 # upquote) for TeX installations that lack them.  On a full TeX Live they

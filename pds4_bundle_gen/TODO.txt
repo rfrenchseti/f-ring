@@ -67,8 +67,31 @@ DONE - Put example Python files in user guide label file?
 
 - Compare cassini: fields between what I generate and the PDS4 bundle
 
-- Fill in the L2 Puppis context product LID in OCCULTATION_STARS once the
-  Engineering Node registers it. Until then target_star() returns '' for the
-  four L2PUPOCC observations and their labels ship with no star target, with
-  no warning. The user guide already states that every occultation names its
-  star.
+DONE - Fill in the L2 Puppis context product LID in OCCULTATION_STARS. The LID
+  urn:nasa:pds:context:target:star.l02_pup is now referenced by the four
+  L2PUPOCC observations, by collection_context.csv, and by the bundle and
+  collection labels. The Engineering Node still has to register the context
+  product itself, so validate will report it as a dangling reference until
+  that delivery lands.
+
+DONE - collection_xml_schema.csv now carries the LIDVIDs the dictionary labels
+  themselves declare, taken from
+  https://pds.nasa.gov/datastandards/dictionaries/ :
+
+    pds-xml_schema_1.24.0.0::1.0
+    disp-xml_schema_1.24.0.0_1.5.1.0::1.0
+    geom-xml_schema_1.24.0.0_1.9.11.0::1.0
+    rings-xml_schema_1.24.0.0_1.14.0::1.0
+    cassini-xml_schema_1.24.0.0_1.8.0.0::1.0
+
+  The LID is <prefix>-xml_schema_<IM version> for the core schema and
+  <prefix>-xml_schema_<IM version>_<LDD version> for a discipline or mission
+  dictionary, with version_id from the same label. Read them out of the
+  dictionary label; do not derive them. RINGS declares 1.14.0 where its own
+  title says V1.14.0.0, and the registered IM-1.23 product uses the same
+  three-component form.
+
+  The registry has not ingested the IM 1.24 system_bundle products yet (the
+  1.23 equivalents resolve, the 1.24 ones return 404), so validate will report
+  these as unresolved until Build 15.1 lands. That is registry lag, not a
+  malformed reference.

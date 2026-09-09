@@ -12,7 +12,7 @@ kdir = '/home/rfrench/DS/Shared/OOPS-Resources/SPICE'
 cspyce.furnsh(os.path.join(kdir, 'General/LSK/naif0012.tls'))
 cspyce.furnsh(os.path.join(kdir, 'General/SPK/de438.bsp'))
 cspyce.furnsh(os.path.join(kdir, 'Saturn/SPK/sat393.bsp'))
-cspyce.furnsh(os.path.join(kdir, 'General/PCK/pck00010_edit_v01.tpc'))
+cspyce.furnsh(os.path.join(kdir, 'Cassini/PCK/cpck15Dec2017.tpc'))
 
 SATURN_ID     = cspyce.bodn2c('SATURN')
 PANDORA_ID    = cspyce.bodn2c('PANDORA')

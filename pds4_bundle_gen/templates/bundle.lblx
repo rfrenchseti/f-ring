@@ -126,10 +126,10 @@
             </List_Contributor>
         </Citation_Information>
         <Modification_History>
-	        <Modification_Detail>
+            <Modification_Detail>
                 <modification_date>$CURRENT_ZULU(date_only=True)$</modification_date>
                 <version_id>1.0</version_id>
-                <description>Initial version</description>
+                <description>Initial version.</description>
             </Modification_Detail>
         </Modification_History>
     </Identification_Area>
@@ -267,6 +267,7 @@
     <File_Area_Text>
         <File>
             <file_name>readme.txt</file_name>
+            <creation_date_time>$FILE_ZULU(README_PATH)$</creation_date_time>
         </File>
         <Stream_Text>
             <offset unit="byte">0</offset>
