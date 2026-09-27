@@ -287,7 +287,7 @@
         <External_Reference>
             <reference_text>
                 URL: https://naif.jpl.nasa.gov/naif/documentation.html
-                At the time of archiving, NAIF (Navigation and Ancillary Information) Node
+                At the time of archiving, the Navigation and Ancillary Information Facility (NAIF)
                 of NASA PDS provides extensive documentation of SPICE, via the URL given
                 above. For example, "C-Kernel Required Reading" documentation describing
                 C-Matrices is accessed via
@@ -361,6 +361,13 @@
                 refinement results from the analysis of contents of the image coupled with
                 initial pointing information provided by the relevant C-kernel (listed in
                 the metakernel referenced above).
+
+                The three rows of the matrix are the camera X, Y and Z axes expressed in
+                J2000 coordinates, so the third row is the boresight and matches the right
+                ascension and declination given in the header. The roll given in the header
+                is the angle of the camera X axis about the boresight, measured from the
+                direction of increasing declination and positive towards increasing right
+                ascension.
             </comment>
         </File>
         <Header>
@@ -373,7 +380,7 @@
             <local_identifier>supplemental_info</local_identifier>
             <offset unit="byte">$SUPPL_HEADER_LENGTH$</offset>
             <records>3</records>
-            <description>This is a supplemental table containing C-matrix pointing information and relevant parameters.</description>
+            <description>The three rows of the C-matrix. The parameters describing the pointing are in the header above this table.</description>
             <record_delimiter>Line-Feed</record_delimiter>
             <Record_Character>
                 <fields>3</fields>
@@ -431,6 +438,15 @@
             <records>$FILE_RECORDS(METADATA_PARAMS_TABLE_PATH)-1$</records>
             <description>
                 The metadata for each longitude in the reprojected image that contains valid data.
+                The records are in order of increasing co-rotating longitude starting at 0
+                degrees. When the longitude range of the image wraps through 360 degrees, this
+                is not the order in which the columns are stored in the image: the records
+                covering 0 degrees to rings:maximum_corotating_ring_longitude come first,
+                followed by those covering rings:minimum_corotating_ring_longitude to 360
+                degrees. Longitudes that contain no valid data have no record at all, so in
+                general record N does not correspond to image column N. Use the
+                rings:corotating_ring_longitude field, not the record number, to associate a
+                record with a column.
             </description>
             <record_delimiter>Line-Feed</record_delimiter>
             <Record_Character>
@@ -459,7 +475,7 @@
                     <unit>s</unit>
                     <description>
                         The Ephemeris Time, defined as the number of seconds since the J2000 epoch,
-                        at middle of the exposure for this image. This field will be the same for
+                        at the middle of the exposure for this image. This field will be the same for
                         all corotating longitudes within a single image and is provided here for
                         convenience.
                     </description>

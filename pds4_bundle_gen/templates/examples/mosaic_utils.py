@@ -351,7 +351,8 @@ def get_reproj_img_name_from_lid(reproj_img_lid):
 
     This relies on the format for the LID:
         urn:nasa:pds:cassini_iss_fring_mosaics_rsfrench2025:data_reproj_img:
-        <OBSID>_reproj_img
+        <IMGID>_reproj_img
+    where <IMGID> is the image name, e.g. 1874525875w, not the observation name.
 
     Arguments:
         reproj_img_lid (str): The LID of the reprojected image.
@@ -367,7 +368,8 @@ def get_reproj_img_name_from_label(reproj_img_label):
 
     This relies on the format for the LID:
         urn:nasa:pds:cassini_iss_fring_mosaics_rsfrench2025:data_reproj_img:
-        <OBSID>_reproj_img
+        <IMGID>_reproj_img
+    where <IMGID> is the image name, e.g. 1874525875w, not the observation name.
 
     Arguments:
         reproj_img_label (pds4_tools.reader.label_objects.Label): The PDS4 label

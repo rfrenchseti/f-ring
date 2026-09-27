@@ -1466,16 +1466,38 @@ def radec_to_unit_vector(ra, dec):
     ]))
 
 
+# Roll is always measured from the J2000 pole. An earlier version swapped this
+# reference for [0, 1, 0] once |z[2]| reached 0.9, i.e. once the boresight
+# passed declination +/- 64.2 deg, which gave the archived roll two different
+# meanings: 161 of the 20,584 supplemental files reported a roll measured
+# against a different axis from the rest, differing by 69 to 180 deg. The swap
+# was never needed. The reference below only becomes ill-conditioned within a
+# fraction of a degree of the pole, and the largest |Dec| anywhere in the
+# archive is 78.8 deg.
+ROLL_REFERENCE_POLE = np.array([0.0, 0.0, 1.0])
+
+# Refuse to measure a roll for a boresight within 0.1 deg of the J2000 pole
+# rather than silently switching reference, which is the defect described above.
+ROLL_REFERENCE_MAX_ABS_Z = 0.999999
+
+
 def roll_reference_axes(z):
     """Return the reference X and Y axes used to measure roll about a Z axis.
 
-    The choice of `temp` switches when the Z axis passes near the pole, so the
-    same Z must be used to measure a roll and to reapply it. Measuring against
-    one Z and rebuilding against another that falls on the far side of the
-    switchover twists the resulting frame by an arbitrary angle.
+    The reference X axis points along unit(cross(pole, z)) and the reference Y
+    axis completes the right-handed set, so the roll is the angle of the
+    camera X axis measured from the direction of increasing declination,
+    positive towards increasing right ascension.
+
+    The same axes must be used to measure a roll and to reapply it. They depend
+    only on `z` and the fixed J2000 pole, so a roll measured against one
+    boresight and reapplied to a nearby one no longer twists the frame.
     """
-    temp = np.array([0.0, 0.0, 1.0]) if abs(z[2]) < 0.9 else np.array([0.0, 1.0, 0.0])
-    x_ref = unit(np.cross(temp, z))
+    if abs(z[2]) > ROLL_REFERENCE_MAX_ABS_Z:
+        raise ValueError(
+            f'Boresight z component {z[2]} puts the pointing within 0.1 deg of '
+            'the J2000 pole, where the roll reference axes are ill-conditioned')
+    x_ref = unit(np.cross(ROLL_REFERENCE_POLE, z))
     y_ref = np.cross(z, x_ref)
     return x_ref, y_ref
 
@@ -1832,7 +1854,12 @@ def write_suppl_file(output_path, metadata, xml_metadata):
     stop_date = xml_metadata['STOP_DATE_TIME_3']
     stop_sclk = xml_metadata['SPACECRAFT_CLOCK_STOP_COUNT']
     hdr_text = 'This file contains a C-matrix that describes the rotation from the J2000 reference\n'
-    hdr_text += 'frame to the camera pointing based upon analysis of the contents of the image.\n\n'
+    hdr_text += 'frame to the camera pointing based upon analysis of the contents of the image.\n'
+    hdr_text += 'The three rows of the matrix are the camera X, Y and Z axes expressed in J2000\n'
+    hdr_text += 'coordinates, so the third row is the boresight and matches the RA and Dec below.\n'
+    hdr_text += 'The roll is the angle of the camera X axis about the boresight, measured from the\n'
+    hdr_text += 'direction of increasing declination and positive towards increasing right\n'
+    hdr_text += 'ascension.\n\n'
     hdr_text += f'Source Data Product ID = {image_name}_calib\n'
     hdr_text += f'Image Start Time (SCLK) = {partition}/{start_sclk}\n'
     hdr_text += f'Image Start Time (UTC) = {start_date}\n'
@@ -2407,7 +2434,8 @@ straight line at constant radius). The co-rotating longitude is calculated using
 2007-01-01T00:00:00Z, meaning this was the instant when co-rotating and inertial
 longitudes were the same. This reprojected image contains valid data for a total of
 {deg_good_long:.2f} degrees of co-rotating longitude spanning the (possibly discontinuous)
-{diff_corot:.2f} degrees from {min_corot_long:.2f} to {max_corot_long:.2f}.
+{diff_corot:.2f} degrees from {min_corot_long:.2f} to {max_corot_long:.2f}, measured to the
+outer edges of those two longitude bins.
 
 
 Before reprojecting, the pointing specified by the available SPICE kernels was refined by
@@ -2418,14 +2446,18 @@ the navigation for all of the images for mosaic {obsid.lower()} is "{nav_qual_st
     if 'Prometheus' in ret['TARGET_IDENTIFICATION']:
         ret['REPROJ_COMMENT'] += """
 
-This reprojected F-ring image includes Prometheus within the valid data range, although
-its presence has not been visually confirmed.
+The predicted position of Prometheus at the time of this image lies within 1050 km of
+the F ring core at a co-rotating longitude this image covers. Its presence has not been
+visually confirmed, and the predicted position may fall outside the radial range of the
+image or on a pixel that contains no data.
 """
     if 'Pandora' in ret['TARGET_IDENTIFICATION']:
         ret['REPROJ_COMMENT'] += """
 
-This reprojected F-ring image includes Pandora within the valid data range, although
-its presence has not been visually confirmed.
+The predicted position of Pandora at the time of this image lies within 1050 km of
+the F ring core at a co-rotating longitude this image covers. Its presence has not been
+visually confirmed, and the predicted position may fall outside the radial range of the
+image or on a pixel that contains no data.
 """
 
 
@@ -2452,7 +2484,7 @@ the reprojection wraps around then the minimum will be greater than the maximum.
 
 
 The minimum and maximum ring radius are the actual radii (distance from Saturn) of the F
-ring core -1000km and +1000km at each inertial longitude containing valid data at the time
+ring core -1000 km and +1000 km at each inertial longitude containing valid data at the time
 of the observation.
 """
 
@@ -2593,7 +2625,7 @@ other available observation chunks.
 Background subtraction was performed by creating, for each longitude, a linear model based
 on the available data from {lower_limit} to 1000 km closer to Saturn and {upper_limit} to
 1000 km further from Saturn. Statistically bad pixels (such as stars or moons) were
-ignored. If insufficient data was available to generate the model, that longitude was
+ignored. If insufficient data were available to generate the model, that longitude was
 marked as invalid and removed from the mosaic. As such, the number of longitudes available
 in the background-subtracted mosaic may be fewer than those available in the original
 mosaic."""
@@ -2677,7 +2709,8 @@ straight line at constant radius). The co-rotating longitude is calculated using
 2007-01-01T00:00:00Z, meaning this was the instant when co-rotating and inertial
 longitudes were the same. This mosaic image contains valid data for a total of
 {deg_good_long:.2f} degrees of co-rotating longitude spanning the (possibly discontinuous)
-{diff_corot:.2f} degrees from {min_corot_long:.2f} to {max_corot_long:.2f}. The source
+{diff_corot:.2f} degrees from {min_corot_long:.2f} to {max_corot_long:.2f}, measured to the
+outer edges of those two longitude bins. The source
 images were calibrated using CISSCAL 4.0 and the data values are in units of
 I/F.
 
@@ -2712,34 +2745,38 @@ incidence angle.
 mosaic, even if not all longitudes contain valid data.
 
 - The minimum and maximum ring radius are the actual radii (distance from Saturn) of the F
-ring core -1000km and +1000km at each inertial longitude containing valid data at the time
+ring core -1000 km and +1000 km at each inertial longitude containing valid data at the time
 of the observation.
 """
     if 'Prometheus' in ret['TARGET_IDENTIFICATION']:
         if mosaic_has_visual_prometheus(obsid):
             ret['MOSAIC_RINGS_DESCRIPTION'] += """
 
-This mosaic includes Prometheus within the valid data range, and its presence has been
-visually confirmed.
+The predicted position of Prometheus lies within 1050 km of the F ring core at a
+co-rotating longitude this mosaic covers, and its presence has been visually confirmed.
 """
         else:
             ret['MOSAIC_RINGS_DESCRIPTION'] += """
 
-This mosaic includes Prometheus within the valid data range, although its presence has not
-been visually confirmed.
+The predicted position of Prometheus lies within 1050 km of the F ring core at a
+co-rotating longitude this mosaic covers. Its presence has not been visually confirmed,
+and the predicted position may fall outside the radial range of the mosaic or on a pixel
+that contains no data.
 """
     if 'Pandora' in ret['TARGET_IDENTIFICATION']:
         if mosaic_has_visual_pandora(obsid):
             ret['MOSAIC_RINGS_DESCRIPTION'] += """
 
-This mosaic includes Pandora within the valid data range, and its presence has been
-visually confirmed.
+The predicted position of Pandora lies within 1050 km of the F ring core at a
+co-rotating longitude this mosaic covers, and its presence has been visually confirmed.
 """
         else:
             ret['MOSAIC_RINGS_DESCRIPTION'] += """
 
-This mosaic includes Pandora within the valid data range, although its presence has not
-been visually confirmed.
+The predicted position of Pandora lies within 1050 km of the F ring core at a
+co-rotating longitude this mosaic covers. Its presence has not been visually confirmed,
+and the predicted position may fall outside the radial range of the mosaic or on a pixel
+that contains no data.
 """
 
     ret['MOSAIC_IMG_FILENAME'] = f'{obsid.lower()}_mosaic{sfx}.img'
@@ -3361,9 +3398,16 @@ The full image is that width or 800 pixels, whichever is greater, by 401 pixels
 high; the med image is one tenth that width or 400 pixels, whichever is greater,
 by 400 pixels high; small is 200x200 and thumb is 100x100. Any size other than
 full is therefore resampled, and one narrower than its minimum width is stretched
-to reach it. The med, small and thumb images carry the observation and image name
-drawn in the upper left corner. Pixels with no data available are shown as
-black.
+to reach it. The med image carries the observation name and the image name drawn
+in the upper left corner; the small and thumb images carry the image name alone
+in the same place. Pixels with no data available are shown as black.
+
+The columns of the browse images run in order of increasing co-rotating
+longitude starting at 0 degrees, which is not the order in which the columns are
+stored in the reprojected image itself when its longitude range wraps through
+360 degrees. In that case the browse image shows the part of the range from 0
+degrees to the maximum longitude first, followed by the part from the minimum
+longitude to 360 degrees.
 
 
 This derived data product is part of bundle
@@ -3402,9 +3446,11 @@ background region, are all shown as black.
 
 Browse images are available in four sizes: full (18000x401), med (1800x400),
 small (200x200), and thumb (100x100). Every size other than full is resampled
-from the mosaic. The med, small and thumb images carry the observation name
-drawn in the upper left corner. The full longitude range is shown even when no
-images cover that area. Pixels with no data available are shown as black.
+from the mosaic. The med image carries the full observation name and the product
+type drawn in the upper left corner; the small and thumb images carry an
+abbreviated observation name and the product type in the same place. The full
+longitude range is shown even when no images cover that area. Pixels with no
+data available are shown as black.
 
 
 This derived data product is part of bundle cassini_iss_fring_mosaics_rsfrench2025,
@@ -3761,19 +3807,19 @@ def generate_global_index_xml(global_index_csv_path, hdr, img_type):
         metadata['GLOBAL_INDEX_LID'] = GLOBAL_REPROJ_INDEX_LID
         metadata['GLOBAL_INDEX_TITLE'] = 'Global Reprojected Image Index'
         metadata['GLOBAL_INDEX_DESCRIPTION'] = """
-Index table containing metadata for all reprojected images in the F-ring mosaic dataset. Every pair of minimum and maximum columns holding an angle gives the ends of the range of that angle over the longitudes containing valid data. Those ranges are computed on the circle, so when a range wraps through 360 degrees the minimum is greater than the maximum.
+Index table containing metadata for all reprojected images in the F ring mosaic dataset. Every pair of minimum and maximum columns holding an angle gives the ends of the range of that angle over the longitudes containing valid data. Those ranges are computed on the circle, so when a range wraps through 360 degrees the minimum is greater than the maximum.
         """
     elif img_type == 'm':
         metadata['GLOBAL_INDEX_LID'] = GLOBAL_MOSAIC_INDEX_LID
         metadata['GLOBAL_INDEX_TITLE'] = 'Global Mosaic Index'
         metadata['GLOBAL_INDEX_DESCRIPTION'] = """
-Index table containing metadata for all mosaics in the F-ring mosaic dataset. Every pair of minimum and maximum columns holding an angle gives the ends of the range of that angle over the longitudes containing valid data. Those ranges are computed on the circle, so when a range wraps through 360 degrees the minimum is greater than the maximum.
+Index table containing metadata for all mosaics in the F ring mosaic dataset. Every pair of minimum and maximum columns holding an angle gives the ends of the range of that angle over the longitudes containing valid data. Those ranges are computed on the circle, so when a range wraps through 360 degrees the minimum is greater than the maximum.
         """
     elif img_type == 'b':
         metadata['GLOBAL_INDEX_LID'] = GLOBAL_MOSAIC_BKG_SUB_INDEX_LID
         metadata['GLOBAL_INDEX_TITLE'] = 'Global Background-Subtracted Mosaic Index'
         metadata['GLOBAL_INDEX_DESCRIPTION'] = """
-Index table containing metadata for all background-subtracted mosaics in the F-ring mosaic dataset. Every pair of minimum and maximum columns holding an angle gives the ends of the range of that angle over the longitudes containing valid data. Those ranges are computed on the circle, so when a range wraps through 360 degrees the minimum is greater than the maximum.
+Index table containing metadata for all background-subtracted mosaics in the F ring mosaic dataset. Every pair of minimum and maximum columns holding an angle gives the ends of the range of that angle over the longitudes containing valid data. Those ranges are computed on the circle, so when a range wraps through 360 degrees the minimum is greater than the maximum.
         """
     else:
         raise ValueError(f'Invalid image type: {img_type}')
@@ -3847,6 +3893,21 @@ def generate_support_files():
     metadata['KERNELS_LID'] = KERNELS_LID
     metadata['KERNELS_NAME'] = kernels_name
     metadata['KERNELS_PATH'] = kernels_path
+    # The metakernel was assembled to cover the observations archived here, so
+    # report the span of those observations. Fall back to the nil form only when
+    # the products were not traversed, which cannot happen in a release run.
+    if EARLIEST_START_DATE_TIME is None or LATEST_STOP_DATE_TIME is None:
+        LOGGER.warning('Writing kernels.lblx with a nil time range because the '
+                       'products were not traversed')
+        metadata['KERNELS_TIME_COORDINATES'] = (
+            '            <start_date_time xsi:nil="true" nilReason="inapplicable"></start_date_time>\n'
+            '            <stop_date_time xsi:nil="true" nilReason="inapplicable"></stop_date_time>')
+    else:
+        kernels_start = et_to_datetime(EARLIEST_START_DATE_TIME, mode='floor')
+        kernels_stop = et_to_datetime(LATEST_STOP_DATE_TIME, mode='ceil')
+        metadata['KERNELS_TIME_COORDINATES'] = (
+            f'            <start_date_time>{kernels_start}</start_date_time>\n'
+            f'            <stop_date_time>{kernels_stop}</stop_date_time>')
     copy_file(kernels_name, kernels_path)
     populate_template('kernels.lblx', kernels_path.replace('.ker', '.lblx'), metadata)
 
@@ -3979,7 +4040,7 @@ BASIC_XML_METADATA = {
     'USERGUIDE_COMMENT': 'Detailed User Guide for the F Ring Mosaics and Reprojected Images in this bundle.',
     'XML_SCHEMA_COLLECTION_LID': f'urn:nasa:pds:{BUNDLE_NAME}:xml_schema',
     'CASSINI_USER_GUIDE_LID': 'urn:nasa:pds:cassini_iss_saturn:document:iss-data-user-guide',
-    'CASSINI_USER_GUIDE_DESC': "The Cassini ISS Data User's Guide (PDS3); DOI: 10.17189/1504135",
+    'CASSINI_USER_GUIDE_DESC': "The Cassini ISS Data User's Guide, which describes the PDS3 form of the source images; DOI: 10.17189/1504135",
     'SENTINEL': str(SENTINEL),
     'AUTHORS': 'Robert S. French, Matthew M. Hedman',
     'EDITORS': 'Mia J.T. Mace, Mitchell K. Gordon, Matthew S. Tiscareno, Emilie R. Simpson',
