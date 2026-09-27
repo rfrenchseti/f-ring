@@ -303,7 +303,14 @@ def model_background(image, ring_rows=0.2, cutoff_sigmas=4, degree=2,
         rmin = ring_rows[0]
         rmax = ring_rows[1]
 
-    ringless[rmin:rmax,:] = ma.masked
+    # rmin and rmax are both part of the ring band, so the band is masked
+    # through rmax inclusive. Masking only [rmin:rmax] would leave row rmax in
+    # the outer background while its mirror row rmin stayed in the ring, giving
+    # 50 background rows inside and 51 outside for the default (50, 350) limits.
+    # The equivalent-width integration in ring_ui_bkgnd.py uses [rmin:rmax+1],
+    # so the background is now exactly the complement of that band: 50 rows on
+    # each side.
+    ringless[rmin:rmax+1,:] = ma.masked
     center_row = (rmin + rmax) / 2
 
     # Interpret the background pixel count
@@ -319,7 +326,7 @@ def model_background(image, ring_rows=0.2, cutoff_sigmas=4, degree=2,
         below = int(below * rmin + 0.5)
 
     if isinstance(above, float):
-        above = int(above * (image.shape[0]-rmax) + 0.5)
+        above = int(above * (image.shape[0]-(rmax+1)) + 0.5)
 
     if debug:
         print('Ring min', rmin)
@@ -348,14 +355,14 @@ def model_background(image, ring_rows=0.2, cutoff_sigmas=4, degree=2,
     image_mask = ma.getmaskarray(image)
     print(rmin, rmax, image.shape)
     print(np.sum(~image_mask[0:rmin,:], axis=0))
-    print(np.sum(~image_mask[rmax:, :], axis=0))
+    print(np.sum(~image_mask[rmax+1:, :], axis=0))
     print(below, above)
     reject = ((np.sum(~image_mask[0:rmin,:], axis=0) < below) |
-              (np.sum(~image_mask[rmax:, :], axis=0) < above))
+              (np.sum(~image_mask[rmax+1:, :], axis=0) < above))
 
     if debug:
         print('Reject col', np.sum(reject), 'Debug col', debug_col, ': #MaskBelow', np.sum(~image_mask[0:rmin, debug_col], axis=0), end=' ')
-        print('#MaskAbove', np.sum(~image_mask[rmax:, debug_col], axis=0), end=' ')
+        print('#MaskAbove', np.sum(~image_mask[rmax+1:, debug_col], axis=0), end=' ')
         print('Reject', reject[debug_col])
 
     ringless[:,reject] = ma.masked
@@ -402,7 +409,7 @@ def model_background(image, ring_rows=0.2, cutoff_sigmas=4, degree=2,
         print(rmin, rmax)
         ringless_mask = ma.getmaskarray(ringless)
         reject = ((np.sum(~ringless_mask[0:rmin,:], axis=0) < below) |
-                  (np.sum(~ringless_mask[rmax: ,:], axis=0) < above))
+                  (np.sum(~ringless_mask[rmax+1: ,:], axis=0) < above))
 
         ringless.mask[:,reject] = True
         resid.mask[:,reject] = True
