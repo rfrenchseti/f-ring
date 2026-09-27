@@ -3,7 +3,7 @@
 \section{Bundle organization and directory structure}
 \label{sec:bundle-organization-and-directory-structure}
 
-The Cassini ISS F Ring Mosaics \textit{bundle} is organized in a hierarchical directory structure, with each directory containing a PDS4 \textit{collection} of a different type of \textit{product}.\footnote{Refer to the documents in Section~\ref{sec:pds4-standards-and-documentation} for further information on the PDS4 concepts of \textit{bundle}, \textit{collection}, and \textit{data product}.} There are data and browse collections for reprojected images, mosaics and background-subtracted mosaics, plus collections for documentation, miscellaneous files (the global index files), context products, SPICE kernels and XML schemas. The top-level directory structure is:
+The Cassini ISS F Ring Mosaics \textit{bundle} is organized in a hierarchical directory structure, with each directory containing a PDS4 \textit{collection} of a different type of \textit{product}. There are data and browse collections for reprojected images, mosaics, and background-subtracted mosaics, plus collections for documentation, miscellaneous files (the global index files), context products, SPICE kernels, and XML schemas. The top-level directory structure is:
 
 \begin{CodeBlock}
 cassini_iss_fring_mosaics_rsfrench2025/
@@ -28,7 +28,7 @@ For reference, the following types of data products and support files are availa
 
 \begin{itemize}
 \item \textbf{Reprojected images:} These files contain rectangular reprojections of calibrated image files. Like the calibrated files, they are in units of I/F. Associated table files provide information about each longitude. These files are in the \code{data\_\allowbreak{}reproj\_\allowbreak{}img} directory. See Section~\ref{sec:data-reproj-img}.
-\item \textbf{Mosaics:} These files contain mosaics stitched together from multiple reprojected images. Like the reprojected images, they are in units of I/F. Associated table files provide information about each longitude. These files are in the \code{data\_\allowbreak{}mosaic} directory. See Section~\ref{sec:data-mosaic-and-data-mosaic-bkg-sub}.
+\item \textbf{Mosaics:} These files contain mosaics stitched together from one or more reprojected images. Like the reprojected images, they are in units of I/F. Associated table files provide information about each longitude. These files are in the \code{data\_\allowbreak{}mosaic} directory. See Section~\ref{sec:data-mosaic-and-data-mosaic-bkg-sub}.
 \item \textbf{Background-subtracted mosaics:} These files contain the same mosaics as above, but each mosaic has had a linear background model subtracted for each longitude. They are in units of I/F. Associated table files provide information about each longitude. These files are in the \code{data\_\allowbreak{}mosaic\_\allowbreak{}bkg\_\allowbreak{}sub} directory. See Section~\ref{sec:data-mosaic-and-data-mosaic-bkg-sub}.
 \item \textbf{Browse images:} Browse images in four sizes are available for each of the reprojected images, mosaics, and background-subtracted mosaics. These are \textit{not} meant for scientific analysis and are only meant for visual examination of the contents of the data file. The original I/F data has been mapped to integers from 0 to 255 and non-linearly stretched to make dim features easier to see. The stretch uses a blackpoint at the minimum valid value or zero, whichever is greater, a whitepoint at the 99.8th-percentile value, and a gamma of 0.5. Because the blackpoint is never negative, negative values are all shown as black. These files are in the three \code{browse\_\allowbreak{}*} directories. See Sections~\ref{sec:browse-reproj-img} and \ref{sec:browse-mosaic-and-browse-mosaic-bkg-sub}.
 \item \textbf{Documentation:} This \textit{User Guide} is available in PDF format in the \code{document} directory. See Section~\ref{sec:user-guide}.
@@ -47,7 +47,7 @@ The top-level directory contains the following files:
 \item \code{readme.\allowbreak{}txt}: A text file directing the user to this \textit{User Guide}.
 \end{itemize}
 
-\subsection{The \textit{browse} and \textit{data} directories}
+\subsection{The \code{browse} and \code{data} directories}
 \label{sec:the-browse-and-data-directories}
 
 For each derived data type — reprojected image (Sections~\ref{sec:data-reproj-img} and \ref{sec:browse-reproj-img}), mosaic (Sections~\ref{sec:data-mosaic-and-data-mosaic-bkg-sub} and \ref{sec:browse-mosaic-and-browse-mosaic-bkg-sub}), and background-subtracted mosaic (Sections~\ref{sec:data-mosaic-and-data-mosaic-bkg-sub} and \ref{sec:browse-mosaic-and-browse-mosaic-bkg-sub}) — there is a \code{browse} and a \code{data} directory. These directories have the same internal structure:
@@ -62,12 +62,12 @@ For each derived data type — reprojected image (Sections~\ref{sec:data-reproj-
 └── OBSIDn/
 \end{CodeBlock}
 
-The \code{collection\_\allowbreak{}<dirname>.\allowbreak{}csv} file contains a list of all of the data products present for all OBSIDs in this directory, and the accompanying label describes its metadata. The data products themselves are separated by OBSID for ease of retrieval and to keep the number of files in each subdirectory relatively small. Throughout this guide, OBSID is the Cassini observation name converted to lowercase, including any numeric chunk suffix (Section~\ref{sec:image-selection}), and IMGID is the identifier of a single source image: its ten-digit Cassini spacecraft clock (SCLK) count followed by \code{n} for the Narrow Angle Camera or \code{w} for the Wide Angle Camera, as in \code{1622049830n}. IMGID is the key that links a reprojected product back to the original COISS image.
+The \code{collection\_\allowbreak{}<dirname>.\allowbreak{}csv} file contains a list of all of the data products present for all OBSIDs in this directory, and the accompanying label describes its metadata. The data products themselves are separated by OBSID for ease of retrieval and to keep the number of files in each subdirectory relatively small. Throughout this guide, OBSID is the Cassini observation name converted to lowercase, including any numeric chunk suffix (Section~\ref{sec:image-selection}), and IMGID is the identifier of a single source image: its ten-digit Cassini spacecraft clock (SCLK) count followed by \code{n} for the NAC or \code{w} for the WAC, as in \code{1622049830n}. IMGID is the key that links a reprojected product back to the original COISS image.
 
 Each derived data type has its own file structure within each OBSID directory.
 
 
-\subsubsection{data\_reproj\_img}
+\subsubsection{\code{data\_reproj\_img}}
 \label{sec:data-reproj-img}
 
 This directory contains the individual reprojected images (Section~\ref{sec:reprojection}) organized by OBSID. The directory structure is:
@@ -124,7 +124,7 @@ and the details of the image file, \code{IMGID\_\allowbreak{}reproj\_\allowbreak
 <File_Area_Observational>
     <File>
         <file_name>1622049830n_reproj_img.img</file_name>
-        <creation_date_time>2026-09-08T19:31:25Z</creation_date_time>
+        <creation_date_time>2026-09-09T22:09:20Z</creation_date_time>
         <file_size unit="byte">1040996</file_size>
         <md5_checksum>3d19ed500563eab78063a95eb57cbdd1</md5_checksum>
     </File>
@@ -168,21 +168,21 @@ and the details of the image file, \code{IMGID\_\allowbreak{}reproj\_\allowbreak
 </File_Area_Observational>
 \end{CodeBlock}
 
-The image file is a pure binary file with no headers or record separators. Data is stored in LSB IEEE 754 single-precision (32-bit) floating-point format. The Y axis (Δ\textit{r}) always has size 401 (which covers the radial distance from the core of −1000 km to +1000 km in steps of 5 km). The array is stored with the Sample (longitude) index varying fastest — all longitudes at one radius, then the next radius — so that it reshapes directly to (401, \textit{N}) in row-major order. Line index 0 is the innermost row, at Δ\textit{r} = −1000 km, and Δ\textit{r} increases outward with the Line index, so that Δ\textit{r} = −1000 + 5 × \textit{Line} km and the predicted core lies at Line 200. The X axis (corotating longitude) has a variable size depending on the number of longitudes that contain valid data (see Section~\ref{sec:reprojection}). Any array elements that do not contain valid data will be marked with the value −999. See Section~\ref{sec:reading-labels-and-data-product-files} for information on how to read these files with software.
+The image file is a pure binary file with no headers or record separators. Data is stored in LSB IEEE 754 single-precision (32-bit) floating-point format. The Y axis (\dr{}) always has size 401 (which covers the radial distance from the core of −1000 km to +1000 km in steps of 5 km). The array is stored with the Sample (longitude) index varying fastest — all longitudes at one radius, then the next radius — so that it reshapes directly to (401, \textit{N}) in row-major order. Line index 0 is the innermost row, at \dr{} = −1000 km, and \dr{} increases outward with the Line index, so that \dr{} = −1000 + 5 × \textit{Line} km and the predicted core lies at Line 200. The X axis (corotating longitude) has a variable size depending on the number of longitudes that contain valid data (see Section~\ref{sec:reprojection}). Any array elements that do not contain valid data will be marked with the value −999. See Section~\ref{sec:reading-labels-and-data-product-files} for information on how to read these files with software.
 
 An associated metadata file, \code{IMGID\_\allowbreak{}reproj\_\allowbreak{}img\_\allowbreak{}metadata\_\allowbreak{}params.\allowbreak{}tab}, contains information about each \textit{valid} longitude. This table has the general format:
 
 \begin{CodeBlock}[fontsize=\scriptsize]
 rings:corotating_ring_longitude,rings:observed_event_tdb,rings:inertial_ring_longitude,rings:radial_resolution,rings:longitudinal_resolution,rings:incidence_angle,rings:phase_angle,rings:emission_angle,core_radius,longitude_ascending_node,longitude_pericenter,true_anomaly,corotating_longitude_prometheus,radius_prometheus,corotating_longitude_pandora,radius_pandora
-186.60, 296628214.587, 272.212,    6.487,  0.00963,  88.824,  34.369, 103.339, 139916.702, 147.322, 294.690, 337.522, 274.743, 139453.621,  68.058, 141137.545
-186.62, 296628214.587, 272.232,    6.484,  0.00963,  88.824,  34.369, 103.339, 139916.658, 147.322, 294.690, 337.542, 274.743, 139453.621,  68.058, 141137.545
-186.64, 296628214.587, 272.252,    6.480,  0.00964,  88.824,  34.368, 103.338, 139916.614, 147.322, 294.690, 337.562, 274.743, 139453.621,  68.058, 141137.545
-186.66, 296628214.587, 272.272,    6.477,  0.00964,  88.824,  34.368, 103.337, 139916.571, 147.322, 294.690, 337.582, 274.743, 139453.621,  68.058, 141137.545
-186.68, 296628214.587, 272.292,    6.473,  0.00964,  88.824,  34.367, 103.337, 139916.527, 147.322, 294.690, 337.602, 274.743, 139453.621,  68.058, 141137.545
+186.60, 296628214.587, 272.212,    6.487,  0.00963,  88.824,  34.369, 103.339, 139916.702, 147.322, 294.690, 337.522, 274.741, 139453.621,  68.056, 141137.545
+186.62, 296628214.587, 272.232,    6.484,  0.00963,  88.824,  34.369, 103.339, 139916.658, 147.322, 294.690, 337.542, 274.741, 139453.621,  68.056, 141137.545
+186.64, 296628214.587, 272.252,    6.480,  0.00964,  88.824,  34.368, 103.338, 139916.614, 147.322, 294.690, 337.562, 274.741, 139453.621,  68.056, 141137.545
+186.66, 296628214.587, 272.272,    6.477,  0.00964,  88.824,  34.368, 103.337, 139916.571, 147.322, 294.690, 337.582, 274.741, 139453.621,  68.056, 141137.545
+186.68, 296628214.587, 272.292,    6.473,  0.00964,  88.824,  34.367, 103.337, 139916.527, 147.322, 294.690, 337.602, 274.741, 139453.621,  68.056, 141137.545
 [...]
 \end{CodeBlock}
 
-where the rows are in ascending corotating-longitude order and cover only the longitudes that contain valid data. Because a reprojected image that wraps around at 360° is stored starting at its minimum corotating longitude and continuing through 360° to its maximum (see Section~\ref{sec:reprojection}), and because the image may retain sentinel-filled columns at longitudes with no valid data, the rows do \textit{not} necessarily correspond one-to-one, in sequence, to the X indices of the image array; to associate a row with an image column, use the corotating ring longitude field instead of the row position. The column holding a given corotating longitude is \code{col = round(((longitude − min\_\allowbreak{}corotating\_\allowbreak{}ring\_\allowbreak{}longitude) mod 360) / 0.\allowbreak{}02)}, and column \textit{c} holds longitude \code{(min\_\allowbreak{}corotating\_\allowbreak{}ring\_\allowbreak{}longitude + 0.\allowbreak{}02 × c) mod 360}; the modulo handles the wraparound case (Section~\ref{sec:reading-labels-and-data-product-files}). This table gives the actual corotating longitude for each row as well as additional useful information such as the inertial longitude, radial resolution, angular (longitudinal) resolution, phase angle, emission angle, and various orbital parameters. See Sections~\ref{sec:reprojection} and \ref{sec:metadata-and-global-index-file-fields} for details about these fields and Section~\ref{sec:reading-labels-and-data-product-files} for information on how to read these files with software.
+where the rows are in ascending corotating-longitude order and cover only the longitudes that contain valid data. Because a reprojected image that wraps around at 360° is stored starting at its minimum corotating longitude and continuing through 360° to its maximum (see Section~\ref{sec:reprojection}), and because the image may retain sentinel-filled columns at longitudes with no valid data, the rows do \textit{not} necessarily correspond one-to-one, in sequence, to the X indices of the image array; to associate a row with an image column, use the corotating ring longitude field instead of the row position. The column holding a given corotating longitude is \code{col = round(((longitude − min\_\allowbreak{}corotating\_\allowbreak{}ring\_\allowbreak{}longitude) mod 360) / 0.\allowbreak{}02)}, and column \textit{c} holds longitude \code{(min\_\allowbreak{}corotating\_\allowbreak{}ring\_\allowbreak{}longitude + 0.\allowbreak{}02 × c) mod 360}; the modulo handles the wraparound case (the example programs of Section~\ref{sec:example-programs} do this). This table gives the actual corotating longitude for each row as well as additional useful information such as the inertial longitude, radial resolution, angular (longitudinal) resolution, phase angle, emission angle, and various orbital parameters. See Sections~\ref{sec:reprojection} and \ref{sec:metadata-and-global-index-file-fields} for details about these fields and Section~\ref{sec:reading-labels-and-data-product-files} for information on how to read these files with software.
 
 Finally, a supplemental information file, \code{IMGID\_\allowbreak{}reproj\_\allowbreak{}img\_\allowbreak{}suppl.\allowbreak{}txt}, describes the navigation process and the derived pointing for the image (see Section~\ref{sec:navigation}):
 
@@ -213,7 +213,7 @@ C-Matrix =
 This pointing information is only provided for archival completeness and is not expected to be used by most scientific users.
 
 
-\subsubsection{browse\_reproj\_img}
+\subsubsection{\code{browse\_reproj\_img}}
 \label{sec:browse-reproj-img}
 
 This directory contains browse images for each reprojected image. The directory structure is:
@@ -232,10 +232,10 @@ browse_reproj_img/
 └── ...
 \end{CodeBlock}
 
-Four sizes of browse image are provided. All of them omit the longitudes that contain no data, so a discontinuous set of longitudes is drawn as adjacent, and the width they are derived from is the number of longitudes that do contain data. Call that width \textit{V}. “Full” images are \textit{V} or 800 pixels wide, whichever is greater, by 401 pixels high. “Med” images are \textit{V}/10 or 400 pixels wide, whichever is greater, by 400 pixels high. “Small” images are 200×200 and “Thumb” images are 100×100. Because most reprojected images are narrow, a typical Full image is stretched horizontally to reach the 800-pixel minimum and a typical Med image is 400 pixels wide. Every size other than Full is resampled. The Med, Small and Thumb images carry the observation and image name drawn in the upper left corner. All sizes are contrast-stretched to use the full available grayscale and are not calibrated for scientific use. Missing data is drawn in black.
+Four sizes of browse image are provided. All of them omit the longitudes that contain no data, so a discontinuous set of longitudes is drawn as adjacent, and the width they are derived from is the number of longitudes that do contain data. Call that width \textit{V}. “Full” images are \textit{V} or 800 pixels wide, whichever is greater, by 401 pixels high. “Med” images are \textit{V}/10 or 400 pixels wide, whichever is greater, by 400 pixels high. “Small” images are 200 × 200 and “Thumb” images are 100 × 100 (width × height). All four are produced by resampling to those dimensions; the one case in which that leaves the original pixel grid untouched is a Full image already at least 800 pixels wide. Because most reprojected images are narrower than that, a typical Full image is stretched horizontally to reach the 800-pixel minimum and a typical Med image is 400 pixels wide. The Med image carries the observation name and the image name, separated by a slash, drawn in the upper left corner above the words \code{reproj img}; the Small and Thumb images carry the image name alone, for example \code{1622049830n} above \code{reproj img}; the Full image carries no text at all. All sizes are contrast-stretched to use the full available grayscale and are not calibrated for scientific use. Radial pixels that hold no valid data, within the longitudes that are kept, are drawn in black.
 
 
-\subsubsection{data\_mosaic and data\_mosaic\_bkg\_sub}
+\subsubsection{\code{data\_mosaic} and \code{data\_mosaic\_bkg\_sub}}
 \label{sec:data-mosaic-and-data-mosaic-bkg-sub}
 
 These directories have identical structure and contain the original and background-subtracted mosaics, respectively. The directory structures are:
@@ -268,17 +268,17 @@ data_mosaic_bkg_sub/
 └── ...
 \end{CodeBlock}
 
-The format of the \code{OBSID1\_\allowbreak{}mosaic[\_\allowbreak{}bkg\_\allowbreak{}sub].\allowbreak{}lblx} and \code{OBSID1\_\allowbreak{}mosaic[\_\allowbreak{}bkg\_\allowbreak{}sub].\allowbreak{}img }files is very similar to the corresponding \code{reproj\_\allowbreak{}img} files described earlier. The only difference is that the mosaic image files are always 401 × 18,000, since mosaic images are never clipped to include only valid data (see Sections~\ref{sec:mosaic-creation} and \ref{sec:data-reproj-img}).
+The format of the \code{OBSID1\_\allowbreak{}mosaic[\_\allowbreak{}bkg\_\allowbreak{}sub].\allowbreak{}lblx} and \code{OBSID1\_\allowbreak{}mosaic[\_\allowbreak{}bkg\_\allowbreak{}sub].\allowbreak{}img} files is very similar to the corresponding \code{reproj\_\allowbreak{}img} files described earlier. The only difference is that the mosaic image files are always 401 × 18,000, since mosaic images are never clipped to include only valid data (see Sections~\ref{sec:mosaic-creation} and \ref{sec:data-reproj-img}).
 
 The \code{OBSID1\_\allowbreak{}mosaic[\_\allowbreak{}bkg\_\allowbreak{}sub]\_\allowbreak{}metadata\_\allowbreak{}params.\allowbreak{}tab} file is also similar to the corresponding \code{reproj\_\allowbreak{}img} file, with the exception that it contains one additional column:
 
 \begin{CodeBlock}[fontsize=\scriptsize]
 rings:corotating_ring_longitude,image_index,rings:observed_event_tdb,rings:inertial_ring_longitude,rings:radial_resolution,rings:longitudinal_resolution,rings:incidence_angle,rings:phase_angle,rings:emission_angle,core_radius,longitude_ascending_node,longitude_pericenter,true_anomaly,corotating_longitude_prometheus,radius_prometheus,corotating_longitude_pandora,radius_pandora
-  4.60,    8, 296602047.773, 273.960,    5.289,  0.03542,  88.824,  38.053,  93.478, 139911.390, 148.136, 293.872, 340.088, 273.628, 139319.213,  70.526, 142262.214
-  4.62,    8, 296602047.773, 273.980,    5.286,  0.03542,  88.824,  38.053,  93.477, 139911.351, 148.136, 293.872, 340.108, 273.628, 139319.213,  70.526, 142262.214
-  4.64,    8, 296602047.773, 274.000,    5.282,  0.03543,  88.824,  38.053,  93.477, 139911.312, 148.136, 293.872, 340.128, 273.628, 139319.213,  70.526, 142262.214
-  4.66,    8, 296602047.773, 274.020,    5.279,  0.03543,  88.824,  38.053,  93.477, 139911.273, 148.136, 293.872, 340.148, 273.628, 139319.213,  70.526, 142262.214
-  4.68,    8, 296602047.773, 274.040,    5.276,  0.03543,  88.824,  38.053,  93.477, 139911.234, 148.136, 293.872, 340.168, 273.628, 139319.213,  70.526, 142262.214
+  4.60,    8, 296602047.773, 273.960,    5.289,  0.03542,  88.824,  38.053,  93.478, 139911.390, 148.136, 293.872, 340.088, 273.625, 139319.212,  70.524, 142262.216
+  4.62,    8, 296602047.773, 273.980,    5.286,  0.03542,  88.824,  38.053,  93.477, 139911.351, 148.136, 293.872, 340.108, 273.625, 139319.212,  70.524, 142262.216
+  4.64,    8, 296602047.773, 274.000,    5.282,  0.03543,  88.824,  38.053,  93.477, 139911.312, 148.136, 293.872, 340.128, 273.625, 139319.212,  70.524, 142262.216
+  4.66,    8, 296602047.773, 274.020,    5.279,  0.03543,  88.824,  38.053,  93.477, 139911.273, 148.136, 293.872, 340.148, 273.625, 139319.212,  70.524, 142262.216
+  4.68,    8, 296602047.773, 274.040,    5.276,  0.03543,  88.824,  38.053,  93.477, 139911.234, 148.136, 293.872, 340.168, 273.625, 139319.212,  70.524, 142262.216
 [...]
 \end{CodeBlock}
 
@@ -299,21 +299,21 @@ While all of these files are in fixed-width format for rapid reading with approp
 See Sections~\ref{sec:reprojection}, \ref{sec:mosaic-creation}, and \ref{sec:metadata-and-global-index-file-fields} for details about these fields and Section~\ref{sec:reading-labels-and-data-product-files} for information on how to read these files with software.
 
 
-\subsubsection{browse\_mosaic and browse\_mosaic\_bkg\_sub}
+\subsubsection{\code{browse\_mosaic} and \code{browse\_mosaic\_bkg\_sub}}
 \label{sec:browse-mosaic-and-browse-mosaic-bkg-sub}
 
 These directories contain browse images for the corresponding mosaics. Browse images are provided in four sizes:
 
 \begin{itemize}
-\item Thumb: 100×100 pixels
-\item Small: 200×200 pixels
-\item Med: 1800×400 pixels
-\item Full: 18,000×401 pixels
+\item Thumb: 100 × 100 pixels
+\item Small: 200 × 200 pixels
+\item Med: 1800 × 400 pixels
+\item Full: 18,000 × 401 pixels
 \end{itemize}
-Every size other than Full is resampled from the mosaic. The Med, Small and Thumb images carry the observation name drawn in the upper left corner. Each browse image is contrast-stretched to use the full available grayscale and is not calibrated for scientific use. Missing data in the mosaic is drawn in black.
+Every size other than Full is resampled from the mosaic; the sizes above are width × height. The Med image carries the full observation name drawn in the upper left corner, above the word \code{mosaic} (or \code{bkgnd-sub mosaic} for a background-subtracted mosaic). The Small and Thumb images carry an abbreviated form of the observation name instead, with the leading instrument code and the trailing prime-instrument code dropped, so that \code{iss\_\allowbreak{}111rf\_\allowbreak{}fmovie002\_\allowbreak{}prime} appears as \code{111rf\_\allowbreak{}fmovie002} and chunk 1 of \code{iss\_\allowbreak{}112rf\_\allowbreak{}fmovie002\_\allowbreak{}prime\_\allowbreak{}1} appears as \code{112rf\_\allowbreak{}fmovie002/\allowbreak{}1}. The Full image carries no text at all. Each browse image is contrast-stretched to use the full available grayscale and is not calibrated for scientific use. Missing data in the mosaic is drawn in black.
 
 
-\subsection{The \textit{document} directory}
+\subsection{The \code{document} directory}
 \label{sec:the-document-directory}
 
 This directory contains the document collection and has the structure:
@@ -333,13 +333,13 @@ document/
 \end{CodeBlock}
 
 
-\subsubsection{user\_guide}
+\subsubsection{\code{user\_guide}}
 \label{sec:user-guide}
 
 The \code{user\_\allowbreak{}guide} directory contains the \textit{User Guide} (this document) and example programs.
 
 
-\subsection{The \textit{miscellaneous} directory: the global index files}
+\subsection{The \code{miscellaneous} directory: the global index files}
 \label{sec:the-miscellaneous-directory-the-global-index-fil}
 
 This directory contains the global index files and has the structure:
@@ -360,9 +360,9 @@ miscellaneous/
 \subsubsection{The global index files}
 \label{sec:the-global-index-files}
 
-The \code{miscellaneous} directory contains three global index files, one for reprojected images, one for mosaics and one for background-subtracted mosaics. Each contains summary information about every product in its collection. The provided information is extensive and is designed to be useful to researchers who want to search for images or mosaics meeting certain requirements.
+The \code{miscellaneous} directory contains three global index files, one for reprojected images, one for mosaics, and one for background-subtracted mosaics. Each contains summary information about every product in its collection. The provided information is extensive and is designed to be useful to researchers who want to search for images or mosaics meeting certain requirements.
 
-The following notes may be present for each reprojected image and mosaic. If multiple notes are present, they are separated by a semicolon. Each note is also described in words in an XML comment inside the \code{Observation\_\allowbreak{}Area} of the mosaic label. Items in braces below are replaced by the observation name or by a computed value.
+The following notes may be present for each reprojected image and mosaic. The \code{notes} column of an index file holds only the codes themselves; if more than one applies they are separated by a semicolon. The sentence that goes with a code is spelled out in prose in the \code{comment} element of the \code{Observation\_\allowbreak{}Area} of the mosaic label — a PDS4 label element, not an XML comment. Items in braces below are replaced by the observation name or by a computed value in that prose.
 
 \begin{itemize}
 \item M1: Because Cassini observed the same inertial longitudes for more than one orbit of the F ring during \{root\_\allowbreak{}obsid\}, we have split the observation into multiple chunks, each corresponding to one complete orbit of the F ring.
@@ -377,7 +377,7 @@ The following notes may be present for each reprojected image and mosaic. If mul
 \item N: During this time, Cassini observed multiple corotating longitudes at multiple inertial longitudes for \{total\_secs\} seconds (\{total\_hours\} hours). The inertial longitudes covered the (possibly discontinuous) \{diff\_inertial\} degrees from \{min\_inertial\} to \{max\_inertial\}.
 \end{itemize}
 
-\subsection{The \textit{spice\_kernels} directory}
+\subsection{The \code{spice\_kernels} directory}
 \label{sec:the-spice-kernels-directory}
 
 This directory contains the SPICE kernel collection, which consists of a single SPICE metakernel \code{kernels.\allowbreak{}ker} listing all kernels used to process the data for this bundle (see Section~\ref{sec:spice-toolkit}). As with the supplemental files described in Section~\ref{sec:data-reproj-img}, these files are only provided for archival completeness and are not expected to be used by most scientific users.

@@ -7,18 +7,26 @@
 \subsection{Reprojected image and mosaic metadata params}
 \label{sec:reprojected-image-and-mosaic-metadata-params}
 
-Units are uniform throughout this section and throughout the bundle. All angles, longitudes, and true anomalies are in degrees; all radii and radial distances are in km; radial resolution is in km/pixel and longitudinal resolution in degrees/pixel; coverage is given in percent; and all times given as \code{tdb} (including \code{rings:\allowbreak{}observed\_\allowbreak{}event\_\allowbreak{}tdb}) are ephemeris times in seconds past the J2000 epoch, 2000-01-01T12:00:00 Barycentric Dynamical Time (TDB) — the same quantity SPICE calls \textit{ET}. Times given as \code{date\_\allowbreak{}time} are Coordinated Universal Time (UTC).
+Units are uniform throughout this section and throughout the bundle. All angles, longitudes, and true anomalies are in degrees; all radii and radial distances are in km; radial resolution is in km/pixel and longitudinal resolution in °/pixel; coverage is given in percent; and all times given as \code{tdb} (including \code{rings:\allowbreak{}observed\_\allowbreak{}event\_\allowbreak{}tdb}) are ephemeris times in seconds past the J2000 epoch, 2000-01-01T12:00:00 Barycentric Dynamical Time (TDB) — the same quantity SPICE calls \textit{ET}. Times given as \code{date\_\allowbreak{}time} are Coordinated Universal Time (UTC).
 
 The following fields are tabulated for each valid corotating longitude in each reprojected image (\code{IMGID\_\allowbreak{}reproj\_\allowbreak{}img\_\allowbreak{}metadata\_\allowbreak{}params.\allowbreak{}tab}), mosaic (\code{OBSID\_\allowbreak{}mosaic\_\allowbreak{}metadata\_\allowbreak{}params.\allowbreak{}tab}), and background-subtracted mosaic (\code{OBSID\_\allowbreak{}mosaic\_\allowbreak{}bkg\_\allowbreak{}sub\_\allowbreak{}metadata\_\allowbreak{}params.\allowbreak{}tab}).
 
 \begingroup\small
 \begin{longtable}{|>{\raggedright\arraybackslash}p{0.255\linewidth}|>{\raggedright\arraybackslash}p{0.665\linewidth}|}
+\caption{Metadata parameter fields provided for each valid corotating longitude.}\label{tab:metadata-params}\\
 \hline
+\textbf{Field} & \textbf{Description} \\
+\hline
+\endfirsthead
+\hline
+\textbf{Field} & \textbf{Description} \\
+\hline
+\endhead
 \code{rings:\allowbreak{}corotating\_\allowbreak{}ring\_\allowbreak{}longitude} & The corotating longitude for which values are being provided \\
 \hline
 \code{image\_\allowbreak{}index} & (Mosaics only) The number of the reprojected image (from \code{OBSID\_\allowbreak{}mosaic\_\allowbreak{}metadata\_\allowbreak{}src\_\allowbreak{}imgs.\allowbreak{}tab} or \code{OBSID\_\allowbreak{}mosaic\_\allowbreak{}bkg\_\allowbreak{}sub\_\allowbreak{}metadata\_\allowbreak{}src\_\allowbreak{}imgs.\allowbreak{}tab}) that provided data for this corotating longitude \\
 \hline
-\code{rings:\allowbreak{}observed\_\allowbreak{}event\_\allowbreak{}tdb} & The mid-time of the observation that provided data for this corotating longitude (constant for one image) \\
+\code{rings:\allowbreak{}observed\_\allowbreak{}event\_\allowbreak{}tdb} & The mid-time of the source image that provided data for this corotating longitude (constant for one image) \\
 \hline
 \code{rings:\allowbreak{}inertial\_\allowbreak{}ring\_\allowbreak{}longitude} & The inertial longitude of the part of the source image that provided data for this corotating longitude \\
 \hline
@@ -26,7 +34,7 @@ The following fields are tabulated for each valid corotating longitude in each r
 \hline
 \code{rings:\allowbreak{}longitudinal\_\allowbreak{}resolution} & The angular longitudinal resolution of the part of the source image that provided data for this corotating longitude \\
 \hline
-\code{rings:\allowbreak{}incidence\_\allowbreak{}angle} & The incidence angle of the ring plane at the time of the source observation (constant for one image) \\
+\code{rings:\allowbreak{}incidence\_\allowbreak{}angle} & The incidence angle of the ring plane at the time of the source image (constant for one image) \\
 \hline
 \code{rings:\allowbreak{}phase\_\allowbreak{}angle} & The phase angle of the part of the source image that provided data for this corotating longitude \\
 \hline
@@ -34,19 +42,19 @@ The following fields are tabulated for each valid corotating longitude in each r
 \hline
 \code{core\_\allowbreak{}radius} & The radius of the ideal F ring core from the orbit model at this corotating longitude \\
 \hline
-\code{longitude\_\allowbreak{}ascending\_\allowbreak{}node} & The longitude of the ascending node (relative to J2000) from the orbit model at the time of the source observation (constant for one image) \\
+\code{longitude\_\allowbreak{}ascending\_\allowbreak{}node} & The longitude of the ascending node (relative to J2000) from the orbit model at the time of the source image (constant for one image) \\
 \hline
-\code{longitude\_\allowbreak{}pericenter} & The longitude of pericenter (relative to J2000) from the orbit model at the time of the source observation (constant for one image) \\
+\code{longitude\_\allowbreak{}pericenter} & The longitude of pericenter (relative to J2000) from the orbit model at the time of the source image (constant for one image) \\
 \hline
 \code{true\_\allowbreak{}anomaly} & The true anomaly from the orbit model corresponding to this corotating longitude \\
 \hline
 \code{corotating\_\allowbreak{}longitude\_\allowbreak{}prometheus} & The corotating longitude of Prometheus at the time of the source image, in the same reference frame used for the F ring core (constant for one image) \\
 \hline
-\code{radius\_\allowbreak{}prometheus} & The orbital radius (distance from Saturn center) of Prometheus at the time of the original observation \\
+\code{radius\_\allowbreak{}prometheus} & The orbital radius (distance from Saturn center) of Prometheus at the time of the source image (constant for one image) \\
 \hline
 \code{corotating\_\allowbreak{}longitude\_\allowbreak{}pandora} & The corotating longitude of Pandora at the time of the source image, in the same reference frame used for the F ring core (constant for one image) \\
 \hline
-\code{radius\_\allowbreak{}pandora} & The orbital radius (distance from Saturn center) of Pandora at the time of the original observation \\
+\code{radius\_\allowbreak{}pandora} & The orbital radius (distance from Saturn center) of Pandora at the time of the source image (constant for one image) \\
 \hline
 \end{longtable}
 \endgroup
@@ -59,7 +67,15 @@ The following fields appear in \code{global\_\allowbreak{}reproj\_\allowbreak{}i
 
 \begingroup\small
 \begin{longtable}{|>{\raggedright\arraybackslash}p{0.313\linewidth}|>{\raggedright\arraybackslash}p{0.607\linewidth}|}
+\caption{Fields in the reprojected image global index.}\label{tab:reproj-index}\\
 \hline
+\textbf{Field} & \textbf{Description} \\
+\hline
+\endfirsthead
+\hline
+\textbf{Field} & \textbf{Description} \\
+\hline
+\endhead
 \code{pds:\allowbreak{}logical\_\allowbreak{}identifier} & The PDS4 logical identifier, \textit{e.g.} \code{urn:\allowbreak{}nasa:\allowbreak{}pds:\allowbreak{}cassini\_\allowbreak{}iss\_\allowbreak{}fring\_\allowbreak{}mosaics\_\allowbreak{}rsfrench2025:\allowbreak{}}\newline \code{data\_\allowbreak{}reproj\_\allowbreak{}img:\allowbreak{}1874525875w\_\allowbreak{}reproj\_\allowbreak{}img} \\
 \hline
 \code{cassini:\allowbreak{}observation\_\allowbreak{}id} & The Cassini observation name of the source image, \textit{e.g.} \code{IOSIC\_\allowbreak{}276RB\_\allowbreak{}COMPLITB3001\_\allowbreak{}SI} \\
@@ -92,7 +108,7 @@ The following fields appear in \code{global\_\allowbreak{}reproj\_\allowbreak{}i
 \hline
 \code{rings:\allowbreak{}maximum\_\allowbreak{}phase\_\allowbreak{}angle} & The maximum (across all valid longitudes) phase angle \\
 \hline
-\code{rings:\allowbreak{}mean\_\allowbreak{}incidence\_\allowbreak{}angle} & The ring plane incidence angle at the time of the observation. The incidence angle does not vary with longitude and changes only slowly with time, so a single value is computed for the whole product; \code{rings:\allowbreak{}minimum\_\allowbreak{}incidence\_\allowbreak{}angle} and \code{rings:\allowbreak{}maximum\_\allowbreak{}incidence\_\allowbreak{}angle} are present in the label and carry that same value \\
+\code{rings:\allowbreak{}mean\_\allowbreak{}incidence\_\allowbreak{}angle} & The ring plane incidence angle at the time of the source image. The incidence angle does not vary with longitude and changes only slowly with time, so a single value is computed for the whole product; \code{rings:\allowbreak{}minimum\_\allowbreak{}incidence\_\allowbreak{}angle} and \code{rings:\allowbreak{}maximum\_\allowbreak{}incidence\_\allowbreak{}angle} are present in the label and carry that same value \\
 \hline
 \code{rings:\allowbreak{}mean\_\allowbreak{}emission\_\allowbreak{}angle} & The mean (across all valid longitudes) emission angle; the angle is < 90° on the lit side of the rings \\
 \hline
@@ -112,9 +128,9 @@ The following fields appear in \code{global\_\allowbreak{}reproj\_\allowbreak{}i
 \hline
 \code{rings:\allowbreak{}maximum\_\allowbreak{}longitudinal\_\allowbreak{}resolution} & The maximum (across all valid longitudes) angular longitudinal resolution in °/pixel \\
 \hline
-\code{rings:\allowbreak{}minimum\_\allowbreak{}ring\_\allowbreak{}radius} & The minimum (across all valid longitudes) ring radius (distance from Saturn center) in the original image used to provide data at any valid longitude \\
+\code{rings:\allowbreak{}minimum\_\allowbreak{}ring\_\allowbreak{}radius} & The inner edge of the reprojection grid: the smallest (across all valid longitudes) ring radius (distance from Saturn center) the grid covers, which is \code{minimum\_\allowbreak{}core\_\allowbreak{}radius} $-$ 1000 km \\
 \hline
-\code{rings:\allowbreak{}maximum\_\allowbreak{}ring\_\allowbreak{}radius} & The maximum (across all valid longitudes) ring radius (distance from Saturn center) in the original image used to provide data at any valid longitude \\
+\code{rings:\allowbreak{}maximum\_\allowbreak{}ring\_\allowbreak{}radius} & The outer edge of the reprojection grid: the largest (across all valid longitudes) ring radius (distance from Saturn center) the grid covers, which is \code{maximum\_\allowbreak{}core\_\allowbreak{}radius} $+$ 1000 km \\
 \hline
 \code{mean\_\allowbreak{}core\_\allowbreak{}radius} & The mean (across all valid longitudes) ring radius (distance from Saturn center) of the ideal F ring core from the orbit model (Section~\ref{sec:f-ring-orbit}) \\
 \hline
@@ -122,21 +138,21 @@ The following fields appear in \code{global\_\allowbreak{}reproj\_\allowbreak{}i
 \hline
 \code{maximum\_\allowbreak{}core\_\allowbreak{}radius} & The maximum (across all valid longitudes) ring radius (distance from Saturn center) of the F ring core from the orbit model \\
 \hline
-\code{longitude\_\allowbreak{}ascending\_\allowbreak{}node} & The longitude of the ascending node of the F ring (relative to J2000) from the orbit model at the time of the original observation (Section~\ref{sec:f-ring-orbit}) \\
+\code{longitude\_\allowbreak{}ascending\_\allowbreak{}node} & The longitude of the ascending node of the F ring (relative to J2000) from the orbit model at the time of the source image (Section~\ref{sec:f-ring-orbit}) \\
 \hline
-\code{longitude\_\allowbreak{}pericenter} & The longitude of pericenter of the F ring (relative to J2000) from the orbit model at the time of the original observation (Section~\ref{sec:f-ring-orbit}) \\
+\code{longitude\_\allowbreak{}pericenter} & The longitude of pericenter of the F ring (relative to J2000) from the orbit model at the time of the source image (Section~\ref{sec:f-ring-orbit}) \\
 \hline
 \code{minimum\_\allowbreak{}true\_\allowbreak{}anomaly} & The minimum (across all valid longitudes) true anomaly from the orbit model (Section~\ref{sec:f-ring-orbit}) \\
 \hline
 \code{maximum\_\allowbreak{}true\_\allowbreak{}anomaly} & The maximum (across all valid longitudes) true anomaly from the orbit model (Section~\ref{sec:f-ring-orbit}) \\
 \hline
-\code{corotating\_\allowbreak{}longitude\_\allowbreak{}prometheus} & The corotating longitude of Prometheus at the time of the original observation in the same reference frame used for the F ring core \\
+\code{corotating\_\allowbreak{}longitude\_\allowbreak{}prometheus} & The corotating longitude of Prometheus at the time of the source image in the same reference frame used for the F ring core \\
 \hline
-\code{radius\_\allowbreak{}prometheus} & The orbital radius (distance from Saturn center) of Prometheus at the time of the original observation \\
+\code{radius\_\allowbreak{}prometheus} & The orbital radius (distance from Saturn center) of Prometheus at the time of the source image \\
 \hline
-\code{corotating\_\allowbreak{}longitude\_\allowbreak{}pandora} & The corotating longitude of Pandora at the time of the original observation in the same reference frame used for the F ring core \\
+\code{corotating\_\allowbreak{}longitude\_\allowbreak{}pandora} & The corotating longitude of Pandora at the time of the source image in the same reference frame used for the F ring core \\
 \hline
-\code{radius\_\allowbreak{}pandora} & The orbital radius (distance from Saturn center) of Pandora at the time of the original observation \\
+\code{radius\_\allowbreak{}pandora} & The orbital radius (distance from Saturn center) of Pandora at the time of the source image \\
 \hline
 \code{pds:\allowbreak{}creation\_\allowbreak{}date\_\allowbreak{}time} & The date and time the reprojected image product was created \\
 \hline
@@ -155,7 +171,15 @@ The following fields appear in \code{global\_\allowbreak{}mosaic\_\allowbreak{}i
 
 \begingroup\small
 \begin{longtable}{|>{\raggedright\arraybackslash}p{0.313\linewidth}|>{\raggedright\arraybackslash}p{0.607\linewidth}|}
+\caption{Fields in the mosaic and background-subtracted mosaic global indexes.}\label{tab:mosaic-index}\\
 \hline
+\textbf{Field} & \textbf{Description} \\
+\hline
+\endfirsthead
+\hline
+\textbf{Field} & \textbf{Description} \\
+\hline
+\endhead
 \code{pds:\allowbreak{}logical\_\allowbreak{}identifier} & The PDS4 logical identifier, \textit{e.g.} \code{urn:\allowbreak{}nasa:\allowbreak{}pds:\allowbreak{}cassini\_\allowbreak{}iss\_\allowbreak{}fring\_\allowbreak{}mosaics\_\allowbreak{}rsfrench2025:\allowbreak{}data\_\allowbreak{}mosaic:\allowbreak{}iosic\_\allowbreak{}276rb\_\allowbreak{}complitb3001\_\allowbreak{}si\_\allowbreak{}mosaic} \\
 \hline
 \code{cassini:\allowbreak{}observation\_\allowbreak{}id} & The Cassini observation name of the source images, \textit{e.g.} \code{IOSIC\_\allowbreak{}276RB\_\allowbreak{}COMPLITB3001\_\allowbreak{}SI} \\
@@ -174,9 +198,9 @@ The following fields appear in \code{global\_\allowbreak{}mosaic\_\allowbreak{}i
 \hline
 \code{percent\_\allowbreak{}coverage} & The percentage of 360° containing valid data; computed as \code{num\_\allowbreak{}valid\_\allowbreak{}longitudes} / 18,000 × 100 \\
 \hline
-\code{rings:\allowbreak{}minimum\_\allowbreak{}corotating\_\allowbreak{}ring\_\allowbreak{}longitude} & The minimum corotating longitude, representing the left edge of the mosaic \\
+\code{rings:\allowbreak{}minimum\_\allowbreak{}corotating\_\allowbreak{}ring\_\allowbreak{}longitude} & The lower end of the range of corotating longitude that contains valid data. This is not the same quantity as the \code{rings:\allowbreak{}minimum\_\allowbreak{}corotating\_\allowbreak{}ring\_\allowbreak{}longitude} of the product label, which always reports the full grid, 0.00° to 359.98°, because a mosaic is always written out to its full extent \\
 \hline
-\code{rings:\allowbreak{}maximum\_\allowbreak{}corotating\_\allowbreak{}ring\_\allowbreak{}longitude} & The maximum corotating longitude, representing the right edge of the mosaic; note that it is possible for min > max, in which case the corotating range wraps around at 360° \\
+\code{rings:\allowbreak{}maximum\_\allowbreak{}corotating\_\allowbreak{}ring\_\allowbreak{}longitude} & The upper end of the range of corotating longitude that contains valid data, and likewise not the same quantity as the \code{rings:\allowbreak{}maximum\_\allowbreak{}corotating\_\allowbreak{}ring\_\allowbreak{}longitude} of the product label; when the range of valid data wraps through 360° this value is less than the minimum \\
 \hline
 \code{rings:\allowbreak{}minimum\_\allowbreak{}inertial\_\allowbreak{}ring\_\allowbreak{}longitude} & The minimum inertial longitude from the source images used to create the mosaic \\
 \hline
@@ -208,9 +232,9 @@ The following fields appear in \code{global\_\allowbreak{}mosaic\_\allowbreak{}i
 \hline
 \code{rings:\allowbreak{}maximum\_\allowbreak{}longitudinal\_\allowbreak{}resolution} & The maximum (across all valid longitudes) angular longitudinal resolution in °/pixel \\
 \hline
-\code{rings:\allowbreak{}minimum\_\allowbreak{}ring\_\allowbreak{}radius} & The minimum (across all valid longitudes) ring radius (distance from Saturn center) in the original images used to provide data at any valid longitude \\
+\code{rings:\allowbreak{}minimum\_\allowbreak{}ring\_\allowbreak{}radius} & The inner edge of the reprojection grid: the smallest (across all valid longitudes) ring radius (distance from Saturn center) the grid covers, which is \code{minimum\_\allowbreak{}core\_\allowbreak{}radius} $-$ 1000 km \\
 \hline
-\code{rings:\allowbreak{}maximum\_\allowbreak{}ring\_\allowbreak{}radius} & The maximum (across all valid longitudes) ring radius (distance from Saturn center) in the original images used to provide data at any valid longitude \\
+\code{rings:\allowbreak{}maximum\_\allowbreak{}ring\_\allowbreak{}radius} & The outer edge of the reprojection grid: the largest (across all valid longitudes) ring radius (distance from Saturn center) the grid covers, which is \code{maximum\_\allowbreak{}core\_\allowbreak{}radius} $+$ 1000 km \\
 \hline
 \code{mean\_\allowbreak{}core\_\allowbreak{}radius} & The mean (across all valid longitudes) ring radius (distance from Saturn center) of the ideal F ring core (Section~\ref{sec:f-ring-orbit}) \\
 \hline
@@ -272,9 +296,9 @@ The following fields appear in \code{global\_\allowbreak{}mosaic\_\allowbreak{}i
 \hline
 \code{max\_\allowbreak{}image\_\allowbreak{}name} & The name of the latest source image used in this mosaic \\
 \hline
-\code{bkgnd\_\allowbreak{}lower\_\allowbreak{}limit} & (Background-subtracted mosaic only) The inner edge of the background region, as a signed $\Delta r$ in km; rows between $\Delta r$ = −1000 km and this value are used for background modeling \\
+\code{bkgnd\_\allowbreak{}lower\_\allowbreak{}limit} & (Background-subtracted mosaic only) The inner edge of the ring region, as a signed \dr{} in km; the rows from \dr{} = −1000 km up to but not including this value are used for background modeling \\
 \hline
-\code{bkgnd\_\allowbreak{}upper\_\allowbreak{}limit} & (Background-subtracted mosaic only) The outer edge of the background region, as a signed $\Delta r$ in km; rows between this value and $\Delta r$ = +1000 km are used for background modeling \\
+\code{bkgnd\_\allowbreak{}upper\_\allowbreak{}limit} & (Background-subtracted mosaic only) The outer edge of the ring region, as a signed \dr{} in km; the rows beyond this value, up through \dr{} = +1000 km, are used for background modeling \\
 \hline
 \end{longtable}
 \endgroup

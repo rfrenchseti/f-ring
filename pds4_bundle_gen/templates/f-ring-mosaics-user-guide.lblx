@@ -243,7 +243,7 @@
                 <file_name>$USERGUIDE_PDF_NAME$</file_name>
                 <creation_date_time>$FILE_ZULU(USERGUIDE_PDF_PATH)$</creation_date_time>
                 <md5_checksum>$FILE_MD5(USERGUIDE_PDF_PATH)$</md5_checksum>
-                <document_standard_id>PDF</document_standard_id>
+                <document_standard_id>PDF/A</document_standard_id>
             </Document_File>
             <Document_File>
                 <file_name>$MOSAIC_UTILS_PY_NAME$</file_name>

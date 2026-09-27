@@ -3,15 +3,30 @@
 Originally converted to LaTeX from `users-guide-draft-phase2-6.docx` (all
 tracked changes accepted). These sources are now the master copy: several
 sections have since been rewritten or added and have no Word counterpart.
-Compiles to a 45-page PDF that follows the Word original's layout:
+Compiles to a 47-page PDF that follows the Word original's layout:
 same section/figure numbering, US Letter geometry, portrait body with a
 landscape Section 7, and "Page N of M" footers.
 
 ## Building
 
 ```
-make            # runs pdflatex three times
+make            # runs pdflatex three times, then converts to PDF/A
 ```
+
+`make` produces two files: `main-raw.pdf`, the direct pdflatex output, and
+`main.pdf`, its PDF/A-1b form. The archived guide must be PDF/A, so `main.pdf`
+is the one copied into `pds4_bundle_gen/templates/`. The conversion uses
+`ocrmypdf --output-type pdfa-1 --skip-text` (no OCR is performed; it is used
+only as a PDF/A converter, and embeds the sRGB output intent that a bare
+Ghostscript run does not).
+
+The `pdfa` option on hyperref in `preamble.tex` is required: PDF/A-1 forbids
+non-printing annotations, and without it the conversion silently discards every
+hyperlink in the document. With it, all 251 links survive.
+
+The three screenshots in figures/ must stay free of an alpha channel. PDF/A-1
+forbids transparency, and a screenshot saved as RGBA makes Ghostscript rebuild
+its page during conversion, silently dropping every annotation on it.
 
 or `pdflatex main.tex` (3×) with `TEXINPUTS=./sty//:` set. The `sty/`
 directory carries standard packages (booktabs, caption, enumitem, fancyvrb,
@@ -51,12 +66,17 @@ LuaLaTeX/XeLaTeX + `fontspec`):
 
 Other notes:
 
-- Word wraps over-long code tokens and verbatim lines mid-token; this is
-  reproduced with `\allowbreak` insertions and `fvextra`'s `breaklines`.
+- Word wraps over-long code tokens and verbatim lines mid-token. Inline code
+  uses `\allowbreak` insertions; verbatim blocks use `fvextra`'s `breaklines`
+  with `breakanywhere=false` and `breakafter={,/}`, so a wrapped CSV header
+  keeps whole field names and a wrapped path breaks at a directory separator.
 - The XML label listings use the smaller point size of the Word source
   (`[fontsize=\scriptsize]` on those blocks).
-- On the landscape pages (Section 7) the footer appears rotated at the
-  page edge — standard LaTeX `lscape`/`pdflscape` behavior.
+- On the landscape pages (Section 7) the `landscapepage` style defined in
+  `preamble.tex` draws the footer rotated and out in the right-hand margin,
+  which is where the bottom centre of the page lands once `/Rotate 90` turns
+  the physical page. Without it `lscape` leaves the footer reading up the
+  left edge of the rotated page.
 
 ## Citations / bibliography (second pass, pending)
 
