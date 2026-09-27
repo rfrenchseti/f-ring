@@ -32,6 +32,9 @@
 \newcommand{\labelxmlfontfamily}{\fontfamily{phv}\selectfont}
 \newcommand{\labelxml}[1]{{\labelxmlfontfamily #1}}
 
+% --- radial distance from the F ring core, used throughout the text
+\newcommand{\dr}{\ensuremath{\Delta r}}
+
 % --- heading font (Word: Calibri bold)
 \newcommand{\headingfont}{\sffamily\bfseries}
 
@@ -53,12 +56,23 @@
 % used a smaller point size (e.g. the long XML label listings).
 % breaklines wraps lines too long for the page, as Word does; the
 % continuation line is indented and unmarked (set breaksymbolleft to change).
+% Breaks are allowed only after a comma or a slash, never in the middle of a
+% token, so that a wrapped CSV header keeps whole field names and a wrapped
+% path breaks at a directory separator: a broken name can never read as two
+% names.  No break marker is drawn; the trailing comma or slash and the
+% indented continuation line carry that information.
 \DefineVerbatimEnvironment{CodeBlock}{Verbatim}%
   {fontsize=\small,formatcom=\codefontfamily,xleftmargin=1.5em,
-   breaklines=true,breakanywhere=true,breaksymbolleft={},breakindent=2em}
+   breaklines=true,breakanywhere=false,breakafter={,/},
+   breakaftersymbolpre={},breakaftersymbolpost={},
+   breaksymbolleft={},breakindent=2em}
 \DefineVerbatimEnvironment{LiteralBlock}{Verbatim}%
   {fontsize=\small,formatcom=\literalfontfamily,xleftmargin=1.5em,
-   breaklines=true,breakanywhere=true,breaksymbolleft={},breakindent=2em}
+   breaklines=true,breakanywhere=false,breakafter={,/},
+   breakaftersymbolpre={},breakaftersymbolpost={},
+   breaksymbolleft={},breakindent=2em}
 \DefineVerbatimEnvironment{LabelBlock}{Verbatim}%
   {fontsize=\small,formatcom=\labelxmlfontfamily,xleftmargin=1.5em,
-   breaklines=true,breakanywhere=true,breaksymbolleft={},breakindent=2em}
+   breaklines=true,breakanywhere=false,breakafter={,/},
+   breakaftersymbolpre={},breakaftersymbolpost={},
+   breaksymbolleft={},breakindent=2em}

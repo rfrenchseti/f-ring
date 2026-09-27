@@ -9,7 +9,7 @@
     <Identification_Area>
         <logical_identifier>$MISCELLANEOUS_COLLECTION_LID$</logical_identifier>
         <version_id>1.0</version_id>
-        <title>Miscellaneous Collection for the F Ring Mosaics and Associated Reprojected Versions of Cassini ISS Calibrated Images</title>
+        <title>Miscellaneous Collection for the F Ring Mosaics and Associated Reprojected Images Created from Calibrated Cassini ISS Images</title>
         <information_model_version>$INFORMATION_MODEL_VERSION$</information_model_version>
         <product_class>Product_Collection</product_class>
         <Citation_Information>
@@ -19,7 +19,7 @@
             $END_FOR
             <description>
                 This collection contains global indexes for the F ring mosaics and associated
-                reprojected versions of Cassini ISS calibrated images.
+                reprojected versions of calibrated Cassini ISS images.
             </description>
             <List_Author>
                 <Person>

@@ -5,24 +5,42 @@
 
 The data set described here is archived using the PDS4 standard. While deep knowledge of PDS4 is not required to make use of the data, some familiarity is useful. Specifications, tools, and training are available from the main PDS website at \href{https://pds.nasa.gov}{https://pds.nasa.gov}.\footnote{Refer to the documents in Section~\ref{sec:pds4-standards-and-documentation} for further information on the PDS4 concepts of \textit{bundle}, \textit{collection}, and \textit{data product}.}
 
-This data is archived as a single PDS4 \textit{bundle}, which consists of multiple \textit{collections}. Each collection represents one particular type of data (reprojected images, mosaics, browse images, etc.). Within a collection, individual data products are described by a \textit{label} (suffix \code{.\allowbreak{}lblx}), which contains substantial information about the data product, including details of any associated binary image (\code{.\allowbreak{}img}), graphical image (\code{.\allowbreak{}png}), metadata table (\code{.\allowbreak{}tab}), or supplemental (\code{.\allowbreak{}txt}) files.
+This data is archived as a single PDS4 \textit{bundle}, which consists of multiple \textit{collections}. Each collection represents one particular type of data (reprojected images, mosaics, browse images, etc.). Within a collection, individual data products are described by a \textit{label} (extension \code{.\allowbreak{}lblx}), which contains substantial information about the data product, including details of any associated binary image (\code{.\allowbreak{}img}), graphical image (\code{.\allowbreak{}png}), metadata table (\code{.\allowbreak{}tab}), or supplemental (\code{.\allowbreak{}txt}) files.
 
 Data product files are best read by first processing the associated label file, extracting the needed metadata about the data product, and then using the information in the label to identify the file(s) to read and the details of their format. Special software is available in a variety of programming languages for processing labels and reading the associated data products (Section~\ref{sec:reading-labels-and-data-product-files}).
 
+A few abbreviations and naming conventions are used throughout this
+\textit{User Guide}:
+
+\begin{itemize}
+\item \textbf{OBSID} — a Cassini observation name converted to lowercase, including any numeric chunk suffix; it names a mosaic and the directory that holds it (Sections~\ref{sec:image-selection} and \ref{sec:the-browse-and-data-directories}).
+\item \textbf{IMGID} — the identifier of a single Cassini ISS source image: its ten-digit spacecraft clock (SCLK) count followed by \code{n} for the NAC or \code{w} for the WAC, as in \code{1622049830n} (Section~\ref{sec:the-browse-and-data-directories}).
+\item \textbf{LID} — a PDS4 \textit{logical identifier}, the permanent name of a product, collection, or bundle, written as a \code{urn:\allowbreak{}nasa:\allowbreak{}pds:} URN.
+\item \textbf{LIDVID} — a LID with a version appended after \code{::}, naming one specific version of that product.
+\item \textbf{I/F} — the calibrated radiometric unit of the image data: the ratio of observed intensity to the incident solar flux, for a perfect Lambert surface at normal incidence (Section~\ref{sec:calibration}).
+\item \textbf{COISS} — the PDS holdings of raw and calibrated Cassini ISS images, from which the source images for this bundle were drawn (Section~\ref{sec:calibration}).
+\end{itemize}
+
 Below is a summary of the collections related to reprojected images and the files contained within each.
 
-\begingroup\small
-\begin{longtable}{|>{\raggedright\arraybackslash}p{0.186\linewidth}|>{\raggedright\arraybackslash}p{0.405\linewidth}|>{\raggedright\arraybackslash}p{0.329\linewidth}|}
+\begingroup\footnotesize
+\begin{longtable}{|>{\raggedright\arraybackslash}p{0.22\linewidth}|>{\raggedright\arraybackslash}p{0.40\linewidth}|>{\raggedright\arraybackslash}p{0.30\linewidth}|}
+\caption{Collections and files for reprojected images.}\label{tab:reproj-collections}\\
 \hline
-Collection & Filename(s) & Description \\
+\textbf{Collection} & \textbf{Filename(s)} & \textbf{Description} \\
 \hline
+\endfirsthead
+\hline
+\textbf{Collection} & \textbf{Filename(s)} & \textbf{Description} \\
+\hline
+\endhead
 \code{browse\_\allowbreak{}reproj\_\allowbreak{}img} (Section~\ref{sec:browse-reproj-img}) & \code{IMGID\_\allowbreak{}browse\_\allowbreak{}reproj\_\allowbreak{}img.\allowbreak{}lblx} & PDS4 label describing the four types of browse images for reprojected image data. \\
 \hline
  & \code{IMGID\_\allowbreak{}browse\_\allowbreak{}reproj\_\allowbreak{}img\_\allowbreak{}full.\allowbreak{}png}\newline \code{IMGID\_\allowbreak{}browse\_\allowbreak{}reproj\_\allowbreak{}img\_\allowbreak{}med.\allowbreak{}png} \newline \code{IMGID\_\allowbreak{}browse\_\allowbreak{}reproj\_\allowbreak{}img\_\allowbreak{}small.\allowbreak{}png} \newline \code{IMGID\_\allowbreak{}browse\_\allowbreak{}reproj\_\allowbreak{}img\_\allowbreak{}thumb.\allowbreak{}png} & Human-viewable versions of reprojected images in four sizes in standard PNG format. Images are contrast-stretched and not calibrated for scientific use. \\
 \hline
 \code{data\_\allowbreak{}reproj\_\allowbreak{}img} (Section~\ref{sec:data-reproj-img}) & \code{IMGID\_\allowbreak{}reproj\_\allowbreak{}img.\allowbreak{}lblx} & PDS4 label describing the reprojected image and the three associated data files. \\
 \hline
- & \code{IMGID\_\allowbreak{}reproj\_\allowbreak{}img.\allowbreak{}img} & Binary file containing a 401×\textit{N} array of 32-bit floating-point values calibrated as I/F: 401 rows of radius in increments of 5 km, by \textit{N} columns of corotating longitude in 0.02° increments. The longitudes are restricted to the range containing valid data. \\
+ & \code{IMGID\_\allowbreak{}reproj\_\allowbreak{}img.\allowbreak{}img} & Binary file containing a 401 × \textit{N} array of 32-bit floating-point values calibrated as I/F: 401 rows of radius in increments of 5 km, by \textit{N} columns of corotating longitude in 0.02° increments. The longitudes are restricted to the range containing valid data. \\
 \hline
  & \code{IMGID\_\allowbreak{}reproj\_\allowbreak{}img\_\allowbreak{}metadata\_\allowbreak{}params.\allowbreak{}tab} & Fixed-width comma-delimited table containing metadata for each valid corotating longitude in the \code{reproj\_\allowbreak{}img}. \\
 \hline
@@ -33,18 +51,24 @@ Collection & Filename(s) & Description \\
 
 Below is a summary of the collections related to mosaics (and background-subtracted mosaics) and the files contained within each.
 
-\begingroup\small
-\begin{longtable}{|>{\raggedright\arraybackslash}p{0.222\linewidth}|>{\raggedright\arraybackslash}p{0.444\linewidth}|>{\raggedright\arraybackslash}p{0.254\linewidth}|}
+\begingroup\footnotesize
+\begin{longtable}{|>{\raggedright\arraybackslash}p{0.27\linewidth}|>{\raggedright\arraybackslash}p{0.38\linewidth}|>{\raggedright\arraybackslash}p{0.27\linewidth}|}
+\caption{Collections and files for mosaics and background-subtracted mosaics.}\label{tab:mosaic-collections}\\
 \hline
-Collection & Filename(s) & Description \\
+\textbf{Collection} & \textbf{Filename(s)} & \textbf{Description} \\
 \hline
+\endfirsthead
+\hline
+\textbf{Collection} & \textbf{Filename(s)} & \textbf{Description} \\
+\hline
+\endhead
 \code{browse\_\allowbreak{}mosaic} [original]\newline \code{browse\_\allowbreak{}mosaic\_\allowbreak{}bkg\_\allowbreak{}sub}\newline [background gradient removed] (Section~\ref{sec:browse-mosaic-and-browse-mosaic-bkg-sub}) & \code{OBSID\_\allowbreak{}browse\_\allowbreak{}mosaic[\_\allowbreak{}bkg\_\allowbreak{}sub].\allowbreak{}lblx} & PDS4 label describing the four types of browse images for mosaic data. \\
 \hline
  & \code{OBSID\_\allowbreak{}browse\_\allowbreak{}mosaic[\_\allowbreak{}bkg\_\allowbreak{}sub]\_\allowbreak{}full.\allowbreak{}png}\newline \code{OBSID\_\allowbreak{}browse\_\allowbreak{}mosaic[\_\allowbreak{}bkg\_\allowbreak{}sub]\_\allowbreak{}med.\allowbreak{}png} \newline \code{OBSID\_\allowbreak{}browse\_\allowbreak{}mosaic[\_\allowbreak{}bkg\_\allowbreak{}sub]\_\allowbreak{}small.\allowbreak{}png} \newline \code{OBSID\_\allowbreak{}browse\_\allowbreak{}mosaic[\_\allowbreak{}bkg\_\allowbreak{}sub]\_\allowbreak{}thumb.\allowbreak{}png} & Human-viewable versions of mosaics in four sizes in standard PNG format. Images are contrast-stretched and not calibrated for scientific use. \\
 \hline
 \code{data\_\allowbreak{}mosaic} [original]\newline \code{data\_\allowbreak{}mosaic\_\allowbreak{}bkg\_\allowbreak{}sub}\newline [background gradient removed] (Section~\ref{sec:data-mosaic-and-data-mosaic-bkg-sub}) & \code{OBSID\_\allowbreak{}mosaic[\_\allowbreak{}bkg\_\allowbreak{}sub].\allowbreak{}lblx} & PDS4 label describing the mosaic and the three associated data files. \\
 \hline
- & \code{OBSID\_\allowbreak{}mosaic[\_\allowbreak{}bkg\_\allowbreak{}sub].\allowbreak{}img} & Binary file containing a 401×18,000 array of 32-bit floating-point values calibrated as I/F: 401 rows of radius in increments of 5 km, by 18,000 columns of corotating longitude in 0.02° increments. \\
+ & \code{OBSID\_\allowbreak{}mosaic[\_\allowbreak{}bkg\_\allowbreak{}sub].\allowbreak{}img} & Binary file containing a 401 × 18,000 array of 32-bit floating-point values calibrated as I/F: 401 rows of radius in increments of 5 km, by 18,000 columns of corotating longitude in 0.02° increments. \\
 \hline
  & \code{OBSID\_\allowbreak{}mosaic[\_\allowbreak{}bkg\_\allowbreak{}sub]\_\allowbreak{}metadata\_\allowbreak{}params.\allowbreak{}tab} & Fixed-width comma-delimited table containing metadata for each valid corotating longitude in the mosaic. \\
 \hline

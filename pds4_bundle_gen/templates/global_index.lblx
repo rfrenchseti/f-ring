@@ -356,12 +356,15 @@
                     <unit>deg</unit>
                     <description>
                         The lower end of the range of co-rotating longitude that contains
-                        valid data. Note that this is not always the same quantity as the
-                        rings:minimum_corotating_ring_longitude of the product label: a
-                        mosaic label reports the full grid, 0 to 359.98 degrees, because a
-                        mosaic is always written out to its full extent. When the range of
-                        valid data wraps through 360 degrees this value is greater than
-                        the maximum.
+                        valid data.
+                        $IF(IS_MOSAIC)
+                        Note that this is not the same quantity as the
+                        rings:minimum_corotating_ring_longitude of the product label, which
+                        reports the full grid, 0 to 359.98 degrees, because a mosaic is
+                        always written out to its full extent.
+                        $END_IF
+                        When the range of valid data wraps through 360 degrees this value
+                        is greater than the maximum.
                     </description>
                 </Field_Character>
                 <Field_Character>
@@ -373,12 +376,15 @@
                     <unit>deg</unit>
                     <description>
                         The upper end of the range of co-rotating longitude that contains
-                        valid data. Note that this is not always the same quantity as the
-                        rings:maximum_corotating_ring_longitude of the product label: a
-                        mosaic label reports the full grid, 0 to 359.98 degrees, because a
-                        mosaic is always written out to its full extent. When the range of
-                        valid data wraps through 360 degrees this value is less than the
-                        minimum.
+                        valid data.
+                        $IF(IS_MOSAIC)
+                        Note that this is not the same quantity as the
+                        rings:maximum_corotating_ring_longitude of the product label, which
+                        reports the full grid, 0 to 359.98 degrees, because a mosaic is
+                        always written out to its full extent.
+                        $END_IF
+                        When the range of valid data wraps through 360 degrees this value
+                        is less than the minimum.
                     </description>
                 </Field_Character>
                 <Field_Character>
@@ -577,7 +583,7 @@
                     <field_length unit="byte">10</field_length>
                     <unit>km</unit>
                     <description>
-                        Mean F-ring core radius over valid longitudes in the product.
+                        Mean F ring core radius over valid longitudes in the product.
                     </description>
                 </Field_Character>
                 <Field_Character>
@@ -588,7 +594,7 @@
                     <field_length unit="byte">10</field_length>
                     <unit>km</unit>
                     <description>
-                        Minimum F-ring core radius over valid longitudes in the product.
+                        Minimum F ring core radius over valid longitudes in the product.
                     </description>
                 </Field_Character>
                 <Field_Character>
@@ -599,7 +605,7 @@
                     <field_length unit="byte">10</field_length>
                     <unit>km</unit>
                     <description>
-                        Maximum F-ring core radius over valid longitudes in the product.
+                        Maximum F ring core radius over valid longitudes in the product.
                     </description>
                 </Field_Character>
                 <Field_Character>
@@ -979,7 +985,7 @@
                     <field_length unit="byte">10</field_length>
                     <unit>km</unit>
                     <description>
-                        Mean F-ring core radius over valid longitudes in the reprojected image.
+                        Mean F ring core radius over valid longitudes in the reprojected image.
                     </description>
                 </Field_Character>
                 <Field_Character>
@@ -990,7 +996,7 @@
                     <field_length unit="byte">10</field_length>
                     <unit>km</unit>
                     <description>
-                        Minimum F-ring core radius over valid longitudes in the reprojected image.
+                        Minimum F ring core radius over valid longitudes in the reprojected image.
                     </description>
                 </Field_Character>
                 <Field_Character>
@@ -1001,7 +1007,7 @@
                     <field_length unit="byte">10</field_length>
                     <unit>km</unit>
                     <description>
-                        Maximum F-ring core radius over valid longitudes in the reprojected image.
+                        Maximum F ring core radius over valid longitudes in the reprojected image.
                     </description>
                 </Field_Character>
                 <Field_Character>

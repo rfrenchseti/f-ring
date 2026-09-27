@@ -317,6 +317,12 @@
             <records>$FILE_RECORDS(METADATA_PARAMS_TABLE_PATH)-1$</records>
             <description>
                 The metadata for each longitude in the mosaic that contains valid data.
+                The records are in order of increasing co-rotating longitude starting at 0
+                degrees. Longitudes that contain no valid data have no record at all, so in
+                general record N does not correspond to image column N. Use the
+                rings:corotating_ring_longitude field, not the record number, to associate a
+                record with a column; for a mosaic the column is
+                round(rings:corotating_ring_longitude / 0.02).
             </description>
             <record_delimiter>Line-Feed</record_delimiter>
             <Record_Character>

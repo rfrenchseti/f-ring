@@ -17,7 +17,7 @@ where for the observations included in this bundle:
 
 \begin{itemize}
 \item INST is the abbreviation for the instrument being commanded (usually “ISS”)
-\item REV is the rev (orbit) identifier, starting with 000 at Saturn orbit insertion and ending with 293 at the end of the mission. A few early revs are lettered instead of numbered; this bundle contains rev \code{00A}. Software that splits an observation name should treat REV as a fixed field of three characters and not assume it is an integer
+\item REV is the rev (orbit) identifier, starting with 000 at Saturn orbit insertion and ending with 293 at the end of the mission. A few early revs are lettered instead of numbered; this bundle contains rev \code{00A}. Software that splits an observation name should treat REV as a fixed field of three characters and not assume it is an integer.
 \item TI is a 2-character target identifier: RA (A ring), RB (B ring), RF (F ring), RI (general rings), ST (star)
 \item UNIQUENAME is a unique descriptor chosen by the observation creator, often containing acronyms such as “LP” for low phase, “HR” for high resolution, and “MOV” for movie. Some of the more common names:
 \begin{itemize}
@@ -38,7 +38,7 @@ where for the observations included in this bundle:
 \item SUBM*, TDIFS*, TMAP* – Thermal observations by the Composite Infrared Spectrometer (CIRS); ISS rider
 \item UR* – Ultraviolet Imaging Spectrograph (UVIS) ring stellar occultation; ISS rider
 \end{itemize}
-\item PINST indicates the name of the prime instrument if other than the ISS \zcite{(Knowles 2018)}. If PINST is not “PRIME”, then the ISS images were a ride-along on observations designed for the other instrument.
+\item PINST usually names the prime instrument when it is not the ISS \zcite{(Knowles 2018)}. A value of “PRIME” means the ISS was itself the prime instrument; any other value normally means the ISS images were a ride-along on an observation designed for the named instrument. The rule is not absolute: alongside “PRIME”, “VIMS”, “CIRS”, and “UVIS”, this bundle also contains the codes “SI” (\code{IOSIC\_\allowbreak{}276RB\_\allowbreak{}COMPLITB3001\_\allowbreak{}SI} and \code{IOSIC\_\allowbreak{}276RB\_\allowbreak{}COMPLITB4001\_\allowbreak{}SI}) and “PIE” (\code{ISS\_\allowbreak{}253RI\_\allowbreak{}HIRESAFRG001\_\allowbreak{}PIE}), which name no instrument.
 \end{itemize}
 The complete set of $\sim$100,000 images containing the F ring was manually inspected for high-quality images.
 
@@ -68,21 +68,28 @@ The selected observations were divided into the classes described in the followi
 
 A standard “F movie” consists of a series of images taken while Cassini stared at approximately the same inertial longitude. The F ring rotated under the camera for some or all of a complete orbit, providing a partial or complete view of the entire longitudinal extent of the ring. Such observations are considered the default and are thus not marked with a special note.
 
-It is important to realize that it was the F ring that was rotating, not the camera that was instantaneously observing different parts of the ring. The resulting image sequence and mosaic therefore do not provide a view of the F ring around its entire orbit. Instead, it provides repeated views of the F ring centered at (approximately) a single inertial longitude, and thus at a single true anomaly in its eccentric orbit. This can affect the interpretation of morphological features such as streamer-channels, which change shape throughout their orbit \zcite{(Attree et al. 2012, 2014; Beurle et al. 2010; French et al. 2014a; Murray et al. 2005, 2008)}.
+It is important to realize that it was the F ring that was rotating, not the camera that was instantaneously observing different parts of the ring. The resulting image sequence and mosaic therefore do not provide a view of the F ring around its entire orbit. Instead, they provide repeated views of the F ring centered at (approximately) a single inertial longitude, and thus at a single true anomaly in its eccentric orbit. This can affect the interpretation of morphological features such as streamer-channels, which change shape throughout their orbit \zcite{(Attree et al. 2012, 2014; Beurle et al. 2010; French et al. 2014a; Murray et al. 2005, 2008)}.
 
 An example of a standard mosaic is shown in Figure~\ref{fig:fmovie-mosaic}.
+
+\begin{figure}[htbp]
+\centering
+\noindent\includegraphics[width=\linewidth]{figures/fig1-fmovie-mosaic.png}
+\caption{Mosaic of observation \code{iss\_\allowbreak{}039rf\_\allowbreak{}fmovie001\_\allowbreak{}vims}, a standard F movie taken as a rider on a VIMS-prime observation.}
+\label{fig:fmovie-mosaic}
+\end{figure}
 
 
 \subsubsection{M\#: Observations that are broken into chunks}
 \label{sec:m-observations-that-are-broken-into-chunks}
 
-Although Cassini observing campaigns are indicated by their observation name, sometimes a single campaign produced data that was more appropriately divided into multiple groups. In these cases, we produced multiple mosaics named after the observation name with a numerical suffix. The notes field in the index file (Section~\ref{sec:the-global-index-files}) includes “M1”, “M2”, “M3”, or “M4”, indicating how the different chunks are related to each other.
+Although Cassini observing campaigns are indicated by their observation name, sometimes a single campaign produced data that was more appropriately divided into multiple groups. In these cases, we produced multiple mosaics named after the observation name with a numeric suffix. The notes field in the index file (Section~\ref{sec:the-global-index-files}) includes “M1”, “M2”, “M3”, or “M4”, indicating how the different chunks are related to each other.
 
 
 \paragraph{M1: Multiple contiguous observations of the same inertial longitude range}
 \label{sec:m1-multiple-contiguous-observations-of-the-same}
 
-In some cases, an observation stared at a single inertial longitude for more than a complete orbit of the F ring. In these cases, the observation was broken into multiple chunks, with each complete orbit of the F ring (and the final partial orbit, if there was one) used to create a separate mosaic. Such observations are noted in the index file with “M1”. The following mosaics have this flag, where a suffix list such as \code{\_\allowbreak{}1/\allowbreak{}2} stands for the separate mosaics \code{\_\allowbreak{}1} and \code{\_\allowbreak{}2}:
+In some cases, an observation stared at a single inertial longitude for more than a complete orbit of the F ring. In these cases, the observation was broken into multiple chunks, with each complete orbit of the F ring (and the final partial orbit, if there was one) used to create a separate mosaic. Such observations are noted in the index file with “M1”. The following mosaics have this flag. Two shorthands are used in the mosaic lists throughout this section: a suffix list such as \code{\_\allowbreak{}1/\allowbreak{}2} stands for the separate mosaics \code{\_\allowbreak{}1} and \code{\_\allowbreak{}2}, and a suffix range, written with an en dash outside the monospace name as in \code{\_\allowbreak{}2}–\code{\_\allowbreak{}9}, stands for \code{\_\allowbreak{}2} through \code{\_\allowbreak{}9}.
 
 \begin{itemize}
 \item \code{iss\_\allowbreak{}198ri\_\allowbreak{}spokemov005\_\allowbreak{}prime\_\allowbreak{}1/\allowbreak{}2}
@@ -129,6 +136,14 @@ Some observations were performed in pairs, where a particular range of corotatin
 \end{itemize}
 An example of such a pair of mosaics is shown in Figure~\ref{fig:paired-mosaics}.
 
+\begin{figure}[htbp]
+\centering
+\noindent\includegraphics[width=\linewidth]{figures/fig2a-paired-mosaic-1.png}\\[2pt]
+\noindent\includegraphics[width=\linewidth]{figures/fig2b-paired-mosaic-2.png}
+\caption{Mosaics of observations \code{iss\_\allowbreak{}112rf\_\allowbreak{}fmovie002\_\allowbreak{}prime\_\allowbreak{}1} (top) and \code{iss\_\allowbreak{}112rf\_\allowbreak{}fmovie002\_\allowbreak{}prime\_\allowbreak{}2} (bottom). They cover approximately the same range of corotating longitudes but were taken at inertial longitudes roughly 180° apart. Morphological differences between the two are visible, giving potential insight into the orbits of the particles in these regions. (Flag M2.)}
+\label{fig:paired-mosaics}
+\end{figure}
+
 
 \paragraph{M3: Multiple observations of the same corotating longitude range but different inertial longitude ranges}
 \label{sec:m3-multiple-observations-of-the-same-corotating}
@@ -136,17 +151,26 @@ An example of such a pair of mosaics is shown in Figure~\ref{fig:paired-mosaics}
 While standard “F movies” are taken by staring at a single inertial longitude in isolation, some observations were performed by taking multiple “F movies” in a row, each covering roughly the same range of corotating longitudes but at different inertial longitudes. These observations were split apart and are marked with “M3”. The following mosaics have this flag:
 
 \begin{itemize}
-\item \code{iss\_\allowbreak{}105ri\_\allowbreak{}tmapn45lp001\_\allowbreak{}cirs\_\allowbreak{}1–6}
-\item \code{iss\_\allowbreak{}262rf\_\allowbreak{}fmovie001\_\allowbreak{}prime\_\allowbreak{}01–17}
-\item \code{iss\_\allowbreak{}268rf\_\allowbreak{}fmovie001\_\allowbreak{}prime\_\allowbreak{}2–9}
+\item \code{iss\_\allowbreak{}105ri\_\allowbreak{}tmapn45lp001\_\allowbreak{}cirs\_\allowbreak{}1}–\code{\_\allowbreak{}6}
+\item \code{iss\_\allowbreak{}262rf\_\allowbreak{}fmovie001\_\allowbreak{}prime\_\allowbreak{}01}–\code{\_\allowbreak{}17}
+\item \code{iss\_\allowbreak{}268rf\_\allowbreak{}fmovie001\_\allowbreak{}prime\_\allowbreak{}2}–\code{\_\allowbreak{}9}
 \end{itemize}
 An example is shown in Figure~\ref{fig:m3-mosaics}.
+
+\begin{figure}[htbp]
+\centering
+\noindent\includegraphics[width=\linewidth]{figures/fig3a-m3-mosaic-1.png}\\[2pt]
+\noindent\includegraphics[width=\linewidth]{figures/fig3b-m3-mosaic-2.png}\\[2pt]
+\noindent\includegraphics[width=\linewidth]{figures/fig3c-m3-mosaic-3.png}
+\caption{A series of observations covering the same corotating longitudes but taken at successively increasing inertial longitudes. \code{iss\_\allowbreak{}105ri\_\allowbreak{}tmapn45lp001\_\allowbreak{}cirs\_\allowbreak{}1} (top) was taken at 79°–131°; \code{iss\_\allowbreak{}105ri\_\allowbreak{}tmapn45lp001\_\allowbreak{}cirs\_\allowbreak{}2} (middle) at 109°–155°; \code{iss\_\allowbreak{}105ri\_\allowbreak{}tmapn45lp001\_\allowbreak{}cirs\_\allowbreak{}3} (bottom) at 136°–186°. (Flag M3.)}
+\label{fig:m3-mosaics}
+\end{figure}
 
 
 \paragraph{M4: Observations of different corotating and different inertial longitudes}
 \label{sec:m4-observations-of-different-corotating-and-diff}
 
-Finally, some observations follow neither a single corotating longitude nor a single inertial longitude. This is often the case for occultations. If both the ingress and egress occultations are imaged, the star’s position during ingress bears no fixed relation to its position during egress, nor to either the corotating or the inertial longitude. There are also some observations that are broken into different segments similar to “M3”, but each chunk observed both different corotating and inertial longitudes. These observations are marked with “M4”. The following mosaics have this flag:
+Finally, some observations follow neither a single corotating longitude nor a single inertial longitude. This is often the case for occultations. If both the ingress and egress occultations are imaged, the star’s position during ingress bears no fixed relation to its position during egress, nor to either the corotating or the inertial longitude. There are also some observations that are broken into different segments similar to “M3”, but each chunk observed a different range of both corotating and inertial longitude. These observations are marked with “M4”. The following mosaics have this flag:
 
 \begin{itemize}
 \item \code{iss\_\allowbreak{}185ri\_\allowbreak{}rhyaocc001\_\allowbreak{}vims\_\allowbreak{}1/\allowbreak{}2}
@@ -172,10 +196,21 @@ A small number of observations follow a single corotating longitude, taking one 
 \end{itemize}
 
 
+\begin{figure}[htbp]
+\centering
+\includegraphics[width=0.327\linewidth]{figures/fig4a-reproj-img-1.png}
+\hfill
+\includegraphics[width=0.327\linewidth]{figures/fig4b-reproj-img-2.png}
+\hfill
+\includegraphics[width=0.327\linewidth]{figures/fig4c-reproj-img-3.png}
+\caption{Three reprojected images from mosaic \code{iss\_\allowbreak{}191rf\_\allowbreak{}fmovie001\_\allowbreak{}prime\_\allowbreak{}1}, each covering approximately the same 4° range of corotating longitude. Source image index 0, \code{1748745661n} (left), was taken at inertial longitudes 5.7°–9.6°; index 4, \code{1748746261n} (middle), at 9.3°–13.3°; index 8, \code{1748746865n} (right), at 12.9°–17.1°. (Flag R.)}
+\label{fig:r-reproj-imgs}
+\end{figure}
+
 \subsubsection{N: Neither inertial nor corotating}
 \label{sec:n-neither-inertial-nor-corotating}
 
-In a few cases, especially those involving wide-field views taken by the WAC, an observation can’t be classified as either inertial or corotating because the camera does not follow anything; it takes a single image, or a short series of images, covering large portions of the F ring. These cases are marked with “N”. An example is shown in Figure~\ref{fig:non-corot-mosaic}. The following mosaics have this flag:
+In a few cases, especially those involving wide-field views taken by the WAC, an observation cannot be classified as either inertial or corotating because the camera does not follow anything; it takes a single image, or a short series of images, covering large portions of the F ring. These cases are marked with “N”. An example is shown in Figure~\ref{fig:non-corot-mosaic}. The following mosaics have this flag:
 
 \begin{itemize}
 \item \code{iss\_\allowbreak{}007ri\_\allowbreak{}azscnloph001\_\allowbreak{}prime}
@@ -192,6 +227,13 @@ In a few cases, especially those involving wide-field views taken by the WAC, an
 \item \code{iss\_\allowbreak{}100ri\_\allowbreak{}subms20lp001\_\allowbreak{}cirs}
 \end{itemize}
 
+
+\begin{figure}[htbp]
+\centering
+\noindent\includegraphics[width=\linewidth]{figures/fig5-non-corot-mosaic.png}
+\caption{Non-inertial, non-corotating mosaic \code{iss\_\allowbreak{}098ri\_\allowbreak{}tmapn30lp001\_\allowbreak{}cirs}, which covers most of the full corotating range 0°–359.98°, taken from inertial longitudes 93°–310°. (Flag N.)}
+\label{fig:non-corot-mosaic}
+\end{figure}
 
 \subsubsection{O: Occultation}
 \label{sec:o-occultation}
@@ -218,7 +260,7 @@ The occultation observations are marked with “O”. The following mosaics have
 \item \code{iss\_\allowbreak{}206ri\_\allowbreak{}l2pupocc002\_\allowbreak{}vims} — L2 Puppis
 \end{itemize}
 
-Each of these stars is named in a \code{Target\_\allowbreak{}Identification} block in the label of every data product belonging to its observation, and is linked there to the PDS context product for the star; the bundle and collection labels list the full set of stars observed.
+Each of these stars is named in a \code{Target\_\allowbreak{}Identification} block in the label of every data product belonging to its observation, and is linked there to the PDS context product for the star. The full set of stars observed is listed in \code{bundle.\allowbreak{}lblx} and in the three \code{data\_\allowbreak{}*} collection labels. The browse, document, miscellaneous, context, and \code{xml\_\allowbreak{}schema} collection labels carry no targets at all, and \code{collection\_\allowbreak{}spice\_\allowbreak{}kernels.\allowbreak{}lblx} lists only the two ring targets.
 
 
 \subsubsection{Reprojected images that were not used in a mosaic}
@@ -228,55 +270,12 @@ For most observations, the reprojected images archived here are exactly those th
 
 A reprojected image that did not contribute to the mosaic is not listed in the mosaic’s \code{OBSID\_\allowbreak{}mosaic[\_\allowbreak{}bkg\_\allowbreak{}sub]\_\allowbreak{}metadata\_\allowbreak{}src\_\allowbreak{}imgs.\allowbreak{}tab} file and is never referenced by the \code{image\_\allowbreak{}index} column of \code{OBSID\_\allowbreak{}mosaic[\_\allowbreak{}bkg\_\allowbreak{}sub]\_\allowbreak{}metadata\_\allowbreak{}params.\allowbreak{}tab} (Section~\ref{sec:data-mosaic-and-data-mosaic-bkg-sub}). The description in each reprojected image’s own label states which of the two cases applies.
 
-
-\begin{figure}[tbp]
-\centering
-\noindent\includegraphics[width=\linewidth]{figures/fig1-fmovie-mosaic.png}
-\caption{Mosaic of observation \code{iss\_\allowbreak{}039rf\_\allowbreak{}fmovie001\_\allowbreak{}vims}, a standard F movie taken as a rider on a VIMS-prime observation.}
-\label{fig:fmovie-mosaic}
-\end{figure}
-
-\begin{figure}[tbp]
-\centering
-\noindent\includegraphics[width=\linewidth]{figures/fig2a-paired-mosaic-1.png}\\[2pt]
-\noindent\includegraphics[width=\linewidth]{figures/fig2b-paired-mosaic-2.png}
-\caption{Mosaics of observations \code{iss\_\allowbreak{}112rf\_\allowbreak{}fmovie002\_\allowbreak{}prime\_\allowbreak{}1} (top) and \code{iss\_\allowbreak{}112rf\_\allowbreak{}fmovie002\_\allowbreak{}prime\_\allowbreak{}2} (bottom). They cover approximately the same range of corotating longitudes but were taken at inertial longitudes roughly 180° apart. Morphological differences between the two are visible, giving potential insight into the orbits of the particles in these regions. (Flag M2.)}
-\label{fig:paired-mosaics}
-\end{figure}
-
-\begin{figure}[tbp]
-\centering
-\noindent\includegraphics[width=\linewidth]{figures/fig3a-m3-mosaic-1.png}\\[2pt]
-\noindent\includegraphics[width=\linewidth]{figures/fig3b-m3-mosaic-2.png}\\[2pt]
-\noindent\includegraphics[width=\linewidth]{figures/fig3c-m3-mosaic-3.png}
-\caption{A series of observations covering the same corotating longitudes but taken at successively increasing inertial longitudes. \code{iss\_\allowbreak{}105ri\_\allowbreak{}tmapn45lp001\_\allowbreak{}cirs\_\allowbreak{}1} (top) was taken at 79°–131°; \code{iss\_\allowbreak{}105ri\_\allowbreak{}tmapn45lp001\_\allowbreak{}cirs\_\allowbreak{}2} (middle) at 109°–155°; \code{iss\_\allowbreak{}105ri\_\allowbreak{}tmapn45lp001\_\allowbreak{}cirs\_\allowbreak{}3} (bottom) at 136°–186°. (Flag M3.)}
-\label{fig:m3-mosaics}
-\end{figure}
-
-\begin{figure}[tbp]
-\centering
-\includegraphics[width=0.327\linewidth]{figures/fig4a-reproj-img-1.png}
-\hfill
-\includegraphics[width=0.327\linewidth]{figures/fig4b-reproj-img-2.png}
-\hfill
-\includegraphics[width=0.327\linewidth]{figures/fig4c-reproj-img-3.png}
-\caption{Three reprojected images from mosaic \code{iss\_\allowbreak{}191rf\_\allowbreak{}fmovie001\_\allowbreak{}prime\_\allowbreak{}1}, each covering approximately the same 4° range of corotating longitude. Source image index 0, \code{1748745661n} (left), was taken at inertial longitudes 5.7°–9.6°; index 4, \code{1748746261n} (middle), at 9.3°–13.3°; index 8, \code{1748746865n} (right), at 12.9°–17.1°. (Flag R.)}
-\label{fig:r-reproj-imgs}
-\end{figure}
-
-\begin{figure}[tbp]
-\centering
-\noindent\includegraphics[width=\linewidth]{figures/fig5-non-corot-mosaic.png}
-\caption{Non-inertial, non-corotating mosaic \code{iss\_\allowbreak{}098ri\_\allowbreak{}tmapn30lp001\_\allowbreak{}cirs}, which covers most of the full corotating range 0°–359.98°, taken from inertial longitudes 93°–309°. (Flag N.)}
-\label{fig:non-corot-mosaic}
-\end{figure}
-
 \clearpage
 
 \subsection{Calibration}
 \label{sec:calibration}
 
-Calibrated images were retrieved from the PDS Ring-Moon Systems Node archive\footnote{\href{https://pds-rings.seti.org/holdings/calibrated/COISS_2xxx/}{https://pds-rings.seti.org/holdings/calibrated/COISS\_\allowbreak{}2xxx/}}. Each image was calibrated by the Node using the CISSCAL 4.0 pipeline \zcite{(Knowles 2018)} into units of I/F\footnote{I/F is a dimensionless value that gives the ratio of the observed intensity to the incoming flux from the light source, assuming a perfect Lambert surface illuminated at normal incidence. See French et al. \zcite{(2012)} for more details.}. At the time of writing, the calibrated files are being migrated to the PDS4 standard, and they will be archived as collections within the \code{cassini\_\allowbreak{}iss\_\allowbreak{}cruise} and \code{cassini\_\allowbreak{}iss\_\allowbreak{}saturn} bundles.\footnote{\href{https://pds-rings.seti.org/pds4/bundles/cassini_iss}{https://pds-rings.seti.org/pds4/bundles/cassini\_\allowbreak{}iss}}
+Calibrated images were retrieved from the PDS Ring-Moon Systems Node archive.\footnote{\href{https://pds-rings.seti.org/holdings/calibrated/COISS_2xxx/}{https://pds-rings.seti.org/holdings/calibrated/COISS\_\allowbreak{}2xxx/}} Each image was calibrated by the Node using the CISSCAL 4.0 pipeline \zcite{(Knowles 2018)} into units of I/F.\footnote{I/F is a dimensionless value that gives the ratio of the observed intensity to the incoming flux from the light source, assuming a perfect Lambert surface illuminated at normal incidence. See French et al. \zcite{(2012)} for more details.} At the time of writing, the calibrated files are being migrated to the PDS4 standard, and they will be archived as collections within the \code{cassini\_\allowbreak{}iss\_\allowbreak{}cruise} and \code{cassini\_\allowbreak{}iss\_\allowbreak{}saturn} bundles.\footnote{\href{https://pds-rings.seti.org/pds4/bundles/cassini_iss}{https://pds-rings.seti.org/pds4/bundles/cassini\_\allowbreak{}iss}}
 
 
 \subsection{Navigation}
@@ -284,7 +283,7 @@ Calibrated images were retrieved from the PDS Ring-Moon Systems Node archive\foo
 
 The spacecraft pointing information present in SPICE C kernels is known to have errors on the order of dozens of NAC pixels. Before processing each image, an automatic navigation procedure \zcite{(French et al. 2014b, 2016)} was performed that matched the image with features predicted to be present in it, such as stars and the edge of the A ring. Once a mosaic was created from a set of images, the quality of the navigation was evaluated by eye and, in some cases, the navigation of some images was manually adjusted for the best visual result. The (automatically or manually) adjusted C matrix for each image is reported in a supplemental file called \code{IMGID\_\allowbreak{}reproj\_\allowbreak{}img\_\allowbreak{}suppl.\allowbreak{}txt} in the \code{data\_\allowbreak{}reproj\_\allowbreak{}img} collection. See Section~\ref{sec:data-reproj-img}.
 
-The outcome of that visual evaluation is recorded for each mosaic in the \code{nav\_\allowbreak{}quality} field of the mosaic label and the global index files (Section~\ref{sec:the-global-index-files}). The grade is subjective and describes the mosaic as a whole:
+The outcome of that visual evaluation is recorded for each mosaic as the coded \code{nav\_\allowbreak{}quality} field of the global index files (Section~\ref{sec:the-global-index-files}). No label contains an element of that name: the mosaic and reprojected image labels give the grade in words instead, in the \code{comment} element of their \code{Observation\_\allowbreak{}Area}, as in “the subjective quality of the navigation for all of the images for this mosaic is \textit{good}”. The grade is subjective and describes the mosaic as a whole:
 
 \begin{itemize}
 \item \textbf{G} (good): the ring core runs continuously across the mosaic, with no visible radial step or tilt where one source image abuts the next.
@@ -298,7 +297,7 @@ Because the grade covers the whole mosaic, a mosaic graded \textbf{F} or \textbf
 \subsection{Reprojection}
 \label{sec:reprojection}
 
-Each calibrated image was converted to a reprojected image by mapping the pixels in the source image onto a two-dimensional grid with corotating longitude on the X axis and distance from the nominal F ring core (Δ\textit{r}) on the Y axis.
+Each calibrated image was converted to a reprojected image by mapping the pixels in the source image onto a two-dimensional grid with corotating longitude on the X axis and distance from the nominal F ring core (\dr{}) on the Y axis.
 
 
 \subsubsection{F ring orbit}
@@ -340,9 +339,9 @@ where \textit{λ} is the inertial longitude (converted from the corotating longi
 \subsubsection{Reprojection process}
 \label{sec:reprojection-process}
 
-The reprojection grid runs from 0° to 359.98° in steps of 0.02° ($\sim$49 km) for corotating longitude (18,000 pixels), and −1000 km to +1000 km in steps of 5 km for Δ\textit{r} (401 pixels). This gives an aspect ratio of roughly 10:1. For each corotating longitude, the radius is relative to the absolute radius of the core at the associated inertial longitude and time. This means that, while the core of the F ring varies in radius from 139,892 km to 140,551 km throughout its orbit, the core in the reprojected image will always look like an approximately straight line at $\Delta r = 0$, corresponding to Y = 200. Note that the odd number of pixels on the Y axis provides an equal number of radii on either side of the core, with the predicted core precisely in the center.
+The reprojection grid runs from 0° to 359.98° in steps of 0.02° ($\sim$49 km) for corotating longitude (18,000 pixels), and −1000 km to +1000 km in steps of 5 km for \dr{} (401 pixels). This gives an aspect ratio of roughly 10:1. For each corotating longitude, the radius is relative to the absolute radius of the core at the associated inertial longitude and time. This means that, while the core of the F ring varies in radius from 139,892 km to 140,551 km throughout its orbit, the core in the reprojected image will always look like an approximately straight line at \dr{} = 0, corresponding to Y = 200. Note that the odd number of pixels on the Y axis provides an equal number of radii on either side of the core, with the predicted core precisely in the center.
 
-As the majority of reprojected images cover only a few degrees of corotating longitude, archiving files of the complete 18,000 × 401 grid would be extremely wasteful. As a result, the reprojected image data products are clipped on the X axis to the minimum and maximum corotating longitudes that contain valid data; see the associated label for information on these values. In the case where the extent of a reprojected image wraps around from 359.98° to 0°, the minimum corotating longitude is larger than the maximum corotating longitude, and the reprojected image is stored in two sections, first from the minimum corotating longitude to 359.98° and then from 0° to the maximum corotating longitude. See Section~\ref{sec:data-reproj-img} for the formulas that map a longitude to a column in this case. In all cases, if there is missing data within the remaining grid (either due to insufficient radial extent available in the source image, or discontinuous corotating longitudes), it is marked with the sentinel value −999.
+As the majority of reprojected images cover only a few degrees of corotating longitude, archiving files of the complete 401 × 18,000 grid would be extremely wasteful. As a result, the reprojected image data products are clipped on the X axis to the minimum and maximum corotating longitudes that contain valid data; see the associated label for information on these values. In the case where the extent of a reprojected image wraps around from 359.98° to 0°, the minimum corotating longitude is larger than the maximum corotating longitude, and the reprojected image is stored in two sections, first from the minimum corotating longitude to 359.98° and then from 0° to the maximum corotating longitude. See Section~\ref{sec:data-reproj-img} for the formulas that map a longitude to a column in this case. In all cases, if there is missing data within the remaining grid (either due to insufficient radial extent available in the source image, or discontinuous corotating longitudes), it is marked with the sentinel value −999.
 
 During the reprojection process, several other parameters are computed for each corotating longitude, as the mean over that radial slice:
 
@@ -369,13 +368,15 @@ These values are reported in a table \code{IMGID\_\allowbreak{}reproj\_\allowbre
 \end{itemize}
 The positions of Prometheus and Pandora were computed with SPICE, taking the satellite positions from the Saturn system ephemeris \code{sat393.\allowbreak{}bsp}, planetary positions from \code{de438.\allowbreak{}bsp}, and the ring-plane orientation from the planetary constants kernel \code{cpck15Dec2017.\allowbreak{}tpc}. The metakernel archived in this bundle’s \code{spice\_\allowbreak{}kernels} collection (Section~\ref{sec:the-spice-kernels-directory}) lists every kernel used anywhere in the production of this bundle, which is a larger set than these three.
 
+When the predicted position of Prometheus or Pandora falls inside a product’s valid data, the moon is named as a target in that product’s label and the label says either that “its presence has been visually confirmed” or that “its presence has not been visually confirmed”. The confirmation means only this: someone looked at the mosaic and saw the moon in the pixels. A moon whose predicted position lands inside the valid longitudes but that was not picked out by eye — because the prediction falls on a pixel with no data, or outside the radial range the source images actually filled, or because the moon is too faint at that resolution — gets the second wording. The check is a visual one rather than a measurement, so no positional accuracy should be inferred from it. The label of an individual reprojected image never claims confirmation for itself, because the inspection was made against the mosaic rather than image by image.
+
 Mean, minimum, and maximum values for many of these parameters are included in the label for each reprojected image as well. See Section~\ref{sec:reprojected-image-and-mosaic-metadata-params} for a complete list of the metadata parameters provided.
 
 
 \subsection{Mosaic creation}
 \label{sec:mosaic-creation}
 
-Mosaics were created by stitching together one or more reprojected images. The resulting grid for a mosaic is the same 18,000 × 401 pixel grid as used for each reprojected image (Section~\ref{sec:reprojection}). For each corotating longitude in the mosaic, the entire radial stripe is taken from a single image. The image is chosen first based on which image has the most valid pixels at that corotating longitude; when there is a tie, the image with the smallest mean radial resolution is used. This guarantees that the resulting mosaic will have the most data and the highest resolution possible, but does not guarantee that the selected reprojected images will change monotonically with corotating longitude. This can result in a slight temporal “blurring” across small ranges of corotating longitude.
+Mosaics were created by stitching together one or more reprojected images. The resulting grid for a mosaic is the same 401 × 18,000 pixel grid as used for each reprojected image (Section~\ref{sec:reprojection}). For each corotating longitude in the mosaic, the entire radial stripe is taken from a single image. The image is chosen first based on which image has the most valid pixels at that corotating longitude; when there is a tie, the image with the smallest mean radial resolution is used. This guarantees that the resulting mosaic will have the most data and the highest resolution possible, but does not guarantee that the selected reprojected images will change monotonically with corotating longitude. This can result in a slight temporal “blurring” across small ranges of corotating longitude.
 
 As with reprojected images, several parameters are stored for each corotating longitude and provided in a table file \code{OBSID\_\allowbreak{}mosaic\_\allowbreak{}metadata\_\allowbreak{}params.\allowbreak{}tab} (Section~\ref{sec:data-mosaic-and-data-mosaic-bkg-sub}) associated with each mosaic:
 
@@ -402,13 +403,13 @@ Mean, minimum, and maximum values for many of these parameters are included in t
 \subsection{Background modeling}
 \label{sec:background-modeling}
 
-The final step in the data production pipeline is modeling and subtracting the background gradient for each mosaic. The background gradient is modeled separately for each corotating longitude using a linear function. Regions normally consisting of the innermost 50 rows ($\Delta r$ = −1000 to −755 km) and the outermost 51 rows ($\Delta r$ = +750 to +1000 km) are used to fit a linear model, which is then subtracted from the complete 401-row radial slice. When creating the model, pixel values that are statistically anomalous compared to nearby longitudes are automatically masked. This removes stars, Prometheus and Pandora, and bad pixels from the background model computation. In some cases, the standard range of 50 pixels on each side is not appropriate. Reasons include large objects such as Prometheus covering the entire 50-row range, the reprojected source images not providing data for the entire radial range (which would require the background margins to be increased in size), and very low-resolution images where the F ring bleeds over into the background region (which would require background margins to be reduced). Such determinations were made through careful examination of each mosaic and the extent of the background margin was manually adjusted as needed. Whenever possible, the new margins were chosen to have minimal effect on computation of equivalent width.\footnote{Equivalent width is a photometric value that integrates the brightness of a radial slice, taking into account the resolution of the image.} The chosen margins are reported in the label for each background-subtracted mosaic and in the \code{bkgnd\_\allowbreak{}lower\_\allowbreak{}limit} and \code{bkgnd\_\allowbreak{}upper\_\allowbreak{}limit} fields of the global index file (Section~\ref{sec:the-global-index-files}). Both are signed values of Δ\textit{r} in km, so that the interior background region runs from −1000 km out to \code{bkgnd\_\allowbreak{}lower\_\allowbreak{}limit} (normally −750 km) and the exterior region runs from \code{bkgnd\_\allowbreak{}upper\_\allowbreak{}limit} (normally +750 km) out to +1000 km.
+The final step in the data production pipeline is modeling and subtracting the background gradient for each mosaic. The background gradient is modeled separately for each corotating longitude using a linear function. Regions normally consisting of the innermost 50 rows (\dr{} = −1000 to −755 km) and the outermost 50 rows (\dr{} = +755 to +1000 km) are used to fit a linear model, which is then subtracted from the complete 401-row radial slice. When creating the model, pixel values that are statistically anomalous compared to nearby longitudes are automatically masked. This removes stars, Prometheus and Pandora, and bad pixels from the background model computation. In some cases, the standard margins are not appropriate. Reasons include large objects such as Prometheus covering an entire margin, the reprojected source images not providing data for the entire radial range (which would require the background margins to be increased in size), and very low-resolution images where the F ring bleeds over into the background region (which would require background margins to be reduced). Such determinations were made through careful examination of each mosaic and the extent of the background margin was manually adjusted as needed. Whenever possible, the new margins were chosen to have minimal effect on computation of equivalent width.\footnote{Equivalent width is a photometric value that integrates the brightness of a radial slice, taking into account the resolution of the image.} The chosen margins are given as the coded \code{bkgnd\_\allowbreak{}lower\_\allowbreak{}limit} and \code{bkgnd\_\allowbreak{}upper\_\allowbreak{}limit} fields of the global background-subtracted mosaic index (Section~\ref{sec:the-global-index-files}); the label of a background-subtracted mosaic contains no elements of those names, describing the margins in words in the \code{comment} element of its \code{Observation\_\allowbreak{}Area} instead, as in “available data from 905 to 1000 km closer to Saturn and 750 to 1000 km further from Saturn”. Both index fields are signed values of \dr{} in km and bound the ring itself, so the background is every row outside them: the interior region runs from −1000 km up to but not including \code{bkgnd\_\allowbreak{}lower\_\allowbreak{}limit} (normally −750 km), and the exterior region runs from just beyond \code{bkgnd\_\allowbreak{}upper\_\allowbreak{}limit} (normally +750 km) through +1000 km.
 
 In cases where, even after adjusting the margins, there was insufficient radial data to create a background model for some longitudes, those longitudes were marked as invalid and deleted from the background-subtracted mosaic. As a result, the background-subtracted mosaic may have fewer (and sometimes substantially fewer) valid longitudes than the original mosaic. An example is shown in Figure~\ref{fig:bkg-sub-mosaic}.
 
 The model is fit to noisy data, so subtracting it leaves the background regions scattered about zero. Roughly half of the pixels away from the ring in a background-subtracted mosaic are consequently negative. This is expected. Keep these values instead of clipping them at zero; discarding the negative half of the noise biases any integral over a radial slice, equivalent width included.
 
-Each background-subtracted mosaic was inspected and the result recorded in the \code{bkgnd\_\allowbreak{}quality} field of the label and the global index file (Section~\ref{sec:the-global-index-files}). Like \code{nav\_\allowbreak{}quality} (Section~\ref{sec:navigation}), the grade is subjective:
+Each background-subtracted mosaic was inspected and the result recorded as the coded \code{bkgnd\_\allowbreak{}quality} field of the global background-subtracted mosaic index (Section~\ref{sec:the-global-index-files}); as with \code{nav\_\allowbreak{}quality}, the label states the grade in words in its \code{Observation\_\allowbreak{}Area} \code{comment} rather than as an element of that name. Like \code{nav\_\allowbreak{}quality} (Section~\ref{sec:navigation}), the grade is subjective:
 
 \begin{itemize}
 \item \textbf{G} (good): the regions away from the ring are flat after subtraction at essentially all longitudes.
@@ -416,10 +417,10 @@ Each background-subtracted mosaic was inspected and the result recorded in the \
 \item \textbf{P} (poor): the model is visibly wrong over a substantial range of longitudes, usually because too little background data was available or because the F ring dust sheet extends into the background region.
 \end{itemize}
 
-\begin{figure}[tbp]
+\begin{figure}[htbp]
 \centering
 \noindent\includegraphics[width=\linewidth]{figures/fig6a-mosaic-original.png}\\[2pt]
 \noindent\includegraphics[width=\linewidth]{figures/fig6b-mosaic-bkg-sub.png}
-\caption{Original mosaic iss\_\allowbreak{}007ri\_\allowbreak{}hpmrdfmov001\_\allowbreak{}prime (top) and associated background-subtracted mosaic (bottom). The lack of some data in the original mosaic (to the lower left of the large blank area) prevents the creation of a background model for those longitudes, resulting in a background-subtracted mosaic with substantially fewer valid longitudes.}
+\caption{Original mosaic \code{iss\_\allowbreak{}007ri\_\allowbreak{}hpmrdfmov001\_\allowbreak{}prime} (top) and associated background-subtracted mosaic (bottom). The lack of some data in the original mosaic (to the lower left of the large blank area) prevents the creation of a background model for those longitudes, resulting in a background-subtracted mosaic with substantially fewer valid longitudes.}
 \label{fig:bkg-sub-mosaic}
 \end{figure}

@@ -21,7 +21,7 @@
             <keyword>SPICE</keyword>
             <description>
                 SPICE metakernel file, kernels.ker, defining all kernels used to create the F ring
-                mosaics and associated reprojected versions of Cassini ISS calibrated images in
+                mosaics and associated reprojected versions of calibrated Cassini ISS images in
                 this bundle.
             </description>
         </Citation_Information>
@@ -35,15 +35,14 @@
     </Identification_Area>
     <Context_Area>
         <Time_Coordinates>
-            <start_date_time xsi:nil="true" nilReason="inapplicable"></start_date_time>
-            <stop_date_time xsi:nil="true" nilReason="inapplicable"></stop_date_time>
+$NOESCAPE(KERNELS_TIME_COORDINATES)$
         </Time_Coordinates>
         <Primary_Result_Summary>
             <purpose>Observation Geometry</purpose>
             <processing_level>Derived</processing_level>
             <description>
                 SPICE metakernel file, kernels.ker, defining all kernels used to create the F ring
-                mosaics and associated reprojected versions of Cassini ISS calibrated images in
+                mosaics and associated reprojected versions of calibrated Cassini ISS images in
                 this bundle.
             </description>
         </Primary_Result_Summary>
@@ -113,7 +112,7 @@
         <External_Reference>
             <reference_text>
                 URL: https://naif.jpl.nasa.gov/naif/documentation.html
-                At the time of archiving, NAIF (Navigation and Ancillary Information) Node
+                At the time of archiving, the Navigation and Ancillary Information Facility (NAIF)
                 of NASA PDS provides extensive documentation of SPICE, via the URL given
                 above. For example, "C-Kernel Required Reading" documentation describing
                 C-Matrices is accessed via
@@ -137,7 +136,7 @@
             <parsing_standard_id>SPICE</parsing_standard_id>
             <description>
                 SPICE metakernel file, kernels.ker, defining all kernels used to create the F ring
-                mosaics and associated reprojected versions of Cassini ISS calibrated images in
+                mosaics and associated reprojected versions of calibrated Cassini ISS images in
                 this bundle.
             </description>
             <kernel_type>MK</kernel_type>
