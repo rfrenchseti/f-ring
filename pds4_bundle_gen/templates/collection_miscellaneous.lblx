@@ -128,8 +128,109 @@
                 <version_id>1.0</version_id>
                 <description>Initial version.</description>
             </Modification_Detail>
-       </Modification_History>
+        </Modification_History>
     </Identification_Area>
+    <Context_Area>
+        <Time_Coordinates>
+            <start_date_time>$EARLIEST_START_DATE_TIME$</start_date_time>
+            <stop_date_time>$LATEST_STOP_DATE_TIME$</stop_date_time>
+        </Time_Coordinates>
+        <Primary_Result_Summary>
+            <purpose>Science</purpose>
+            <processing_level>Derived</processing_level>
+            <Science_Facets>
+                <wavelength_range>Visible</wavelength_range>
+                <discipline_name>Ring-Moon Systems</discipline_name>
+            </Science_Facets>
+        </Primary_Result_Summary>
+        <Investigation_Area>
+            <name>Cassini-Huygens</name>
+            <type>Mission</type>
+            <Internal_Reference>
+                <lid_reference>urn:nasa:pds:context:investigation:mission.cassini-huygens</lid_reference>
+                <reference_type>collection_to_investigation</reference_type>
+            </Internal_Reference>
+        </Investigation_Area>
+        <Observing_System>
+            <name>Cassini Orbiter Imaging Science Subsystem</name>
+            <Observing_System_Component>
+                <name>Cassini Orbiter</name>
+                <type>Host</type>
+                <Internal_Reference>
+                    <lid_reference>urn:nasa:pds:context:instrument_host:spacecraft.co</lid_reference>
+                    <reference_type>is_instrument_host</reference_type>
+                </Internal_Reference>
+            </Observing_System_Component>
+            <Observing_System_Component>
+                <name>Imaging Science Subsystem - Narrow Angle</name>
+                <type>Instrument</type>
+                <description>ISSNA</description>
+                <Internal_Reference>
+                    <lid_reference>urn:nasa:pds:context:instrument:issna.co</lid_reference>
+                    <reference_type>is_instrument</reference_type>
+                </Internal_Reference>
+            </Observing_System_Component>
+            <Observing_System_Component>
+                <name>Imaging Science Subsystem - Wide Angle</name>
+                <type>Instrument</type>
+                <description>ISSWA</description>
+                <Internal_Reference>
+                    <lid_reference>urn:nasa:pds:context:instrument:isswa.co</lid_reference>
+                    <reference_type>is_instrument</reference_type>
+                </Internal_Reference>
+            </Observing_System_Component>
+        </Observing_System>
+        <Target_Identification>
+            <name>F Ring of Saturn</name>
+            <type>Ring</type>
+            <Internal_Reference>
+                <lid_reference>urn:nasa:pds:context:target:ring.saturn.f_ring</lid_reference>
+                <reference_type>collection_to_target</reference_type>
+            </Internal_Reference>
+        </Target_Identification>
+        <Target_Identification>
+            <name>Saturn Rings</name>
+            <type>Ring</type>
+            <Internal_Reference>
+                <lid_reference>urn:nasa:pds:context:target:ring.saturn.rings</lid_reference>
+                <reference_type>collection_to_target</reference_type>
+            </Internal_Reference>
+        </Target_Identification>
+        <Target_Identification>
+            <name>Prometheus</name>
+            <alternate_designation>Saturn XVI (Prometheus)</alternate_designation>
+            <alternate_designation>S/1980 S 27</alternate_designation>
+            <alternate_designation>NAIF ID 616</alternate_designation>
+            <type>Satellite</type>
+            <description>
+                NAIF ID: 616;
+                Center of motion: Saturn;
+                LID of central body: urn:nasa:pds:context:target:planet.saturn;
+                NAIF ID of central body: 699.
+            </description>
+            <Internal_Reference>
+                <lid_reference>urn:nasa:pds:context:target:satellite.saturn.prometheus</lid_reference>
+                <reference_type>collection_to_target</reference_type>
+            </Internal_Reference>
+        </Target_Identification>
+        <Target_Identification>
+            <name>Pandora</name>
+            <alternate_designation>Saturn XVII (Pandora)</alternate_designation>
+            <alternate_designation>S/1980 S 26</alternate_designation>
+            <alternate_designation>NAIF ID 617</alternate_designation>
+            <type>Satellite</type>
+            <description>
+                NAIF ID: 617;
+                Center of motion: Saturn;
+                LID of central body: urn:nasa:pds:context:target:planet.saturn;
+                NAIF ID of central body: 699.
+            </description>
+            <Internal_Reference>
+                <lid_reference>urn:nasa:pds:context:target:satellite.saturn.pandora</lid_reference>
+                <reference_type>collection_to_target</reference_type>
+            </Internal_Reference>
+        </Target_Identification>
+    </Context_Area>
     <Collection>
         <collection_type>Miscellaneous</collection_type>
     </Collection>
@@ -138,7 +239,6 @@
             <file_name>$COLLECTION_MISCELLANEOUS_CSV_NAME$</file_name>
             <creation_date_time>$FILE_ZULU(COLLECTION_MISCELLANEOUS_CSV_PATH)$</creation_date_time>
             <file_size unit="byte">$FILE_BYTES(COLLECTION_MISCELLANEOUS_CSV_PATH)$</file_size>
-            <records>$FILE_RECORDS(COLLECTION_MISCELLANEOUS_CSV_PATH)$</records>
             <md5_checksum>$FILE_MD5(COLLECTION_MISCELLANEOUS_CSV_PATH)$</md5_checksum>
         </File>
         <Inventory>

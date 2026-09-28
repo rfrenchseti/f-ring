@@ -23,14 +23,14 @@ or by browsing the document collection of this bundle at the PDS Ring-Moon
 Systems Node: https://pds-rings.seti.org/
 
 The following is the recommended information to include in a (e.g. journal)
-citation of this data set:
+citation of this dataset:
 
-  "French, R. S., & Hedman, M. M. (2025).
+  "French, R. S., & Hedman, M. M. (2026).
    F Ring Mosaics and Reprojected Images Created from Calibrated Cassini ISS
-   Images, and Associated Metadata (Version 1.0) [Data set].
+   Images, and Associated Metadata (Version 1.0) [Dataset].
    NASA Planetary Data System. https://doi.org/10.17189/3tfh-th07"
 
-For questions concerning this data set, please contact:
+For questions concerning this dataset, please contact:
 
 Mia Mace / Matthew Tiscareno
 Ring-Moon Systems Node, NASA PDS

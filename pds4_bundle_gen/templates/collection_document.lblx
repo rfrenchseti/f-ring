@@ -128,7 +128,7 @@
                 <version_id>1.0</version_id>
                 <description>Initial version.</description>
             </Modification_Detail>
-       </Modification_History>
+        </Modification_History>
     </Identification_Area>
     <Collection>
         <collection_type>Document</collection_type>
@@ -138,7 +138,6 @@
             <file_name>$COLLECTION_DOCUMENT_CSV_NAME$</file_name>
             <creation_date_time>$FILE_ZULU(COLLECTION_DOCUMENT_CSV_PATH)$</creation_date_time>
             <file_size unit="byte">$FILE_BYTES(COLLECTION_DOCUMENT_CSV_PATH)$</file_size>
-            <records>$FILE_RECORDS(COLLECTION_DOCUMENT_CSV_PATH)$</records>
             <md5_checksum>$FILE_MD5(COLLECTION_DOCUMENT_CSV_PATH)$</md5_checksum>
         </File>
         <Inventory>

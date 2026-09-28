@@ -20,7 +20,7 @@
             $END_FOR
             <description>
                 This document is a detailed, comprehensive guide that provides an overview of the
-                Cassini ISS F Ring mosaics and associated reprojected versions of Cassini ISS
+                Cassini ISS F ring mosaics and associated reprojected versions of Cassini ISS
                 calibrated images archived in the PDS. It provides details essential to
                 understanding and using the data in the bundle. Example Python programs are
                 also included.
@@ -230,7 +230,7 @@
         <document_editions>1</document_editions>
         <description>
             This document is a detailed, comprehensive guide that provides an overview of the
-            Cassini ISS F Ring mosaics and associated reprojected versions of Cassini ISS
+            Cassini ISS F ring mosaics and associated reprojected versions of Cassini ISS
             calibrated images archived in the PDS. It provides details essential to
             understanding and using the data in the bundle. Example Python programs are
             also included.
