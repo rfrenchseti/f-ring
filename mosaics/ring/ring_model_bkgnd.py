@@ -403,13 +403,19 @@ def model_background(image, ring_rows=0.2, cutoff_sigmas=4, degree=2,
         if debug:
             print("Columns changed = ", np.sum(column_active))
 
-        # Reject columns that now have too few unmasked pixels; count the
-        # accumulated mask, not the original image mask, so progressively
-        # deweighted columns get rejected
-        print(rmin, rmax)
-        ringless_mask = ma.getmaskarray(ringless)
-        reject = ((np.sum(~ringless_mask[0:rmin,:], axis=0) < below) |
-                  (np.sum(~ringless_mask[rmax+1: ,:], axis=0) < above))
+        # Re-apply the minimum-pixel test against the ORIGINAL image mask, not
+        # the accumulated (deweighted) mask. The `background_pixels` minimums
+        # are a data-availability test on the mosaic: the per-observation
+        # settings were tuned with that meaning. Counting the deweighted mask
+        # here (2026-08-04 to 2026-09-28) turned them into a post-clipping
+        # survivor test and removed 81,125 fully covered longitudes from the
+        # 2026-09-27 background-subtracted mosaics (up to 38% of one product),
+        # because the iterative clipping erodes a window by a few pixels in
+        # columns whose settings demand nearly all of it. With the original
+        # mask this test can only repeat the initial rejection, and a column
+        # keeps its fit however many pixels the clipping leaves.
+        reject = ((np.sum(~image_mask[0:rmin,:], axis=0) < below) |
+                  (np.sum(~image_mask[rmax+1: ,:], axis=0) < above))
 
         ringless.mask[:,reject] = True
         resid.mask[:,reject] = True
