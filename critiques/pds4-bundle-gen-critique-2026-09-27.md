@@ -977,8 +977,23 @@ author list, which matches the other per-product labels by decision.
 
 ### 9.5 PDS4 validate on the rebuilt bundle
 
-A second run of `validate` 4.2.0 with the same options
-(`-e lblx -R pds4.bundle`) was started on the rebuilt bundle on 2026-09-28
-at 18:54 PDT. Its result will be recorded here when it completes; the
-expected outcome is the 49 `context_ref_not_found` errors of section 7,
-which come from the tool's context list and not from the bundle.
+`validate` 4.2.0 was run again on the rebuilt bundle with the same options
+(`-e lblx -R pds4.bundle`, label, content and referential validation), on
+2026-09-28 from 18:54 to 21:03 PDT (2 h 8 min).
+
+| Check | Result |
+|---|---|
+| Products validated | 42,405 |
+| Products passed | 42,356 |
+| Products failed | 49 |
+| Errors | 49, all `error.label.context_ref_not_found` |
+| Warnings | 0 |
+| Referential integrity checks | 42,405 passed, 0 failed |
+
+The result is identical to section 7: the same 49 labels that reference
+`urn:nasa:pds:context:target:star.l02_pup`, which the tool's bundled context
+list does not contain (4.4.6). Nothing the rebuild changed introduced a
+Schematron, content or referential message, and no message of section 7 was
+resolved by it, because there were none to resolve. The report is in the
+session's scratch directory (`validate-out/full_bundle2_report.txt`) and is
+not committed.
