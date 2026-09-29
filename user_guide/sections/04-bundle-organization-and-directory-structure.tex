@@ -124,7 +124,7 @@ and the details of the image file, \code{IMGID\_\allowbreak{}reproj\_\allowbreak
 <File_Area_Observational>
     <File>
         <file_name>1622049830n_reproj_img.img</file_name>
-        <creation_date_time>2026-09-09T22:09:20Z</creation_date_time>
+        <creation_date_time>2026-09-28T21:45:52Z</creation_date_time>
         <file_size unit="byte">1040996</file_size>
         <md5_checksum>3d19ed500563eab78063a95eb57cbdd1</md5_checksum>
     </File>
@@ -159,7 +159,7 @@ and the details of the image file, \code{IMGID\_\allowbreak{}reproj\_\allowbreak
             <sequence_number>2</sequence_number>
         </Axis_Array>
         <Special_Constants>
-            <!-- Data was missing or corrupted in the original image (either because it was off
+            <!-- The data were missing or corrupted in the original image (either because it was off
              the edge of the FOV or because of a transmission error resulting in a partial or
              corrupted image) -->
             <missing_constant>-999</missing_constant>
@@ -168,7 +168,7 @@ and the details of the image file, \code{IMGID\_\allowbreak{}reproj\_\allowbreak
 </File_Area_Observational>
 \end{CodeBlock}
 
-The image file is a pure binary file with no headers or record separators. Data is stored in LSB IEEE 754 single-precision (32-bit) floating-point format. The Y axis (\dr{}) always has size 401 (which covers the radial distance from the core of −1000 km to +1000 km in steps of 5 km). The array is stored with the Sample (longitude) index varying fastest — all longitudes at one radius, then the next radius — so that it reshapes directly to (401, \textit{N}) in row-major order. Line index 0 is the innermost row, at \dr{} = −1000 km, and \dr{} increases outward with the Line index, so that \dr{} = −1000 + 5 × \textit{Line} km and the predicted core lies at Line 200. The X axis (corotating longitude) has a variable size depending on the number of longitudes that contain valid data (see Section~\ref{sec:reprojection}). Any array elements that do not contain valid data will be marked with the value −999. See Section~\ref{sec:reading-labels-and-data-product-files} for information on how to read these files with software.
+The \code{creation\_\allowbreak{}date\_\allowbreak{}time} of a data file records when that copy of the file was written, so it differs between builds of the bundle; the excerpt above is from the archived build. The image file is a pure binary file with no headers or record separators. Data is stored in LSB IEEE 754 single-precision (32-bit) floating-point format. The Y axis (\dr{}) always has size 401 (which covers the radial distance from the core of −1000 km to +1000 km in steps of 5 km). The array is stored with the Sample (longitude) index varying fastest — all longitudes at one radius, then the next radius — so that it reshapes directly to (401, \textit{N}) in row-major order. Line index 0 is the innermost row, at \dr{} = −1000 km, and \dr{} increases outward with the Line index, so that \dr{} = −1000 + 5 × \textit{Line} km and the predicted core lies at Line 200. The X axis (corotating longitude) has a variable size depending on the number of longitudes that contain valid data (see Section~\ref{sec:reprojection}). Any array elements that do not contain valid data will be marked with the value −999. See Section~\ref{sec:reading-labels-and-data-product-files} for information on how to read these files with software.
 
 An associated metadata file, \code{IMGID\_\allowbreak{}reproj\_\allowbreak{}img\_\allowbreak{}metadata\_\allowbreak{}params.\allowbreak{}tab}, contains information about each \textit{valid} longitude. This table has the general format:
 
@@ -189,6 +189,11 @@ Finally, a supplemental information file, \code{IMGID\_\allowbreak{}reproj\_\all
 \begin{CodeBlock}[fontsize=\scriptsize]
 This file contains a C-matrix that describes the rotation from the J2000 reference
 frame to the camera pointing based upon analysis of the contents of the image.
+The three rows of the matrix are the camera X, Y and Z axes expressed in J2000
+coordinates, so the third row is the boresight and matches the RA and Dec below.
+The roll is the angle of the camera X axis about the boresight, measured from the
+direction of increasing right ascension and positive towards increasing
+declination.
 
 Source Data Product ID = 1622049830n_calib
 Image Start Time (SCLK) = 1/1622049829.163
@@ -201,9 +206,9 @@ Trajectory Kernels Query Time = Observation mid time
 Stellar Aberration Correction = No
 Light Travel Time Correction = No
 Navigation Type = Stars
-Navigated Boresight RA = 142.804 deg (09h31m13.028s)
-Navigated Boresight Dec = -11.8016 deg (-011d48m05.706s)
-Navigated Boresight Roll = -44.9209 deg
+Navigated Boresight RA = 142.804285 deg (09h31m13.028s)
+Navigated Boresight Dec = -11.801585 deg (-011d48m05.706s)
+Navigated Boresight Roll = -44.920922 deg
 C-Matrix =
    -0.3130222448   -0.6513481158   -0.6912038095
    -0.5422429512   -0.4749368367    0.6931144083
@@ -274,6 +279,7 @@ The \code{OBSID1\_\allowbreak{}mosaic[\_\allowbreak{}bkg\_\allowbreak{}sub]\_\al
 
 \begin{CodeBlock}[fontsize=\scriptsize]
 rings:corotating_ring_longitude,image_index,rings:observed_event_tdb,rings:inertial_ring_longitude,rings:radial_resolution,rings:longitudinal_resolution,rings:incidence_angle,rings:phase_angle,rings:emission_angle,core_radius,longitude_ascending_node,longitude_pericenter,true_anomaly,corotating_longitude_prometheus,radius_prometheus,corotating_longitude_pandora,radius_pandora
+[...]
   4.60,    8, 296602047.773, 273.960,    5.289,  0.03542,  88.824,  38.053,  93.478, 139911.390, 148.136, 293.872, 340.088, 273.625, 139319.212,  70.524, 142262.216
   4.62,    8, 296602047.773, 273.980,    5.286,  0.03542,  88.824,  38.053,  93.477, 139911.351, 148.136, 293.872, 340.108, 273.625, 139319.212,  70.524, 142262.216
   4.64,    8, 296602047.773, 274.000,    5.282,  0.03543,  88.824,  38.053,  93.477, 139911.312, 148.136, 293.872, 340.128, 273.625, 139319.212,  70.524, 142262.216
@@ -367,11 +373,11 @@ The \code{miscellaneous} directory contains three global index files, one for re
 The following notes may be present for each reprojected image and mosaic. The \code{notes} column of an index file holds only the codes themselves; if more than one applies they are separated by a semicolon. The sentence that goes with a code is spelled out in prose in the \code{comment} element of the \code{Observation\_\allowbreak{}Area} of the mosaic label — a PDS4 label element, not an XML comment. Items in braces below are replaced by the observation name or by a computed value in that prose.
 
 \begin{itemize}
-\item M1: Because Cassini observed the same inertial longitudes for more than one orbit of the F ring during \{root\_\allowbreak{}obsid\}, we have split the observation into multiple chunks, each corresponding to one complete orbit of the F ring.
-\item M2: Because observation \{root\_\allowbreak{}obsid\} consists of two distinct movies covering approximately the same corotating longitudes but taken at inertial longitudes roughly 180° apart, we have split the observation into two chunks.
-\item M3: Because observation \{root\_\allowbreak{}obsid\} consists of multiple movies covering approximately the same corotating longitudes but taken at different inertial longitudes (not 180° apart), we have split the observation into multiple chunks.
-\item M4: Because Cassini observed multiple distinct inertial and corotating longitudes during \{root\_\allowbreak{}obsid\}, each making its own movie, we have split the observation into multiple chunks.
-\item B: This background-subtracted mosaic contains substantially fewer valid longitudes than the original mosaic due to insufficient data being available to create a background model.
+\item M1: Because Cassini observed the same inertial longitudes for more than one orbit of the F ring during \{root\_\allowbreak{}obsid\}, we have split the observation into multiple chunks, each corresponding to one complete orbit of the F ring. This mosaic consists of \{root\_\allowbreak{}obsid\} chunk \{chunk\}. Other mosaics are available in this bundle for \{root\_\allowbreak{}obsid\} with different date ranges representing the other available observation chunks.
+\item M2: Because observation \{root\_\allowbreak{}obsid\} consists of two distinct \textquotedbl movies\textquotedbl{} covering approximately the same corotating longitudes but taken at inertial longitudes roughly 180 degrees apart, we have split the observation into two chunks. This mosaic consists of \{root\_\allowbreak{}obsid\} chunk \{chunk\}. The other mosaic is available as \{other\_\allowbreak{}obsid\}.
+\item M3: Because observation \{root\_\allowbreak{}obsid\} consists of multiple \textquotedbl movies\textquotedbl{} covering approximately the same corotating longitudes but taken at different inertial longitudes (not 180 degrees apart), we have split the observation into multiple chunks, with the same two closing sentences as M1.
+\item M4: Because Cassini observed multiple distinct inertial and corotating longitudes during \{root\_\allowbreak{}obsid\}, each making its own \textquotedbl movie\textquotedbl{}, we have split the observation into multiple chunks, with the same two closing sentences as M1.
+\item B: In a background-subtracted mosaic label, this background-subtracted mosaic contains substantially fewer valid longitudes than the original mosaic due to insufficient data being available to create a background model; the label of the mosaic itself carries the same note the other way round, as the background-subtracted version of this mosaic contains substantially fewer valid longitudes than this mosaic, because insufficient data were available to create a background model at the missing longitudes.
 \item C: Some source images contained corrupted or missing data that could not be repaired during the construction of the mosaic.
 \item E: Some source images may have been overexposed and the data values clipped; use caution when using this mosaic for photometry.
 \item O: The sequence of source images used to create this mosaic was designed to observe a stellar occultation of the F ring core. As such, a star is present in each source image and may appear in the mosaic multiple times depending on how the reprojected images were stitched together. In addition, the source images were taken at roughly the same corotating longitudes and thus have significant overlap in the mosaic. To fully explore the occultation, use the reprojected images.

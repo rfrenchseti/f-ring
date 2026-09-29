@@ -942,19 +942,27 @@ browse orientation in 4.2.2 and 4.2.4; the masking clause and the per-mosaic
 minimums in 3.6; "corotating" throughout, matching the labels; "indexes"
 for index files and "indices" only for array indices.
 
-Still open in 4.9, all of them in the guide's excerpts, which were captured
-from the 2026-09-09 build and now need to be re-captured from this one:
+The remaining 4.9 items were fixed in the guide sources on 2026-09-28 and
+the PDF was rebuilt (48 pages, veraPDF PDF/A-1b PASS) and installed in
+`pds4_bundle_gen/templates/`. They reach the bundle at the next
+regeneration; the shipped 2026-09-28 PDF still carries the old text.
 
-- Section 4.2.1 still shows `creation_date_time` 2026-09-09T22:09:20Z.
-- The supplemental-file excerpt still shows the two-line preamble without an
-  ellipsis, and its right ascension, declination and roll are the old
-  three- and four-decimal values (the shipped files now carry six).
-- The `metadata_params` excerpt in 4.2.3 still starts at longitude 4.60
-  without a leading `[...]`.
-- Section 5.3.4 still does not list the sample programs' dependencies.
-
-Re-capturing these means rebuilding the PDF and regenerating the document
-collection once more.
+- Section 4.2.1 shows the shipped `creation_date_time` (2026-09-28T21:45:52Z),
+  and the surrounding paragraph now says that a data file's creation time
+  records when that copy was written and so differs between builds, which
+  keeps the excerpt true of any build.
+- The supplemental-file excerpt carries the whole seven-line preamble,
+  including the roll definition, and the six-decimal right ascension,
+  declination and roll of the shipped files.
+- The `metadata_params` excerpt in 4.2.3 has a leading `[...]`.
+- Section 5.3.4 lists the dependencies: Python 3 with `pds4_tools`, `numpy`
+  and `matplotlib`, plus `pandas` for the DataFrame functions, which import
+  it on use.
+- The two quoted label strings that differed are now quoted as the labels
+  write them: the navigation grade in double quotes, and the M1 to M4 and B
+  note sentences in full, with `"movies"` quoted, "180 degrees apart" spelled
+  out, the chunk sentences included, and the mosaic-label form of the B note
+  given alongside the background-subtracted one.
 
 ### 9.4 Cosmetic findings
 
