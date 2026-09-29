@@ -5,8 +5,13 @@ Bundle reviewed: `/data/fring-bundles/pds4`, generated 2026-09-27 16:44 to
 `WARNINGS.log` 102 lines, all of them moon-visibility notices.
 
 This review was done without consulting the earlier critiques or the earlier
-change log. A comparison with those documents is in the last section, which
-was written after everything above it was complete.
+change log. A comparison with those documents is in section 8, which was
+written after sections 1 to 7 were complete.
+
+Sections 1 to 8 describe the 2026-09-27 build as reviewed. The author ruled
+on every finding on 2026-09-28 and the bundle was rebuilt the same day;
+section 9 records, finding by finding, what the rebuilt bundle does and does
+not fix.
 
 Contents: 305 observations (303 `iss_`, 2 `iosic_`), 20,584 reprojected
 images, 42,405 labels, 190,785 files, 58 GB.
@@ -44,6 +49,11 @@ findings are rated Major:
   (section 3.3). A data change the author has to accept or reverse.
 
 Everything else is Minor or Cosmetic.
+
+Outcome of these three in the 2026-09-28 rebuild: the roll sentence is
+corrected, the coverage loss is reversed, and the `::2.0` reference is the
+author's deliberate forward reference to the coordinated ISS delivery, so
+the second Major rating is withdrawn. Section 9 has the measurements.
 
 ## 3. Major findings
 
@@ -804,3 +814,171 @@ written for this review, from measurements on the regenerated bundle:
 The earlier log's appendices (the 28 observations with their image ranges,
 the mosaic-level moon changes, the column table) were re-derived from the
 two bundles and are correct; they are carried into the final log.
+
+## 9. Status after the 2026-09-28 rebuild
+
+The author ruled on every finding above on 2026-09-28, the background stage
+was re-run with the column-rejection rule of the earlier builds restored,
+and the bundle was regenerated (`/data/fring-bundles/pds4`, 2026-09-28
+13:56 to 16:17 PDT, from `critique_2026_09_27_fixes`; `ERRORS.log` empty,
+`WARNINGS.log` 81 lines, all moon-visibility notices; 305 observations,
+20,584 reprojected images, 42,405 labels, 190,785 files, 59 GB). Every
+statement below was measured on that bundle.
+
+### 9.1 The three Major findings
+
+| Finding | Status |
+|---|---|
+| 3.1 Roll definition reversed | Fixed |
+| 3.2 `iss-data-user-guide::2.0` | Not a defect (author ruling) |
+| 3.3 Background-subtracted coverage loss | Fixed |
+
+**3.1 Fixed.** All 20,584 supplemental headers and all 20,584
+reprojected-image labels now read "measured from the direction of
+increasing right ascension and positive towards increasing declination",
+which is the definition the printed numbers follow. No file carries the old
+sentence. The matrices are unchanged.
+
+**3.2 Not a defect.** The author ruled that `::2.0` is a deliberate forward
+reference to the version of the Cassini ISS Data User's Guide that the
+coordinated ISS delivery will publish, in the same way as the
+`data_calibrated` source references of 4.4.5. The Major rating of section
+3.2 is withdrawn; the two inventory rows are listed with the other
+references that resolve outside the bundle.
+
+**3.3 Fixed.** The in-loop "too few pixels" recheck in
+`mosaics/ring/ring_model_bkgnd.py` counts the original image mask again
+instead of the accumulated mask that commit 52cb449 introduced, and the
+background stage was re-run. Column by column, across the 302 products
+common to the review copy, the valid-longitude set now matches the review
+copy: 9 longitudes dropped in 5 products and 66 added in 6, plus
+`iosic_276rb_complitb4001_si`, whose plain mosaic itself changed (7,202
+longitudes; section 6.2 of the change log). The background-subtracted
+index's `num_valid_longitudes` differs from the review copy in 11 of 302
+rows, against 263 before.
+
+Background subtraction now drops 47,216 longitudes of the 2,888,402 valid
+in the plain mosaics (1.6 percent, in 272 products, median 52 per product),
+against 123,188 (4.3 percent) in the 2026-09-27 build. Of those 47,216,
+303 (0.6 percent) have all 50 rows of both background windows valid in the
+plain mosaic, against 61 percent in the 2026-09-27 build: what is dropped is
+now almost entirely longitudes whose background windows really are
+incomplete.
+
+### 9.2 Minor findings
+
+| Finding | Status | Evidence in the rebuilt bundle |
+|---|---|---|
+| 4.1.1 Publication year | Fixed | `publication_year` 2026 in all 42,405 labels; guide title page "Version 1.0, 2026"; both citations "(2026)"; document `publication_date` 2026-09-28. The LID keeps `rsfrench2025` by decision. Both bundle DOIs still return 404 (external) |
+| 4.1.2 Two modification dates | Fixed | `modification_date` 2026-09-28 in all 42,405 labels; the run stayed inside one UTC day |
+| 4.1.3 Two author lists for the guide | Open | `Citation_Information/List_Author` still names French and Hedman, `Document/List_Author` French alone |
+| 4.1.4 Contributor sequence 1, 2, 2, 2 | Author decision, intentional | unchanged |
+| 4.2.1 "750 to 1000 km" | Fixed | "755 to 1000 km" appears in 269 of the 305 background-subtracted labels, on one side or both; the products with adjusted margins state their own limits the same way; no label says "750 to 1000"; the index labels now define `bkgnd_lower_limit`/`bkgnd_upper_limit` as the ring bounds with the background running from -1000 km "up to but not including" the lower limit and from "beyond" the upper limit through +1000 km |
+| 4.2.2 "Insufficient data" | Fixed | all 305 labels now say pixels statistically anomalous compared with nearby longitudes were masked before the fit and that the minimum counts are applied "after that masking" |
+| 4.2.3 The `B` note | Fixed | `B` is now on the 6 products with the lowest retention (43, 64, 65, 66, 68, 72 percent of the mosaic's valid longitudes); the next lowest is 73 percent. The note is also mirrored into the plain-mosaic label of each |
+| 4.2.4 Source-image renumbering | Fixed | the field description now reads "The index number specific to this mosaic for the source image"; guide section 4.2.3 states that the two tables of one observation can number differently (7 observations, 102 images, in this build) and says to match on LIDVID or longitude |
+| 4.3.1 Moons on removed columns | Fixed | with the coverage restored, one product remains (`iss_243rf_fmovie001_prime_2`, whose predicted Prometheus longitude falls about one column outside the retained set while the label says "has been visually confirmed"), against 15 products and 3 confirmations before |
+| 4.3.2 Four edge-column images | Fixed | all four labels now carry the moon sentence and `Target_Identification`; the edge-of-data rejection was removed from `_image_has_satellite` |
+| 4.3.3 Wording differs between product types | Fixed | the reprojected-image comment now states that visual confirmation is made on the mosaic, is recorded only in the mosaic label, and applies to whichever image supplied the pixels |
+| 4.4.1 Unused images reference the mosaic | Fixed | the 143 unused images carry no `data_to_derived_product` reference to either mosaic product and say so in their description; the 102 images whose longitudes the subtraction removed reference the mosaic only, with a sentence saying why; guide section 3.1.6 explains both cases. Residue: the `Observation_Area` comment of the 143 still says "is associated with the mosaic named X" |
+| 4.4.2 `data_to_derived_product` direction | Open, archivist decision | unchanged |
+| 4.4.3 Metakernel referenced by file name | Fixed | `Internal_Reference` to `...:spice_kernels:kernels` with `reference_type` `geometry_to_SPICE_kernel` in all 20,584 reprojected-image labels and in all 610 mosaic-type labels, which gained the `geom:` class |
+| 4.4.4 Index products without context | Fixed | the three index labels have a `Context_Area` (time range, investigation, observing system, targets) and a `Reference_List`; `collection_miscellaneous.lblx` and `collection_spice_kernels.lblx` gained a `Context_Area` |
+| 4.4.5 Source products not in the registry | Open, external | depends on the coordinated ISS delivery |
+| 4.4.6 L2 Puppis absent from the tool's list | Open, tool side | see 9.4 |
+| 4.5.1 Vertical orientation unstated | Fixed | all 21,194 browse labels state that the rows run with delta radius increasing upward, top row +1000 km, which reverses the array storage order; guide sections 4.2.2 and 4.2.4 say the same |
+| 4.5.2 Small and thumb overlays | Fixed | all 20,584 reprojected-image browse labels describe both lines of the overlay |
+| 4.5.3 Background-subtracted browse | Fixed | all 305 labels say the images can show fewer longitudes, as additional black columns, than the browse images of the mosaic |
+| 4.5.4 "99.8% maximum value" | Fixed | "99.8th percentile" in all 21,194 browse labels |
+| 4.5.5 Segment suffixes in browse | Fixed as ruled | "(segment N)" added to the title and descriptions of the 4,936 reprojected-image products of split observations and of their 4,936 browse products. Mosaic browse titles keep the observation name without the segment: an observation is the full Cassini observation, and the segment is carried by the LID and file name |
+| 4.6.1 Corotating-longitude wraparound | Deferred | the RINGS dictionary definition will be changed; no bundle change |
+| 4.6.2 Resolution attributes as field names | Open | unchanged; the names remain decorative |
+| 4.6.3 Sentinels and placeholders | Open in part | the -999 temperatures are carried from the source labels by decision; `N/A` and `UNK` remain undescribed |
+| 4.7 Supplemental precision | Fixed | right ascension, declination and roll are printed to six decimals (0.0036 arcsec) |
+| 4.8 The metakernel | Open | `kernels.ker` still has no `PATH_VALUES`, and neither its label nor the guide says the kernels are not in the bundle or where NAIF distributes them |
+| 4.9 User guide | Fixed in part; see 9.3 | |
+| 4.10 Small label inconsistencies | See 9.3 | |
+
+### 9.3 The 4.9 and 4.10 lists item by item
+
+Fixed in 4.10:
+
+- **Exposure mid-times.** `cassini:image_mid_time` now equals the
+  supplemental file's mid time in all 20,584 labels (0 mismatches, against
+  502): both are taken from the PDS3 `IMAGE_MID_TIME`.
+- **Mosaic table cells against the source image.** Radial resolution,
+  longitudinal resolution, phase and emission now agree exactly with the
+  named source image's table in every row of all 610 mosaic-type tables
+  (0 differing cells, against 46,844): the generator copies the source
+  image's float64 values instead of rounding the mosaic's float32 copy.
+  Two residues: `rings:incidence_angle` differs from the source images by
+  design, which the field description states, and the moon radii of
+  `iosic_276rb_complitb3001_si` still differ in the last digit (11,396
+  cells, up to 0.001 km) because they are not among the copied fields.
+- **The rotation time in the mosaic comment.** Computed from the
+  millisecond-precision start and stop times instead of the rounded label
+  times (`iss_000ri_satsrchap001_prime` now says 52,800 seconds where the
+  label times give 52,801).
+- **Resolution units.** Both product-label descriptions now say the radial
+  and longitudinal resolutions are per source-image pixel. The `rings:`
+  attributes keep `unit="km"` and `unit="deg"`: the RINGS 1.15 Schematron
+  permits only length units on the radial attributes and angle units on
+  the longitudinal ones, so `km/pixel` cannot be used there.
+
+Open in 4.10:
+
+- The `rings:incidence_angle` field description still does not say which
+  source image's value the mosaic carries.
+- The six background-subtracted products with tied largest gaps still
+  report one of several equally valid endpoint pairs.
+- The index labels still use `km/pixel` and `deg/pixel` as field units
+  while the product labels use `km` and `deg` (see above).
+
+In 4.9, fixed: the year on the title page and in both citations; the
+background windows as 755 km with the worked 910 km example; a paragraph on
+the source-image renumbering; a paragraph (3.1.6) on the images that did
+not contribute to a mosaic and the references their labels carry; the
+browse orientation in 4.2.2 and 4.2.4; the masking clause and the per-mosaic
+minimums in 3.6; "corotating" throughout, matching the labels; "indexes"
+for index files and "indices" only for array indices.
+
+Still open in 4.9, all of them in the guide's excerpts, which were captured
+from the 2026-09-09 build and now need to be re-captured from this one:
+
+- Section 4.2.1 still shows `creation_date_time` 2026-09-09T22:09:20Z.
+- The supplemental-file excerpt still shows the two-line preamble without an
+  ellipsis, and its right ascension, declination and roll are the old
+  three- and four-decimal values (the shipped files now carry six).
+- The `metadata_params` excerpt in 4.2.3 still starts at longitude 4.60
+  without a leading `[...]`.
+- Section 5.3.4 still does not list the sample programs' dependencies.
+
+Re-capturing these means rebuilding the PDF and regenerating the document
+collection once more.
+
+### 9.4 Cosmetic findings
+
+Fixed: "F Ring" mid-sentence (none remain outside title case); "co-rotating"
+(0 uses, "corotating" everywhere); "Data was missing" ("the data were
+missing" in all 21,194 labels that carry the sentence); the `long_peri`
+references in the `core_radius` and `true_anomaly` descriptions; "fit #2" in
+the guide as well as the labels; the missing space in `<!-- A value of -1`;
+the three empty `C-matrix ... column` descriptions; the one-word title of
+`kernels.lblx`; `File/records` in the three collection labels that carried
+it and the `</Modification_History>` indent (all 11 collection labels are
+now identical in both respects); "dataset" in the index labels, the readme
+and the guide.
+
+Open: the epoch sentence ("arbitrarily chosen to be a time near Cassini's
+arrival at Saturn" for 2007-01-01); the thumbnail overlays covering a
+quarter of the 100x100 image; the readme's "(e.g. journal) citation"
+parenthesis; the PDF's page-break gaps. `kernels.lblx` still carries no
+author list, which matches the other per-product labels by decision.
+
+### 9.5 PDS4 validate on the rebuilt bundle
+
+A second run of `validate` 4.2.0 with the same options
+(`-e lblx -R pds4.bundle`) was started on the rebuilt bundle on 2026-09-28
+at 18:54 PDT. Its result will be recorded here when it completes; the
+expected outcome is the 49 `context_ref_not_found` errors of section 7,
+which come from the tool's context list and not from the bundle.
