@@ -64,7 +64,7 @@ author and contributor lists. Nothing here changes how the bundle is cited.
   mapping changed (darker backgrounds) in most images; background-subtracted
   browse images show the dropped longitudes as black.
 - **User guide.** Rewritten from 19 pages, 5 sections and no bookmarks or
-  links to 49 pages, 7 sections, 56 bookmarks and 251 links, now PDF/A-1b
+  links to 48 pages, 7 sections, 56 bookmarks and 251 links, now PDF/A-1b
   (the review copy was PDF/A-2b). Three sections and one subsection are new.
 - **Formatting defects removed.** CRLF line endings in nine labels, tab
   characters inside `schemaLocation` in every product label, a missing XML
@@ -741,7 +741,7 @@ author and contributor lists. Nothing here changes how the bundle is cited.
 
 ### 10.2 The PDF
 
-- 19 to 49 pages; PDF/A-2b to PDF/A-1b (the delivered file passes veraPDF
+- 19 to 48 pages; PDF/A-2b to PDF/A-1b (the delivered file passes veraPDF
   PDF/A-1b with no failures; the review copy failed PDF/A-1b on 14 checks
   and passed only its own declared PDF/A-2b); title and author metadata
   filled in (were empty); bookmarks 0 to 56; link annotations 0 to 251;

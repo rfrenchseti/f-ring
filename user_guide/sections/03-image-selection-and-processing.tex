@@ -198,11 +198,13 @@ A small number of observations follow a single corotating longitude, taking one 
 
 \begin{figure}[htbp]
 \centering
-\includegraphics[width=0.327\linewidth]{figures/fig4a-reproj-img-1.png}
+% The three images are all 401 rows tall but cover slightly different numbers
+% of longitudes, so they are scaled to a common height, not a common width.
+\includegraphics[height=0.62\linewidth]{figures/fig4a-reproj-img-1.png}
 \hfill
-\includegraphics[width=0.327\linewidth]{figures/fig4b-reproj-img-2.png}
+\includegraphics[height=0.62\linewidth]{figures/fig4b-reproj-img-2.png}
 \hfill
-\includegraphics[width=0.327\linewidth]{figures/fig4c-reproj-img-3.png}
+\includegraphics[height=0.62\linewidth]{figures/fig4c-reproj-img-3.png}
 \caption{Three reprojected images from mosaic \code{iss\_\allowbreak{}191rf\_\allowbreak{}fmovie001\_\allowbreak{}prime\_\allowbreak{}1}, each covering approximately the same 4° range of corotating longitude. Source image index 0, \code{1748745661n} (left), was taken at inertial longitudes 5.7°–9.6°; index 4, \code{1748746261n} (middle), at 9.3°–13.3°; index 8, \code{1748746865n} (right), at 12.9°–17.1°. (Flag R.)}
 \label{fig:r-reproj-imgs}
 \end{figure}
@@ -269,8 +271,6 @@ Each of these stars is named in a \code{Target\_\allowbreak{}Identification} blo
 For most observations, the reprojected images archived here are exactly those that contributed data to the observation’s mosaic. The “R” (Section~\ref{sec:r-follows-one-corotating-longitude-range-with-di}) and “O” (Section~\ref{sec:o-occultation}) observations are the exceptions. For these, the mosaic is of limited use and the reprojected images are the product of interest, so every reprojected image from the observation is archived, whether or not it supplied any data to the mosaic.
 
 A reprojected image that did not contribute to the mosaic is not listed in the mosaic’s \code{OBSID\_\allowbreak{}mosaic[\_\allowbreak{}bkg\_\allowbreak{}sub]\_\allowbreak{}metadata\_\allowbreak{}src\_\allowbreak{}imgs.\allowbreak{}tab} file and is never referenced by the \code{image\_\allowbreak{}index} column of \code{OBSID\_\allowbreak{}mosaic[\_\allowbreak{}bkg\_\allowbreak{}sub]\_\allowbreak{}metadata\_\allowbreak{}params.\allowbreak{}tab} (Section~\ref{sec:data-mosaic-and-data-mosaic-bkg-sub}). The description in each reprojected image’s own label states which of the two cases applies. The label of an image that did not contribute carries no derived-product reference to the mosaic or to the background-subtracted mosaic, because neither holds any of its pixels. A related case arises when an image did contribute to the mosaic but every longitude it supplied was later removed by the background subtraction (Section~\ref{sec:background-modeling}): its label then references the mosaic but not the background-subtracted mosaic, and the background-subtracted mosaic’s source-image table omits it (Section~\ref{sec:data-mosaic-and-data-mosaic-bkg-sub}).
-
-\clearpage
 
 \subsection{Calibration}
 \label{sec:calibration}
@@ -407,6 +407,14 @@ The final step in the data production pipeline is modeling and subtracting the b
 
 In cases where, even after adjusting the margins, fewer valid pixels than the minimum set for that mosaic remained in either background region at some longitudes once the anomalous pixels had been masked, those longitudes were marked as invalid and deleted from the background-subtracted mosaic; the label of each background-subtracted mosaic states the two minimums. As a result, the background-subtracted mosaic may have fewer (and sometimes substantially fewer) valid longitudes than the original mosaic. An example is shown in Figure~\ref{fig:bkg-sub-mosaic}.
 
+\begin{figure}[htbp]
+\centering
+\noindent\includegraphics[width=\linewidth]{figures/fig6a-mosaic-original.png}\\[2pt]
+\noindent\includegraphics[width=\linewidth]{figures/fig6b-mosaic-bkg-sub.png}
+\caption{Original mosaic \code{iss\_\allowbreak{}007ri\_\allowbreak{}hpmrdfmov001\_\allowbreak{}prime} (top) and associated background-subtracted mosaic (bottom). The lack of some data in the original mosaic (to the lower left of the large blank area) prevents the creation of a background model for those longitudes, resulting in a background-subtracted mosaic with substantially fewer valid longitudes.}
+\label{fig:bkg-sub-mosaic}
+\end{figure}
+
 The model is fit to noisy data, so subtracting it leaves the background regions scattered about zero. Roughly half of the pixels away from the ring in a background-subtracted mosaic are consequently negative. This is expected. Keep these values instead of clipping them at zero; discarding the negative half of the noise biases any integral over a radial slice, equivalent width included.
 
 Each background-subtracted mosaic was inspected and the result recorded as the coded \code{bkgnd\_\allowbreak{}quality} field of the global background-subtracted mosaic index (Section~\ref{sec:the-global-index-files}); as with \code{nav\_\allowbreak{}quality}, the label states the grade in words in its \code{Observation\_\allowbreak{}Area} \code{comment} rather than as an element of that name. Like \code{nav\_\allowbreak{}quality} (Section~\ref{sec:navigation}), the grade is subjective:
@@ -417,10 +425,3 @@ Each background-subtracted mosaic was inspected and the result recorded as the c
 \item \textbf{P} (poor): the model is visibly wrong over a substantial range of longitudes, usually because too little background data was available or because the F ring dust sheet extends into the background region.
 \end{itemize}
 
-\begin{figure}[htbp]
-\centering
-\noindent\includegraphics[width=\linewidth]{figures/fig6a-mosaic-original.png}\\[2pt]
-\noindent\includegraphics[width=\linewidth]{figures/fig6b-mosaic-bkg-sub.png}
-\caption{Original mosaic \code{iss\_\allowbreak{}007ri\_\allowbreak{}hpmrdfmov001\_\allowbreak{}prime} (top) and associated background-subtracted mosaic (bottom). The lack of some data in the original mosaic (to the lower left of the large blank area) prevents the creation of a background model for those longitudes, resulting in a background-subtracted mosaic with substantially fewer valid longitudes.}
-\label{fig:bkg-sub-mosaic}
-\end{figure}

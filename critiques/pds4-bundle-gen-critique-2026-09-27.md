@@ -943,7 +943,7 @@ minimums in 3.6; "corotating" throughout, matching the labels; "indexes"
 for index files and "indices" only for array indices.
 
 The remaining 4.9 items were fixed in the guide sources on 2026-09-28 and
-the PDF was rebuilt (49 pages, veraPDF PDF/A-1b PASS) and installed in
+the PDF was rebuilt (48 pages, veraPDF PDF/A-1b PASS) and installed in
 `pds4_bundle_gen/templates/`. They reach the bundle at the next
 regeneration; the shipped 2026-09-28 PDF still carries the old text.
 
