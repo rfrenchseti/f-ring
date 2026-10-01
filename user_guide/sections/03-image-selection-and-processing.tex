@@ -13,7 +13,7 @@ Cassini observations were organized into observing campaigns. Each campaign was 
 [INST]_[REV][TI]_[UNIQUENAME]_[PINST]
 \end{CodeBlock}
 
-where for the observations included in this bundle:
+\noindent where for the observations included in this bundle:
 
 \begin{itemize}
 \item INST is the abbreviation for the instrument being commanded (usually “ISS”)
@@ -321,7 +321,7 @@ Corotating longitude is based on a reference frame that rotates with the mean mo
 
 \begin{equation*}\mathit{corot} = \left(\mathit{inertial} - n\,\frac{\mathit{ET} - \mathit{epoch\_ET}}{86400}\right) \bmod 360\end{equation*}
 
-and to convert from corotating to inertial longitude:
+\noindent and to convert from corotating to inertial longitude:
 
 \begin{equation*}\mathit{inertial} = \left(\mathit{corot} + n\,\frac{\mathit{ET} - \mathit{epoch\_ET}}{86400}\right) \bmod 360\end{equation*}
 
@@ -333,7 +333,7 @@ To determine the radius of the F ring core, we use the standard formula:
 
 \begin{equation*}r_{\mathrm{core}}=\frac{a(1-e^{2})}{1+e\cos\left(\lambda-\left(\varpi_{0}+\dot{\varpi}\frac{\mathit{ET}}{86400}\right)\right)}\end{equation*}
 
-where \textit{λ} is the inertial longitude (converted from the corotating longitude as described above), so that the argument of the cosine is the true anomaly.
+\noindent where \textit{λ} is the inertial longitude (converted from the corotating longitude as described above), so that the argument of the cosine is the true anomaly.
 
 
 \subsubsection{Reprojection process}
