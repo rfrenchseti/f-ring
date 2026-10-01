@@ -325,7 +325,7 @@ and to convert from corotating to inertial longitude:
 
 \begin{equation*}\mathit{inertial} = \left(\mathit{corot} + n\,\frac{\mathit{ET} - \mathit{epoch\_ET}}{86400}\right) \bmod 360\end{equation*}
 
-where \textit{ET} is the ephemeris (SPICE) time of the image in seconds and \textit{epoch\_\allowbreak{}ET} is the corotating epoch in seconds, equal to 220881665.1839181.
+\noindent where \textit{ET} is the ephemeris (SPICE) time of the image in seconds and \textit{epoch\_\allowbreak{}ET} is the corotating epoch in seconds, equal to 220881665.1839181.
 
 Note that the choice of epoch is arbitrary, and when comparing absolute corotating longitudes from different sources it is important to convert them to a common reference frame. For example, Murray et al. \zcite{(2008)} used 2007-01-01T12:00:00Z and French et al. \zcite{(2012)} used 2004-01-01T12:00:00Z, while French et al. \zcite{(2014a)} used the same epoch adopted here.
 
