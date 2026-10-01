@@ -344,7 +344,7 @@
             <description>
                 The metadata for each longitude in the mosaic that contains valid data.
                 The records are in order of increasing corotating longitude starting at 0
-                degrees. A longitude where no valid data were collected has no record at all, so in
+                degrees. A longitude where no valid data are available has no record at all, so in
                 general record N does not correspond to image column N. Use the
                 rings:corotating_ring_longitude field, not the record number, to associate a
                 record with a column; for a mosaic the column is
