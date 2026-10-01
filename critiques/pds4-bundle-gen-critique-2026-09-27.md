@@ -221,7 +221,7 @@ thinned more.** `B` ("substantially fewer valid longitudes") is set for
 `iss_007ri_hpmrdfmov001_prime`, `iss_007ri_lphrlfmov001_prime` and
 `iss_083ri_fmonitor002_prime`, whose background-subtracted products keep 63,
 68 and 69 percent of the mosaic's valid longitudes. Six products keep less
-and carry no `B`: `iss_244ri_propretrg001_prime` (40%, 2,682 to 1,080
+and are not marked `B`: `iss_244ri_propretrg001_prime` (40%, 2,682 to 1,080
 longitudes), `iss_178ri_egapmovmp001_prime` (43%), `iss_256ri_hiresafrg002_prime`
 (52%), `iss_245ri_hiresafrg002_prime` (62%), `iss_199ri_egapmovmp001_prime`
 (64%), `iss_036rf_fmovie002_vims` (68%). The three `B` codes also appear in
@@ -302,7 +302,7 @@ and no `Internal_Reference` to
 although the GEOM dictionary says the LIDVID "should be given if one is
 available". The 610 mosaic labels have no `geom:` class at all.
 
-**4.4.4 Index products carry no context and no references.** The three
+**4.4.4 Index products have neither context nor references.** The three
 `Product_Ancillary` labels in `miscellaneous/` have no `Context_Area` (no
 time range, mission, instrument, target) and no `Reference_List`, although
 their `notes` field description says "See the User Guide for details".
@@ -407,7 +407,7 @@ params-table fields per label.
 `cassini:filter_temperature` and `cassini:sensor_head_electronics_temperature`
 are `-999.` with `unit="degC"` in two labels
 (`data_reproj_img/iss_007ri_lphrlfmov001_prime/1493625366n` and
-`1493638821n`); their definitions carry no sentinel clause (the
+`1493638821n`); their definitions do not describe any sentinel (the
 `optics_temperature_back` -999 in the 2,754 WAC labels is documented).
 `cassini:calibration_lamp_state_flag` is `N/A` in 17,830 labels and
 `cassini:telemetry_format_id` is `UNK` in 1,593; both validate, neither
@@ -880,7 +880,7 @@ incomplete.
 | 4.3.1 Moons on removed columns | Fixed | with the coverage restored, one product remains (`iss_243rf_fmovie001_prime_2`, whose predicted Prometheus longitude falls about one column outside the retained set while the label says "has been visually confirmed"), against 15 products and 3 confirmations before |
 | 4.3.2 Four edge-column images | Fixed | all four labels now carry the moon sentence and `Target_Identification`; the edge-of-data rejection was removed from `_image_has_satellite` |
 | 4.3.3 Wording differs between product types | Fixed | the reprojected-image comment now states that visual confirmation is made on the mosaic, is recorded only in the mosaic label, and applies to whichever image supplied the pixels |
-| 4.4.1 Unused images reference the mosaic | Fixed | the 143 unused images carry no `data_to_derived_product` reference to either mosaic product and say so in their description; the 102 images whose longitudes the subtraction removed reference the mosaic only, with a sentence saying why; guide section 3.1.6 explains both cases. Residue: the `Observation_Area` comment of the 143 still says "is associated with the mosaic named X" |
+| 4.4.1 Unused images reference the mosaic | Fixed | the 143 unused images do not reference either mosaic product with `data_to_derived_product` and say so in their description; the 102 images whose longitudes the subtraction removed reference the mosaic only, with a sentence saying why; guide section 3.1.6 explains both cases. Residue: the `Observation_Area` comment of the 143 still says "is associated with the mosaic named X" |
 | 4.4.2 `data_to_derived_product` direction | Left as shipped, by the author's ruling | `Product_Observational/Reference_List` admits only `data_to_*` values, so a derived product has no way to cite its source except `Source_Product_Internal`. The background-subtracted mosaic therefore cites its plain mosaic with `data_to_derived_product`, which is the intended back-pointer until the RMS Node's request to add `derived_product_to_data` is granted. A mosaic cites its source reprojected images only through the LIDVIDs of its `src_imgs` table, which is deliberate: one reference per source image would add 20,441 references across the 610 mosaic-type labels, 1,030 of them in `iss_006ri_lphrlfmov001_prime` alone |
 | 4.4.3 Metakernel referenced by file name | Fixed | `Internal_Reference` to `...:spice_kernels:kernels` with `reference_type` `geometry_to_SPICE_kernel` in all 20,584 reprojected-image labels and in all 610 mosaic-type labels, which gained the `geom:` class |
 | 4.4.4 Index products without context | Fixed | the three index labels have a `Context_Area` (time range, investigation, observing system, targets) and a `Reference_List`; `collection_miscellaneous.lblx` and `collection_spice_kernels.lblx` gained a `Context_Area` |
@@ -992,7 +992,7 @@ include in a citation of this dataset, for example in a journal article",
 replacing the "(e.g. journal)" parenthesis.
 
 Closed by the author on 2026-09-30, with no change: the thumbnail overlays
-and the PDF's page-break gaps (the guide was relaid out separately). `kernels.lblx` still carries no author list, which
+and the PDF's page-break gaps (the guide was relaid out separately). `kernels.lblx` still does not list an author, which
 matches the other per-product labels by decision.
 
 ### 9.5 PDS4 validate on the rebuilt bundle
