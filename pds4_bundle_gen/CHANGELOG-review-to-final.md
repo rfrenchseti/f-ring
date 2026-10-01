@@ -21,86 +21,65 @@ is cited.
 
 ## Summary
 
-- **Size.** 302 observations, 20,303 reprojected images, 188,194 files,
-  55.8 GB became 305 observations, 20,584 reprojected images, 190,785
-  files, 61.9 GB. Three observations were added, none removed; 671
-  reprojected images were added and 390 removed.
-- **Source-image attribution corrected.** In the review copy, 36 mosaics
-  attributed 420,401 of their 2,851,152 valid longitudes (14.7 percent) to
-  the wrong source image, and 108,065 of those longitudes came from images
-  the review copy did not archive. The pattern is systematic: wherever a
-  mosaic skipped an image of its observation, every name after the gap was
-  shifted, so each column was credited to an earlier image of the same
-  observation than the one it came from. In the delivered bundle
-  every mosaic longitude is byte-identical to the column of the image its
-  metadata names. The 390 removed images were never sources of any mosaic;
-  601 of the 671 added images are the sources that were missing
-  (Appendix A).
-- **New collection and files.** A `miscellaneous` collection holds the
-  three global index tables, which were in `document/supplemental/`; an
-  index table is not a document, and in the review copy its inventory rows
-  were malformed and did not resolve to any product. A `readme.txt` was added at the
-  root, giving the bundle and user-guide identifiers, the citation with its
-  DOI, and contact details. Five example Python programs were
-  added to the document collection, so that a reader has working code for
-  every product type.
-- **Dictionary.** The Rings dictionary moved from 1O00_1E00 (1.14.0.0) to
-  1O00_1F00 (1.15.0.0) in every data label, version F having been published
-  in the meantime. The upgrade was not a drop-in: 1.15 orders the members of
-  `Reprojection_Grid_Parameters` mean before minimum and maximum, where 1.14
-  put mean last, and a label in the old order is rejected.
-- **Every data label changed.** Camera identification (every review-copy
-  mosaic and reprojected image named the Wide Angle Camera, though 231
-  mosaics and 17,830 images were taken with the Narrow Angle Camera),
-  display direction (the review copy declared Top to Bottom while row 0 of
-  every array is the inner edge, so a viewer following the label drew the
-  ring radially mirrored), mission-phase
-  capitalisation, longitude limits, four new Cassini attributes, array and
-  table descriptions, navigation and background quality statements,
-  Prometheus and Pandora statements, and nine stellar occultation targets.
-- **Metadata tables rebuilt.** The per-longitude tables went from 8 (mosaic)
-  and 6 (reprojected image) columns to 17 and 16, with dictionary-style
-  names and nine new orbit and moon columns. Three columns were not merely
-  reformatted but wrong: the inertial longitude was measured from the start
-  of each image instead of from the ring's own reference direction; the
-  longitudinal resolution held radians while its label said km/pixel; and
-  the exposure mid-times were quantized to about 16 seconds, the resolution
-  single precision affords at an ephemeris time of several hundred million
-  seconds. The index tables
-  went from 33, 35 and 30 columns to 57, 60 and 42.
-- **Arrays.** 296 of 302 common mosaic arrays and 18,351 of 19,913 common
-  reprojected-image arrays are byte-identical. 1,065 wrapped reprojected
-  images have the same pixels in a different column order; 495 have the
-  same pixels with empty longitudes inserted; 2 changed. All 302
-  background-subtracted arrays changed: the subtracted background differs
-  by a per-column linear function of typical size 2e-7 I/F (0.08 percent of
-  the pixel value). The set of valid longitudes is the review copy's: 9
-  longitudes were dropped in 5 products and 66 added in 6, and one further
-  product changed because its plain mosaic did (section 7.2).
-- **Pointing.** The C-matrix, right ascension, declination and roll changed
-  in every common supplemental file; the boresight moved by a median of 6
-  arcsec. The review copy's matrix was built from the geometric boresight,
-  folding the stellar aberration at the image time into a frame the label
-  calls a rotation from J2000 to the camera; it is now built from the
-  apparent boresight, which is the same kind of rotation a SPICE C kernel
-  supplies. The roll was measured against one of two reference axes
-  depending on the boresight declination, so 161 files reported a roll
-  meaning something different from the rest; it is now measured against one
-  reference always. The file was renamed and gained a preamble saying what
-  the matrix rows are and how the roll is defined.
-- **Browse images.** Same sizes, overlays and orientation; the grey-level
-  mapping changed (darker backgrounds) in most images, because the stretch
-  now starts at zero rather than at the most negative calibration noise
-  value, so the background reads as black instead of mid-grey;
-  background-subtracted browse images show the dropped longitudes as black.
-- **User guide.** Rewritten from 19 pages, 5 sections and no bookmarks or
-  links to 48 pages, 7 sections, 56 bookmarks and 251 links, now PDF/A-1b
-  (the review copy was PDF/A-2b). Three sections and one subsection are new.
-- **Formatting defects removed.** CRLF line endings in nine labels, tab
-  characters inside `schemaLocation` in every product label, a missing XML
-  declaration in the kernel label, malformed identifiers in the document
-  and schema inventories, and an instruction addressed to the archivist,
-  left inside the SPICE collection label as an XML comment, are all gone.
+The delivered bundle holds the same kind of data as the peer-review copy,
+over the same observations, in the same formats. What follows is what a
+reader of both would notice; the sections after it give the counts.
+
+- **Which images are archived.** Three observations were added and none
+  removed, leaving 305 observations and 20,584 reprojected images. Within
+  28 of those observations the archived images changed: the review copy
+  held the images its mosaic metadata named, which were not the images the
+  mosaic was built from (sections 4.1 and 4.2).
+- **Which image each mosaic column came from.** In the review copy a mosaic
+  often credited a column of the ring to the wrong source image, and
+  sometimes to an image the bundle did not contain. Every column of every
+  mosaic now matches the image its metadata names, so a reader can trace a
+  measurement back to the picture it came from (section 4.2).
+- **The ring data themselves are mostly unchanged.** Nearly all mosaic and
+  reprojected-image arrays are identical to the review copy's, pixel for
+  pixel. What changed: the mosaics of those 28 observations; reprojected
+  images that wrap past 360 degrees, whose columns were stored in an order
+  their own label contradicted; images with an interior gap, which now keep
+  that gap as empty columns so that a column position means a longitude;
+  and every background-subtracted mosaic, where the background model moved
+  by a few ten-millionths of the pixel value. The longitudes that carry
+  valid data are the review copy's (sections 5.2, 6.2 and 7.2).
+- **More metadata per longitude.** The per-longitude tables roughly doubled
+  in width, adding the F ring orbit geometry at each longitude and the
+  positions of Prometheus and Pandora. Three of the columns the review copy
+  already had were wrong and are now right: the inertial longitude, the
+  longitudinal resolution, and the time of the exposure (sections 5.3 and
+  6.3).
+- **More searchable metadata per product.** The three global index tables
+  grew by about half again, adding orbit and moon statistics, the author's
+  quality grades for navigation and for background subtraction, and
+  corrected types and units. They moved out of the document collection into
+  a `miscellaneous` collection of their own (sections 2 and 9).
+- **Labels that describe the data correctly.** Every data label changed:
+  the camera, which the review copy always named as the Wide Angle; the
+  direction the array runs, which a viewer needs to draw the ring the right
+  way up; the longitude limits of each product; the moons and occultation
+  stars visible in it; and descriptions of the arrays, the tables and the
+  quality of each mosaic (sections 3, 5.1 and 6.1).
+- **Camera pointing a reader can use.** The matrix, right ascension,
+  declination and roll in every supplemental file were corrected, and the
+  file now says what its rows are and how the roll is measured. In the
+  review copy, rebuilding the camera frame from them gave the wrong
+  orientation (section 5.4).
+- **Browse images that show the ring.** The grey-scale stretch now starts
+  at zero, so the background reads as black and the ring has the scale to
+  itself; the review copy started below zero and rendered empty sky as
+  mid-grey (section 8).
+- **New files for the reader.** A `readme.txt` at the root, and five
+  example Python programs in the document collection, one per product type
+  (sections 1 and 10.1).
+- **A rewritten user guide**, two and a half times the length, with three
+  new sections, and now in PDF/A, the archival form of PDF (section 10.2).
+- **Housekeeping.** Line endings, stray tab characters, identifiers that
+  resolved to nothing, and an instruction addressed to the archivist that
+  was left inside a label are all gone (sections 12 and 13).
+- **Dictionary.** The data labels use version 1.15.0.0 of the Rings
+  dictionary, published since the review copy was made (section 5.1).
 
 ### Notes for the reviewer
 
@@ -120,10 +99,10 @@ is cited.
 - **Background coverage.** The background-subtracted mosaics keep the same
   valid longitudes as the peer-review copy (section 7.2). A longitude is
   dropped when too few pixels remain in a background window after the
-  anomalous pixels have been masked; 47,216 of the 2,888,402 valid mosaic
-  longitudes (1.6 percent) are dropped this way, and all but 303 of them
-  have an incomplete background window in the mosaic itself. The labels and
-  guide section 3.6 now state the criterion, including the masking step.
+  anomalous pixels have been masked. About one longitude in sixty is lost
+  this way, and nearly all of those have an incomplete background window in
+  the mosaic itself; section 7.2 gives the counts. The labels and guide
+  section 3.6 now state the criterion, including the masking step.
 
 ## 1. Bundle level
 
