@@ -22,8 +22,8 @@ urn:nasa:pds:cassini_iss_fring_mosaics_rsfrench2025:document:f-ring-mosaics-user
 or by browsing the document collection of this bundle at the PDS Ring-Moon
 Systems Node: https://pds-rings.seti.org/
 
-The following is the recommended information to include in a (e.g. journal)
-citation of this dataset:
+The following is the recommended information to include in a citation of this
+dataset, for example in a journal article:
 
   "French, R. S., & Hedman, M. M. (2026).
    F Ring Mosaics and Reprojected Images Created from Calibrated Cassini ISS

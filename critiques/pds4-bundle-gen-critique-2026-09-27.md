@@ -893,7 +893,7 @@ incomplete.
 | 4.5.5 Segment suffixes in browse | Fixed as ruled | "(segment N)" added to the title and descriptions of the 4,936 reprojected-image products of split observations and of their 4,936 browse products. Mosaic browse titles keep the observation name without the segment: an observation is the full Cassini observation, and the segment is carried by the LID and file name |
 | 4.6.1 Corotating-longitude wraparound | Closed, author decision | the dictionary clause is not enforced; no bundle change |
 | 4.6.2 Resolution attributes as field names | Closed, author decision | the "not intended as a table field" note is advisory; the names stay |
-| 4.6.3 Sentinels and placeholders | Open in part | the -999 temperatures are carried from the source labels by decision; `N/A` and `UNK` remain undescribed |
+| 4.6.3 Sentinels and placeholders | Closed, author decision | every one of these values is copied from the PDS3 source label, so describing them belongs to the ISS archive, not to this bundle |
 | 4.7 Supplemental precision | Fixed | right ascension, declination and roll are printed to six decimals (0.0036 arcsec) |
 | 4.8 The metakernel | Closed, author decision | a metakernel without `PATH_VALUES` is acceptable; left as shipped |
 | 4.9 User guide | Fixed in part; see 9.3 | |
@@ -986,9 +986,12 @@ and the guide.
 The epoch sentence now reads "arbitrarily chosen to be a time partway into
 Cassini's time at Saturn", which 2007-01-01 is.
 
-Closed by the author on 2026-09-30, with no change: the thumbnail overlays;
-the readme citation parenthesis; the PDF's page-break gaps (the guide was
-relaid out separately). `kernels.lblx` still carries no author list, which
+The readme's citation sentence now reads "the recommended information to
+include in a citation of this dataset, for example in a journal article",
+replacing the "(e.g. journal)" parenthesis.
+
+Closed by the author on 2026-09-30, with no change: the thumbnail overlays
+and the PDF's page-break gaps (the guide was relaid out separately). `kernels.lblx` still carries no author list, which
 matches the other per-product labels by decision.
 
 ### 9.5 PDS4 validate on the rebuilt bundle
