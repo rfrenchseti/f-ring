@@ -461,7 +461,7 @@
                 is not the order in which the columns are stored in the image: the records
                 covering 0 degrees to rings:maximum_corotating_ring_longitude come first,
                 followed by those covering rings:minimum_corotating_ring_longitude to 360
-                degrees. Longitudes that contain no valid data have no record at all, so in
+                degrees. A longitude where no valid data were collected has no record at all, so in
                 general record N does not correspond to image column N. Use the
                 rings:corotating_ring_longitude field, not the record number, to associate a
                 record with a column.

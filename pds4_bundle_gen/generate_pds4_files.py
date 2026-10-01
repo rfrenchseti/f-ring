@@ -2553,7 +2553,7 @@ the navigation for all of the images for mosaic {obsid.lower()} is "{nav_qual_st
 The predicted position of Prometheus at the time of this image lies within 1050 km of
 the F ring core at a corotating longitude this image covers. Its presence has not been
 visually confirmed, and the predicted position may fall outside the radial range of the
-image or on a pixel that contains no data.
+image or on a pixel where no data were collected.
 """
     if 'Pandora' in ret['TARGET_IDENTIFICATION']:
         ret['REPROJ_COMMENT'] += """
@@ -2561,7 +2561,7 @@ image or on a pixel that contains no data.
 The predicted position of Pandora at the time of this image lies within 1050 km of
 the F ring core at a corotating longitude this image covers. Its presence has not been
 visually confirmed, and the predicted position may fall outside the radial range of the
-image or on a pixel that contains no data.
+image or on a pixel where no data were collected.
 """
     if ('Prometheus' in ret['TARGET_IDENTIFICATION'] or
         'Pandora' in ret['TARGET_IDENTIFICATION']):
@@ -2900,7 +2900,7 @@ corotating longitude this mosaic covers, and its presence has been visually conf
 The predicted position of Prometheus lies within 1050 km of the F ring core at a
 corotating longitude this mosaic covers. Its presence has not been visually confirmed,
 and the predicted position may fall outside the radial range of the mosaic or on a pixel
-that contains no data.
+where no data were collected.
 """
     if 'Pandora' in ret['TARGET_IDENTIFICATION']:
         if mosaic_has_visual_pandora(obsid):
@@ -2915,7 +2915,7 @@ corotating longitude this mosaic covers, and its presence has been visually conf
 The predicted position of Pandora lies within 1050 km of the F ring core at a
 corotating longitude this mosaic covers. Its presence has not been visually confirmed,
 and the predicted position may fall outside the radial range of the mosaic or on a pixel
-that contains no data.
+where no data were collected.
 """
     if ('Prometheus' in ret['TARGET_IDENTIFICATION'] or
         'Pandora' in ret['TARGET_IDENTIFICATION']):

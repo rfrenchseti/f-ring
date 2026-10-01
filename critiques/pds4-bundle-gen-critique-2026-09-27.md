@@ -433,7 +433,7 @@ directory. Every file exists at NAIF, but seven of the SPKs live under
 and neither `kernels.lblx` (whose `External_Reference` points at NAIF
 documentation) nor guide section 4.5 says the kernels are not in the bundle
 or where to fetch them. CK coverage 2004-06-19 to 2017-09-19 and SPK
-coverage bracket every image; the three short CK gaps contain no image.
+coverage bracket every image; no image falls in the three short CK gaps.
 
 ### 4.9 User guide
 
@@ -539,8 +539,8 @@ reprojected and browse labels cross-reference each other consistently in all
 42,388 products. All 42,391 fixed-width tables have the declared header
 length, record count, record length, field layout and data types, are pure
 ASCII with LF endings, and their header lines equal the label field names.
-All 21,194 arrays are exactly 401 by N by 4 bytes, contain no NaN or
-infinity, none is entirely -999, and values span -0.07 to 1.34 I/F. The 32
+All 21,194 arrays are exactly 401 by N by 4 bytes, no pixel is NaN or
+infinite, none is entirely -999, and values span -0.07 to 1.34 I/F. The 32
 labels run through `validate -R pds4.label` (bundle, 11 collections, every
 product type) pass apart from the L2 Puppis registry entry.
 
