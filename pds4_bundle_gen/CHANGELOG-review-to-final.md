@@ -47,7 +47,7 @@ is cited.
 - **New collection and files.** A `miscellaneous` collection holds the
   three global index tables, which were in `document/supplemental/`; an
   index table is not a document, and in the review copy its inventory rows
-  were malformed and resolved to nothing. A `readme.txt` was added at the
+  were malformed and did not resolve to any product. A `readme.txt` was added at the
   root, as the PDS4 standard expects. Five example Python programs were
   added to the document collection, so that a reader has working code for
   every product type.
@@ -173,7 +173,8 @@ is cited.
   secondary members: the ISS Data User's Guide and the eight Cassini
   context products). `document/supplemental/` and its six files removed. The
   index tables are data about the products, not documents, and the review
-  copy's document inventory named them in a form that resolved to nothing.
+  copy's document inventory named them in a form that did not resolve to any
+  product.
 - Collection titles for context, document, spice_kernels and xml_schema:
   "... F Ring Mosaics and Associated Reprojected Versions of Cassini ISS
   Calibrated Images" to "... F Ring Mosaics and Associated Reprojected
@@ -292,8 +293,9 @@ is cited.
   archived data. Comparing each mosaic column with the columns of the
   reprojected images archived for that observation: 2,430,751 of 2,851,152
   columns matched the image named in the metadata, 312,336 matched a
-  different archived image, and 108,065 matched no archived image. Sixteen
-  of the 36 mosaics matched their named images in no column at all (for
+  different archived image, and 108,065 did not match any archived image. In
+  sixteen of the 36 mosaics not one column matched the image its metadata
+  named (for
   example `iss_000ri_satsrchap001_prime`: 11,500 columns from other images,
   6,500 from images not archived; `iss_134ri_spkmvdfhp001_prime` and
   `iss_174ri_spokemov002_prime`: all 18,000 columns from images not
@@ -309,8 +311,8 @@ is cited.
   the O observations (stellar occultations), the reprojected images are the
   product of interest, so every image is archived whether or not it
   supplied data to the mosaic. 143 of the 20,584 images did not contribute
-  to a mosaic (97, 16, 27 and 3 in those four observations); each appears
-  in no source-image table and its own label says so. The other five R
+  to a mosaic (97, 16, 27 and 3 in those four observations); none of them
+  appears in a source-image table, and each says so in its own label. The other five R
   observations and all 15 O observations already archived every image.
 - Net change, 20,303 to 20,584:
 

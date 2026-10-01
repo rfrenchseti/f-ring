@@ -198,8 +198,8 @@ ISO 7064 checksum and the three ROR identifiers resolve.
 **4.2.1 "From 750 to 1000 km" versus the rows used.** The fit uses lines
 0-49 and 351-400, i.e. delta radius -1000 to -755 km and +755 to +1000 km:
 for every candidate window, only that placement satisfies the least-squares
-normal equations of the archived background, in 305 of 305 products, and any
-window that includes the 750 km line satisfies them in none. The 305
+normal equations of the archived background, in 305 of 305 products, and no
+window that includes the 750 km line satisfies them in any product. The 305
 background-subtracted labels say "the available data from 750 to 1000 km
 closer to Saturn and 750 to 1000 km further from Saturn" (217 with the
 default limits; the other 88 state their own limits the same way). The
