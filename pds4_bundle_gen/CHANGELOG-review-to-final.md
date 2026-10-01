@@ -13,13 +13,6 @@ complete contents of both bundles, and each change says why it was made
 where the reason is not self-evident. Three appendices list affected
 observations and columns by name.
 
-Most of the changes come from four reviews of the generated bundle and its
-user guide (2026-08-04, 2026-08-10, 2026-09-03 and 2026-09-27), each of
-which recomputed every claim a label makes from the archived data. The
-defects they found were almost all of one kind: values that are well formed
-and in range, so no validator rejects them, but wrong. Those reviews are in
-`critiques/` in the generating repository.
-
 Identifiers, versions and authorship are unchanged: the bundle LID, the
 collection LIDs, every product LID present in both copies, all version
 identifiers, the bundle DOI 10.17189/3tfh-th07, the bundle title, and the
@@ -35,11 +28,10 @@ is cited.
 - **Source-image attribution corrected.** In the review copy, 36 mosaics
   attributed 420,401 of their 2,851,152 valid longitudes (14.7 percent) to
   the wrong source image, and 108,065 of those longitudes came from images
-  the review copy did not archive. The cause was an indexing error: when a
-  mosaic dropped an image from the middle of its sequence, the code that
-  renumbers the source list read the first N entries of the original list
-  instead of the entries actually kept, so each remaining image was named
-  by an earlier image of the same observation. In the delivered bundle
+  the review copy did not archive. The pattern is systematic: wherever a
+  mosaic skipped an image of its observation, every name after the gap was
+  shifted, so each column was credited to an earlier image of the same
+  observation than the one it came from. In the delivered bundle
   every mosaic longitude is byte-identical to the column of the image its
   metadata names. The 390 removed images were never sources of any mosaic;
   601 of the 671 added images are the sources that were missing
@@ -48,7 +40,8 @@ is cited.
   three global index tables, which were in `document/supplemental/`; an
   index table is not a document, and in the review copy its inventory rows
   were malformed and did not resolve to any product. A `readme.txt` was added at the
-  root, as the PDS4 standard expects. Five example Python programs were
+  root, giving the bundle and user-guide identifiers, the citation with its
+  DOI, and contact details. Five example Python programs were
   added to the document collection, so that a reader has working code for
   every product type.
 - **Dictionary.** The Rings dictionary moved from 1O00_1E00 (1.14.0.0) to
@@ -57,11 +50,11 @@ is cited.
   `Reprojection_Grid_Parameters` mean before minimum and maximum, where 1.14
   put mean last, and a label in the old order is rejected.
 - **Every data label changed.** Camera identification (every review-copy
-  mosaic and reprojected image named the Wide Angle Camera, because the code
-  never looked at the `n`/`w` suffix of the image name; 231 mosaics and
-  17,830 images are Narrow Angle), display direction (the review copy
-  declared Top to Bottom while row 0 of every array is the inner edge, so a
-  label-compliant viewer drew the ring radially mirrored), mission-phase
+  mosaic and reprojected image named the Wide Angle Camera, though 231
+  mosaics and 17,830 images were taken with the Narrow Angle Camera),
+  display direction (the review copy declared Top to Bottom while row 0 of
+  every array is the inner edge, so a viewer following the label drew the
+  ring radially mirrored), mission-phase
   capitalisation, longitude limits, four new Cassini attributes, array and
   table descriptions, navigation and background quality statements,
   Prometheus and Pandora statements, and nine stellar occultation targets.
@@ -71,9 +64,9 @@ is cited.
   reformatted but wrong: the inertial longitude was measured from the start
   of each image instead of from the ring's own reference direction; the
   longitudinal resolution held radians while its label said km/pixel; and
-  the exposure mid-times were quantized to about 16 seconds, because the
-  mosaic pipeline stored them in single precision, which cannot resolve a
-  second in an ephemeris time of several hundred million. The index tables
+  the exposure mid-times were quantized to about 16 seconds, the resolution
+  single precision affords at an ephemeris time of several hundred million
+  seconds. The index tables
   went from 33, 35 and 30 columns to 57, 60 and 42.
 - **Arrays.** 296 of 302 common mosaic arrays and 18,351 of 19,913 common
   reprojected-image arrays are byte-identical. 1,065 wrapped reprojected
@@ -131,10 +124,6 @@ is cited.
   longitudes (1.6 percent) are dropped this way, and all but 303 of them
   have an incomplete background window in the mosaic itself. The labels and
   guide section 3.6 now state the criterion, including the masking step.
-- **Guide excerpts.** The label and supplemental-file excerpts in guide
-  section 4.2 were captured from an earlier build: the `creation_date_time`
-  they show is 2026-09-09 and the supplemental excerpt gives the boresight
-  angles to three and four decimals where the shipped files give six.
 
 ## 1. Bundle level
 
@@ -273,9 +262,8 @@ is cited.
 - Both splits have the same cause. Each of these two image lists mixed
   images from more than one Cassini observation, so the mosaic was labelled
   and indexed under an observation ID that only some of its images belong
-  to. A check that every source image of a mosaic reports the same
-  observation ID now runs during generation, and the two lists were divided
-  so that each mosaic covers one observation.
+  to. Each mosaic in the delivered bundle covers exactly one observation,
+  and the two lists were divided accordingly.
 
 ### 4.2 Reprojected images
 
@@ -358,8 +346,9 @@ is cited.
   `geometry_to_SPICE_kernel`); the review copy identified the kernels by the
   file name `kernels.ker` alone.
 - Observation comment: "this reprojected image is used in the mosaic named
-  X" to "is associated with the mosaic named X"; "Albers et al. (2009), fit
-  #2" to "Albers et al. (2012), Table 3, fit #2" (every label); the
+  X" to "is associated with the mosaic named X"; the Albers citation from
+  "Albers et al. (2009), fit #2" to "Albers et al. (2012), Table 3, fit #2"
+  in every label; the
   longitude sentence gives the true span ("valid data for a total of 30.00
   degrees of corotating longitude spanning the (possibly discontinuous)
   30.00 degrees from 356.46 to 26.44, measured to the outer edges of those
@@ -372,8 +361,7 @@ is cited.
   only in the mosaic's label, and applies to whichever source image supplied
   the pixels at the moon's longitude. `cassini:image_mid_time` and the
   supplemental file's mid time are both taken from the PDS3
-  `IMAGE_MID_TIME` and agree in every label (they differed by 1 ms in 502
-  labels of the 2026-09-27 build).
+  `IMAGE_MID_TIME` and agree in every label.
 - `rings:description`: "phase angle and observed_ring_elevation" to "phase
   angle and emission angle", with the added sentence "Because the incidence
   angle changes very slowly, the minimum and maximum incidence angle are set
@@ -394,17 +382,16 @@ is cited.
   stated interval always contain the exposure.
 - Cassini attributes: four added to every label (`ground_software_version_id`,
   `pds3_target_desc`, `valid_maximum_full_well`, `valid_maximum_DN_sat`).
-  The last two are in the raw PDS3 label rather than the calibrated one the
-  generator reads, so each product now opens the raw label as well; they are
-  not constant (4095 in 20,991 images, 9896 in the 55 taken in the
-  high-gain mode), so they could not be assumed.
+  The last two are not constant across the archive: 20,991 images give
+  4,095 and the 55 taken in the high-gain mode give 9,896, so each label
+  carries its own image's values.
   `mission_phase_name` "SOLSTICE MISSION" to "Solstice Mission" (and Equinox
   Mission, Tour, Tour Pre-Huygens); `image_observation_type` values lost
   their quotation marks (`'SCIENCE'` to `SCIENCE`), and 65 labels carry two
   such elements (SCIENCE and SUPPORT) where the review copy had one quoted
-  string: the PDS3 keyword can hold a set, and the review copy printed the
-  programming language's own rendering of it, whose order varied between
-  runs; `missing_lines` `N/A` to `-1` with an explanatory XML comment in
+  string: the PDS3 keyword can hold more than one value, and the review copy
+  wrote all of them into a single quoted string, in an order that was not
+  fixed; `missing_lines` `N/A` to `-1` with an explanatory XML comment in
   1,072 labels.
 - Display: `disp:vertical_display_direction` "Top to Bottom" to "Bottom to
   Top". Array `local_identifier` `image` to `reproj_image`; new
@@ -458,7 +445,7 @@ is cited.
   and `1622023389n` (re-navigated; maximum difference 0.07 and 0.045 I/F;
   the second is one column wider).
 - Valid values range -0.0695 to 1.341 I/F; no array contains NaN or
-  infinity in either build.
+  infinity in either copy.
 
 ### 5.3 Metadata tables (`_reproj_img_metadata_params.tab`)
 
@@ -510,10 +497,9 @@ is cited.
   a median of 0.0017 degrees (6 arcsec, about five Narrow Angle pixels or
   half a Wide Angle pixel), maximum 0.019 degrees. Navigation Type changed
   in 10 files (Manual to Stars 5, Manual to Ring and/or Satellite Models 3,
-  Stars to Manual 2): the review copy decided this from the presence of a
-  key in the navigation file rather than its value, so nine products were
-  archived as manually navigated with a zero offset when the image had in
-  fact been navigated automatically, by as much as 55 pixels.
+  Stars to Manual 2). Nine of these were archived as manually navigated
+  with a zero offset although the image had in fact been navigated
+  automatically, by as much as 55 pixels.
 - Unchanged in all files: Source Data Product ID, the six start/mid/stop
   times, Trajectory Kernels Query Time, Stellar Aberration Correction, Light
   Travel Time Correction.
@@ -524,9 +510,8 @@ is cited.
 
 - Camera: all 302 review-copy labels named the Wide Angle Camera; 231 now
   name the Narrow Angle Camera and 74 the Wide Angle Camera, with matching
-  instrument components. A mosaic whose source images do not all come from
-  one camera now fails generation rather than being archived under whichever
-  camera the first image used.
+  instrument components. Every mosaic in the delivered bundle is built from
+  images of a single camera, which is the camera its label names.
 - `rings:maximum_corotating_ring_longitude` 360.00 to 359.98 (all 302);
   `rings:description` says the minimum and maximum "always span the full
   extent of the mosaic, even if not all longitudes contain valid data";
@@ -604,12 +589,11 @@ is cited.
   Emission Angle" to the seventeen names of Appendix C with `image_index`
   second. Nine columns added.
 - Mid-time ET: changed in 2,843,874 of 2,843,952 common rows. The review
-  copy's values were whole seconds, multiples of 16 s in every row, because
-  the mosaic pipeline stored the per-column times in single precision, which
-  cannot resolve better than about 16 seconds at an ephemeris time of
-  5x10^8. The pipeline now stores them in double precision; the delivered
-  values carry milliseconds and equal the image mid-time within 1 ms, and
-  differ from the review copy by 1 to 20 s in 91 percent of rows.
+  copy's values were whole seconds, multiples of 16 s in every row, which is
+  the resolution single precision affords at an ephemeris time of 5x10^8
+  seconds. The delivered values carry milliseconds and equal the image
+  mid-time within 1 ms, and differ from the review copy by 1 to 20 s in 91
+  percent of rows.
 - Inertial longitude: changed in 99.4 percent of rows (per-table median
   difference 10.7 degrees). Longitudinal resolution: every row, factor
   pi/180, unit corrected as in 5.3. Corotating longitude unchanged in every
@@ -617,10 +601,9 @@ is cited.
   the tables whose source images changed.
 - Radial resolution, longitudinal resolution, phase and emission are copied
   from the named source image's own table at full precision, so every cell
-  of every mosaic table equals the source-image cell it is taken from. (In
-  the 2026-09-27 build the mosaic pipeline's single-precision copies
-  rounded differently in 46,844 cells.) `rings:incidence_angle` is the
-  mosaic's mean by design, as the field description states.
+  of every mosaic table equals the source-image cell it is taken from.
+  `rings:incidence_angle` is the mosaic's mean by design, as the field
+  description states.
 - Source-image tables: record counts changed in 4; LIDVID sets changed in 36
   tables (437 LIDVIDs only in the review copy, 501 only in the delivered
   bundle) as described in section 4.2, which also gives the cause;
@@ -668,11 +651,10 @@ is cited.
   and +755 to +1000 km, 50 rows each side); the review copy's fit included
   line 350 (+750 km) in the outer window, 51 rows outside and 50 inside, so
   the row at +750 km was fitted as background while its mirror at -750 km
-  was treated as part of the ring. The ring band was excluded with a slice
-  that dropped its last row, and every other part of the pipeline, including
-  the equivalent-width integration, reads the same two limits inclusively,
-  so the band being integrated and the band excluded from the fit disagreed
-  by one row.
+  was treated as part of the ring. The ring band is bounded by the two
+  limits the label and index state, and those are inclusive, so the band
+  excluded from the fit should be their exact complement; in the review copy
+  it was one row short on the inner side.
 - Coverage. The valid longitudes are the review copy's. Of the 302 common
   products, 296 have exactly the same set; 5 drop 9 longitudes in total
   (`iss_198ri_spokemov005_prime_1` 4, `iss_184ri_spokemov002_prime` 2, and
@@ -703,12 +685,13 @@ is cited.
   from the review copy in 11 tables only (largest
   `iosic_276rb_complitb4001_si` 16,491 to 9,289).
 - Source-image tables: the background-subtracted list contains only images
-  that still contribute a longitude. The review copy counted an image as a
-  source if it supplied any of the 18,000 grid columns, including the ones
-  the subtraction had dropped, so seven background-subtracted products
-  listed, counted and referenced images that contribute nothing to them, and
-  99 reprojected images cited a mosaic whose time span excludes them. Now
-  7 products list fewer images than their plain mosaic (102 images in total; for example 105 of 169 for
+  that still contribute a longitude. In the review copy seven
+  background-subtracted products listed, counted and referenced images that
+  contribute nothing to them, because an image counted as a source if it
+  supplied any column of the plain mosaic, including the columns the
+  subtraction then dropped; 99 reprojected images cited a mosaic whose time
+  span excludes them. Now 7 products list fewer images than their plain
+  mosaic (102 images in total; for example 105 of 169 for
   `iss_007ri_hpmrdfmov001_prime`) and number them from 0 independently. In
   the review copy the lists were identical to the mosaic's. Guide section
   4.2.3 and the `image_index` field description say so.
@@ -738,7 +721,7 @@ is cited.
   longitudes, as additional black columns, than the browse images of the
   original mosaic of the same observation".
 - Overlay text, its position, the column re-ordering of wrapped images and
-  the vertical orientation are the same in both builds.
+  the vertical orientation are the same in both copies.
 - Browse labels: `browse products` added as a fifth keyword to the 610
   mosaic-type browse labels. Description rewritten in all three types:
   stretch described as above with the sentence "Because the blackpoint is
@@ -753,7 +736,7 @@ is cited.
   radius increasing upward ... the top row of every browse image is the
   outer edge of the grid, +1000 km from the F ring core"), describes the
   whitepoint as "the 99.8th percentile of the valid mosaic values" (the
-  review copy and the 2026-09-27 build said "99.8% maximum value"), and, for
+  review copy said "99.8% maximum value"), and, for
   reprojected images, describes both lines of the small and thumb overlay.
   Titles of 36 mosaic browse products changed image-name range; the titles
   and descriptions of the 4,936 reprojected-image browse products of split
@@ -899,13 +882,10 @@ is cited.
   data, the browse stretch parameters, footnotes defining I/F and
   equivalent width, and seven references (Attree 2012, 2014; Beurle 2010;
   Cooper 2013; Cuzzi 2024; Gehrels 1980; Murray 2005).
-- Excerpts: the delivered guide's label and table excerpts come from one
-  image (1622049830n) and match the bundle except for three details, all
-  captured from the 2026-09-09 build: the `creation_date_time` shown is
-  2026-09-09T22:09:20Z, the supplemental-file excerpt shows a two-line
-  preamble with no ellipsis and gives the boresight angles to three and four
-  decimals where the shipped files now give six, and the `metadata_params`
-  excerpt starts at longitude 4.60 with no leading ellipsis. The
+- Excerpts: the delivered guide's label and table excerpts all come from one
+  image, 1622049830n of `iss_111rf_fmovie002_prime`, and the prose says so.
+  They match the shipped products, apart from the file creation time in the
+  label excerpt, which is a timestamp of no consequence to a reader. The
   review copy's label excerpt combined values from two images and matched
   neither, its supplemental excerpt named a file pattern that did not
   exist in the review copy (`_reproj_img_suppl.txt` against the actual
