@@ -953,10 +953,11 @@ the PDF was rebuilt (48 pages, veraPDF PDF/A-1b PASS) and installed in
 `pds4_bundle_gen/templates/`. They reach the bundle at the next
 regeneration; the shipped 2026-09-28 PDF still carries the old text.
 
-- Section 4.2.1 shows the shipped `creation_date_time` (2026-09-28T21:45:52Z),
-  and the surrounding paragraph now says that a data file's creation time
-  records when that copy was written and so differs between builds, which
-  keeps the excerpt true of any build.
+- Section 4.2.1 shows the `creation_date_time` of the 2026-09-28 build
+  (2026-09-28T21:45:52Z). The author ruled on 2026-10-01 that the creation
+  time in the excerpt does not matter and that the guide should say nothing
+  about builds, a reader seeing only one; it is not re-captured after a
+  regeneration.
 - The supplemental-file excerpt carries the whole seven-line preamble,
   including the roll definition, and the six-decimal right ascension,
   declination and roll of the shipped files.
