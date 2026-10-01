@@ -677,6 +677,16 @@ cspyce.furnsh(os.path.join(kdir, 'General/SPK/de438.bsp'))
 cspyce.furnsh(os.path.join(kdir, 'Saturn/SPK/sat393.bsp'))
 cspyce.furnsh(os.path.join(kdir, 'Cassini/PCK/cpck15Dec2017.tpc'))
 
+# OOPS furnishes its own kernels, including a Saturn satellite ephemeris that
+# supersedes sat393.bsp above, the first time it reads an image. Load them now
+# so that every moon position computed during a run comes from the same
+# kernels. Without this the products written before the first image was read
+# (the mosaics of the alphabetically first observation) used a different
+# ephemeris from their own source images and differed from them by a metre,
+# which showed as the last printed digit of radius_prometheus and
+# radius_pandora.
+coiss.initialize()
+
 SATURN_ID     = cspyce.bodn2c('SATURN')
 PANDORA_ID    = cspyce.bodn2c('PANDORA')
 PROMETHEUS_ID = cspyce.bodn2c('PROMETHEUS')
@@ -2570,8 +2580,8 @@ The parameters in this class are derived as follows:
 
 
 epoch_reprojection_basis_utc is the date and time when the inertial longitude and
-corotating longitude are the same. It is arbitrarily chosen to be a time near Cassini's
-arrival at Saturn and is the same for all reprojected images.
+corotating longitude are the same. It is arbitrarily chosen to be a time partway into
+Cassini's time at Saturn and is the same for all reprojected images.
 
 
 corotation_rate is the mean corotation rate of the F ring core taken from Albers et al.
@@ -2855,8 +2865,8 @@ is "{nav_qual_str}".{bkg_comment}
 The parameters in this class are derived as follows:
 
 - epoch_reprojection_basis_utc is the date and time when the inertial longitude and
-corotating longitude are the same. It is arbitrarily chosen to be a time near Cassini's
-arrival at Saturn and is the same for all reprojected images.
+corotating longitude are the same. It is arbitrarily chosen to be a time partway into
+Cassini's time at Saturn and is the same for all reprojected images.
 
 - corotation_rate is the mean corotation rate of the F ring core taken from Albers et al.
 (2012), Table 3, fit #2.

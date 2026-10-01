@@ -869,7 +869,7 @@ incomplete.
 
 | Finding | Status | Evidence in the rebuilt bundle |
 |---|---|---|
-| 4.1.1 Publication year | Fixed | `publication_year` 2026 in all 42,405 labels; guide title page "Version 1.0, 2026"; both citations "(2026)"; document `publication_date` 2026-09-28. The LID keeps `rsfrench2025` by decision. Both bundle DOIs still return 404 (external) |
+| 4.1.1 Publication year | Fixed | `publication_year` 2026 in all 42,405 labels; guide title page "Version 1.0, 2026"; both citations "(2026)"; document `publication_date` 2026-09-28. The LID keeps `rsfrench2025` by decision. Both bundle DOIs return 404, which is expected until the Node mints them |
 | 4.1.2 Two modification dates | Fixed | `modification_date` 2026-09-28 in all 42,405 labels; the run stayed inside one UTC day |
 | 4.1.3 Two author lists for the guide | Fixed in the template | Hedman was removed from `Citation_Information/List_Author` on the author's instruction (2026-09-30), so both lists, the guide's title page and its "Citing this User Guide" line name French alone. He remains an author of the bundle itself, in the bundle and collection labels, the index labels, the readme's citation and the guide's "Citing this bundle" line. Reaches the bundle at the next regeneration |
 | 4.1.4 Contributor sequence 1, 2, 2, 2 | Author decision, intentional | unchanged |
@@ -881,21 +881,21 @@ incomplete.
 | 4.3.2 Four edge-column images | Fixed | all four labels now carry the moon sentence and `Target_Identification`; the edge-of-data rejection was removed from `_image_has_satellite` |
 | 4.3.3 Wording differs between product types | Fixed | the reprojected-image comment now states that visual confirmation is made on the mosaic, is recorded only in the mosaic label, and applies to whichever image supplied the pixels |
 | 4.4.1 Unused images reference the mosaic | Fixed | the 143 unused images carry no `data_to_derived_product` reference to either mosaic product and say so in their description; the 102 images whose longitudes the subtraction removed reference the mosaic only, with a sentence saying why; guide section 3.1.6 explains both cases. Residue: the `Observation_Area` comment of the 143 still says "is associated with the mosaic named X" |
-| 4.4.2 `data_to_derived_product` direction | Open, archivist decision | unchanged |
+| 4.4.2 `data_to_derived_product` direction | Closed, author decision | left as shipped |
 | 4.4.3 Metakernel referenced by file name | Fixed | `Internal_Reference` to `...:spice_kernels:kernels` with `reference_type` `geometry_to_SPICE_kernel` in all 20,584 reprojected-image labels and in all 610 mosaic-type labels, which gained the `geom:` class |
 | 4.4.4 Index products without context | Fixed | the three index labels have a `Context_Area` (time range, investigation, observing system, targets) and a `Reference_List`; `collection_miscellaneous.lblx` and `collection_spice_kernels.lblx` gained a `Context_Area` |
-| 4.4.5 Source products not in the registry | Open, external | depends on the coordinated ISS delivery |
-| 4.4.6 L2 Puppis absent from the tool's list | Open, tool side | see 9.4 |
+| 4.4.5 Source products not in the registry | Closed, Node handles it | the coordinated ISS delivery supplies them |
+| 4.4.6 L2 Puppis absent from the tool's list | Closed, Node handles it | the Node registers the context product as needed; see 9.5 |
 | 4.5.1 Vertical orientation unstated | Fixed | all 21,194 browse labels state that the rows run with delta radius increasing upward, top row +1000 km, which reverses the array storage order; guide sections 4.2.2 and 4.2.4 say the same |
 | 4.5.2 Small and thumb overlays | Fixed | all 20,584 reprojected-image browse labels describe both lines of the overlay |
 | 4.5.3 Background-subtracted browse | Fixed | all 305 labels say the images can show fewer longitudes, as additional black columns, than the browse images of the mosaic |
 | 4.5.4 "99.8% maximum value" | Fixed | "99.8th percentile" in all 21,194 browse labels |
 | 4.5.5 Segment suffixes in browse | Fixed as ruled | "(segment N)" added to the title and descriptions of the 4,936 reprojected-image products of split observations and of their 4,936 browse products. Mosaic browse titles keep the observation name without the segment: an observation is the full Cassini observation, and the segment is carried by the LID and file name |
-| 4.6.1 Corotating-longitude wraparound | Deferred | the RINGS dictionary definition will be changed; no bundle change |
-| 4.6.2 Resolution attributes as field names | Open | unchanged; the names remain decorative |
+| 4.6.1 Corotating-longitude wraparound | Closed, author decision | the dictionary clause is not enforced; no bundle change |
+| 4.6.2 Resolution attributes as field names | Closed, author decision | the "not intended as a table field" note is advisory; the names stay |
 | 4.6.3 Sentinels and placeholders | Open in part | the -999 temperatures are carried from the source labels by decision; `N/A` and `UNK` remain undescribed |
 | 4.7 Supplemental precision | Fixed | right ascension, declination and roll are printed to six decimals (0.0036 arcsec) |
-| 4.8 The metakernel | Open | `kernels.ker` still has no `PATH_VALUES`, and neither its label nor the guide says the kernels are not in the bundle or where NAIF distributes them |
+| 4.8 The metakernel | Closed, author decision | a metakernel without `PATH_VALUES` is acceptable; left as shipped |
 | 4.9 User guide | Fixed in part; see 9.3 | |
 | 4.10 Small label inconsistencies | See 9.3 | |
 
@@ -911,10 +911,17 @@ Fixed in 4.10:
   named source image's table in every row of all 610 mosaic-type tables
   (0 differing cells, against 46,844): the generator copies the source
   image's float64 values instead of rounding the mosaic's float32 copy.
-  Two residues: `rings:incidence_angle` differs from the source images by
-  design, which the field description states, and the moon radii of
-  `iosic_276rb_complitb3001_si` still differ in the last digit (11,396
-  cells, up to 0.001 km) because they are not among the copied fields.
+  One residue remained in the 2026-09-28 build and is now fixed in the
+  generator: the moon radii of `iosic_276rb_complitb3001_si` differed in the
+  last digit (11,396 cells, 0.001 km). The cause was the kernel set, not the
+  copying: OOPS furnishes its own Saturn satellite ephemeris, which
+  supersedes `sat393.bsp`, the first time it reads an image, so the mosaics
+  of the alphabetically first observation were computed from a different
+  ephemeris than their own reprojected images. The generator now loads those
+  kernels before any product is written; a rebuild of that observation shows
+  0 differing cells, and a rebuild of `iss_111rf_fmovie002_prime` is
+  byte-identical to the shipped table. `rings:incidence_angle` still differs
+  from the source images by design, which the field description states.
 - **The rotation time in the mosaic comment.** Computed from the
   millisecond-precision start and stop times instead of the rounded label
   times (`iss_000ri_satsrchap001_prime` now says 52,800 seconds where the
@@ -925,14 +932,13 @@ Fixed in 4.10:
   permits only length units on the radial attributes and angle units on
   the longitudinal ones, so `km/pixel` cannot be used there.
 
-Open in 4.10:
-
-- The `rings:incidence_angle` field description still does not say which
-  source image's value the mosaic carries.
-- The six background-subtracted products with tied largest gaps still
-  report one of several equally valid endpoint pairs.
-- The index labels still use `km/pixel` and `deg/pixel` as field units
-  while the product labels use `km` and `deg` (see above).
+Closed by the author on 2026-09-30, with no change: the
+`rings:incidence_angle` description need not say which source image's value a
+mosaic carries; the six products with tied largest gaps may report any one of
+the equally valid endpoint pairs, since the alternatives are equal; and the
+index labels keep `km/pixel` and `deg/pixel` as field units while the product
+labels use `km` and `deg`, because the RINGS Schematron allows nothing else on
+the attributes.
 
 In 4.9, fixed: the year on the title page and in both citations; the
 background windows as 755 km with the worked 910 km example; a paragraph on
@@ -977,11 +983,13 @@ it and the `</Modification_History>` indent (all 11 collection labels are
 now identical in both respects); "dataset" in the index labels, the readme
 and the guide.
 
-Open: the epoch sentence ("arbitrarily chosen to be a time near Cassini's
-arrival at Saturn" for 2007-01-01); the thumbnail overlays covering a
-quarter of the 100x100 image; the readme's "(e.g. journal) citation"
-parenthesis; the PDF's page-break gaps. `kernels.lblx` still carries no
-author list, which matches the other per-product labels by decision.
+The epoch sentence now reads "arbitrarily chosen to be a time partway into
+Cassini's time at Saturn", which 2007-01-01 is.
+
+Closed by the author on 2026-09-30, with no change: the thumbnail overlays;
+the readme citation parenthesis; the PDF's page-break gaps (the guide was
+relaid out separately). `kernels.lblx` still carries no author list, which
+matches the other per-product labels by decision.
 
 ### 9.5 PDS4 validate on the rebuilt bundle
 
