@@ -2,7 +2,8 @@
 
 ## How the delivered bundle differs from the peer-review copy
 
-Peer-review copy: generated 2025-09-22. Delivered bundle: generated 2026-10.
+Peer-review copy: generated 2025-09-22. Delivered bundle: generated
+2026-10-02.
 Bundle LID `urn:nasa:pds:cassini_iss_fring_mosaics_rsfrench2025`, version 1.0,
 information model 1.24.0.0 in both.
 
@@ -106,7 +107,7 @@ reader of both would notice; the sections after it give the counts.
 
 ## 1. Bundle level
 
-- `readme.txt` (1,771 bytes, 7-bit ASCII) added at the root and declared in
+- `readme.txt` (1,787 bytes, 7-bit ASCII) added at the root and declared in
   `bundle.lblx` as `File_Area_Text`. It gives the bundle and user-guide
   LIDs, the citation with DOI 10.17189/3tfh-th07, and contact information
   for the Node and the author.
@@ -126,7 +127,7 @@ reader of both would notice; the sections after it give the counts.
   form of the source images; DOI: 10.17189/1504135".
 - Hedman's ORCID changed from `http://orcid.org/...` to
   `https://orcid.org/...` in all 14 labels listing authors.
-- `modification_date` 2025-09-22 became the delivery date in the bundle,
+- `modification_date` 2025-09-22 became 2026-10-02 in the bundle,
   collection, document, index and kernel labels; "Initial version" became
   "Initial version." where the period was missing.
 - `publication_year` 2025 became 2026 in every label that carries it.
@@ -793,8 +794,7 @@ reader of both would notice; the sections after it give the counts.
   Each runs against the bundle and reproduces the guide's Figures 7 to 9.
 - Document label: title "Cassini ISS F Ring Mosaics User's Guide" to "...
   User Guide"; `document_name` "F Ring Mosaics User's Guide" to "Cassini ISS
-  F Ring Mosaics User Guide"; `publication_date` 2025-09-22 to the delivery
-  date;
+  F Ring Mosaics User Guide"; `publication_date` 2025-09-22 to 2026-10-02;
   `files` 1 to 6; the PDF's `document_standard_id` "PDF" to "PDF/A"; the
   descriptions add "Example Python programs are also included."; an unused
   `xmlns:pds` declaration removed; the NAC component listed before the WAC.
@@ -918,9 +918,9 @@ reader of both would notice; the sections after it give the counts.
 - Every product label and index label of the review copy contained tab
   characters inside the `xsi:schemaLocation` value; the delivered labels use
   spaces.
-- `modification_date`: 2025-09-22 in every review-copy label, the delivery
-  date in every delivered label.
-- `creation_date_time` values: 2025-09-22 to the delivery date; the one value
+- `modification_date`: 2025-09-22 in every review-copy label, 2026-10-02 in
+  every delivered label.
+- `creation_date_time` values: 2025-09-22 to 2026-10-02; the one value
   without a `Z` (spice_kernels inventory) now has one. Index tables give
   creation as a UTC date-time instead of a date.
 - Metadata table column names carry the `rings:`, `pds:` and `cassini:`
