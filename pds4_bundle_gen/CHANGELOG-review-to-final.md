@@ -2,9 +2,9 @@
 
 ## How the delivered bundle differs from the peer-review copy
 
-Peer-review copy: generated 2025-09-22. Delivered bundle: generated
-2026-09-28. Bundle LID `urn:nasa:pds:cassini_iss_fring_mosaics_rsfrench2025`,
-version 1.0, information model 1.24.0.0 in both.
+Peer-review copy: generated 2025-09-22. Delivered bundle: generated 2026-10.
+Bundle LID `urn:nasa:pds:cassini_iss_fring_mosaics_rsfrench2025`, version 1.0,
+information model 1.24.0.0 in both.
 
 This document lists every difference a reader of the two bundles would see,
 grouped by part of the bundle, for the peer reviewer and the Ring-Moon
@@ -126,7 +126,7 @@ reader of both would notice; the sections after it give the counts.
   form of the source images; DOI: 10.17189/1504135".
 - Hedman's ORCID changed from `http://orcid.org/...` to
   `https://orcid.org/...` in all 14 labels listing authors.
-- `modification_date` 2025-09-22 became 2026-09-28 in the bundle,
+- `modification_date` 2025-09-22 became the delivery date in the bundle,
   collection, document, index and kernel labels; "Initial version" became
   "Initial version." where the period was missing.
 - `publication_year` 2025 became 2026 in every label that carries it.
@@ -793,23 +793,29 @@ reader of both would notice; the sections after it give the counts.
   Each runs against the bundle and reproduces the guide's Figures 7 to 9.
 - Document label: title "Cassini ISS F Ring Mosaics User's Guide" to "...
   User Guide"; `document_name` "F Ring Mosaics User's Guide" to "Cassini ISS
-  F Ring Mosaics User Guide"; `publication_date` 2025-09-22 to 2026-09-28;
+  F Ring Mosaics User Guide"; `publication_date` 2025-09-22 to the delivery
+  date;
   `files` 1 to 6; the PDF's `document_standard_id` "PDF" to "PDF/A"; the
   descriptions add "Example Python programs are also included."; an unused
   `xmlns:pds` declaration removed; the NAC component listed before the WAC.
-  `publication_year` 2025 to 2026; DOI 10.17189/ajhh-aj88, edition and
-  author lists unchanged.
+  `publication_year` 2025 to 2026. The document is now attributed to French
+  alone, matching the guide's own title page and its "Citing this User Guide"
+  line: `Citation_Information/List_Author` named French and Hedman while
+  `Document/List_Author` named French, and the two now agree. Hedman remains
+  an author of the bundle, in the bundle, collection and index labels, the
+  readme citation and the guide's "Citing this bundle" line. DOI
+  10.17189/ajhh-aj88 and the edition unchanged.
 
 ### 10.2 The PDF
 
-- 19 to 48 pages; PDF/A-2b to PDF/A-1b, the archival format the PDS4
-  standard asks for (the delivered file passes veraPDF PDF/A-1b with no
-  failures; the review copy failed PDF/A-1b on 14 checks and passed only its
-  own declared PDF/A-2b); title and author metadata
-  filled in (were empty); bookmarks 0 to 56; link annotations 0 to 251;
-  figures 6 to 9; numbered tables 0 to 5; references 8 to 15; text 5,535 to
-  16,071 words; "User's Guide" to "User Guide" throughout; headings in
-  sentence case.
+- 19 to 48 pages; PDF/A-2b to PDF/A-1b (the delivered file passes veraPDF
+  PDF/A-1b with no failures; the review copy failed PDF/A-1b on 14 checks and
+  passed only its own declared PDF/A-2b); title and author metadata filled in
+  (were empty); bookmarks 0 to 56; link annotations 0 to 273; figures 6 to 9;
+  numbered tables 0 to 5; references 8 to 15; text 5,535 to 16,828 words;
+  "User's Guide" to "User Guide" throughout; headings in sentence case. Every
+  reference in the list is cited in the text, and every citation resolves to
+  a reference.
 - Title page: version line "V1.0" to "Version 1.0, 2026"; DOI as a full
   URL; added paragraphs "Citing this bundle", "Citing this User Guide" and
   "Versions and errata" (version recording, errata posted at the Node,
@@ -825,6 +831,11 @@ reader of both would notice; the sections after it give the counts.
   reprojected-index fields; Table 5: the 57 mosaic-index fields plus the
   three background-subtracted-only fields, each with a definition, preceded
   by a statement of units).
+- Layout: the title page, the contents and the introduction each start their
+  own page; the contents sets a number close to its title; tables carry clear
+  space above their captions; each of the three worked example commands sits
+  above the figure it produces; and the note codes of section 4.4.1 are
+  ordered as the sections that define them, each citing its section.
 - Restructured: the old section 5 "References" became 6.5; "Reprojection"
   split into "F ring orbit" and "Reprojection process"; "N: Non-inertial"
   renamed "N: Neither inertial nor corotating"; the global index material
@@ -907,9 +918,9 @@ reader of both would notice; the sections after it give the counts.
 - Every product label and index label of the review copy contained tab
   characters inside the `xsi:schemaLocation` value; the delivered labels use
   spaces.
-- `modification_date`: 2025-09-22 in every review-copy label, 2026-09-28 in
-  every delivered label.
-- `creation_date_time` values: 2025-09-22 to 2026-09-28; the one value
+- `modification_date`: 2025-09-22 in every review-copy label, the delivery
+  date in every delivered label.
+- `creation_date_time` values: 2025-09-22 to the delivery date; the one value
   without a `Z` (spice_kernels inventory) now has one. Index tables give
   creation as a UTC date-time instead of a date.
 - Metadata table column names carry the `rings:`, `pds:` and `cassini:`
@@ -920,9 +931,14 @@ reader of both would notice; the sections after it give the counts.
   maximum, which is the order the 1.15 Rings dictionary requires.
 - Wording made consistent across labels, readme and guide: "corotating"
   (never the hyphenated form), "F ring" except in title case, "the data were
-  missing", "dataset", "Albers et al. (2012), Table 3, fit #2",
+  missing", "where no data are available" for a longitude or pixel that holds
+  none, "dataset", "Albers et al. (2012), Table 3, fit #2",
   `longitude_pericenter` in the field descriptions that had said
-  `long_peri`, and a space after every `<!--`. The three `C-matrix ...
+  `long_peri`, and a space after every `<!--`. The corotation epoch,
+  2007-01-01, is described as a time partway into Cassini's time at Saturn,
+  which it is, rather than as near its arrival. The mosaic comment's
+  navigation paragraph and its closing sentence on the quality of the
+  background subtraction each start a paragraph of their own. The three `C-matrix ...
   column` fields, empty in the review copy, have descriptions. All 11
   collection labels now declare the inventory record count in the same place
   and close `Modification_History` at the same indent.
