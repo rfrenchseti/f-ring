@@ -2771,6 +2771,7 @@ the resulting data values by more than a few percent."""
 
         bkg_comment += f"""
 
+
 The subjective quality of the background modeling and subtraction process for this
 mosaic is "{bkgnd_qual_str}"."""
 
@@ -2848,6 +2849,7 @@ longitudes were the same. This mosaic image contains valid data for a total of
 outer edges of those two longitude bins. The source
 images were calibrated using CISSCAL 4.0 and the data values are in units of
 I/F.
+
 
 Before reprojecting, the pointing specified by the available SPICE kernels was refined by
 using known features in the image. In some cases, manual intervention was required. The
