@@ -997,9 +997,10 @@ matches the other per-product labels by decision.
 
 ### 9.5 PDS4 validate on the rebuilt bundle
 
-`validate` 4.2.0 was run again on the rebuilt bundle with the same options
+`validate` 4.2.0 was run on the rebuilt bundle with the same options
 (`-e lblx -R pds4.bundle`, label, content and referential validation), on
-2026-09-28 from 18:54 to 21:03 PDT (2 h 8 min).
+2026-09-28 from 18:54 to 21:03 PDT, and again on the delivery build of
+2026-10-02 from 03:43 to 05:51 PDT. Both runs gave the same result.
 
 | Check | Result |
 |---|---|
