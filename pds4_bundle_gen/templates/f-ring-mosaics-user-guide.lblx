@@ -20,7 +20,7 @@
             $END_FOR
             <description>
                 This document is a detailed, comprehensive guide that provides an overview of the
-                Cassini ISS F Ring mosaics and associated reprojected versions of Cassini ISS
+                Cassini ISS F ring mosaics and associated reprojected versions of Cassini ISS
                 calibrated images archived in the PDS. It provides details essential to
                 understanding and using the data in the bundle. Example Python programs are
                 also included.
@@ -35,18 +35,6 @@
                     <Affiliation>
                         <organization_name>SETI Institute</organization_name>
                         <organization_rorid>https://ror.org/02dxgk712</organization_rorid>
-                        <sequence_number>1</sequence_number>
-                    </Affiliation>
-                </Person>
-                <Person>
-                    <display_full_name>Matthew M. Hedman</display_full_name>
-                    <given_name>Matthew</given_name>
-                    <family_name>Hedman</family_name>
-                    <person_orcid>https://orcid.org/0000-0002-8592-0812</person_orcid>
-                    <sequence_number>2</sequence_number>
-                    <Affiliation>
-                        <organization_name>University of Idaho</organization_name>
-                        <organization_rorid>https://ror.org/03hbp5t65</organization_rorid>
                         <sequence_number>1</sequence_number>
                     </Affiliation>
                 </Person>
@@ -230,7 +218,7 @@
         <document_editions>1</document_editions>
         <description>
             This document is a detailed, comprehensive guide that provides an overview of the
-            Cassini ISS F Ring mosaics and associated reprojected versions of Cassini ISS
+            Cassini ISS F ring mosaics and associated reprojected versions of Cassini ISS
             calibrated images archived in the PDS. It provides details essential to
             understanding and using the data in the bundle. Example Python programs are
             also included.

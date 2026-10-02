@@ -5,6 +5,8 @@
     schematypens="http://purl.oclc.org/dsdl/schematron"?>
 <?xml-model href="$PDS4_DISP_SCHEMA$"
     schematypens="http://purl.oclc.org/dsdl/schematron"?>
+<?xml-model href="$PDS4_GEOM_SCHEMA$"
+    schematypens="http://purl.oclc.org/dsdl/schematron"?>
 <?xml-model href="$PDS4_CASSINI_SCHEMA$"
     schematypens="http://purl.oclc.org/dsdl/schematron"?>
 
@@ -13,11 +15,13 @@
     xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
     xmlns:rings="http://pds.nasa.gov/pds4/rings/v1"
     xmlns:disp="http://pds.nasa.gov/pds4/disp/v1"
+    xmlns:geom="http://pds.nasa.gov/pds4/geom/v1"
     xmlns:cassini="http://pds.nasa.gov/pds4/mission/cassini/v1"
     xsi:schemaLocation="
     http://pds.nasa.gov/pds4/pds/v1 $PDS4_PDS_SCHEMA_XSD$
     http://pds.nasa.gov/pds4/rings/v1 $PDS4_RINGS_SCHEMA_XSD$
     http://pds.nasa.gov/pds4/disp/v1 $PDS4_DISP_SCHEMA_XSD$
+    http://pds.nasa.gov/pds4/geom/v1 $PDS4_GEOM_SCHEMA_XSD$
     http://pds.nasa.gov/pds4/mission/cassini/v1 $PDS4_CASSINI_SCHEMA_XSD$">
 
     <Identification_Area>
@@ -131,6 +135,28 @@
                     <disp:vertical_display_direction>Bottom to Top</disp:vertical_display_direction>
                 </disp:Display_Direction>
             </disp:Display_Settings>
+            <geom:Geometry>
+                <geom:SPICE_Kernel_Files>
+                    <geom:SPICE_Kernel_Identification>
+                        <geom:kernel_type>MK</geom:kernel_type>
+                        <geom:spice_kernel_file_name>kernels.ker</geom:spice_kernel_file_name>
+                        <Internal_Reference>
+                            <lid_reference>$KERNELS_LID$</lid_reference>
+                            <reference_type>geometry_to_SPICE_kernel</reference_type>
+                        </Internal_Reference>
+                    </geom:SPICE_Kernel_Identification>
+                    <geom:comment>
+                        This metakernel file lists all SPICE kernels used in the
+                        generation of the derived data products in the parent bundle. Some
+                        of them may not have been used directly in the generation of this
+                        product. The C-kernels identified in the metakernel provided the
+                        initial pointing of each source image, which was refined and is
+                        superseded by the C-matrix in the supplemental file of each
+                        reprojected image listed in the source image table below. In all
+                        cases, the base coordinate frame is J2000.
+                    </geom:comment>
+                </geom:SPICE_Kernel_Files>
+            </geom:Geometry>
             <rings:Ring_Moon_Systems>
                 <rings:Ring_Reprojection>
                     <Local_Internal_Reference>
@@ -217,11 +243,11 @@
             <axes>2</axes>
             <axis_index_order>Last Index Fastest</axis_index_order>
             <description>
-                Line is the radial axis and Sample is the co-rotating longitude axis.
+                Line is the radial axis and Sample is the corotating longitude axis.
                 Line 0 is the innermost row, at a delta radius of -1000 km from the
                 F ring core, and the delta radius increases outward by 5 km per line,
                 so that delta radius = -1000 + 5 * Line km and the modeled core lies
-                at Line 200. Sample 0 is co-rotating longitude 0 degrees and the
+                at Line 200. Sample 0 is corotating longitude 0 degrees and the
                 longitude increases by 0.02 degrees per sample, so that longitude =
                 0.02 * Sample degrees.
             </description>
@@ -235,7 +261,7 @@
                 <sequence_number>1</sequence_number>
             </Axis_Array>
             <Axis_Array>
-                <axis_name>Sample</axis_name> <!-- horizontal (co-rotating longitude) -->
+                <axis_name>Sample</axis_name> <!-- horizontal (corotating longitude) -->
                 <elements>$IMG_NUM_SAMPLES$</elements>
                 <sequence_number>2</sequence_number>
             </Axis_Array>
@@ -262,7 +288,7 @@
             <local_identifier>image_table</local_identifier>
             <offset unit="byte">19</offset>
             <records>$FILE_RECORDS(IMAGE_TABLE_PATH)-1$</records>
-            <description>Source image indices and associated LIDVIDs</description>
+            <description>Source image index numbers and associated LIDVIDs</description>
             <record_delimiter>Line-Feed</record_delimiter>
             <Record_Character>
                 <fields>2</fields>
@@ -317,8 +343,8 @@
             <records>$FILE_RECORDS(METADATA_PARAMS_TABLE_PATH)-1$</records>
             <description>
                 The metadata for each longitude in the mosaic that contains valid data.
-                The records are in order of increasing co-rotating longitude starting at 0
-                degrees. Longitudes that contain no valid data have no record at all, so in
+                The records are in order of increasing corotating longitude starting at 0
+                degrees. A longitude where no valid data are available has no record at all, so in
                 general record N does not correspond to image column N. Use the
                 rings:corotating_ring_longitude field, not the record number, to associate a
                 record with a column; for a mosaic the column is
@@ -456,7 +482,7 @@
                     <description>
                         The F ring core radius from the elliptic model at the tabulated corotating
                         longitude and exposure mid-time, using a=140221.3 km, e=0.00235,
-                        long_peri at J2000 = 24.2 deg, and pericenter precession rate =
+                        longitude_pericenter at J2000 = 24.2 deg, and pericenter precession rate =
                         2.70025 deg/day.
                     </description>
                 </Field_Character>
