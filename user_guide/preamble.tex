@@ -90,6 +90,32 @@
 \setcounter{secnumdepth}{4}
 \setcounter{tocdepth}{4}
 
+% The article class leaves a wide gap between a number and its title in the
+% table of contents (1.5em for a section, growing to 4.1em for a paragraph).
+% Set each gap to just clear the widest number at that level, which is the
+% same effect as the 0.6em after the numbers of the headings themselves, and
+% carry the narrower widths into the indents so each level still starts where
+% the level above it ends.
+\makeatletter
+\renewcommand*\l@section[2]{%
+  \ifnum \c@tocdepth >\z@
+    \addpenalty\@secpenalty
+    \addvspace{1.0em \@plus\p@}%
+    \setlength\@tempdima{1.0em}%
+    \begingroup
+      \parindent \z@ \rightskip \@pnumwidth
+      \parfillskip -\@pnumwidth
+      \leavevmode \bfseries
+      \advance\leftskip\@tempdima
+      \hskip -\leftskip
+      #1\nobreak\hfil \nobreak\hb@xt@\@pnumwidth{\hss #2}\par
+    \endgroup
+  \fi}
+\renewcommand*\l@subsection{\@dottedtocline{2}{1.0em}{1.7em}}
+\renewcommand*\l@subsubsection{\@dottedtocline{3}{2.7em}{2.5em}}
+\renewcommand*\l@paragraph{\@dottedtocline{4}{5.2em}{3.3em}}
+\makeatother
+
 % Sizes/weights follow the Word styles:
 %   Heading 1: 16 pt bold;  Heading 2: 13 pt bold;
 %   Heading 3 and 4: 12 pt bold italic
@@ -123,8 +149,10 @@
 \renewcommand{\floatpagefraction}{0.75}
 
 % --- tables ----------------------------------------------------------------
-\setlength{\LTpre}{8pt}
-\setlength{\LTpost}{8pt}
+% Every table is a longtable with its caption above it; LTpre is the space
+% between the preceding text and that caption.
+\setlength{\LTpre}{18pt}
+\setlength{\LTpost}{12pt}
 \renewcommand{\arraystretch}{1.15}
 
 % --- footer: "Page N of M" centered, as in the Word original ---------------

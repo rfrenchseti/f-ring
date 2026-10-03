@@ -193,6 +193,10 @@
                     <geom:SPICE_Kernel_Identification>
                         <geom:kernel_type>MK</geom:kernel_type>
                         <geom:spice_kernel_file_name>kernels.ker</geom:spice_kernel_file_name>
+                        <Internal_Reference>
+                            <lid_reference>$KERNELS_LID$</lid_reference>
+                            <reference_type>geometry_to_SPICE_kernel</reference_type>
+                        </Internal_Reference>
                     </geom:SPICE_Kernel_Identification>
                     <geom:comment>
                         This metakernel file lists all SPICE kernels used in the
@@ -263,6 +267,7 @@
             <reference_type>data_to_document</reference_type>
             <comment>$CASSINI_USER_GUIDE_DESC$</comment>
         </Internal_Reference>
+        $IF(USED_IN_MOSAIC)
         <Internal_Reference>
             <lid_reference>$MOSAIC_LID$</lid_reference>
             <reference_type>data_to_derived_product</reference_type>
@@ -270,6 +275,8 @@
                 $WRAP(16,91,MOSAIC_REFERENCE_COMMENT,preserve_single_newlines=False)$
             </comment>
         </Internal_Reference>
+        $END_IF
+        $IF(USED_IN_BKG_SUB)
         <Internal_Reference>
             <lid_reference>$MOSAIC_OTHER_LID$</lid_reference>
             <reference_type>data_to_derived_product</reference_type>
@@ -277,6 +284,7 @@
                 $WRAP(16,91,MOSAIC_OTHER_REFERENCE_COMMENT,preserve_single_newlines=False)$
             </comment>
         </Internal_Reference>
+        $END_IF
         <Internal_Reference>
             <lid_reference>$BROWSE_REPROJ_LID$</lid_reference>
             <reference_type>data_to_browse</reference_type>
@@ -316,11 +324,11 @@
             <axes>2</axes>
             <axis_index_order>Last Index Fastest</axis_index_order>
             <description>
-                Line is the radial axis and Sample is the co-rotating longitude axis.
+                Line is the radial axis and Sample is the corotating longitude axis.
                 Line 0 is the innermost row, at a delta radius of -1000 km from the
                 F ring core, and the delta radius increases outward by 5 km per line,
                 so that delta radius = -1000 + 5 * Line km and the modeled core lies
-                at Line 200. Sample 0 is the minimum co-rotating longitude given by
+                at Line 200. Sample 0 is the minimum corotating longitude given by
                 rings:minimum_corotating_ring_longitude and the longitude increases
                 by 0.02 degrees per sample, wrapping through 360 degrees when the
                 minimum is greater than the maximum.
@@ -335,12 +343,12 @@
                 <sequence_number>1</sequence_number>
             </Axis_Array>
             <Axis_Array>
-                <axis_name>Sample</axis_name> <!-- horizontal (co-rotating longitude) -->
+                <axis_name>Sample</axis_name> <!-- horizontal (corotating longitude) -->
                 <elements>$IMG_NUM_SAMPLES$</elements>
                 <sequence_number>2</sequence_number>
             </Axis_Array>
             <Special_Constants>
-                <!-- Data was missing or corrupted in the original image (either because it was off
+                <!-- The data were missing or corrupted in the original image (either because it was off
                  the edge of the FOV or because of a transmission error resulting in a partial or
                  corrupted image) -->
                 <missing_constant>$SENTINEL$</missing_constant>
@@ -366,8 +374,8 @@
                 J2000 coordinates, so the third row is the boresight and matches the right
                 ascension and declination given in the header. The roll given in the header
                 is the angle of the camera X axis about the boresight, measured from the
-                direction of increasing declination and positive towards increasing right
-                ascension.
+                direction of increasing right ascension and positive towards increasing
+                declination.
             </comment>
         </File>
         <Header>
@@ -392,6 +400,10 @@
                     <field_location unit="byte">1</field_location>
                     <data_type>ASCII_Real</data_type>
                     <field_length unit="byte">16</field_length>
+                    <description>
+                        The J2000 X component of the camera axis given in this record. The
+                        three records are the camera X, Y and Z (boresight) axes in turn.
+                    </description>
                 </Field_Character>
                 <Field_Character>
                     <name>C-matrix second column</name>
@@ -399,6 +411,9 @@
                     <field_location unit="byte">17</field_location>
                     <data_type>ASCII_Real</data_type>
                     <field_length unit="byte">16</field_length>
+                    <description>
+                        The J2000 Y component of the camera axis given in this record.
+                    </description>
                 </Field_Character>
                 <Field_Character>
                     <name>C-matrix third column</name>
@@ -406,6 +421,9 @@
                     <field_location unit="byte">33</field_location>
                     <data_type>ASCII_Real</data_type>
                     <field_length unit="byte">16</field_length>
+                    <description>
+                        The J2000 Z component of the camera axis given in this record.
+                    </description>
                 </Field_Character>
             </Record_Character>
         </Table_Character>
@@ -438,12 +456,12 @@
             <records>$FILE_RECORDS(METADATA_PARAMS_TABLE_PATH)-1$</records>
             <description>
                 The metadata for each longitude in the reprojected image that contains valid data.
-                The records are in order of increasing co-rotating longitude starting at 0
+                The records are in order of increasing corotating longitude starting at 0
                 degrees. When the longitude range of the image wraps through 360 degrees, this
                 is not the order in which the columns are stored in the image: the records
                 covering 0 degrees to rings:maximum_corotating_ring_longitude come first,
                 followed by those covering rings:minimum_corotating_ring_longitude to 360
-                degrees. Longitudes that contain no valid data have no record at all, so in
+                degrees. A longitude where no valid data are available has no record at all, so in
                 general record N does not correspond to image column N. Use the
                 rings:corotating_ring_longitude field, not the record number, to associate a
                 record with a column.
@@ -562,7 +580,7 @@
                     <description>
                         The F ring core radius from the elliptic model at the tabulated corotating
                         longitude and exposure mid-time, using a=140221.3 km, e=0.00235,
-                        long_peri at J2000 = 24.2 deg, and pericenter precession rate =
+                        longitude_pericenter at J2000 = 24.2 deg, and pericenter precession rate =
                         2.70025 deg/day.
                     </description>
                 </Field_Character>
@@ -604,7 +622,7 @@
                     <field_length unit="byte">7</field_length>
                     <unit>deg</unit>
                     <description>
-                        True anomaly = (inertial_longitude - long_peri) % 360 deg at exposure
+                        True anomaly = (inertial_longitude - longitude_pericenter) % 360 deg at exposure
                         mid-time.
                     </description>
                 </Field_Character>

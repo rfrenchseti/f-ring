@@ -13,7 +13,7 @@ Cassini observations were organized into observing campaigns. Each campaign was 
 [INST]_[REV][TI]_[UNIQUENAME]_[PINST]
 \end{CodeBlock}
 
-where for the observations included in this bundle:
+\noindent where for the observations included in this bundle:
 
 \begin{itemize}
 \item INST is the abbreviation for the instrument being commanded (usually “ISS”)
@@ -38,11 +38,11 @@ where for the observations included in this bundle:
 \item SUBM*, TDIFS*, TMAP* – Thermal observations by the Composite Infrared Spectrometer (CIRS); ISS rider
 \item UR* – Ultraviolet Imaging Spectrograph (UVIS) ring stellar occultation; ISS rider
 \end{itemize}
-\item PINST usually names the prime instrument when it is not the ISS \zcite{(Knowles 2018)}. A value of “PRIME” means the ISS was itself the prime instrument; any other value normally means the ISS images were a ride-along on an observation designed for the named instrument. The rule is not absolute: alongside “PRIME”, “VIMS”, “CIRS”, and “UVIS”, this bundle also contains the codes “SI” (\code{IOSIC\_\allowbreak{}276RB\_\allowbreak{}COMPLITB3001\_\allowbreak{}SI} and \code{IOSIC\_\allowbreak{}276RB\_\allowbreak{}COMPLITB4001\_\allowbreak{}SI}) and “PIE” (\code{ISS\_\allowbreak{}253RI\_\allowbreak{}HIRESAFRG001\_\allowbreak{}PIE}), which name no instrument.
+\item PINST usually names the prime instrument when it is not the ISS \zcite{(Knowles 2018)}. A value of “PRIME” means the ISS was itself the prime instrument; any other value normally means the ISS images were a ride-along on an observation designed for the named instrument. The rule is not absolute: alongside “PRIME”, “VIMS”, “CIRS”, and “UVIS”, this bundle also contains the codes “SI” (\code{IOSIC\_\allowbreak{}276RB\_\allowbreak{}COMPLITB3001\_\allowbreak{}SI} and \code{IOSIC\_\allowbreak{}276RB\_\allowbreak{}COMPLITB4001\_\allowbreak{}SI}) and “PIE” (\code{ISS\_\allowbreak{}253RI\_\allowbreak{}HIRESAFRG001\_\allowbreak{}PIE}), which do not name any instrument.
 \end{itemize}
 The complete set of $\sim$100,000 images containing the F ring was manually inspected for high-quality images.
 
-In general, an image was included in our data set if:
+In general, an image was included in our dataset if:
 
 \begin{enumerate}
 \item It was a member of a series of images taken at different corotating longitudes that could be stitched together into a mosaic;
@@ -72,7 +72,7 @@ It is important to realize that it was the F ring that was rotating, not the cam
 
 An example of a standard mosaic is shown in Figure~\ref{fig:fmovie-mosaic}.
 
-\begin{figure}[htbp]
+\begin{figure}[tbp]
 \centering
 \noindent\includegraphics[width=\linewidth]{figures/fig1-fmovie-mosaic.png}
 \caption{Mosaic of observation \code{iss\_\allowbreak{}039rf\_\allowbreak{}fmovie001\_\allowbreak{}vims}, a standard F movie taken as a rider on a VIMS-prime observation.}
@@ -89,7 +89,7 @@ Although Cassini observing campaigns are indicated by their observation name, so
 \paragraph{M1: Multiple contiguous observations of the same inertial longitude range}
 \label{sec:m1-multiple-contiguous-observations-of-the-same}
 
-In some cases, an observation stared at a single inertial longitude for more than a complete orbit of the F ring. In these cases, the observation was broken into multiple chunks, with each complete orbit of the F ring (and the final partial orbit, if there was one) used to create a separate mosaic. Such observations are noted in the index file with “M1”. The following mosaics have this flag. Two shorthands are used in the mosaic lists throughout this section: a suffix list such as \code{\_\allowbreak{}1/\allowbreak{}2} stands for the separate mosaics \code{\_\allowbreak{}1} and \code{\_\allowbreak{}2}, and a suffix range, written with an en dash outside the monospace name as in \code{\_\allowbreak{}2}–\code{\_\allowbreak{}9}, stands for \code{\_\allowbreak{}2} through \code{\_\allowbreak{}9}.
+In some cases, an observation stared at a single inertial longitude for more than a complete orbit of the F ring. In these cases, the observation was broken into multiple chunks, with each complete orbit of the F ring (and the final partial orbit, if there was one) used to create a separate mosaic. Such observations are noted in the index file with “M1”. The following mosaics have this flag. Two shorthands are used in the mosaic lists throughout this section: a suffix list such as \code{\_\allowbreak{}1/\allowbreak{}2} stands for the separate mosaics \code{\_\allowbreak{}1} and \code{\_\allowbreak{}2}, and a suffix range, written with an en dash outside the name as in \code{\_\allowbreak{}2}–\code{\_\allowbreak{}9}, stands for \code{\_\allowbreak{}2} through \code{\_\allowbreak{}9}.
 
 \begin{itemize}
 \item \code{iss\_\allowbreak{}198ri\_\allowbreak{}spokemov005\_\allowbreak{}prime\_\allowbreak{}1/\allowbreak{}2}
@@ -198,11 +198,13 @@ A small number of observations follow a single corotating longitude, taking one 
 
 \begin{figure}[htbp]
 \centering
-\includegraphics[width=0.327\linewidth]{figures/fig4a-reproj-img-1.png}
+% The three images are all 401 rows tall but cover slightly different numbers
+% of longitudes, so they are scaled to a common height, not a common width.
+\includegraphics[height=0.62\linewidth]{figures/fig4a-reproj-img-1.png}
 \hfill
-\includegraphics[width=0.327\linewidth]{figures/fig4b-reproj-img-2.png}
+\includegraphics[height=0.62\linewidth]{figures/fig4b-reproj-img-2.png}
 \hfill
-\includegraphics[width=0.327\linewidth]{figures/fig4c-reproj-img-3.png}
+\includegraphics[height=0.62\linewidth]{figures/fig4c-reproj-img-3.png}
 \caption{Three reprojected images from mosaic \code{iss\_\allowbreak{}191rf\_\allowbreak{}fmovie001\_\allowbreak{}prime\_\allowbreak{}1}, each covering approximately the same 4° range of corotating longitude. Source image index 0, \code{1748745661n} (left), was taken at inertial longitudes 5.7°–9.6°; index 4, \code{1748746261n} (middle), at 9.3°–13.3°; index 8, \code{1748746865n} (right), at 12.9°–17.1°. (Flag R.)}
 \label{fig:r-reproj-imgs}
 \end{figure}
@@ -260,17 +262,15 @@ The occultation observations are marked with “O”. The following mosaics have
 \item \code{iss\_\allowbreak{}206ri\_\allowbreak{}l2pupocc002\_\allowbreak{}vims} — L2 Puppis
 \end{itemize}
 
-Each of these stars is named in a \code{Target\_\allowbreak{}Identification} block in the label of every data product belonging to its observation, and is linked there to the PDS context product for the star. The full set of stars observed is listed in \code{bundle.\allowbreak{}lblx} and in the three \code{data\_\allowbreak{}*} collection labels. The browse, document, miscellaneous, context, and \code{xml\_\allowbreak{}schema} collection labels carry no targets at all, and \code{collection\_\allowbreak{}spice\_\allowbreak{}kernels.\allowbreak{}lblx} lists only the two ring targets.
+Each of these stars is named in a \code{Target\_\allowbreak{}Identification} block in the label of every data product belonging to its observation, and is linked there to the PDS context product for the star. The full set of stars observed is listed in \code{bundle.\allowbreak{}lblx} and in the three \code{data\_\allowbreak{}*} collection labels. The browse, document, miscellaneous, context, and \code{xml\_\allowbreak{}schema} collection labels do not name targets at all, and \code{collection\_\allowbreak{}spice\_\allowbreak{}kernels.\allowbreak{}lblx} lists only the two ring targets.
 
 
 \subsubsection{Reprojected images that were not used in a mosaic}
 \label{sec:reprojected-images-not-used-in-a-mosaic}
 
-For most observations, the reprojected images archived here are exactly those that contributed data to the observation’s mosaic. The “R” (Section~\ref{sec:r-follows-one-corotating-longitude-range-with-di}) and “O” (Section~\ref{sec:o-occultation}) observations are the exceptions. For these, the mosaic is of limited use and the reprojected images are the product of interest, so every reprojected image from the observation is archived, whether or not it supplied any data to the mosaic.
+For most observations, the reprojected images archived here are exactly those that contributed data to the observation’s mosaic; some images from the original Cassini observation may have been left out if they were not needed for the mosaic. The “R” (Section~\ref{sec:r-follows-one-corotating-longitude-range-with-di}) and “O” (Section~\ref{sec:o-occultation}) observations are the exceptions. For these, the mosaic is of limited use and the reprojected images are the product of interest, so every reprojected image from the observation is archived, whether or not it supplied any data to the mosaic.
 
-A reprojected image that did not contribute to the mosaic is not listed in the mosaic’s \code{OBSID\_\allowbreak{}mosaic[\_\allowbreak{}bkg\_\allowbreak{}sub]\_\allowbreak{}metadata\_\allowbreak{}src\_\allowbreak{}imgs.\allowbreak{}tab} file and is never referenced by the \code{image\_\allowbreak{}index} column of \code{OBSID\_\allowbreak{}mosaic[\_\allowbreak{}bkg\_\allowbreak{}sub]\_\allowbreak{}metadata\_\allowbreak{}params.\allowbreak{}tab} (Section~\ref{sec:data-mosaic-and-data-mosaic-bkg-sub}). The description in each reprojected image’s own label states which of the two cases applies.
-
-\clearpage
+A reprojected image that did not contribute to the mosaic is not listed in the mosaic’s \code{OBSID\_\allowbreak{}mosaic[\_\allowbreak{}bkg\_\allowbreak{}sub]\_\allowbreak{}metadata\_\allowbreak{}src\_\allowbreak{}imgs.\allowbreak{}tab} file and is never referenced by the \code{image\_\allowbreak{}index} column of \code{OBSID\_\allowbreak{}mosaic[\_\allowbreak{}bkg\_\allowbreak{}sub]\_\allowbreak{}metadata\_\allowbreak{}params.\allowbreak{}tab} (Section~\ref{sec:data-mosaic-and-data-mosaic-bkg-sub}). The description in each reprojected image’s own label states which of the two cases applies. The label of an image that did not contribute does not carry a derived-product reference to the mosaic or to the background-subtracted mosaic, because neither holds any of its pixels. A related case arises when an image did contribute to the mosaic but every longitude it supplied was later removed by the background subtraction (Section~\ref{sec:background-modeling}): its label then references the mosaic but not the background-subtracted mosaic, and the background-subtracted mosaic’s source-image table omits it (Section~\ref{sec:data-mosaic-and-data-mosaic-bkg-sub}).
 
 \subsection{Calibration}
 \label{sec:calibration}
@@ -283,7 +283,7 @@ Calibrated images were retrieved from the PDS Ring-Moon Systems Node archive.\fo
 
 The spacecraft pointing information present in SPICE C kernels is known to have errors on the order of dozens of NAC pixels. Before processing each image, an automatic navigation procedure \zcite{(French et al. 2014b, 2016)} was performed that matched the image with features predicted to be present in it, such as stars and the edge of the A ring. Once a mosaic was created from a set of images, the quality of the navigation was evaluated by eye and, in some cases, the navigation of some images was manually adjusted for the best visual result. The (automatically or manually) adjusted C matrix for each image is reported in a supplemental file called \code{IMGID\_\allowbreak{}reproj\_\allowbreak{}img\_\allowbreak{}suppl.\allowbreak{}txt} in the \code{data\_\allowbreak{}reproj\_\allowbreak{}img} collection. See Section~\ref{sec:data-reproj-img}.
 
-The outcome of that visual evaluation is recorded for each mosaic as the coded \code{nav\_\allowbreak{}quality} field of the global index files (Section~\ref{sec:the-global-index-files}). No label contains an element of that name: the mosaic and reprojected image labels give the grade in words instead, in the \code{comment} element of their \code{Observation\_\allowbreak{}Area}, as in “the subjective quality of the navigation for all of the images for this mosaic is \textit{good}”. The grade is subjective and describes the mosaic as a whole:
+The outcome of that visual evaluation is recorded for each mosaic as the coded \code{nav\_\allowbreak{}quality} field of the global index files (Section~\ref{sec:the-global-index-files}). The mosaic and reprojected image labels give the grade in words instead, in the \code{comment} element of their \code{Observation\_\allowbreak{}Area}, in the form: the subjective quality of the navigation for all of the images for this mosaic is \textquotedbl good\textquotedbl. The grade is subjective and describes the mosaic as a whole:
 
 \begin{itemize}
 \item \textbf{G} (good): the ring core runs continuously across the mosaic, with no visible radial step or tilt where one source image abuts the next.
@@ -303,7 +303,7 @@ Each calibrated image was converted to a reprojected image by mapping the pixels
 \subsubsection{F ring orbit}
 \label{sec:f-ring-orbit}
 
-Various orbital fits for the F ring core have been developed over time \zcite{(Albers et al. 2012; Cooper et al. 2013; Cuzzi et al. 2024)}. We use the orbit fit from Albers et al. \zcite{(2012)}, Table 3, fit 2, throughout:
+Various orbital fits for the F ring core have been developed over time \zcite{(Albers et al. 2012; Cooper et al. 2013; Cuzzi et al. 2024)}. We use the orbit fit from Albers et al. \zcite{(2012)}, Table 3, fit \#2, throughout:
 
 \begin{equation*}
 \begin{aligned}
@@ -321,11 +321,11 @@ Corotating longitude is based on a reference frame that rotates with the mean mo
 
 \begin{equation*}\mathit{corot} = \left(\mathit{inertial} - n\,\frac{\mathit{ET} - \mathit{epoch\_ET}}{86400}\right) \bmod 360\end{equation*}
 
-and to convert from corotating to inertial longitude:
+\noindent and to convert from corotating to inertial longitude:
 
 \begin{equation*}\mathit{inertial} = \left(\mathit{corot} + n\,\frac{\mathit{ET} - \mathit{epoch\_ET}}{86400}\right) \bmod 360\end{equation*}
 
-where \textit{ET} is the ephemeris (SPICE) time of the image in seconds and \textit{epoch\_\allowbreak{}ET} is the corotating epoch in seconds, equal to 220881665.1839181.
+\noindent where \textit{ET} is the ephemeris (SPICE) time of the image in seconds and \textit{epoch\_\allowbreak{}ET} is the corotating epoch in seconds, equal to 220881665.1839181.
 
 Note that the choice of epoch is arbitrary, and when comparing absolute corotating longitudes from different sources it is important to convert them to a common reference frame. For example, Murray et al. \zcite{(2008)} used 2007-01-01T12:00:00Z and French et al. \zcite{(2012)} used 2004-01-01T12:00:00Z, while French et al. \zcite{(2014a)} used the same epoch adopted here.
 
@@ -333,7 +333,7 @@ To determine the radius of the F ring core, we use the standard formula:
 
 \begin{equation*}r_{\mathrm{core}}=\frac{a(1-e^{2})}{1+e\cos\left(\lambda-\left(\varpi_{0}+\dot{\varpi}\frac{\mathit{ET}}{86400}\right)\right)}\end{equation*}
 
-where \textit{λ} is the inertial longitude (converted from the corotating longitude as described above), so that the argument of the cosine is the true anomaly.
+\noindent where \textit{λ} is the inertial longitude (converted from the corotating longitude as described above), so that the argument of the cosine is the true anomaly.
 
 
 \subsubsection{Reprojection process}
@@ -403,19 +403,9 @@ Mean, minimum, and maximum values for many of these parameters are included in t
 \subsection{Background modeling}
 \label{sec:background-modeling}
 
-The final step in the data production pipeline is modeling and subtracting the background gradient for each mosaic. The background gradient is modeled separately for each corotating longitude using a linear function. Regions normally consisting of the innermost 50 rows (\dr{} = −1000 to −755 km) and the outermost 50 rows (\dr{} = +755 to +1000 km) are used to fit a linear model, which is then subtracted from the complete 401-row radial slice. When creating the model, pixel values that are statistically anomalous compared to nearby longitudes are automatically masked. This removes stars, Prometheus and Pandora, and bad pixels from the background model computation. In some cases, the standard margins are not appropriate. Reasons include large objects such as Prometheus covering an entire margin, the reprojected source images not providing data for the entire radial range (which would require the background margins to be increased in size), and very low-resolution images where the F ring bleeds over into the background region (which would require background margins to be reduced). Such determinations were made through careful examination of each mosaic and the extent of the background margin was manually adjusted as needed. Whenever possible, the new margins were chosen to have minimal effect on computation of equivalent width.\footnote{Equivalent width is a photometric value that integrates the brightness of a radial slice, taking into account the resolution of the image.} The chosen margins are given as the coded \code{bkgnd\_\allowbreak{}lower\_\allowbreak{}limit} and \code{bkgnd\_\allowbreak{}upper\_\allowbreak{}limit} fields of the global background-subtracted mosaic index (Section~\ref{sec:the-global-index-files}); the label of a background-subtracted mosaic contains no elements of those names, describing the margins in words in the \code{comment} element of its \code{Observation\_\allowbreak{}Area} instead, as in “available data from 905 to 1000 km closer to Saturn and 750 to 1000 km further from Saturn”. Both index fields are signed values of \dr{} in km and bound the ring itself, so the background is every row outside them: the interior region runs from −1000 km up to but not including \code{bkgnd\_\allowbreak{}lower\_\allowbreak{}limit} (normally −750 km), and the exterior region runs from just beyond \code{bkgnd\_\allowbreak{}upper\_\allowbreak{}limit} (normally +750 km) through +1000 km.
+The final step in the data production pipeline is modeling and subtracting the background gradient for each mosaic. The background gradient is modeled separately for each corotating longitude using a linear function. Regions normally consisting of the innermost 50 rows (\dr{} = −1000 to −755 km) and the outermost 50 rows (\dr{} = +755 to +1000 km) are used to fit a linear model, which is then subtracted from the complete 401-row radial slice. When creating the model, pixel values that are statistically anomalous compared to nearby longitudes are automatically masked. This removes stars, Prometheus and Pandora, and bad pixels from the background model computation. In some cases, the standard margins are not appropriate. Reasons include large objects such as Prometheus covering an entire margin, the reprojected source images not providing data for the entire radial range (which would require the background margins to be increased in size), and very low-resolution images where the F ring bleeds over into the background region (which would require background margins to be reduced). Such determinations were made through careful examination of each mosaic and the extent of the background margin was manually adjusted as needed. Whenever possible, the new margins were chosen to have minimal effect on computation of equivalent width.\footnote{Equivalent width is a photometric value that integrates the brightness of a radial slice, taking into account the resolution of the image.} The chosen margins are given as the coded \code{bkgnd\_\allowbreak{}lower\_\allowbreak{}limit} and \code{bkgnd\_\allowbreak{}upper\_\allowbreak{}limit} fields of the global background-subtracted mosaic index (Section~\ref{sec:the-global-index-files}); the label of a background-subtracted mosaic describes the margins in words instead, in the \code{comment} element of its \code{Observation\_\allowbreak{}Area}, as in “available data from 910 to 1000 km closer to Saturn and 755 to 1000 km further from Saturn”. Both index fields are signed values of \dr{} in km and bound the ring itself, so the background is every row outside them: the interior region runs from −1000 km up to but not including \code{bkgnd\_\allowbreak{}lower\_\allowbreak{}limit} (normally −750 km), and the exterior region runs from just beyond \code{bkgnd\_\allowbreak{}upper\_\allowbreak{}limit} (normally +750 km) through +1000 km.
 
-In cases where, even after adjusting the margins, there was insufficient radial data to create a background model for some longitudes, those longitudes were marked as invalid and deleted from the background-subtracted mosaic. As a result, the background-subtracted mosaic may have fewer (and sometimes substantially fewer) valid longitudes than the original mosaic. An example is shown in Figure~\ref{fig:bkg-sub-mosaic}.
-
-The model is fit to noisy data, so subtracting it leaves the background regions scattered about zero. Roughly half of the pixels away from the ring in a background-subtracted mosaic are consequently negative. This is expected. Keep these values instead of clipping them at zero; discarding the negative half of the noise biases any integral over a radial slice, equivalent width included.
-
-Each background-subtracted mosaic was inspected and the result recorded as the coded \code{bkgnd\_\allowbreak{}quality} field of the global background-subtracted mosaic index (Section~\ref{sec:the-global-index-files}); as with \code{nav\_\allowbreak{}quality}, the label states the grade in words in its \code{Observation\_\allowbreak{}Area} \code{comment} rather than as an element of that name. Like \code{nav\_\allowbreak{}quality} (Section~\ref{sec:navigation}), the grade is subjective:
-
-\begin{itemize}
-\item \textbf{G} (good): the regions away from the ring are flat after subtraction at essentially all longitudes.
-\item \textbf{F} (fair): a residual gradient or offset remains at some longitudes, small enough that equivalent widths are still usable.
-\item \textbf{P} (poor): the model is visibly wrong over a substantial range of longitudes, usually because too little background data was available or because the F ring dust sheet extends into the background region.
-\end{itemize}
+In cases where, even after adjusting the margins, fewer valid pixels than the minimum set for that mosaic remained in either background region at some longitudes once the anomalous pixels had been masked, those longitudes were marked as invalid and deleted from the background-subtracted mosaic; the label of each background-subtracted mosaic states the two minimums. As a result, the background-subtracted mosaic may have fewer (and sometimes substantially fewer) valid longitudes than the original mosaic. An example is shown in Figure~\ref{fig:bkg-sub-mosaic}.
 
 \begin{figure}[htbp]
 \centering
@@ -424,3 +414,14 @@ Each background-subtracted mosaic was inspected and the result recorded as the c
 \caption{Original mosaic \code{iss\_\allowbreak{}007ri\_\allowbreak{}hpmrdfmov001\_\allowbreak{}prime} (top) and associated background-subtracted mosaic (bottom). The lack of some data in the original mosaic (to the lower left of the large blank area) prevents the creation of a background model for those longitudes, resulting in a background-subtracted mosaic with substantially fewer valid longitudes.}
 \label{fig:bkg-sub-mosaic}
 \end{figure}
+
+The model is fit to noisy data, so subtracting it leaves the background regions scattered about zero. Roughly half of the pixels away from the ring in a background-subtracted mosaic are consequently negative. This is expected. Keep these values instead of clipping them at zero; discarding the negative half of the noise biases any integral over a radial slice, equivalent width included.
+
+Each background-subtracted mosaic was inspected and the result recorded as the coded \code{bkgnd\_\allowbreak{}quality} field of the global background-subtracted mosaic index (Section~\ref{sec:the-global-index-files}); as with \code{nav\_\allowbreak{}quality}, the label states the grade in words in its \code{Observation\_\allowbreak{}Area} \code{comment}. Like \code{nav\_\allowbreak{}quality} (Section~\ref{sec:navigation}), the grade is subjective:
+
+\begin{itemize}
+\item \textbf{G} (good): the regions away from the ring are flat after subtraction at essentially all longitudes.
+\item \textbf{F} (fair): a residual gradient or offset remains at some longitudes, small enough that equivalent widths are still usable.
+\item \textbf{P} (poor): the model is visibly wrong over a substantial range of longitudes, usually because too little background data was available or because the F ring dust sheet extends into the background region.
+\end{itemize}
+

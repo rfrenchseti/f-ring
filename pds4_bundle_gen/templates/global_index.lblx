@@ -138,6 +138,128 @@
             </Modification_Detail>
         </Modification_History>
     </Identification_Area>
+    <Context_Area>
+        <Time_Coordinates>
+            <start_date_time>$EARLIEST_START_DATE_TIME$</start_date_time>
+            <stop_date_time>$LATEST_STOP_DATE_TIME$</stop_date_time>
+        </Time_Coordinates>
+        <Primary_Result_Summary>
+            <purpose>Science</purpose>
+            <processing_level>Derived</processing_level>
+            <Science_Facets>
+                <wavelength_range>Visible</wavelength_range>
+                <discipline_name>Ring-Moon Systems</discipline_name>
+            </Science_Facets>
+        </Primary_Result_Summary>
+        <Investigation_Area>
+            <name>Cassini-Huygens</name>
+            <type>Mission</type>
+            <Internal_Reference>
+                <lid_reference>urn:nasa:pds:context:investigation:mission.cassini-huygens</lid_reference>
+                <reference_type>ancillary_to_investigation</reference_type>
+            </Internal_Reference>
+        </Investigation_Area>
+        <Observing_System>
+            <name>Cassini Orbiter Imaging Science Subsystem</name>
+            <Observing_System_Component>
+                <name>Cassini Orbiter</name>
+                <type>Host</type>
+                <Internal_Reference>
+                    <lid_reference>urn:nasa:pds:context:instrument_host:spacecraft.co</lid_reference>
+                    <reference_type>is_instrument_host</reference_type>
+                </Internal_Reference>
+            </Observing_System_Component>
+            <Observing_System_Component>
+                <name>Imaging Science Subsystem - Narrow Angle</name>
+                <type>Instrument</type>
+                <description>ISSNA</description>
+                <Internal_Reference>
+                    <lid_reference>urn:nasa:pds:context:instrument:issna.co</lid_reference>
+                    <reference_type>is_instrument</reference_type>
+                </Internal_Reference>
+            </Observing_System_Component>
+            <Observing_System_Component>
+                <name>Imaging Science Subsystem - Wide Angle</name>
+                <type>Instrument</type>
+                <description>ISSWA</description>
+                <Internal_Reference>
+                    <lid_reference>urn:nasa:pds:context:instrument:isswa.co</lid_reference>
+                    <reference_type>is_instrument</reference_type>
+                </Internal_Reference>
+            </Observing_System_Component>
+        </Observing_System>
+        <Target_Identification>
+            <name>F Ring of Saturn</name>
+            <type>Ring</type>
+            <Internal_Reference>
+                <lid_reference>urn:nasa:pds:context:target:ring.saturn.f_ring</lid_reference>
+                <reference_type>ancillary_to_target</reference_type>
+            </Internal_Reference>
+        </Target_Identification>
+        <Target_Identification>
+            <name>Saturn Rings</name>
+            <type>Ring</type>
+            <Internal_Reference>
+                <lid_reference>urn:nasa:pds:context:target:ring.saturn.rings</lid_reference>
+                <reference_type>ancillary_to_target</reference_type>
+            </Internal_Reference>
+        </Target_Identification>
+        <Target_Identification>
+            <name>Prometheus</name>
+            <alternate_designation>Saturn XVI (Prometheus)</alternate_designation>
+            <alternate_designation>S/1980 S 27</alternate_designation>
+            <alternate_designation>NAIF ID 616</alternate_designation>
+            <type>Satellite</type>
+            <description>
+                NAIF ID: 616;
+                Center of motion: Saturn;
+                LID of central body: urn:nasa:pds:context:target:planet.saturn;
+                NAIF ID of central body: 699.
+            </description>
+            <Internal_Reference>
+                <lid_reference>urn:nasa:pds:context:target:satellite.saturn.prometheus</lid_reference>
+                <reference_type>ancillary_to_target</reference_type>
+            </Internal_Reference>
+        </Target_Identification>
+        <Target_Identification>
+            <name>Pandora</name>
+            <alternate_designation>Saturn XVII (Pandora)</alternate_designation>
+            <alternate_designation>S/1980 S 26</alternate_designation>
+            <alternate_designation>NAIF ID 617</alternate_designation>
+            <type>Satellite</type>
+            <description>
+                NAIF ID: 617;
+                Center of motion: Saturn;
+                LID of central body: urn:nasa:pds:context:target:planet.saturn;
+                NAIF ID of central body: 699.
+            </description>
+            <Internal_Reference>
+                <lid_reference>urn:nasa:pds:context:target:satellite.saturn.pandora</lid_reference>
+                <reference_type>ancillary_to_target</reference_type>
+            </Internal_Reference>
+        </Target_Identification>
+    </Context_Area>
+    <Reference_List>
+        <Internal_Reference>
+            <lid_reference>$INDEXED_COLLECTION_LID$</lid_reference>
+            <reference_type>ancillary_to_data</reference_type>
+            <comment>
+                The collection whose products this index summarizes, one record per product.
+            </comment>
+        </Internal_Reference>
+        <Internal_Reference>
+            <lid_reference>$USERGUIDE_LID$</lid_reference>
+            <reference_type>ancillary_to_document</reference_type>
+            <comment>
+                $USERGUIDE_COMMENT$
+            </comment>
+        </Internal_Reference>
+        <Internal_Reference>
+            <lid_reference>$CASSINI_USER_GUIDE_LID$</lid_reference>
+            <reference_type>ancillary_to_document</reference_type>
+            <comment>$CASSINI_USER_GUIDE_DESC$</comment>
+        </Internal_Reference>
+    </Reference_List>
     <File_Area_Ancillary>
         <File>
             <file_name>$GLOBAL_INDEX_TABLE_FILENAME$</file_name>
@@ -355,7 +477,7 @@
                     <field_length unit="byte">6</field_length>
                     <unit>deg</unit>
                     <description>
-                        The lower end of the range of co-rotating longitude that contains
+                        The lower end of the range of corotating longitude that contains
                         valid data.
                         $IF(IS_MOSAIC)
                         Note that this is not the same quantity as the
@@ -375,7 +497,7 @@
                     <field_length unit="byte">6</field_length>
                     <unit>deg</unit>
                     <description>
-                        The upper end of the range of co-rotating longitude that contains
+                        The upper end of the range of corotating longitude that contains
                         valid data.
                         $IF(IS_MOSAIC)
                         Note that this is not the same quantity as the
@@ -909,7 +1031,7 @@
                     <field_length unit="byte">5</field_length>
                     <unit>km</unit>
                     <description>
-                        The lower ring delta radius used to delineate the background region; radii between this and core-1000 are used for background modeling.
+                        The inner edge of the ring region, as a signed delta radius in km from the F ring core. The rows from -1000 km up to but not including this value were used for background modeling; with the default value of -750, those are the 50 rows from -1000 km to -755 km.
                     </description>
                 </Field_Character>
                 <Field_Character>
@@ -920,7 +1042,7 @@
                     <field_length unit="byte">4</field_length>
                     <unit>km</unit>
                     <description>
-                        The upper ring delta radius used to delineate the background region; radii between this and core+1000 are used for background modeling.
+                        The outer edge of the ring region, as a signed delta radius in km from the F ring core. The rows beyond this value, up through +1000 km, were used for background modeling; with the default value of 750, those are the 50 rows from +755 km to +1000 km.
                     </description>
                 </Field_Character>
                 $ELSE
